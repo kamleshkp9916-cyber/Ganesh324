@@ -131,6 +131,7 @@ export default function LiveSellingPage() {
         {!isSearchVisible && <Separator className="mt-4" />}
       </header>
       <main className="flex-1 overflow-y-auto px-4">
+        <h2 className="text-xl font-semibold mb-4">Live Sellers</h2>
         <div className="grid grid-cols-2 gap-4">
           {filteredProducts.map((product, index) => (
             <Card key={index} className="overflow-hidden relative aspect-[9/16]">
