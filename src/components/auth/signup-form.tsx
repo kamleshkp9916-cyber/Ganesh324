@@ -22,6 +22,14 @@ import { toast } from "@/hooks/use-toast";
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
   lastName: z.string().min(1, { message: "Please enter your last name." }),
+  userId: z.string()
+    .min(2, { message: "User ID must be at least 2 characters." })
+    .refine((val) => val.startsWith('@'), {
+      message: "User ID must start with @.",
+    })
+    .refine((val) => /^[a-z0-9_.]+$/.test(val.substring(1)), {
+      message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
+    }),
   phone: z.string().min(10, { message: "Please enter a valid 10-digit phone number." }).max(10, { message: "Please enter a valid 10-digit phone number." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
@@ -66,7 +74,7 @@ export function SignupForm() {
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "", phone: "", email: "", password: "" },
+    defaultValues: { firstName: "", lastName: "", userId: "@", phone: "", email: "", password: "" },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -109,6 +117,29 @@ export function SignupForm() {
             )}
             />
         </div>
+        <FormField
+            control={form.control}
+            name="userId"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>User ID</FormLabel>
+                <FormControl>
+                    <Input 
+                        placeholder="@johndoe" 
+                        {...field} 
+                        onChange={(e) => {
+                            let value = e.target.value.toLowerCase();
+                            if (!value.startsWith('@')) {
+                                value = '@' + value.replace(/@/g, '');
+                            }
+                            field.onChange(value);
+                        }}
+                    />
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+            )}
+        />
         <FormField
             control={form.control}
             name="phone"
