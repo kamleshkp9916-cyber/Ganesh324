@@ -5,30 +5,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, Moon } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, Moon, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
+import { useAuthActions } from "@/lib/auth";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
-export default function LiveSellingPage() {
+function LiveSellingContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-
-  const [userProfile, setUserProfile] = useState({
-    name: 'bantypr324',
-    username: '@bantypr324',
-    avatarUrl: 'https://placehold.co/100x100.png',
-    following: 200,
-    followers: 100,
-  });
 
   const liveProducts = [
     {
@@ -121,90 +114,11 @@ export default function LiveSellingPage() {
     );
   }, [searchQuery, liveProducts]);
 
-  const menuItems = [
-      { icon: User, label: 'My Profile', href: '/profile' },
-      { icon: ShoppingCart, label: 'Orders', href: '#' },
-      { icon: Award, label: 'Top Seller', href: '#' },
-      { icon: MessageSquare, label: 'Message', href: '#' },
-      { icon: Settings, label: 'Setting', href: '#' },
-      { icon: Shield, label: 'Privacy And Security', href: '#' },
-  ]
-
-  const helpItems = [
-    { icon: FileText, label: 'Term & Conditions', href: '#' },
-    { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
-  ]
-
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
-       <header className="p-4">
+    <div className="flex flex-col h-screen">
+      <header className="p-4 border-b">
         <div className="flex items-center justify-between">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <AlignJustify className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 flex flex-col">
-              <SheetHeader className="p-4">
-                <SheetTitle className="sr-only">Menu</SheetTitle>
-              </SheetHeader>
-              <div className="flex-1 overflow-y-auto no-scrollbar p-4">
-                <div className="flex flex-col items-center text-center">
-                    <Avatar className="w-24 h-24 mb-4">
-                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <p className="font-semibold">{userProfile.username}</p>
-                    <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                        <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
-                        <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
-                    </div>
-                </div>
-                <Separator className="my-6" />
-                <nav className="flex flex-col gap-4">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex items-center gap-4 text-lg hover:text-primary"
-                      onClick={(e) => {
-                        if (item.href === '#') {
-                          e.preventDefault();
-                        }
-                      }}
-                    >
-                      <item.icon className="w-6 h-6" />
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                  <Separator className="my-2" />
-                  {helpItems.map((item) => (
-                    <Link
-                      href={item.href}
-                      key={item.label}
-                      className="flex items-center gap-4 text-lg hover:text-primary"
-                       onClick={(e) => {
-                        if (item.href === '#') {
-                          e.preventDefault();
-                        }
-                      }}
-                    >
-                      <item.icon className="w-6 h-6" />
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-
-              <div className="p-4 mt-auto border-t">
-                  <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
-                     <Moon className="w-6 h-6"/>
-                     <span>Dark Mode</span>
-                  </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <SidebarTrigger />
           <div className="flex-1 mx-4">
             {isSearchVisible ? (
               <div className="relative">
@@ -229,9 +143,9 @@ export default function LiveSellingPage() {
         </div>
       </header>
       <main className="flex-1 px-4 flex flex-col overflow-hidden">
-        <h2 className="text-xl font-semibold">Live Sellers</h2>
+        <h2 className="text-xl font-semibold mt-4">Live Sellers</h2>
         <Separator className="my-2" />
-        <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
             <div className="grid grid-cols-2 gap-4">
             {loading ? (
                 Array.from({ length: 8 }).map((_, index) => (
@@ -290,5 +204,104 @@ export default function LiveSellingPage() {
   );
 }
 
+function AppSidebar() {
+  const { signOut } = useAuthActions();
+  const [userProfile] = useState({
+    name: 'bantypr324',
+    username: '@bantypr324',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    following: 200,
+    followers: 100,
+  });
+
+  const menuItems = [
+    { icon: User, label: 'My Profile', href: '/profile' },
+    { icon: ShoppingCart, label: 'Orders', href: '#' },
+    { icon: Award, label: 'Top Seller', href: '#' },
+    { icon: MessageSquare, label: 'Message', href: '#' },
+    { icon: Settings, label: 'Setting', href: '#' },
+    { icon: Shield, label: 'Privacy And Security', href: '#' },
+  ];
+
+  const helpItems = [
+    { icon: FileText, label: 'Term & Conditions', href: '#' },
+    { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
+  ];
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex flex-col items-center text-center p-4">
+            <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
+                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <p className="font-semibold">{userProfile.name}</p>
+            <p className="text-sm text-muted-foreground">{userProfile.username}</p>
+            <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
+                <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
+            </div>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {menuItems.map((item) => (
+            <SidebarMenuItem key={item.label}>
+              <Link href={item.href} className="w-full">
+                <SidebarMenuButton>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+        <Separator className="my-4" />
+        <SidebarMenu>
+            {helpItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <Link href={item.href} className="w-full">
+                    <SidebarMenuButton>
+                        <item.icon />
+                        <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+            ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-2">
+                <Moon/>
+                <span>Dark Mode</span>
+            </div>
+            <ThemeSwitcher />
+        </div>
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={signOut}>
+                    <LogOut />
+                    <span>Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+
+export default function LiveSellingPage() {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <LiveSellingContent />
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
     
