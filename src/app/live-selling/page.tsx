@@ -111,17 +111,17 @@ export default function LiveSellingPage() {
   }, [searchQuery, liveProducts]);
 
   const menuItems = [
-      { icon: User, label: 'My Profile' },
-      { icon: ShoppingCart, label: 'Orders' },
-      { icon: Award, label: 'Top Seller' },
-      { icon: MessageSquare, label: 'Message' },
-      { icon: Settings, label: 'Setting' },
-      { icon: Shield, label: 'Privacy And Security' },
+      { icon: User, label: 'My Profile', href: '/profile' },
+      { icon: ShoppingCart, label: 'Orders', href: '#' },
+      { icon: Award, label: 'Top Seller', href: '#' },
+      { icon: MessageSquare, label: 'Message', href: '#' },
+      { icon: Settings, label: 'Setting', href: '#' },
+      { icon: Shield, label: 'Privacy And Security', href: '#' },
   ]
 
   const helpItems = [
-    { icon: FileText, label: 'Term & Conditions' },
-    { icon: LifeBuoy, label: 'Help 24/7' },
+    { icon: FileText, label: 'Term & Conditions', href: '#' },
+    { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
   ]
 
 
@@ -151,15 +151,15 @@ export default function LiveSellingPage() {
                         </div>
                         <Separator className="my-6" />
                         <nav className="flex flex-col gap-4">
-                            {menuItems.map((item, index) => (
-                                <Link href="#" key={index} className="flex items-center gap-4 text-lg hover:text-primary">
+                            {menuItems.map((item) => (
+                                <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
                                     <item.icon className="w-6 h-6" />
                                     <span>{item.label}</span>
                                 </Link>
                             ))}
                              <Separator className="my-2" />
-                             {helpItems.map((item, index) => (
-                                <Link href="#" key={index} className="flex items-center gap-4 text-lg hover:text-primary">
+                             {helpItems.map((item) => (
+                                <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
                                     <item.icon className="w-6 h-6" />
                                     <span>{item.label}</span>
                                 </Link>
@@ -244,3 +244,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
