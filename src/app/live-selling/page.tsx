@@ -146,7 +146,7 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 flex flex-col">
-              <SheetHeader className="p-4 border-b">
+              <SheetHeader className="p-4">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto no-scrollbar p-4">
@@ -167,10 +167,11 @@ export default function LiveSellingPage() {
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="flex items-center gap-4 text-lg hover:text-primary aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                      aria-disabled={item.href === '#'}
+                      className="flex items-center gap-4 text-lg hover:text-primary"
                       onClick={(e) => {
-                        if (item.href === '#') e.preventDefault();
+                        if (item.href === '#') {
+                          e.preventDefault();
+                        }
                       }}
                     >
                       <item.icon className="w-6 h-6" />
@@ -183,6 +184,11 @@ export default function LiveSellingPage() {
                       href={item.href}
                       key={item.label}
                       className="flex items-center gap-4 text-lg hover:text-primary"
+                       onClick={(e) => {
+                        if (item.href === '#') {
+                          e.preventDefault();
+                        }
+                      }}
                     >
                       <item.icon className="w-6 h-6" />
                       <span>{item.label}</span>
@@ -284,3 +290,5 @@ export default function LiveSellingPage() {
   );
 }
 
+
+    
