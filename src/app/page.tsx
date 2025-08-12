@@ -6,7 +6,7 @@ import Image from 'next/image';
 export default function Home() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12 bg-background">
+      <div className="flex items-center justify-center py-12 bg-white">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-4 text-center">
              <div className="lg:hidden flex justify-center">
