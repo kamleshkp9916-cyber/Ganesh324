@@ -9,6 +9,7 @@ import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, 
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,9 +104,21 @@ export default function LiveSellingPage() {
     <div className="min-h-screen bg-white text-foreground flex flex-col h-screen">
       <header className="p-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon">
-            <AlignJustify className="h-6 w-6" />
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <AlignJustify className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <div className="py-4">
+                <p>Sidebar content goes here.</p>
+              </div>
+            </SheetContent>
+          </Sheet>
           <div className="flex-1 mx-4">
             {isSearchVisible ? (
               <div className="relative">
