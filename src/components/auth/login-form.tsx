@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,12 +60,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <div className="flex items-center">
-                <FormLabel>Password</FormLabel>
-                <Link href="#" className="ml-auto inline-block text-sm underline text-primary">
-                  Forgot your password?
-                </Link>
-              </div>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
@@ -72,24 +68,29 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-         <FormField
-            control={form.control}
-            name="rememberMe"
-            render={({ field }) => (
-            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                <FormControl>
-                <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    id="remember-me"
-                />
-                </FormControl>
-                <FormLabel htmlFor="remember-me" className="font-normal cursor-pointer">
-                    Remember me
-                </FormLabel>
-            </FormItem>
-            )}
-        />
+        <div className="flex items-center justify-between gap-4">
+            <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                    <FormControl>
+                    <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        id="remember-me"
+                    />
+                    </FormControl>
+                    <FormLabel htmlFor="remember-me" className="font-normal cursor-pointer">
+                        Remember me
+                    </FormLabel>
+                </FormItem>
+                )}
+            />
+            <Link href="#" className="inline-block text-sm underline text-primary">
+                Forgot your password?
+            </Link>
+        </div>
         <Button type="submit" className="w-full font-semibold">
           Login
           <ArrowRight className="ml-2 h-4 w-4" />
