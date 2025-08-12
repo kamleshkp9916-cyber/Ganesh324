@@ -251,7 +251,7 @@ function AppSidebar() {
             </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="no-scrollbar">
+      <SidebarContent className="overflow-y-auto no-scrollbar">
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
