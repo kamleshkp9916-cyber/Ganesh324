@@ -225,6 +225,7 @@ function AppSidebar() {
   });
 
   const menuItems = [
+    { icon: User, label: 'My Profile', href: '/profile' },
     { icon: ShoppingCart, label: 'Orders', href: '/orders' },
     { icon: Award, label: 'Top Seller', href: '/top-seller' },
     { icon: MessageSquare, label: 'Message', href: '/message' },
@@ -296,24 +297,12 @@ function AppSidebar() {
         <SidebarMenu>
           {loading ? renderSkeletonMenu() : (
             <>
-              <SidebarMenuItem>
-                <Link href="/profile" passHref legacyBehavior>
-                  <SidebarMenuButton asChild>
-                    <a className="w-full">
-                      <User />
-                      <span>My Profile</span>
-                    </a>
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <Link href={item.href} passHref>
-                    <SidebarMenuButton asChild>
-                      <button className="w-full">
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </button>
+                    <SidebarMenuButton>
+                      <item.icon />
+                      <span>{item.label}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -322,11 +311,9 @@ function AppSidebar() {
               {helpItems.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <Link href={item.href} passHref>
-                      <SidebarMenuButton asChild>
-                        <button className="w-full">
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </button>
+                      <SidebarMenuButton>
+                        <item.icon />
+                        <span>{item.label}</span>
                       </SidebarMenuButton>
                     </Link>
                   </SidebarMenuItem>
@@ -366,5 +353,3 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
-    
