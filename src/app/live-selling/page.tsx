@@ -9,6 +9,7 @@ import { Home, LayoutGrid, Menu, Search, ShoppingCart, FilePen, Wallet, ArrowLef
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/logo";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,7 +120,10 @@ export default function LiveSellingPage() {
                 />
               </div>
             ) : (
-              <h1 className="text-2xl font-bold text-center">Live Selling</h1>
+              <div className="flex flex-col items-center">
+                <Logo className="h-10 w-10 text-primary" />
+                <h1 className="text-xl font-bold">Live Selling</h1>
+              </div>
             )}
           </div>
           <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
@@ -169,3 +173,4 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
