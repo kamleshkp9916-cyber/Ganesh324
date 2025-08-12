@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
@@ -72,6 +73,7 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm() {
   const router = useRouter();
+  const { signInWithGoogle } = useAuthActions();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", userId: "@", phone: "", email: "", password: "" },
@@ -188,7 +190,7 @@ export function SignupForm() {
         <Button type="submit" className="w-full font-semibold">
           Create Account
         </Button>
-        <Button variant="outline" className="w-full font-semibold">
+        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle}>
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>
