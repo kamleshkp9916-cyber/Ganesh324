@@ -255,14 +255,14 @@ function AppSidebar() {
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               {item.href ? (
-                 <Link href={item.href} legacyBehavior passHref>
-                    <SidebarMenuButton asChild>
-                        <a>
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </a>
-                    </SidebarMenuButton>
-                 </Link>
+                <Link href={item.href} passHref>
+                  <SidebarMenuButton asChild>
+                    <span>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </span>
+                  </SidebarMenuButton>
+                </Link>
               ) : (
                 <SidebarMenuButton>
                   <item.icon />
@@ -317,5 +317,3 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
-    
