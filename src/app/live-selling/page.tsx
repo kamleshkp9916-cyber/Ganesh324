@@ -153,15 +153,16 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 flex flex-col">
-                <div className="flex-1 overflow-y-auto no-scrollbar p-4">
-                    <div className="flex items-center justify-end mb-4">
-                        <SheetClose asChild>
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft className="h-6 w-6" />
-                                <span className="sr-only">Close</span>
-                            </Button>
-                        </SheetClose>
-                    </div>
+                <SheetHeader className="p-4 flex flex-row items-center justify-between">
+                    <SheetTitle className="sr-only">User Menu</SheetTitle>
+                    <SheetClose asChild>
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-6 w-6" />
+                            <span className="sr-only">Close</span>
+                        </Button>
+                    </SheetClose>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto no-scrollbar px-4">
                     <div className="flex flex-col items-center text-center">
                         <Avatar className="w-24 h-24 mb-4">
                             <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
