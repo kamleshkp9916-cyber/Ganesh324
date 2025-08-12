@@ -85,7 +85,7 @@ export function SignupForm() {
         title: "Account Created!",
         description: "You have successfully created an account.",
     })
-    router.push(`/otp?identifier=${encodeURIComponent(values.email)}`);
+    router.push(`/live-selling`);
   }
 
   return (

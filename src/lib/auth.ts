@@ -15,7 +15,7 @@ export function useAuthActions() {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
-            router.push("/dashboard");
+            router.push("/live-selling");
         } catch (error) {
             console.error("Error signing in with Google: ", error);
             toast({

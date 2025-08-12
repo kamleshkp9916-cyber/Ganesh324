@@ -1,8 +1,10 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +27,7 @@ const formSchema = z.object({
 })
 
 export function OtpForm() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,6 +38,7 @@ export function OtpForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
     // TODO: Implement OTP verification logic
+    router.push("/live-selling");
   }
 
   return (
