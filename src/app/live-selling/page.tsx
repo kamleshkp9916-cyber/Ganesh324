@@ -28,6 +28,26 @@ export default function LiveSellingPage() {
       userImage: "https://placehold.co/40x40.png",
       userName: "User 4",
     },
+    {
+      bgColor: "bg-gradient-to-b from-yellow-400 to-yellow-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 5",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-pink-400 to-pink-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 6",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-indigo-400 to-indigo-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 7",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-gray-400 to-gray-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 8",
+    },
   ];
 
   return (
@@ -46,7 +66,7 @@ export default function LiveSellingPage() {
           <Separator className="mt-2" />
         </div>
       </header>
-      <main className="flex-1 p-4">
+      <main className="flex-1 p-4 overflow-y-auto">
         <div className="grid grid-cols-2 gap-4">
           {liveProducts.map((product, index) => (
             <Card key={index} className="overflow-hidden relative aspect-[9/16]">
