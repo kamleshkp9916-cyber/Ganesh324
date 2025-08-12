@@ -216,7 +216,7 @@ function AppSidebar() {
     return () => clearTimeout(timer);
   }, []);
 
-  const [userProfile] = useState({
+  const [userProfile, setUserProfile] = useState({
     name: 'bantypr324',
     username: '@bantypr324',
     avatarUrl: 'https://placehold.co/80x80.png',
@@ -225,7 +225,6 @@ function AppSidebar() {
   });
 
   const menuItems = [
-    { icon: User, label: 'My Profile', href: '/profile' },
     { icon: ShoppingCart, label: 'Orders', href: '/orders' },
     { icon: Award, label: 'Top Seller', href: '/top-seller' },
     { icon: MessageSquare, label: 'Message', href: '/message' },
@@ -297,6 +296,16 @@ function AppSidebar() {
         <SidebarMenu>
           {loading ? renderSkeletonMenu() : (
             <>
+              <SidebarMenuItem>
+                <Link href="/profile" passHref legacyBehavior>
+                  <SidebarMenuButton asChild>
+                    <a className="w-full">
+                      <User />
+                      <span>My Profile</span>
+                    </a>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <Link href={item.href} passHref>
