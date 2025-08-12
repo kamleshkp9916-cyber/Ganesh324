@@ -145,8 +145,8 @@ export default function LiveSellingPage() {
                             </Avatar>
                             <p className="font-semibold">{userProfile.username}</p>
                             <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <Link href="#" className="hover:text-primary"><span className="text-primary">•</span> Following {userProfile.following}</Link>
-                                <Link href="#" className="hover:text-primary">Followers {userProfile.followers}</Link>
+                                <Link href="#" className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</Link>
+                                <Link href="#" className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</Link>
                             </div>
                         </div>
                         <Separator className="my-6" />
@@ -244,5 +244,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
