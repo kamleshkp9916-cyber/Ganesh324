@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,8 +102,8 @@ export default function LiveSellingPage() {
 
 
   return (
-    <div className="min-h-screen bg-white text-foreground flex flex-col h-screen">
-      <header className="p-4">
+    <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
+       <header className="p-4">
         <div className="flex items-center justify-between">
           <Sheet>
             <SheetTrigger asChild>
@@ -115,7 +116,10 @@ export default function LiveSellingPage() {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="py-4">
-                <p>Sidebar content goes here.</p>
+                <div className="flex items-center justify-between">
+                    <span>Dark Mode</span>
+                    <ThemeSwitcher />
+                </div>
               </div>
             </SheetContent>
           </Sheet>
