@@ -145,8 +145,8 @@ export default function LiveSellingPage() {
                             </Avatar>
                             <p className="font-semibold">{userProfile.username}</p>
                             <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <span><span className="text-primary">•</span> Following {userProfile.following}</span>
-                                <span>Followers {userProfile.followers}</span>
+                                <Link href="#" className="hover:text-primary"><span className="text-primary">•</span> Following {userProfile.following}</Link>
+                                <Link href="#" className="hover:text-primary">Followers {userProfile.followers}</Link>
                             </div>
                         </div>
                         <Separator className="my-6" />
