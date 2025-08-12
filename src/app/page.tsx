@@ -6,13 +6,13 @@ import Image from 'next/image';
 export default function Home() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12 bg-white">
+      <div className="flex items-center justify-center py-12 bg-card">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-4 text-center">
              <div className="flex justify-center">
-                <h1 className="text-4xl font-extrabold tracking-tight text-red-600">StreamCart</h1>
+                <h1 className="text-4xl font-extrabold tracking-tight text-primary">StreamCart</h1>
              </div>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome to StreamCart</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome to StreamCart</h1>
             <p className="text-balance text-muted-foreground">
               Enter your credentials to access your account
             </p>
