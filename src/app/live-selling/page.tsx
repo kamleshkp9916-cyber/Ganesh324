@@ -217,16 +217,16 @@ function AppSidebar() {
 
   const menuItems = [
     { icon: User, label: 'My Profile', href: '/profile' },
-    { icon: ShoppingCart, label: 'Orders' },
-    { icon: Award, label: 'Top Seller' },
-    { icon: MessageSquare, label: 'Message' },
-    { icon: Settings, label: 'Setting' },
-    { icon: Shield, label: 'Privacy And Security' },
+    { icon: ShoppingCart, label: 'Orders', href: '/orders' },
+    { icon: Award, label: 'Top Seller', href: '/top-seller' },
+    { icon: MessageSquare, label: 'Message', href: '/message' },
+    { icon: Settings, label: 'Setting', href: '/setting' },
+    { icon: Shield, label: 'Privacy And Security', href: '/privacy-and-security' },
   ];
 
   const helpItems = [
-    { icon: FileText, label: 'Term & Conditions', href: '#' },
-    { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
+    { icon: FileText, label: 'Term & Conditions', href: '/terms-and-conditions' },
+    { icon: LifeBuoy, label: 'Help 24/7', href: '/help' },
   ];
 
   return (
@@ -254,21 +254,12 @@ function AppSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              {item.href ? (
-                <Link href={item.href} passHref>
-                  <SidebarMenuButton asChild>
-                    <span>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </span>
+              <Link href={item.href || '#'} className="w-full">
+                  <SidebarMenuButton>
+                    <item.icon />
+                    <span>{item.label}</span>
                   </SidebarMenuButton>
-                </Link>
-              ) : (
-                <SidebarMenuButton>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              )}
+              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -276,7 +267,7 @@ function AppSidebar() {
         <SidebarMenu>
             {helpItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <Link href={item.href} className="w-full">
+                  <Link href={item.href || '#'} className="w-full">
                     <SidebarMenuButton>
                         <item.icon />
                         <span>{item.label}</span>
