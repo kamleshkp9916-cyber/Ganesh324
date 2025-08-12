@@ -31,7 +31,7 @@ const formSchema = z.object({
     .refine((val) => /^[a-z0-9_.]+$/.test(val.substring(1)), {
       message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
     }),
-  phone: z.string().min(10, { message: "Please enter a valid 10-digit phone number." }).max(10, { message: "Please enter a valid 10-digit phone number." }),
+  phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit phone number." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });

@@ -22,7 +22,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Please enter your email or phone." }),
+  identifier: z.string().refine((value) => {
+    const isEmail = z.string().email().safeParse(value).success;
+    const isPhone = /^\d{10}$/.test(value);
+    return isEmail || isPhone;
+  }, {
+    message: "Please enter a valid email or a 10-digit phone number.",
+  }),
   password: z.string().min(1, { message: "Please enter your password." }),
   rememberMe: z.boolean().default(false).optional(),
 });
@@ -61,13 +67,13 @@ export function LoginForm() {
   const { signInWithGoogle } = useAuthActions();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "", password: "", rememberMe: false },
+    defaultValues: { identifier: "", password: "", rememberMe: false },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // TODO: Implement actual login logic
-    router.push(`/otp?identifier=${encodeURIComponent(values.email)}`);
+    router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
   }
 
   return (
@@ -75,12 +81,12 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email / Phone</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} />
+                <Input placeholder="name@example.com or 1234567890" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
