@@ -3,7 +3,9 @@ import { OtpForm } from '@/components/auth/otp-form';
 import { Logo } from '@/components/logo';
 import { ChevronLeft } from 'lucide-react';
 
-export default function OtpPage() {
+export default function OtpPage({ searchParams }: { searchParams: { identifier?: string } }) {
+  const identifier = searchParams.identifier;
+
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-background p-4">
        <div className="absolute top-4 left-4">
@@ -18,7 +20,7 @@ export default function OtpPage() {
                 <Logo className="h-16 w-16 text-primary" />
             </div>
             <p className="text-balance text-muted-foreground px-4">
-                OTP Sent on your Phone Number and Email Id - <span className="font-semibold text-foreground">74798xxxxx</span>
+                OTP Sent on your Phone Number and Email Id - <span className="font-semibold text-foreground">{identifier}</span>
             </p>
         </div>
         <OtpForm />

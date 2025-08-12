@@ -35,7 +35,7 @@ export function LoginForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // TODO: Implement actual login logic
-    router.push("/otp");
+    router.push(`/otp?identifier=${encodeURIComponent(values.email)}`);
   }
 
   return (
