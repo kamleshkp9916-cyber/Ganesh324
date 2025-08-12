@@ -230,8 +230,13 @@ function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <div className="flex flex-col items-center text-center p-4">
+      <SidebarHeader className="relative">
+        <div className="absolute top-2 right-2">
+            <SidebarTrigger>
+                <ArrowLeft className="h-5 w-5" />
+            </SidebarTrigger>
+        </div>
+        <div className="flex flex-col items-center text-center p-4 pt-8">
             <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
                 <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
                 <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
@@ -244,7 +249,7 @@ function AppSidebar() {
             </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="no-scrollbar">
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
@@ -303,5 +308,7 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
+
+    
 
     
