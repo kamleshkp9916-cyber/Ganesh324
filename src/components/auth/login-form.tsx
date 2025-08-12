@@ -29,7 +29,7 @@ const formSchema = z.object({
   }, {
     message: "Please enter a valid email or a 10-digit phone number.",
   }),
-  password: z.string().min(1, { message: "Please enter your password." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   rememberMe: z.boolean().default(false).optional(),
 });
 
