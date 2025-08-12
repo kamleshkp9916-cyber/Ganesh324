@@ -9,7 +9,7 @@ import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, 
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -153,8 +153,13 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+                <SheetHeader className="p-4 flex flex-row items-center justify-end">
+                    <SheetClose asChild>
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-6 w-6" />
+                            <span className="sr-only">Close</span>
+                        </Button>
+                    </SheetClose>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
                     <div className="p-4 flex-1">
