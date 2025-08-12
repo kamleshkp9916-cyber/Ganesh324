@@ -5,16 +5,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, Moon } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { useTheme } from "next-themes";
+import Link from "next/link";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const liveProducts = [
     {
@@ -100,6 +103,20 @@ export default function LiveSellingPage() {
     );
   }, [searchQuery, liveProducts]);
 
+  const menuItems = [
+      { icon: User, label: 'My Profile' },
+      { icon: ShoppingCart, label: 'Orders' },
+      { icon: Award, label: 'Top Seller' },
+      { icon: MessageSquare, label: 'Message' },
+      { icon: Settings, label: 'Setting' },
+      { icon: Shield, label: 'Privacy And Security' },
+  ]
+
+  const helpItems = [
+    { icon: FileText, label: 'Term & Conditions' },
+    { icon: LifeBuoy, label: 'Help 24/7' },
+  ]
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
@@ -111,16 +128,45 @@ export default function LiveSellingPage() {
                 <AlignJustify className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <div className="flex items-center justify-between">
-                    <span>Dark Mode</span>
-                    <ThemeSwitcher />
+            <SheetContent side="left" className="p-0">
+                <div className="flex flex-col h-full">
+                    <div className="p-4 flex-1">
+                        <div className="flex flex-col items-center text-center">
+                            <Avatar className="w-24 h-24 mb-4">
+                                <AvatarImage src="https://placehold.co/100x100.png" alt="@bantypr324" data-ai-hint="profile picture" />
+                                <AvatarFallback>BP</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold">@bantypr324</p>
+                            <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                                <span><span className="text-red-500">•</span> Following 200</span>
+                                <span>Followers 100</span>
+                            </div>
+                        </div>
+                        <Separator className="my-6" />
+                        <nav className="flex flex-col gap-4">
+                            {menuItems.map((item, index) => (
+                                <Link href="#" key={index} className="flex items-center gap-4 text-lg hover:text-primary">
+                                    <item.icon className="w-6 h-6" />
+                                    <span>{item.label}</span>
+                                </Link>
+                            ))}
+                             <Separator className="my-2" />
+                             {helpItems.map((item, index) => (
+                                <Link href="#" key={index} className="flex items-center gap-4 text-lg hover:text-primary">
+                                    <item.icon className="w-6 h-6" />
+                                    <span>{item.label}</span>
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
+
+                    <div className="p-4 mt-auto">
+                        <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
+                           <Moon className="w-6 h-6"/>
+                           <span>Dark Mode</span>
+                        </Button>
+                    </div>
                 </div>
-              </div>
             </SheetContent>
           </Sheet>
           <div className="flex-1 mx-4">
@@ -171,23 +217,24 @@ export default function LiveSellingPage() {
       <footer className="sticky bottom-0 bg-white border-t p-2">
         <div className="flex justify-around items-center">
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
-            <Home className="h-16 w-16" />
+            <Home className="h-10 w-10" />
             <span className="text-xs font-bold -mt-1">_</span>
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <FilePen className="h-16 w-16" />
+            <FilePen className="h-10 w-10" />
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <LayoutGrid className="h-16 w-16" />
+            <LayoutGrid className="h-10 w-10" />
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <ShoppingCart className="h-16 w-16" />
+            <ShoppingCart className="h-10 w-10" />
           </Button>
            <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <Wallet className="h-16 w-16" />
+            <Wallet className="h-10 w-10" />
           </Button>
         </div>
       </footer>
     </div>
   );
-}
+
+    
