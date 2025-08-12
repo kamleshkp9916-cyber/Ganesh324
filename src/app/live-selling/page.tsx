@@ -100,7 +100,7 @@ export default function LiveSellingPage() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-white text-foreground flex flex-col">
       <header className="p-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon">
@@ -148,7 +148,7 @@ export default function LiveSellingPage() {
           ))}
         </div>
       </main>
-      <footer className="sticky bottom-0 bg-background border-t p-2">
+      <footer className="sticky bottom-0 bg-white border-t p-2">
         <div className="flex justify-around items-center">
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
             <Home className="h-8 w-8" />
