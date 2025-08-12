@@ -10,7 +10,6 @@ import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 
@@ -138,7 +137,7 @@ export default function LiveSellingPage() {
                             </Avatar>
                             <p className="font-semibold">@bantypr324</p>
                             <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <span><span className="text-red-500">•</span> Following 200</span>
+                                <span><span className="text-primary">•</span> Following 200</span>
                                 <span>Followers 100</span>
                             </div>
                         </div>
@@ -202,7 +201,7 @@ export default function LiveSellingPage() {
                 <div className={`absolute inset-0 ${product.bgColor}`} />
                 <CardContent className="p-2 flex items-end h-full">
                     <div className="flex items-center gap-2 text-white text-sm font-semibold">
-                    <Avatar className="border-2 border-red-500">
+                    <Avatar className="border-2 border-primary">
                         <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
                         <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
                     </Avatar>
@@ -214,7 +213,7 @@ export default function LiveSellingPage() {
             </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 bg-white border-t p-2">
+      <footer className="sticky bottom-0 bg-background border-t p-2">
         <div className="flex justify-around items-center">
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
             <Home className="h-10 w-10" />
@@ -236,5 +235,6 @@ export default function LiveSellingPage() {
       </footer>
     </div>
   );
+}
 
     
