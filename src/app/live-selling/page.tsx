@@ -153,16 +153,29 @@ export default function LiveSellingPage() {
                         </div>
                         <Separator className="my-6" />
                         <nav className="flex flex-col gap-4">
-                            {menuItems.map((item) => (
-                                <button
-                                  key={item.label}
-                                  onClick={() => router.push(item.href)}
-                                  className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
-                                >
-                                    <item.icon className="w-6 h-6" />
-                                    <span>{item.label}</span>
-                                </button>
-                            ))}
+                            {menuItems.map((item) => {
+                                if (item.href === '/profile') {
+                                    return (
+                                        <Link
+                                            key={item.label}
+                                            href={item.href}
+                                            className="flex items-center gap-4 text-lg hover:text-primary"
+                                        >
+                                            <item.icon className="w-6 h-6" />
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    );
+                                }
+                                return (
+                                    <button
+                                        key={item.label}
+                                        className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
+                                    >
+                                        <item.icon className="w-6 h-6" />
+                                        <span>{item.label}</span>
+                                    </button>
+                                );
+                            })}
                              <Separator className="my-2" />
                              {helpItems.map((item) => (
                                 <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
