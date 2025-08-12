@@ -123,23 +123,45 @@ export default function ProfilePage() {
             <TabsTrigger value="replies"><MessageSquare className="w-4 h-4 mr-2" /> Reply</TabsTrigger>
           </TabsList>
           <TabsContent value="posts">
-            <div className="grid grid-cols-3 gap-1 mt-4">
-              {userPosts.map(post => (
-                <div key={post.id} className="relative aspect-square">
-                  <Image src={post.imageUrl} alt={post.caption} fill className="object-cover rounded-md" data-ai-hint={post.hint} />
-                </div>
-              ))}
-            </div>
+             {loading ? (
+              <div className="grid grid-cols-3 gap-1 mt-4">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="relative aspect-square">
+                    <Skeleton className="w-full h-full rounded-md" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1 mt-4">
+                {userPosts.map(post => (
+                  <div key={post.id} className="relative aspect-square">
+                    <Image src={post.imageUrl} alt={post.caption} fill className="object-cover rounded-md" data-ai-hint={post.hint} />
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
-          <TabsContent value="likes">
-             <div className="flex items-center justify-center h-48">
-              <p className="text-muted-foreground">No liked posts yet.</p>
-            </div>
+           <TabsContent value="likes">
+             {loading ? (
+                <div className="flex items-center justify-center h-48">
+                    <Skeleton className="h-8 w-48" />
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground">No liked posts yet.</p>
+                </div>
+            )}
           </TabsContent>
           <TabsContent value="replies">
-             <div className="flex items-center justify-center h-48">
-              <p className="text-muted-foreground">No replies yet.</p>
-            </div>
+             {loading ? (
+                <div className="flex items-center justify-center h-48">
+                    <Skeleton className="h-8 w-48" />
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground">No replies yet.</p>
+                </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>
