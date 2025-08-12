@@ -135,13 +135,6 @@ export default function LiveSellingPage() {
     { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
   ]
 
-  const handleMenuClick = (href: string) => {
-    if (href === '/profile') {
-      router.push(href);
-    }
-  };
-
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
        <header className="p-4">
@@ -153,56 +146,57 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 flex flex-col">
-                <SheetHeader className="p-4 flex flex-row items-center justify-between">
-                    <SheetTitle className="sr-only">User Menu</SheetTitle>
-                    <SheetClose asChild>
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-6 w-6" />
-                            <span className="sr-only">Close</span>
-                        </Button>
-                    </SheetClose>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto no-scrollbar px-4">
-                    <div className="flex flex-col items-center text-center">
-                        <Avatar className="w-24 h-24 mb-4">
-                            <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                            <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <p className="font-semibold">{userProfile.username}</p>
-                        <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                            <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
-                            <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
-                        </div>
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto no-scrollbar p-4">
+                <div className="flex flex-col items-center text-center">
+                    <Avatar className="w-24 h-24 mb-4">
+                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold">{userProfile.username}</p>
+                    <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                        <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
+                        <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
                     </div>
-                    <Separator className="my-6" />
-                    <nav className="flex flex-col gap-4">
-                      {menuItems.map((item) => (
-                          <button
-                              key={item.label}
-                              onClick={() => handleMenuClick(item.href)}
-                              className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
-                              disabled={item.href === '#'}
-                          >
-                              <item.icon className="w-6 h-6" />
-                              <span>{item.label}</span>
-                          </button>
-                      ))}
-                      <Separator className="my-2" />
-                      {helpItems.map((item) => (
-                          <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
-                              <item.icon className="w-6 h-6" />
-                              <span>{item.label}</span>
-                          </Link>
-                      ))}
-                    </nav>
                 </div>
+                <Separator className="my-6" />
+                <nav className="flex flex-col gap-4">
+                  {menuItems.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="flex items-center gap-4 text-lg hover:text-primary aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                      aria-disabled={item.href === '#'}
+                      onClick={(e) => {
+                        if (item.href === '#') e.preventDefault();
+                      }}
+                    >
+                      <item.icon className="w-6 h-6" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                  <Separator className="my-2" />
+                  {helpItems.map((item) => (
+                    <Link
+                      href={item.href}
+                      key={item.label}
+                      className="flex items-center gap-4 text-lg hover:text-primary"
+                    >
+                      <item.icon className="w-6 h-6" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </nav>
+              </div>
 
-                <div className="p-4 mt-auto">
-                    <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
-                       <Moon className="w-6 h-6"/>
-                       <span>Dark Mode</span>
-                    </Button>
-                </div>
+              <div className="p-4 mt-auto border-t">
+                  <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
+                     <Moon className="w-6 h-6"/>
+                     <span>Dark Mode</span>
+                  </Button>
+              </div>
             </SheetContent>
           </Sheet>
           <div className="flex-1 mx-4">
@@ -290,4 +284,3 @@ export default function LiveSellingPage() {
   );
 }
 
-    
