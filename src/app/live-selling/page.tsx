@@ -137,7 +137,7 @@ export default function LiveSellingPage() {
               </div>
             ) : (
               <div className="flex justify-center">
-                 <Image src="/company-logo.png" alt="StreamCart Logo" width={240} height={40} data-ai-hint="logo" />
+                 <h1 className="text-2xl font-bold text-primary">StreamCart</h1>
               </div>
             )}
           </div>
