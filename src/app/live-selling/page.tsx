@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/logo";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +133,33 @@ export default function LiveSellingPage() {
         </div>
         {!isSearchVisible && <Separator className="mt-4" />}
       </header>
-      <main className="flex-1 p-4 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto px-4">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full mb-4"
+        >
+          <CarouselContent>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <CarouselItem key={index}>
+                <div className="relative aspect-video">
+                  <Image
+                    src={`https://placehold.co/600x400.png`}
+                    alt={`Carousel image ${index + 1}`}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-lg"
+                    data-ai-hint="fashion sale"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+        </Carousel>
         <div className="grid grid-cols-2 gap-4">
           {filteredProducts.map((product, index) => (
             <Card key={index} className="overflow-hidden relative aspect-[9/16]">
@@ -173,4 +200,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
