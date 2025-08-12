@@ -118,7 +118,9 @@ function LiveSellingContent() {
     <div className="flex flex-col h-screen">
       <header className="p-4 border-b">
         <div className="flex items-center justify-between">
-          <SidebarTrigger />
+          <SidebarTrigger>
+            <AlignJustify className="h-6 w-6" />
+          </SidebarTrigger>
           <div className="flex-1 mx-4">
             {isSearchVisible ? (
               <div className="relative">
@@ -308,7 +310,5 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
-    
 
     
