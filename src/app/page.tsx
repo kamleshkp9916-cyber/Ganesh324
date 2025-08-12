@@ -9,7 +9,7 @@ export default function Home() {
       <div className="flex items-center justify-center py-12 bg-white">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-4 text-center">
-             <div className="lg:hidden flex justify-center">
+             <div className="flex justify-center">
                 <Image src="/company-logo.png" alt="Company Logo" width={160} height={160} data-ai-hint="logo" />
              </div>
             <h1 className="text-3xl font-bold tracking-tight">Welcome to StreamCart</h1>
