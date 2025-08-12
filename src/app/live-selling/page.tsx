@@ -129,7 +129,7 @@ export default function LiveSellingPage() {
           </Button>
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto px-4 no-scrollbar">
+      <main className="flex-1 px-4 no-scrollbar">
         <h2 className="text-xl font-semibold">Live Sellers</h2>
         <Separator className="my-4" />
         <div className="grid grid-cols-2 gap-4">
