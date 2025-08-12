@@ -164,23 +164,23 @@ export default function LiveSellingPage() {
             </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 bg-white border-t p-2">
+      <footer className="sticky bottom-0 bg-white border-t p-4">
         <div className="flex justify-around items-center">
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
-            <Home className="h-8 w-8" />
+            <Home className="h-10 w-10" />
             <span className="text-xs font-bold -mt-1">_</span>
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <FilePen className="h-8 w-8" />
+            <FilePen className="h-10 w-10" />
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <LayoutGrid className="h-8 w-8" />
+            <LayoutGrid className="h-10 w-10" />
           </Button>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <ShoppingCart className="h-8 w-8" />
+            <ShoppingCart className="h-10 w-10" />
           </Button>
            <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <Wallet className="h-8 w-8" />
+            <Wallet className="h-10 w-10" />
           </Button>
         </div>
       </footer>
