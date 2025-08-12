@@ -185,10 +185,10 @@ export function SignupForm() {
           )}
         />
         
-        <Button type="submit" className="w-full font-semibold bg-red-600 hover:bg-red-700 text-white">
+        <Button type="submit" className="w-full font-semibold">
           Create Account
         </Button>
-        <Button variant="outline" className="w-full font-semibold bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700">
+        <Button variant="outline" className="w-full font-semibold">
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>
