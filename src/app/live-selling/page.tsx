@@ -138,6 +138,9 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
+                <SheetHeader>
+                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+                </SheetHeader>
                 <div className="flex flex-col h-full">
                     <div className="p-4 flex-1">
                         <div className="flex flex-col items-center text-center">
@@ -262,5 +265,5 @@ export default function LiveSellingPage() {
       </footer>
     </div>
   );
-
+ 
     
