@@ -144,7 +144,7 @@ export default function LiveSellingPage() {
       </header>
       <main className="flex-1 px-4 flex flex-col overflow-hidden">
         <h2 className="text-xl font-semibold">Live Sellers</h2>
-        <Separator className="my-4" />
+        <Separator className="my-2" />
         <div className="flex-1 overflow-y-auto no-scrollbar">
             <div className="grid grid-cols-2 gap-4">
             {filteredProducts.map((product, index) => (
@@ -164,7 +164,7 @@ export default function LiveSellingPage() {
             </div>
         </div>
       </main>
-      <footer className="sticky bottom-0 bg-white border-t p-4">
+      <footer className="sticky bottom-0 bg-white border-t p-2">
         <div className="flex justify-around items-center">
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
             <Home className="h-10 w-10" />
