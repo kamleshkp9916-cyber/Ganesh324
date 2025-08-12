@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, Menu, Search, ShoppingCart, FilePen, Wallet, X } from "lucide-react";
+import { Home, LayoutGrid, Menu, Search, ShoppingCart, FilePen, Wallet, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
@@ -123,7 +123,7 @@ export default function LiveSellingPage() {
             )}
           </div>
           <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
-            {isSearchVisible ? <X className="h-6 w-6" /> : <Search className="h-6 w-6" />}
+            {isSearchVisible ? <ArrowLeft className="h-6 w-6" /> : <Search className="h-6 w-6" />}
           </Button>
         </div>
         {!isSearchVisible && <Separator className="mt-4" />}
