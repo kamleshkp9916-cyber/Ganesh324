@@ -126,6 +126,13 @@ export default function LiveSellingPage() {
     { icon: LifeBuoy, label: 'Help 24/7', href: '#' },
   ]
 
+  const handleMenuClick = (href: string) => {
+    if (href === '/profile') {
+      router.push(href);
+    }
+    // Handle other menu items here if needed
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
@@ -156,36 +163,24 @@ export default function LiveSellingPage() {
                         </div>
                         <Separator className="my-6" />
                         <nav className="flex flex-col gap-4">
-                            {menuItems.map((item) => {
-                                if (item.href === '/profile') {
-                                    return (
-                                        <Link
-                                            key={item.label}
-                                            href={item.href}
-                                            className="flex items-center gap-4 text-lg hover:text-primary"
-                                        >
-                                            <item.icon className="w-6 h-6" />
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    );
-                                }
-                                return (
-                                    <button
-                                        key={item.label}
-                                        className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
-                                    >
-                                        <item.icon className="w-6 h-6" />
-                                        <span>{item.label}</span>
-                                    </button>
-                                );
-                            })}
-                             <Separator className="my-2" />
-                             {helpItems.map((item) => (
-                                <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
-                                    <item.icon className="w-6 h-6" />
-                                    <span>{item.label}</span>
-                                </Link>
-                            ))}
+                          {menuItems.map((item) => (
+                              <button
+                                  key={item.label}
+                                  onClick={() => handleMenuClick(item.href)}
+                                  className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
+                                  disabled={item.href === '#'}
+                              >
+                                  <item.icon className="w-6 h-6" />
+                                  <span>{item.label}</span>
+                              </button>
+                          ))}
+                          <Separator className="my-2" />
+                          {helpItems.map((item) => (
+                              <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
+                                  <item.icon className="w-6 h-6" />
+                                  <span>{item.label}</span>
+                              </Link>
+                          ))}
                         </nav>
                     </div>
 
