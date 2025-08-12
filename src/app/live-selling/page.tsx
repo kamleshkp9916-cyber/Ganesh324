@@ -48,6 +48,26 @@ export default function LiveSellingPage() {
       userImage: "https://placehold.co/40x40.png",
       userName: "User 8",
     },
+     {
+      bgColor: "bg-gradient-to-b from-red-400 to-red-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 9",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-blue-400 to-blue-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 10",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-green-400 to-green-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 11",
+    },
+    {
+      bgColor: "bg-gradient-to-b from-purple-400 to-purple-600",
+      userImage: "https://placehold.co/40x40.png",
+      userName: "User 12",
+    },
   ];
 
   return (
@@ -85,22 +105,22 @@ export default function LiveSellingPage() {
         </div>
       </main>
       <footer className="sticky bottom-0 bg-background border-t p-2">
-        <div className="flex justify-around">
-          <Button variant="ghost" className="flex flex-col h-auto p-1 text-red-500">
-            <Home className="h-6 w-6" />
+        <div className="flex justify-around items-center">
+          <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
+            <Home className="h-8 w-8" />
             <span className="text-xs font-bold -mt-1">_</span>
           </Button>
-          <Button variant="ghost" className="flex flex-col h-auto p-1 text-muted-foreground">
-            <FilePen className="h-6 w-6" />
+          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
+            <FilePen className="h-8 w-8" />
           </Button>
-          <Button variant="ghost" className="flex flex-col h-auto p-1 text-muted-foreground">
-            <LayoutGrid className="h-6 w-6" />
+          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
+            <LayoutGrid className="h-8 w-8" />
           </Button>
-          <Button variant="ghost" className="flex flex-col h-auto p-1 text-muted-foreground">
-            <ShoppingCart className="h-6 w-6" />
+          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
+            <ShoppingCart className="h-8 w-8" />
           </Button>
-           <Button variant="ghost" className="flex flex-col h-auto p-1 text-muted-foreground">
-            <Wallet className="h-6 w-6" />
+           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
+            <Wallet className="h-8 w-8" />
           </Button>
         </div>
       </footer>
