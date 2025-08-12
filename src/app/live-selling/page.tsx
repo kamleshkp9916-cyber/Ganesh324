@@ -120,7 +120,7 @@ export default function LiveSellingPage() {
               </div>
             ) : (
               <div className="flex justify-center">
-                 <Image src="https://placehold.co/250x60.png" alt="StreamCart Logo" width={180} height={40} data-ai-hint="logo" />
+                 <Image src="/streamcart-logo.png" alt="StreamCart Logo" width={180} height={40} data-ai-hint="logo" />
               </div>
             )}
           </div>
