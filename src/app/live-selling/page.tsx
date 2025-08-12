@@ -9,7 +9,6 @@ import { Home, LayoutGrid, Menu, Search, ShoppingCart, FilePen, Wallet, ArrowLef
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/logo";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function LiveSellingPage() {
@@ -121,9 +120,8 @@ export default function LiveSellingPage() {
                 />
               </div>
             ) : (
-              <div className="flex flex-col items-center">
-                <Logo className="h-10 w-10 text-primary" />
-                <h1 className="text-xl font-bold">Live Selling</h1>
+              <div className="flex justify-center">
+                 <Image src="/streamcart-logo.png" alt="StreamCart Logo" width={180} height={40} />
               </div>
             )}
           </div>
