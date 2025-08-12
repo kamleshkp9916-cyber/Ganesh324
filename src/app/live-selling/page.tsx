@@ -5,11 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, Moon, LogOut } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +19,6 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 function LiveSellingContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   const liveProducts = [
@@ -208,6 +206,7 @@ function LiveSellingContent() {
 
 function AppSidebar() {
   const { signOut } = useAuthActions();
+  const router = useRouter();
   const [userProfile] = useState({
     name: 'bantypr324',
     username: '@bantypr324',
@@ -217,12 +216,12 @@ function AppSidebar() {
   });
 
   const menuItems = [
-    { icon: User, label: 'My Profile', href: '/profile' },
-    { icon: ShoppingCart, label: 'Orders', href: '#' },
-    { icon: Award, label: 'Top Seller', href: '#' },
-    { icon: MessageSquare, label: 'Message', href: '#' },
-    { icon: Settings, label: 'Setting', href: '#' },
-    { icon: Shield, label: 'Privacy And Security', href: '#' },
+    { icon: User, label: 'My Profile', onClick: () => router.push('/profile') },
+    { icon: ShoppingCart, label: 'Orders', onClick: () => {} },
+    { icon: Award, label: 'Top Seller', onClick: () => {} },
+    { icon: MessageSquare, label: 'Message', onClick: () => {} },
+    { icon: Settings, label: 'Setting', onClick: () => {} },
+    { icon: Shield, label: 'Privacy And Security', onClick: () => {} },
   ];
 
   const helpItems = [
@@ -255,12 +254,10 @@ function AppSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              <Link href={item.href} className="w-full">
-                <SidebarMenuButton>
+                <SidebarMenuButton onClick={item.onClick}>
                   <item.icon />
                   <span>{item.label}</span>
                 </SidebarMenuButton>
-              </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -281,10 +278,9 @@ function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
-                <Moon/>
+                <ThemeSwitcher/>
                 <span>Dark Mode</span>
             </div>
-            <ThemeSwitcher />
         </div>
         <SidebarMenu>
             <SidebarMenuItem>
