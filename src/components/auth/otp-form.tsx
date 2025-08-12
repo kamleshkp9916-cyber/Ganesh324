@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +21,7 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from "@/components/ui/input-otp"
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   otp: z.string().min(6, {
@@ -27,8 +29,30 @@ const formSchema = z.object({
   }),
 })
 
+// This is a mock server-side verification function.
+// In a real app, you'd call your backend API here.
+async function verifyOtpOnServer(otp: string): Promise<{ success: boolean }> {
+    console.log(`Verifying OTP: ${otp} on the server...`);
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In a real application, you would have your logic to verify the OTP.
+    // For this demo, we'll accept '123456' as the correct OTP.
+    if (otp === "123456") {
+        console.log("OTP verification successful.");
+        return { success: true };
+    } else {
+        console.log("OTP verification failed.");
+        return { success: false };
+    }
+}
+
+
 export function OtpForm() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,10 +60,34 @@ export function OtpForm() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    // TODO: Implement OTP verification logic
-    router.push("/live-selling");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      const { success } = await verifyOtpOnServer(values.otp);
+
+      if (success) {
+        toast({
+            title: "Success!",
+            description: "Your OTP has been verified.",
+        });
+        router.push("/live-selling");
+      } else {
+         toast({
+            title: "Error",
+            description: "Invalid OTP. Please try again.",
+            variant: "destructive",
+        });
+      }
+    } catch (error) {
+       toast({
+            title: "Error",
+            description: "Something went wrong during verification.",
+            variant: "destructive",
+        });
+        console.error("OTP verification error:", error);
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -51,7 +99,7 @@ export function OtpForm() {
           render={({ field }) => (
             <FormItem className="flex flex-col items-center">
               <FormControl>
-                <InputOTP maxLength={6} {...field}>
+                <InputOTP maxLength={6} {...field} disabled={isLoading} >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
@@ -70,7 +118,9 @@ export function OtpForm() {
           )}
         />
 
-        <Button type="submit" className="w-full font-semibold">Proceed</Button>
+        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+            {isLoading ? "Verifying..." : "Proceed"}
+        </Button>
       </form>
     </Form>
   )
