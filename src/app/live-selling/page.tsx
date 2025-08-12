@@ -13,12 +13,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   const [userProfile, setUserProfile] = useState({
     name: 'bantypr324',
@@ -103,6 +105,13 @@ export default function LiveSellingPage() {
     },
   ];
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); 
+    return () => clearTimeout(timer);
+  }, []);
+
   const filteredProducts = useMemo(() => {
     if (!searchQuery) return liveProducts;
     return liveProducts.filter(
@@ -130,7 +139,6 @@ export default function LiveSellingPage() {
     if (href === '/profile') {
       router.push(href);
     }
-    // Handle other menu items here if needed
   };
 
 
@@ -145,7 +153,7 @@ export default function LiveSellingPage() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
-                <SheetHeader>
+                <SheetHeader className="p-4 border-b">
                     <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col h-full">
@@ -157,8 +165,8 @@ export default function LiveSellingPage() {
                             </Avatar>
                             <p className="font-semibold">{userProfile.username}</p>
                             <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <Link href="#" className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</Link>
-                                <Link href="#" className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</Link>
+                                <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
+                                <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
                             </div>
                         </div>
                         <Separator className="my-6" />
@@ -221,20 +229,36 @@ export default function LiveSellingPage() {
         <Separator className="my-2" />
         <div className="flex-1 overflow-y-auto no-scrollbar">
             <div className="grid grid-cols-2 gap-4">
-            {filteredProducts.map((product, index) => (
-                <Card key={index} className="overflow-hidden relative aspect-[9/16]">
-                <div className={`absolute inset-0 ${product.bgColor}`} />
-                <CardContent className="p-2 flex items-end h-full">
-                    <div className="flex items-center gap-2 text-white text-sm font-semibold">
-                    <Avatar className="border-2 border-primary">
-                        <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
-                        <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span>{product.userName}<br/>{product.productName}</span>
-                    </div>
-                </CardContent>
-                </Card>
-            ))}
+            {loading ? (
+                Array.from({ length: 8 }).map((_, index) => (
+                    <Card key={index} className="overflow-hidden relative aspect-[9/16] bg-muted">
+                        <CardContent className="p-2 flex items-end h-full">
+                            <div className="flex items-center gap-2 w-full">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="space-y-2 flex-1">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))
+            ) : (
+                filteredProducts.map((product, index) => (
+                    <Card key={index} className="overflow-hidden relative aspect-[9/16]">
+                    <div className={`absolute inset-0 ${product.bgColor}`} />
+                    <CardContent className="p-2 flex items-end h-full">
+                        <div className="flex items-center gap-2 text-white text-sm font-semibold">
+                        <Avatar className="border-2 border-primary">
+                            <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
+                            <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{product.userName}<br/>{product.productName}</span>
+                        </div>
+                    </CardContent>
+                    </Card>
+                ))
+            )}
             </div>
         </div>
       </main>
