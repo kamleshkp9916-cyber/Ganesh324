@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
   const [userProfile, setUserProfile] = useState({
     name: 'bantypr324',
@@ -152,10 +154,14 @@ export default function LiveSellingPage() {
                         <Separator className="my-6" />
                         <nav className="flex flex-col gap-4">
                             {menuItems.map((item) => (
-                                <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
+                                <button
+                                  key={item.label}
+                                  onClick={() => router.push(item.href)}
+                                  className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
+                                >
                                     <item.icon className="w-6 h-6" />
                                     <span>{item.label}</span>
-                                </Link>
+                                </button>
                             ))}
                              <Separator className="my-2" />
                              {helpItems.map((item) => (
