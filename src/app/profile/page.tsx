@@ -3,12 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, Grid3x3, Heart, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -20,8 +22,16 @@ export default function ProfilePage() {
     following: 200,
     followers: 100,
     bio: 'Digital creator | Fashion enthusiast | Shop my looks 👇',
-    postsCount: 6,
   });
+
+  const userPosts = [
+    { id: 1, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 1', hint: 'fashion clothing' },
+    { id: 2, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 2', hint: 'street style' },
+    { id: 3, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 3', hint: 'summer outfit' },
+    { id: 4, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 4', hint: 'accessories details' },
+    { id: 5, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 5', hint: 'casual look' },
+    { id: 6, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 6', hint: 'formal wear' },
+  ];
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,7 +50,7 @@ export default function ProfilePage() {
         <div className="w-10"></div>
       </header>
 
-      <main className="p-4">
+      <main className="p-4 space-y-4">
         <Card>
             <CardContent className="pt-6">
                 {loading ? (
@@ -86,7 +96,7 @@ export default function ProfilePage() {
                         <Separator className="my-6" />
                         <div className="flex justify-around">
                             <div className="text-center">
-                                <p className="font-bold text-xl">{userProfile.postsCount}</p>
+                                <p className="font-bold text-xl">{userPosts.length}</p>
                                 <p className="text-sm text-muted-foreground">Posts</p>
                             </div>
                             <div className="text-center">
@@ -105,6 +115,33 @@ export default function ProfilePage() {
                 )}
             </CardContent>
         </Card>
+        
+        <Tabs defaultValue="posts" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="posts"><Grid3x3 className="w-4 h-4 mr-2" /> Posts</TabsTrigger>
+            <TabsTrigger value="likes"><Heart className="w-4 h-4 mr-2" /> Likes</TabsTrigger>
+            <TabsTrigger value="replies"><MessageSquare className="w-4 h-4 mr-2" /> Reply</TabsTrigger>
+          </TabsList>
+          <TabsContent value="posts">
+            <div className="grid grid-cols-3 gap-1 mt-4">
+              {userPosts.map(post => (
+                <div key={post.id} className="relative aspect-square">
+                  <Image src={post.imageUrl} alt={post.caption} fill className="object-cover rounded-md" data-ai-hint={post.hint} />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="likes">
+             <div className="flex items-center justify-center h-48">
+              <p className="text-muted-foreground">No liked posts yet.</p>
+            </div>
+          </TabsContent>
+          <TabsContent value="replies">
+             <div className="flex items-center justify-center h-48">
+              <p className="text-muted-foreground">No replies yet.</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
