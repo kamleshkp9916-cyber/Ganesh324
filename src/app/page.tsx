@@ -29,7 +29,6 @@ export default function Home() {
       <div className="hidden bg-primary lg:flex items-center justify-center p-10 relative">
         <div className="absolute inset-0 bg-black/30" />
         <div className="text-center text-primary-foreground relative z-10">
-            <Image src="/company-logo.png" alt="Company Logo" width={320} height={320} className="mx-auto" data-ai-hint="logo" />
             <h2 className="mt-6 text-5xl font-black tracking-tighter">Fast. Reliable. Yours.</h2>
             <p className="mt-2 text-lg max-w-sm mx-auto">Your one-stop shop, delivered in a flash. The future of online retail is here.</p>
         </div>
