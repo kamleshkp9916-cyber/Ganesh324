@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, Moon } from "lucide-react";
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
@@ -17,6 +17,14 @@ export default function LiveSellingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const { theme, setTheme } = useTheme();
+
+  const [userProfile, setUserProfile] = useState({
+    name: 'bantypr324',
+    username: '@bantypr324',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    following: 200,
+    followers: 100,
+  });
 
   const liveProducts = [
     {
@@ -132,13 +140,13 @@ export default function LiveSellingPage() {
                     <div className="p-4 flex-1">
                         <div className="flex flex-col items-center text-center">
                             <Avatar className="w-24 h-24 mb-4">
-                                <AvatarImage src="https://placehold.co/100x100.png" alt="@bantypr324" data-ai-hint="profile picture" />
-                                <AvatarFallback>BP</AvatarFallback>
+                                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                                <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <p className="font-semibold">@bantypr324</p>
+                            <p className="font-semibold">{userProfile.username}</p>
                             <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <span><span className="text-primary">•</span> Following 200</span>
-                                <span>Followers 100</span>
+                                <span><span className="text-primary">•</span> Following {userProfile.following}</span>
+                                <span>Followers {userProfile.followers}</span>
                             </div>
                         </div>
                         <Separator className="my-6" />
@@ -236,5 +244,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
