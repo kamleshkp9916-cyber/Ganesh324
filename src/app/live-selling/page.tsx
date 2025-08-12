@@ -210,18 +210,18 @@ function AppSidebar() {
   const [userProfile] = useState({
     name: 'bantypr324',
     username: '@bantypr324',
-    avatarUrl: 'https://placehold.co/100x100.png',
+    avatarUrl: 'https://placehold.co/80x80.png',
     following: 200,
     followers: 100,
   });
 
   const menuItems = [
-    { icon: User, label: 'My Profile', onClick: () => router.push('/profile') },
-    { icon: ShoppingCart, label: 'Orders', onClick: () => {} },
-    { icon: Award, label: 'Top Seller', onClick: () => {} },
-    { icon: MessageSquare, label: 'Message', onClick: () => {} },
-    { icon: Settings, label: 'Setting', onClick: () => {} },
-    { icon: Shield, label: 'Privacy And Security', onClick: () => {} },
+    { icon: User, label: 'My Profile', href: '/profile' },
+    { icon: ShoppingCart, label: 'Orders' },
+    { icon: Award, label: 'Top Seller' },
+    { icon: MessageSquare, label: 'Message' },
+    { icon: Settings, label: 'Setting' },
+    { icon: Shield, label: 'Privacy And Security' },
   ];
 
   const helpItems = [
@@ -254,10 +254,21 @@ function AppSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton onClick={item.onClick}>
+              {item.href ? (
+                 <Link href={item.href} legacyBehavior passHref>
+                    <SidebarMenuButton asChild>
+                        <a>
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </a>
+                    </SidebarMenuButton>
+                 </Link>
+              ) : (
+                <SidebarMenuButton>
                   <item.icon />
                   <span>{item.label}</span>
                 </SidebarMenuButton>
+              )}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
