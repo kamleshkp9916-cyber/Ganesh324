@@ -152,58 +152,55 @@ export default function LiveSellingPage() {
                 <AlignJustify className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-                <SheetHeader className="p-4 flex flex-row items-center justify-end">
-                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-                    <SheetClose asChild>
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-6 w-6" />
-                            <span className="sr-only">Close</span>
-                        </Button>
-                    </SheetClose>
-                </SheetHeader>
-                <div className="flex flex-col h-full">
-                    <div className="flex-1 overflow-y-auto no-scrollbar p-4">
-                        <div className="flex flex-col items-center text-center">
-                            <Avatar className="w-24 h-24 mb-4">
-                                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                                <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <p className="font-semibold">{userProfile.username}</p>
-                            <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                                <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
-                                <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
-                            </div>
+            <SheetContent side="left" className="p-0 flex flex-col">
+                <div className="flex-1 overflow-y-auto no-scrollbar p-4">
+                    <div className="flex items-center justify-end mb-4">
+                        <SheetClose asChild>
+                            <Button variant="ghost" size="icon">
+                                <ArrowLeft className="h-6 w-6" />
+                                <span className="sr-only">Close</span>
+                            </Button>
+                        </SheetClose>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                        <Avatar className="w-24 h-24 mb-4">
+                            <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                            <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <p className="font-semibold">{userProfile.username}</p>
+                        <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                            <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.following}</span> Following</button>
+                            <button onClick={() => {}} className="hover:text-primary"><span className="font-bold text-primary">{userProfile.followers}</span> Followers</button>
                         </div>
-                        <Separator className="my-6" />
-                        <nav className="flex flex-col gap-4">
-                          {menuItems.map((item) => (
-                              <button
-                                  key={item.label}
-                                  onClick={() => handleMenuClick(item.href)}
-                                  className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
-                                  disabled={item.href === '#'}
-                              >
-                                  <item.icon className="w-6 h-6" />
-                                  <span>{item.label}</span>
-                              </button>
-                          ))}
-                          <Separator className="my-2" />
-                          {helpItems.map((item) => (
-                              <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
-                                  <item.icon className="w-6 h-6" />
-                                  <span>{item.label}</span>
-                              </Link>
-                          ))}
-                        </nav>
                     </div>
+                    <Separator className="my-6" />
+                    <nav className="flex flex-col gap-4">
+                      {menuItems.map((item) => (
+                          <button
+                              key={item.label}
+                              onClick={() => handleMenuClick(item.href)}
+                              className="flex items-center gap-4 text-lg hover:text-primary text-left w-full"
+                              disabled={item.href === '#'}
+                          >
+                              <item.icon className="w-6 h-6" />
+                              <span>{item.label}</span>
+                          </button>
+                      ))}
+                      <Separator className="my-2" />
+                      {helpItems.map((item) => (
+                          <Link href={item.href} key={item.label} className="flex items-center gap-4 text-lg hover:text-primary">
+                              <item.icon className="w-6 h-6" />
+                              <span>{item.label}</span>
+                          </Link>
+                      ))}
+                    </nav>
+                </div>
 
-                    <div className="p-4 mt-auto">
-                        <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
-                           <Moon className="w-6 h-6"/>
-                           <span>Dark Mode</span>
-                        </Button>
-                    </div>
+                <div className="p-4 mt-auto">
+                    <Button variant="ghost" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="w-full justify-start items-center gap-4 text-lg">
+                       <Moon className="w-6 h-6"/>
+                       <span>Dark Mode</span>
+                    </Button>
                 </div>
             </SheetContent>
           </Sheet>
@@ -290,7 +287,6 @@ export default function LiveSellingPage() {
       </footer>
     </div>
   );
-
-    
+}
 
     
