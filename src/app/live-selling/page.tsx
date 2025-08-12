@@ -299,10 +299,12 @@ function AppSidebar() {
             <>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <Link href={item.href} className="w-full">
-                    <SidebarMenuButton>
-                      <item.icon />
-                      <span>{item.label}</span>
+                  <Link href={item.href} passHref>
+                    <SidebarMenuButton asChild>
+                      <button className="w-full">
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </button>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
@@ -310,10 +312,12 @@ function AppSidebar() {
               <Separator className="my-4" />
               {helpItems.map((item) => (
                   <SidebarMenuItem key={item.label}>
-                    <Link href={item.href} className="w-full">
-                      <SidebarMenuButton>
-                          <item.icon />
-                          <span>{item.label}</span>
+                    <Link href={item.href} passHref>
+                      <SidebarMenuButton asChild>
+                        <button className="w-full">
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </button>
                       </SidebarMenuButton>
                     </Link>
                   </SidebarMenuItem>
@@ -353,3 +357,5 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
+
+    
