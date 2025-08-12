@@ -265,5 +265,5 @@ export default function LiveSellingPage() {
       </footer>
     </div>
   );
- 
+
     
