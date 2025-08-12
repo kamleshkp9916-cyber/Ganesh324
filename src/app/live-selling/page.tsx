@@ -128,7 +128,7 @@ export default function LiveSellingPage() {
                   placeholder="Search by user or product..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full"
+                  className="pl-10 w-full rounded-full"
                 />
               </div>
             ) : (
