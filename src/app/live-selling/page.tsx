@@ -100,7 +100,7 @@ export default function LiveSellingPage() {
 
 
   return (
-    <div className="min-h-screen bg-white text-foreground flex flex-col">
+    <div className="min-h-screen bg-white text-foreground flex flex-col h-screen">
       <header className="p-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon">
@@ -129,24 +129,26 @@ export default function LiveSellingPage() {
           </Button>
         </div>
       </header>
-      <main className="flex-1 px-4">
+      <main className="flex-1 px-4 flex flex-col overflow-hidden">
         <h2 className="text-xl font-semibold">Live Sellers</h2>
         <Separator className="my-4" />
-        <div className="grid grid-cols-2 gap-4">
-          {filteredProducts.map((product, index) => (
-            <Card key={index} className="overflow-hidden relative aspect-[9/16]">
-              <div className={`absolute inset-0 ${product.bgColor}`} />
-              <CardContent className="p-2 flex items-end h-full">
-                <div className="flex items-center gap-2 text-white text-sm font-semibold">
-                  <Avatar className="border-2 border-red-500">
-                    <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
-                    <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span>{product.userName}<br/>{product.productName}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+            <div className="grid grid-cols-2 gap-4">
+            {filteredProducts.map((product, index) => (
+                <Card key={index} className="overflow-hidden relative aspect-[9/16]">
+                <div className={`absolute inset-0 ${product.bgColor}`} />
+                <CardContent className="p-2 flex items-end h-full">
+                    <div className="flex items-center gap-2 text-white text-sm font-semibold">
+                    <Avatar className="border-2 border-red-500">
+                        <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
+                        <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>{product.userName}<br/>{product.productName}</span>
+                    </div>
+                </CardContent>
+                </Card>
+            ))}
+            </div>
         </div>
       </main>
       <footer className="sticky bottom-0 bg-white border-t p-2">
