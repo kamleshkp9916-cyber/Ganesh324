@@ -18,11 +18,12 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
+  InputOTPSeparator,
 } from "@/components/ui/input-otp"
 
 const formSchema = z.object({
-  otp: z.string().min(4, {
-    message: "Your one-time password must be 4 characters.",
+  otp: z.string().min(6, {
+    message: "Your one-time password must be 6 characters.",
   }),
 })
 
@@ -50,12 +51,17 @@ export function OtpForm() {
           render={({ field }) => (
             <FormItem className="flex flex-col items-center">
               <FormControl>
-                <InputOTP maxLength={4} {...field}>
+                <InputOTP maxLength={6} {...field}>
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
                     <InputOTPSlot index={2} />
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
                     <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
                   </InputOTPGroup>
                 </InputOTP>
               </FormControl>
