@@ -207,6 +207,15 @@ function LiveSellingContent() {
 function AppSidebar() {
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [userProfile] = useState({
     name: 'bantypr324',
     username: '@bantypr324',
@@ -229,6 +238,28 @@ function AppSidebar() {
     { icon: LifeBuoy, label: 'Help 24/7', href: '/help' },
   ];
 
+  const renderSkeletonMenu = () => (
+    <>
+      {Array.from({ length: 6 }).map((_, index) => (
+         <SidebarMenuItem key={`menu-skeleton-${index}`}>
+            <div className="flex items-center gap-2 p-2 w-full">
+              <Skeleton className="h-6 w-6 rounded-md" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+         </SidebarMenuItem>
+      ))}
+      <Separator className="my-4" />
+      {Array.from({ length: 2 }).map((_, index) => (
+         <SidebarMenuItem key={`help-skeleton-${index}`}>
+            <div className="flex items-center gap-2 p-2 w-full">
+              <Skeleton className="h-6 w-6 rounded-md" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+         </SidebarMenuItem>
+      ))}
+    </>
+  );
+
   return (
     <Sidebar>
       <SidebarHeader className="relative">
@@ -237,44 +268,58 @@ function AppSidebar() {
                 <ArrowLeft className="h-5 w-5" />
             </SidebarTrigger>
         </div>
-        <div className="flex flex-col items-center text-center p-4 pt-8">
-            <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
-                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <p className="font-semibold">{userProfile.name}</p>
-            <p className="text-sm text-muted-foreground">{userProfile.username}</p>
-            <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
-                <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
+         {loading ? (
+          <div className="flex flex-col items-center text-center p-4 pt-8">
+            <Skeleton className="w-20 h-20 mb-4 rounded-full" />
+            <Skeleton className="h-5 w-24 mb-2" />
+            <Skeleton className="h-4 w-20" />
+            <div className="flex gap-4 mt-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
             </div>
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center p-4 pt-8">
+              <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
+                  <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                  <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <p className="font-semibold">{userProfile.name}</p>
+              <p className="text-sm text-muted-foreground">{userProfile.username}</p>
+              <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                  <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
+                  <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
+              </div>
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent className="overflow-y-auto no-scrollbar">
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <Link href={item.href || '#'} className="w-full">
-                  <SidebarMenuButton>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-        <Separator className="my-4" />
-        <SidebarMenu>
-            {helpItems.map((item) => (
+          {loading ? renderSkeletonMenu() : (
+            <>
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
-                  <Link href={item.href || '#'} className="w-full">
+                  <Link href={item.href} className="w-full">
                     <SidebarMenuButton>
-                        <item.icon />
-                        <span>{item.label}</span>
+                      <item.icon />
+                      <span>{item.label}</span>
                     </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
-            ))}
+              ))}
+              <Separator className="my-4" />
+              {helpItems.map((item) => (
+                  <SidebarMenuItem key={item.label}>
+                    <Link href={item.href} className="w-full">
+                      <SidebarMenuButton>
+                          <item.icon />
+                          <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+              ))}
+            </>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
