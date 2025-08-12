@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, Menu, Search, ShoppingCart, FilePen, Wallet, ArrowLeft } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
@@ -104,7 +104,7 @@ export default function LiveSellingPage() {
       <header className="p-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon">
-            <Menu className="h-6 w-6" />
+            <AlignJustify className="h-6 w-6" />
           </Button>
           <div className="flex-1 mx-4">
             {isSearchVisible ? (
