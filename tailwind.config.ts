@@ -122,7 +122,12 @@ export default {
         "caret-blink": "caret-blink 1.25s ease-out infinite",
         "pulse-red": "pulse-red 1s cubic-bezier(0.4, 0, 0.6, 1)",
       },
+      spacing: {
+        '2.5': '0.625rem',
+      }
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    
