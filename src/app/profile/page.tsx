@@ -3,11 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Settings, Star } from 'lucide-react';
+import { ArrowLeft, Search, Settings, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
@@ -147,9 +145,9 @@ export default function ProfilePage() {
         
         <Tabs defaultValue="posts" className="w-full">
           <TabsList className="grid w-full grid-cols-3 rounded-none border-b">
-            <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="replies">Replies</TabsTrigger>
-            <TabsTrigger value="likes">Likes</TabsTrigger>
+            <TabsTrigger value="posts"><LayoutGrid className="w-5 h-5" /></TabsTrigger>
+            <TabsTrigger value="replies"><MessageCircle className="w-5 h-5" /></TabsTrigger>
+            <TabsTrigger value="likes"><Heart className="w-5 h-5" /></TabsTrigger>
           </TabsList>
           <TabsContent value="posts" className="p-0">
              {loading ? (
@@ -185,3 +183,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
