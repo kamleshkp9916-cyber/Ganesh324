@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, Settings, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -76,7 +76,7 @@ export default function ProfilePage() {
             </Button>
             <Link href="/setting">
                 <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
-                    <Settings className="h-6 w-6 text-white" />
+                    <MoreVertical className="h-6 w-6 text-white" />
                 </Button>
             </Link>
         </div>
