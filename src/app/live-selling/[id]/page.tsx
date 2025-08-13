@@ -110,8 +110,8 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     return (
         <div className="relative h-screen bg-black text-white flex flex-col">
             {/* Header */}
-            <header className="absolute top-0 left-0 right-0 p-4 flex items-start justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-                 <div className="-ml-4 mt-2.5">
+            <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
+                 <div className="-ml-4">
                     <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -123,7 +123,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     </Avatar>
                     <div className="flex flex-col items-start">
                         <p className="font-semibold">{userName}</p>
-                        <div className="flex flex-col items-start">
+                        <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
                                 <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
                                 <span className="text-xs text-red-400 font-bold">Live</span>
@@ -136,17 +136,17 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     </div>
                 </div>
                
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2">
                     <Button 
                         size="icon" 
                         className={cn(
                             "rounded-full h-8 w-8",
-                            isFollowing ? "bg-destructive hover:bg-destructive/90" : "bg-white text-black hover:bg-white/90",
+                            isFollowing ? "bg-destructive text-black hover:bg-destructive/90" : "bg-white text-black hover:bg-white/90",
                             animateFollow && "animate-pulse-red"
                         )}
                         onClick={handleFollowClick}
                     >
-                        {isFollowing ? <Check className="h-4 w-4 text-black" /> : <Plus className="h-4 w-4" />}
+                        {isFollowing ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
@@ -282,5 +282,7 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
 
     
