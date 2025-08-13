@@ -206,37 +206,52 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 </div>
             </header>
 
-            {/* Auction Panel */}
-            <div className="absolute top-20 left-4 z-10">
-                 <Card className="w-64 bg-black/50 border-gray-700 text-white">
-                    <CardContent className="p-3">
-                        <div className="relative aspect-[3/4] mb-2">
-                            <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
-                            <div className="absolute top-1 left-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
-                                AUCTION
-                            </div>
-                        </div>
-                        <h3 className="font-bold truncate">{auctionItem.name}</h3>
-                        <div className="text-sm mt-1">
-                            <p className="text-gray-400">Current Bid</p>
-                            <p className="text-lg font-bold text-green-400">${currentBid}</p>
-                            {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
-                        </div>
-                         <div className="mt-2">
-                            <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
-                            <p className="text-xs text-center mt-1 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
-                        </div>
-                        <Button 
-                            className="w-full mt-3 bg-red-500 hover:bg-red-600 font-bold" 
-                            onClick={handlePlaceBid}
-                            disabled={!isAuctionRunning}
-                        >
-                            <Gavel className="h-4 w-4 mr-2" />
-                            {isAuctionRunning ? `Bid ($${currentBid + auctionItem.bidIncrement})` : 'Auction Ended'}
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Auction Drawer */}
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 z-10 m-2 bg-black/50 hover:bg-black/70 text-green-400 rounded-full h-12 w-12">
+                        <Gavel className="h-7 w-7" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="bg-gray-900 border-gray-800 text-white w-80 p-0" aria-describedby="auction-sheet-description">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Auction Details</SheetTitle>
+                        <SheetDescription id="auction-sheet-description" className="sr-only">
+                            Current auction item details and bidding options.
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="p-4">
+                         <Card className="w-full bg-black/50 border-gray-700 text-white mt-4">
+                            <CardContent className="p-3">
+                                <div className="relative aspect-[3/4] mb-2">
+                                    <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
+                                    <div className="absolute top-1 left-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
+                                        AUCTION
+                                    </div>
+                                </div>
+                                <h3 className="font-bold truncate">{auctionItem.name}</h3>
+                                <div className="text-sm mt-1">
+                                    <p className="text-gray-400">Current Bid</p>
+                                    <p className="text-lg font-bold text-green-400">${currentBid}</p>
+                                    {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
+                                </div>
+                                 <div className="mt-2">
+                                    <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
+                                    <p className="text-xs text-center mt-1 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
+                                </div>
+                                <Button 
+                                    className="w-full mt-3 bg-red-500 hover:bg-red-600 font-bold" 
+                                    onClick={handlePlaceBid}
+                                    disabled={!isAuctionRunning}
+                                >
+                                    <Gavel className="h-4 w-4 mr-2" />
+                                    {isAuctionRunning ? `Bid ($${currentBid + auctionItem.bidIncrement})` : 'Auction Ended'}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             {/* Product Drawer */}
             <Sheet>
@@ -368,5 +383,3 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
-
-    
