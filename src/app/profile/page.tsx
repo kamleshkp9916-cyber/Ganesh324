@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Settings } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Settings, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -12,23 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import Link from 'next/link';
-
-function VerifiedIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      {...props}
-    >
-      <path
-        fillRule="evenodd"
-        d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.454-12.68a.75.75 0 011.04-.208z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
 function OmIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -137,8 +120,7 @@ export default function ProfilePage() {
                 <div>
                     <div className="flex items-center gap-1.5">
                         <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
-                        <VerifiedIcon className="w-5 h-5 text-blue-500" />
-                        <Link href="#" className="text-sm text-blue-500 hover:underline">Get Verified</Link>
+                        <Star className="w-5 h-5 text-blue-500" fill="currentColor" />
                     </div>
                     <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
                     <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
