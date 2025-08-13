@@ -225,6 +225,7 @@ function AppSidebar() {
   });
 
   const menuItems = [
+    { icon: User, label: 'My Profile', href: '/profile' },
     { icon: ShoppingCart, label: 'Orders', href: '/orders' },
     { icon: Award, label: 'Top Seller', href: '/top-seller' },
     { icon: MessageSquare, label: 'Message', href: '/message' },
@@ -239,7 +240,7 @@ function AppSidebar() {
 
   const renderSkeletonMenu = () => (
     <>
-      {Array.from({ length: 5 }).map((_, index) => (
+      {Array.from({ length: 6 }).map((_, index) => (
          <SidebarMenuItem key={`menu-skeleton-${index}`}>
             <div className="flex items-center gap-2 p-2 w-full">
               <Skeleton className="h-6 w-6 rounded-md" />
