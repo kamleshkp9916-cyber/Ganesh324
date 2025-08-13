@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -90,9 +90,11 @@ export default function ProfilePage() {
             <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
                 <Search className="h-6 w-6 text-white" />
             </Button>
-            <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
-                <MoreVertical className="h-6 w-6 text-white" />
-            </Button>
+            <Link href="/setting">
+                <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
+                    <Settings className="h-6 w-6 text-white" />
+                </Button>
+            </Link>
         </div>
       </header>
 
@@ -134,12 +136,12 @@ export default function ProfilePage() {
             ) : (
                 <div>
                     <div className="flex items-center gap-1.5">
-                        <h2 className="text-2xl font-bold">{userProfile.name}</h2>
+                        <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
                         <VerifiedIcon className="w-5 h-5 text-blue-500" />
                         <Link href="#" className="text-sm text-blue-500 hover:underline">Get Verified</Link>
                     </div>
-                    <p className="text-muted-foreground">{userProfile.username}</p>
-                    <p className="mt-2 text-sm flex items-center gap-1.5">
+                    <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
+                    <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
                         {userProfile.bio}
                         <OmIcon className="w-4 h-4 text-purple-500" />
                         <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
@@ -207,4 +209,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
