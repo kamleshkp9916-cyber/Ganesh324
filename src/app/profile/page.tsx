@@ -143,43 +143,42 @@ export default function ProfilePage() {
         </div>
         
         <div className="p-4 mt-12">
-            <div className="flex justify-end mb-4">
-                 {loading ? <Skeleton className="h-9 w-9 rounded-full" /> : 
+            <div className="flex justify-between items-start">
+                {loading ? (
+                    <div className="space-y-3 flex-1">
+                        <Skeleton className="h-7 w-48" />
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-5 w-40" />
+                        <div className="flex gap-4 pt-2">
+                            <Skeleton className="h-5 w-20" />
+                            <Skeleton className="h-5 w-20" />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
+                            <Star className="w-5 h-5 text-blue-500" fill="currentColor" />
+                        </div>
+                        <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
+                        <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
+                            {userProfile.bio}
+                            <OmIcon className="w-4 h-4 text-purple-500" />
+                            <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
+                            <FoldedHandsIcon className="w-4 h-4 text-yellow-500" />
+                        </p>
+                        <div className="mt-4 flex gap-4 text-sm">
+                            <p><span className="font-bold text-foreground">{userProfile.following}</span> <span className="text-muted-foreground">Following</span></p>
+                            <p><span className="font-bold text-foreground">{userProfile.followers}</span> <span className="text-muted-foreground">Followers</span></p>
+                        </div>
+                    </div>
+                )}
+                {loading ? <Skeleton className="h-9 w-9 rounded-full" /> : 
                     <Button variant="outline" size="icon">
                         <Edit className="h-4 w-4" />
                     </Button>
-                 }
+                }
             </div>
-
-            {loading ? (
-                <div className="space-y-3">
-                    <Skeleton className="h-7 w-48" />
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-5 w-40" />
-                    <div className="flex gap-4 pt-2">
-                        <Skeleton className="h-5 w-20" />
-                        <Skeleton className="h-5 w-20" />
-                    </div>
-                </div>
-            ) : (
-                <div>
-                    <div className="flex items-center gap-1.5">
-                        <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
-                        <Star className="w-5 h-5 text-blue-500" fill="currentColor" />
-                    </div>
-                    <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
-                    <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
-                        {userProfile.bio}
-                        <OmIcon className="w-4 h-4 text-purple-500" />
-                        <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
-                        <FoldedHandsIcon className="w-4 h-4 text-yellow-500" />
-                    </p>
-                    <div className="mt-4 flex gap-4 text-sm">
-                        <p><span className="font-bold text-foreground">{userProfile.following}</span> <span className="text-muted-foreground">Following</span></p>
-                        <p><span className="font-bold text-foreground">{userProfile.followers}</span> <span className="text-muted-foreground">Followers</span></p>
-                    </div>
-                </div>
-            )}
         </div>
         
         <Tabs defaultValue="posts" className="w-full">
@@ -227,4 +226,6 @@ export default function ProfilePage() {
       </main>
     </div>
   );
- 
+}
+
+    
