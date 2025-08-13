@@ -111,7 +111,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         <div className="relative h-screen bg-black text-white flex flex-col">
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-                 <div className="-ml-4 mt-10">
+                 <div className="-ml-4">
                     <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
