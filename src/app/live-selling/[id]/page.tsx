@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { ArrowLeft, MoreVertical, ChevronRight, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -78,10 +78,15 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         <ChevronRight className="h-6 w-6" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-background text-foreground">
+                <SheetContent side="left" className="bg-background text-foreground" aria-describedby="products-sheet-description">
+                    <SheetHeader>
+                        <SheetTitle>Products</SheetTitle>
+                        <SheetDescription id="products-sheet-description">
+                            Listed products will be shown here.
+                        </SheetDescription>
+                    </SheetHeader>
                     <div className="p-4">
-                        <h2 className="text-lg font-bold mb-4">Products</h2>
-                        <p>Listed products will be shown here.</p>
+                        
                     </div>
                 </SheetContent>
             </Sheet>
