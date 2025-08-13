@@ -111,7 +111,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         <div className="relative h-screen bg-black text-white flex flex-col">
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-                 <div className="-ml-4">
+                 <div className="-ml-4 mt-10">
                     <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -198,34 +198,36 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
 
                     {/* Input */}
                     <div className="flex items-center gap-2">
-                        <Input 
-                            type="text" 
-                            placeholder="Type Your Thoughts..........." 
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
-                            className="bg-black/30 border-red-500 border rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2"
-                        />
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-white">
-                                    <Smile className="h-6 w-6" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-2 bg-black/50 border-gray-700">
-                                <div className="grid grid-cols-6 gap-2">
-                                    {emojis.map((emoji) => (
-                                        <button 
-                                            key={emoji} 
-                                            onClick={() => handleEmojiSelect(emoji)}
-                                            className="text-2xl hover:scale-125 transition-transform"
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                        <div className="relative flex-1">
+                            <Input 
+                                type="text" 
+                                placeholder="Type Your Thoughts..........." 
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
+                                className="bg-black/30 border-red-500 border rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2 pr-10"
+                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-white">
+                                        <Smile className="h-5 w-5" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2 bg-black/50 border-gray-700">
+                                    <div className="grid grid-cols-6 gap-2">
+                                        {emojis.map((emoji) => (
+                                            <button 
+                                                key={emoji} 
+                                                onClick={() => handleEmojiSelect(emoji)}
+                                                className="text-2xl hover:scale-125 transition-transform"
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                         <Button variant="ghost" size="icon" className="text-red-500" onClick={handleSendComment}>
                             <Send className="h-6 w-6" />
                         </Button>
@@ -282,7 +284,3 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
-
-    
-
-    
