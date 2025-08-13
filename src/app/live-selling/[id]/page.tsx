@@ -221,11 +221,11 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             {/* Auction Popover */}
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 z-10 m-2 bg-black/50 hover:bg-black/70 text-green-400 rounded-full h-12 w-12">
+                    <Button variant="ghost" size="icon" className="absolute left-4 bottom-24 z-10 bg-black/50 hover:bg-black/70 text-green-400 rounded-full h-12 w-12">
                         <Gavel className="h-7 w-7" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent side="right" align="start" className="bg-gray-900 border-gray-800 text-white w-80 p-0 ml-4" >
+                <PopoverContent side="top" align="start" className="bg-gray-900 border-gray-800 text-white w-80 p-0 ml-4 mb-2">
                      <Card className="w-full bg-transparent border-0 text-white">
                         <CardContent className="p-4">
                             <div className="relative aspect-square mb-4">
