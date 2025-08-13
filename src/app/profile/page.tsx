@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 function OmIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -33,6 +34,8 @@ function FoldedHandsIcon(props: React.SVGProps<SVGSVGElement>) {
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [userProfile, setUserProfile] = useState({
     name: 'Samael Prajapati',
     username: '@SamaelPr9916',
@@ -48,14 +51,23 @@ export default function ProfilePage() {
     ],
   });
 
-  const userPosts = [
+  const userPosts = useMemo(() => [
     { id: 1, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 1', hint: 'fashion clothing' },
     { id: 2, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 2', hint: 'street style' },
     { id: 3, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 3', hint: 'summer outfit' },
     { id: 4, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 4', hint: 'travel photo' },
     { id: 5, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 5', hint: 'food photography' },
     { id: 6, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 6', hint: 'architectural design' },
-  ];
+  ], []);
+
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery) return userPosts;
+    return userPosts.filter(
+      (post) =>
+        post.caption.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.hint.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, userPosts]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,20 +78,40 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-transparent">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+       <header className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-transparent">
+        <Button variant="ghost" size="icon" onClick={() => {
+            if (isSearchVisible) {
+                setIsSearchVisible(false);
+                setSearchQuery('');
+            } else {
+                router.back();
+            }
+        }}>
           <ArrowLeft className="h-6 w-6 text-white" />
         </Button>
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-                <Search className="h-6 w-6 text-white" />
-            </Button>
-            <Link href="/setting">
-                <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-6 w-6 text-white" />
+        {isSearchVisible ? (
+             <div className="relative flex-1 mx-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search posts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-full rounded-full bg-background/80 text-foreground"
+                />
+              </div>
+        ) : (
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(true)}>
+                    <Search className="h-6 w-6 text-white" />
                 </Button>
-            </Link>
-        </div>
+                <Link href="/setting">
+                    <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-6 w-6 text-white" />
+                    </Button>
+                </Link>
+            </div>
+        )}
       </header>
 
       <main className="flex flex-col">
@@ -154,21 +186,27 @@ export default function ProfilePage() {
           </TabsList>
           <TabsContent value="posts" className="p-0">
              {loading ? (
-              <div className="grid grid-cols-3 gap-1 mt-0.5">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="relative aspect-[3/4]">
-                    <Skeleton className="w-full h-full" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-0.5 mt-0.5">
-                {userPosts.map(post => (
-                  <div key={post.id} className="relative aspect-[3/4]">
-                    <Image src={post.imageUrl} alt={post.caption} fill className="object-cover" data-ai-hint={post.hint} />
-                  </div>
-                ))}
-              </div>
+                <div className="grid grid-cols-3 gap-1 mt-0.5">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="relative aspect-[3/4]">
+                        <Skeleton className="w-full h-full" />
+                    </div>
+                    ))}
+                </div>
+             ) : (
+                filteredPosts.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-0.5 mt-0.5">
+                        {filteredPosts.map(post => (
+                        <div key={post.id} className="relative aspect-[3/4]">
+                            <Image src={post.imageUrl} alt={post.caption} fill className="object-cover" data-ai-hint={post.hint} />
+                        </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-48">
+                        <p className="text-muted-foreground">No posts found.</p>
+                    </div>
+                )
             )}
           </TabsContent>
            <TabsContent value="replies">
