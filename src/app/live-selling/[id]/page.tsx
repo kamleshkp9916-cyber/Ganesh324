@@ -218,81 +218,85 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 </div>
             </header>
 
-            {/* Auction Popover */}
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute left-4 bottom-24 z-10 bg-black/50 hover:bg-black/70 text-green-400 rounded-full h-12 w-12">
-                        <Gavel className="h-7 w-7" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent side="top" align="start" className="bg-gray-900 border-gray-800 text-white w-80 p-0 ml-4 mb-2">
-                     <Card className="w-full bg-transparent border-0 text-white">
-                        <CardContent className="p-4">
-                            <div className="relative aspect-square mb-4">
-                                <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
-                                <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-pulse">
-                                    AUCTION
+            {/* Right-side controls */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-4">
+                {/* Product Drawer */}
+                <Sheet>
+                    <SheetTrigger asChild>
+                         <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70 text-red-500 rounded-full h-12 w-12">
+                            <ShoppingBag className="h-7 w-7" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="bg-background text-foreground" aria-describedby="products-sheet-description">
+                        <SheetHeader>
+                            <SheetTitle>Products</SheetTitle>
+                            <SheetDescription id="products-sheet-description">
+                                Listed products will be shown here.
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="p-4">
+                            
+                        </div>
+                    </SheetContent>
+                </Sheet>
+                
+                {/* Auction Popover */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70 text-green-400 rounded-full h-12 w-12">
+                            <Gavel className="h-7 w-7" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent side="left" align="center" className="bg-gray-900 border-gray-800 text-white w-80 p-0 mr-4">
+                         <Card className="w-full bg-transparent border-0 text-white">
+                            <CardContent className="p-4">
+                                <div className="relative aspect-square mb-4">
+                                    <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
+                                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-pulse">
+                                        AUCTION
+                                    </div>
                                 </div>
-                            </div>
-                            <h3 className="font-bold text-lg truncate">{auctionItem.name}</h3>
-                            <div className="text-sm mt-2">
-                                <p className="text-gray-400">Current Bid</p>
-                                <p className="text-xl font-bold text-green-400">${currentBid}</p>
-                                {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
-                            </div>
-                             <div className="mt-4">
-                                <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
-                                <p className="text-xs text-center mt-1.5 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
-                            </div>
-                            {!isAuctionRunning ? (
-                                 <Button className="w-full mt-4 bg-gray-600 font-bold" disabled>
-                                    Auction Ended
-                                </Button>
-                            ) : (
-                                <div className="flex w-full mt-4 gap-2">
-                                    <Input 
-                                        type="number"
-                                        placeholder={`> $${currentBid}`}
-                                        value={customBid}
-                                        onChange={(e) => setCustomBid(e.target.value)}
-                                        disabled={!isAuctionRunning}
-                                        className="bg-gray-800 border-gray-700 focus:ring-red-500"
-                                        min={currentBid + 1}
-                                    />
-                                    <Button 
-                                        className="bg-red-500 hover:bg-red-600 font-bold" 
-                                        onClick={handlePlaceBid}
-                                        disabled={!isAuctionRunning || !customBid}
-                                    >
-                                        <Gavel className="h-4 w-4" />
-                                        <span className='sr-only'>Place Bid</span>
+                                <h3 className="font-bold text-lg truncate">{auctionItem.name}</h3>
+                                <div className="text-sm mt-2">
+                                    <p className="text-gray-400">Current Bid</p>
+                                    <p className="text-xl font-bold text-green-400">${currentBid}</p>
+                                    {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
+                                </div>
+                                 <div className="mt-4">
+                                    <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
+                                    <p className="text-xs text-center mt-1.5 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
+                                </div>
+                                {!isAuctionRunning ? (
+                                     <Button className="w-full mt-4 bg-gray-600 font-bold" disabled>
+                                        Auction Ended
                                     </Button>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </PopoverContent>
-            </Popover>
+                                ) : (
+                                    <div className="flex w-full mt-4 gap-2">
+                                        <Input 
+                                            type="number"
+                                            placeholder={`> $${currentBid}`}
+                                            value={customBid}
+                                            onChange={(e) => setCustomBid(e.target.value)}
+                                            disabled={!isAuctionRunning}
+                                            className="bg-gray-800 border-gray-700 focus:ring-red-500"
+                                            min={currentBid + 1}
+                                        />
+                                        <Button 
+                                            className="bg-red-500 hover:bg-red-600 font-bold" 
+                                            onClick={handlePlaceBid}
+                                            disabled={!isAuctionRunning || !customBid}
+                                        >
+                                            <Gavel className="h-4 w-4" />
+                                            <span className='sr-only'>Place Bid</span>
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </PopoverContent>
+                </Popover>
+            </div>
 
-            {/* Product Drawer */}
-            <Sheet>
-                <SheetTrigger asChild>
-                     <Button variant="ghost" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 z-10 m-2 bg-black/50 hover:bg-black/70 text-red-500 rounded-full h-12 w-12">
-                        <ShoppingBag className="h-7 w-7" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-background text-foreground" aria-describedby="products-sheet-description">
-                    <SheetHeader>
-                        <SheetTitle>Products</SheetTitle>
-                        <SheetDescription id="products-sheet-description">
-                            Listed products will be shown here.
-                        </SheetDescription>
-                    </SheetHeader>
-                    <div className="p-4">
-                        
-                    </div>
-                </SheetContent>
-            </Sheet>
 
             {/* Main content - Video Placeholder */}
             <main className="flex-1 bg-black" />
@@ -404,3 +408,5 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
