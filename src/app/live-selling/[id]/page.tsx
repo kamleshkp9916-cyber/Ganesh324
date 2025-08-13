@@ -3,14 +3,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, Send, Smile, Eye, Plus, Check, ShoppingBag } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, MoreVertical, Send, Smile, Eye, Plus, Check, ShoppingBag, Gavel } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const initialComments = [
     {
@@ -36,9 +40,18 @@ const mockNewComments = [
 
 const emojis = ['😀', '😂', '😍', '🔥', '👍', '❤️', '💰', '🤑', '💵', '💳', '💸', '🎉'];
 
+const initialAuctionItem = {
+    id: 'prod-123',
+    name: 'Vintage Leather Jacket',
+    image: 'https://placehold.co/300x400.png',
+    startingBid: 50,
+    bidIncrement: 5,
+};
+
 export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const userName = searchParams.get('userName') || `User ${params.id}`;
     const userImage = searchParams.get('userImage') || 'https://placehold.co/40x40.png';
 
@@ -48,6 +61,14 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [viewers, setViewers] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [animateFollow, setAnimateFollow] = useState(false);
+
+    // Auction State
+    const [auctionItem, setAuctionItem] = useState(initialAuctionItem);
+    const [currentBid, setCurrentBid] = useState(initialAuctionItem.startingBid);
+    const [highestBidder, setHighestBidder] = useState<string | null>(null);
+    const [timeLeft, setTimeLeft] = useState(60);
+    const [isAuctionRunning, setIsAuctionRunning] = useState(true);
+
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -77,6 +98,26 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             clearInterval(viewerInterval);
         }
     }, [loading]);
+
+    // Auction Timer Effect
+    useEffect(() => {
+        if (!isAuctionRunning || loading) return;
+
+        if (timeLeft <= 0) {
+            setIsAuctionRunning(false);
+            toast({
+                title: "Auction Ended!",
+                description: highestBidder ? `${highestBidder} won the auction for $${currentBid}!` : "The item was not sold.",
+            });
+            return;
+        }
+
+        const auctionTimer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(auctionTimer);
+    }, [isAuctionRunning, timeLeft, loading, highestBidder, currentBid, toast]);
     
     const handleFollowClick = () => {
         setIsFollowing(prev => !prev);
@@ -99,6 +140,17 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         setNewComment("");
     };
 
+    const handlePlaceBid = () => {
+        if (!isAuctionRunning) return;
+        const newBid = currentBid + auctionItem.bidIncrement;
+        setCurrentBid(newBid);
+        setHighestBidder("@You");
+        toast({
+            title: "Bid Placed!",
+            description: `You are now the highest bidder with $${newBid}.`,
+        });
+    };
+
     const handleEmojiSelect = (emoji: string) => {
         setNewComment(prev => prev + emoji);
     }
@@ -111,7 +163,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         <div className="relative h-screen bg-black text-white flex flex-col">
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-                <div className="flex items-center -ml-3">
+                <div className="flex items-center gap-2 -ml-3">
                     <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -154,6 +206,38 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 </div>
             </header>
 
+            {/* Auction Panel */}
+            <div className="absolute top-20 left-4 z-10">
+                 <Card className="w-64 bg-black/50 border-gray-700 text-white">
+                    <CardContent className="p-3">
+                        <div className="relative aspect-[3/4] mb-2">
+                            <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
+                            <div className="absolute top-1 left-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
+                                AUCTION
+                            </div>
+                        </div>
+                        <h3 className="font-bold truncate">{auctionItem.name}</h3>
+                        <div className="text-sm mt-1">
+                            <p className="text-gray-400">Current Bid</p>
+                            <p className="text-lg font-bold text-green-400">${currentBid}</p>
+                            {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
+                        </div>
+                         <div className="mt-2">
+                            <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
+                            <p className="text-xs text-center mt-1 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
+                        </div>
+                        <Button 
+                            className="w-full mt-3 bg-red-500 hover:bg-red-600 font-bold" 
+                            onClick={handlePlaceBid}
+                            disabled={!isAuctionRunning}
+                        >
+                            <Gavel className="h-4 w-4 mr-2" />
+                            {isAuctionRunning ? `Bid ($${currentBid + auctionItem.bidIncrement})` : 'Auction Ended'}
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Product Drawer */}
             <Sheet>
                 <SheetTrigger asChild>
@@ -178,7 +262,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             <main className="flex-1 bg-black" />
 
             {/* Footer */}
-            <footer className="p-4 z-10 bg-gradient-to-t from-black/50 to-transparent">
+            <footer className="absolute bottom-0 left-0 right-0 p-4 z-10 bg-gradient-to-t from-black/50 to-transparent">
                 <div className="flex flex-col gap-3">
                     {/* Comments */}
                     <div className="flex flex-col gap-2 items-start h-40 overflow-y-auto no-scrollbar justify-end">
