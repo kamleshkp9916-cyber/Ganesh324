@@ -67,15 +67,15 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-transparent">
-        <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6 text-white" />
         </Button>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
+            <Button variant="ghost" size="icon">
                 <Search className="h-6 w-6 text-white" />
             </Button>
             <Link href="/setting">
-                <Button variant="ghost" size="icon" className="bg-black/50 hover:bg-black/70">
+                <Button variant="ghost" size="icon">
                     <MoreVertical className="h-6 w-6 text-white" />
                 </Button>
             </Link>
