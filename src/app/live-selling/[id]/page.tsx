@@ -112,10 +112,10 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
                 <div className="flex items-center">
-                    <Button variant="ghost" size="icon" className="text-white shrink-0 -ml-2" onClick={() => router.back()}>
+                    <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full">
+                    <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full -ml-2">
                         <Avatar className="h-10 w-10 border-2 border-red-500">
                             <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
                             <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
@@ -284,5 +284,3 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
-
-    
