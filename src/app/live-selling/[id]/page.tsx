@@ -247,8 +247,8 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                             <Gavel className="h-7 w-7" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent side="left" align="center" className="bg-gray-900 border-gray-800 text-white w-64 p-0 mr-4">
-                         <Card className="w-full bg-transparent border-0 text-white">
+                    <PopoverContent side="left" align="center" className="bg-transparent border-gray-800 text-white w-64 p-0 mr-2">
+                         <Card className="w-full bg-gray-900 border-0 text-white">
                             <CardContent className="p-3">
                                 <div className="relative aspect-square mb-2">
                                     <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
@@ -409,6 +409,8 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
 
     
 
