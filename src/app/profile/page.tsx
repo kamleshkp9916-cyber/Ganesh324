@@ -17,7 +17,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState({
-    name: 'bantypr324',
+    name: 'Banty Patel',
     username: '@bantypr324',
     avatarUrl: 'https://placehold.co/100x100.png',
     following: 200,
