@@ -23,72 +23,84 @@ function LiveSellingContent() {
 
   const liveProducts = [
     {
+      id: "user-1",
       bgColor: "bg-gradient-to-b from-red-400 to-red-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 1",
       productName: "New Arrival Shirt"
     },
     {
+      id: "user-2",
       bgColor: "bg-gradient-to-b from-blue-400 to-blue-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 2",
       productName: "Latest Sneakers"
     },
     {
+      id: "user-3",
       bgColor: "bg-gradient-to-b from-green-400 to-green-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 3",
       productName: "Summer Dress"
     },
     {
+      id: "user-4",
       bgColor: "bg-gradient-to-b from-purple-400 to-purple-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 4",
       productName: "New Handbag"
     },
     {
+      id: "user-5",
       bgColor: "bg-gradient-to-b from-yellow-400 to-yellow-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 5",
       productName: "Vintage Watch"
     },
     {
+      id: "user-6",
       bgColor: "bg-gradient-to-b from-pink-400 to-pink-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 6",
       productName: "Sunglasses"
     },
     {
+      id: "user-7",
       bgColor: "bg-gradient-to-b from-indigo-400 to-indigo-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 7",
       productName: "Leather Jacket"
     },
     {
+      id: "user-8",
       bgColor: "bg-gradient-to-b from-gray-400 to-gray-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 8",
       productName: "Formal Shoes"
     },
      {
+      id: "user-9",
       bgColor: "bg-gradient-to-b from-red-400 to-red-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 9",
       productName: "Cool T-Shirt"
     },
     {
+      id: "user-10",
       bgColor: "bg-gradient-to-b from-blue-400 to-blue-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 10",
       productName: "Denim Jeans"
     },
     {
+      id: "user-11",
       bgColor: "bg-gradient-to-b from-green-400 to-green-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 11",
       productName: "Designer Skirt"
     },
     {
+      id: "user-12",
       bgColor: "bg-gradient-to-b from-purple-400 to-purple-600",
       userImage: "https://placehold.co/40x40.png",
       userName: "User 12",
@@ -162,19 +174,21 @@ function LiveSellingContent() {
                     </Card>
                 ))
             ) : (
-                filteredProducts.map((product, index) => (
-                    <Card key={index} className="overflow-hidden relative aspect-[9/16]">
-                    <div className={`absolute inset-0 ${product.bgColor}`} />
-                    <CardContent className="p-2 flex items-end h-full">
-                        <div className="flex items-center gap-2 text-white text-sm font-semibold">
-                        <Avatar className="border-2 border-primary">
-                            <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
-                            <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{product.userName}<br/>{product.productName}</span>
-                        </div>
-                    </CardContent>
+                filteredProducts.map((product) => (
+                  <Link key={product.id} href={`/live-selling/${product.id}?userName=${encodeURIComponent(product.userName)}&userImage=${encodeURIComponent(product.userImage)}`} passHref>
+                    <Card className="overflow-hidden relative aspect-[9/16] cursor-pointer">
+                      <div className={`absolute inset-0 ${product.bgColor}`} />
+                      <CardContent className="p-2 flex items-end h-full">
+                          <div className="flex items-center gap-2 text-white text-sm font-semibold">
+                          <Avatar className="border-2 border-primary">
+                              <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
+                              <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span>{product.userName}<br/>{product.productName}</span>
+                          </div>
+                      </CardContent>
                     </Card>
+                  </Link>
                 ))
             )}
             </div>
