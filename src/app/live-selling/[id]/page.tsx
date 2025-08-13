@@ -111,22 +111,24 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
                         <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div>
-                        <p className="font-semibold">{userName}</p>
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
-                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                <span className="text-xs text-red-400 font-bold">Live</span>
-                            </div>
-                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
-                                <Eye className="h-3 w-3 text-white" />
-                                <span className="text-xs text-white font-bold">{viewers.toLocaleString()}</span>
+                    <div className="flex items-start gap-2">
+                        <div>
+                            <p className="font-semibold">{userName}</p>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                    <span className="text-xs text-red-400 font-bold">Live</span>
+                                </div>
+                                <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                    <Eye className="h-3 w-3 text-white" />
+                                    <span className="text-xs text-white font-bold">{viewers.toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
+                         <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 self-center">Follow</Button>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-8">Follow</Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
                     </Button>
