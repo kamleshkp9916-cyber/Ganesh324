@@ -10,17 +10,26 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { ArrowLeft, MoreVertical, ChevronRight, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const commentsData = [
+const initialComments = [
     {
+        id: 1,
         user: "@GaneshPr324",
         comment: "nice one I love it.........",
         avatar: "https://placehold.co/32x32.png"
     },
     {
-        user: "@GaneshPr324",
-        comment: "nice one I love it...",
+        id: 2,
+        user: "@Samael99",
+        comment: "How much for this?",
         avatar: "https://placehold.co/32x32.png"
     }
+];
+
+const mockNewComments = [
+    { user: "@Alex_123", comment: "Looks amazing!", avatar: "https://placehold.co/32x32.png" },
+    { user: "@BellaCiao", comment: "I want one!", avatar: "https://placehold.co/32x32.png" },
+    { user: "@CryptoKing", comment: "To the moon! 🚀", avatar: "https://placehold.co/32x32.png" },
+    { user: "@Fashionista", comment: "So stylish!", avatar: "https://placehold.co/32x32.png" },
 ];
 
 export default function LiveStreamPage({ params }: { params: { id: string } }) {
@@ -30,7 +39,8 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const userImage = searchParams.get('userImage') || 'https://placehold.co/40x40.png';
 
     const [loading, setLoading] = useState(true);
-    const [comments, setComments] = useState(commentsData);
+    const [comments, setComments] = useState(initialComments);
+    const [newComment, setNewComment] = useState("");
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -39,6 +49,36 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         return () => clearTimeout(timer);
     }, []);
 
+    useEffect(() => {
+        if (loading) return;
+
+        const commentInterval = setInterval(() => {
+            setComments(prevComments => {
+                const nextMockComment = mockNewComments[Math.floor(Math.random() * mockNewComments.length)];
+                const allComments = [...prevComments, { ...nextMockComment, id: Date.now() }];
+                // Keep only the last 4 comments
+                return allComments.slice(Math.max(allComments.length - 4, 0));
+            });
+        }, 3000);
+
+        return () => clearInterval(commentInterval);
+    }, [loading]);
+
+    const handleSendComment = () => {
+        if (newComment.trim() === "") return;
+        const commentToSend = {
+            id: Date.now(),
+            user: "@You",
+            comment: newComment,
+            avatar: "https://placehold.co/32x32.png"
+        };
+        setComments(prevComments => {
+            const allComments = [...prevComments, commentToSend];
+            return allComments.slice(Math.max(allComments.length - 4, 0));
+        });
+        setNewComment("");
+    };
+    
     if (loading) {
         return <LiveStreamSkeleton />;
     }
@@ -98,9 +138,9 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             <footer className="p-4 z-10 bg-gradient-to-t from-black/50 to-transparent">
                 <div className="flex flex-col gap-3">
                     {/* Comments */}
-                    <div className="flex flex-col gap-2 items-start">
-                        {comments.map((comment, index) => (
-                            <div key={index} className="flex items-start gap-2 bg-black/20 p-2 rounded-lg max-w-xs">
+                    <div className="flex flex-col gap-2 items-start h-40 overflow-y-auto no-scrollbar justify-end">
+                        {comments.map((comment) => (
+                            <div key={comment.id} className="flex items-start gap-2 bg-black/20 p-2 rounded-lg max-w-xs animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <Avatar className="h-6 w-6">
                                     <AvatarImage src={comment.avatar} alt={comment.user} data-ai-hint="profile picture" />
                                     <AvatarFallback>{comment.user.charAt(1)}</AvatarFallback>
@@ -118,9 +158,12 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         <Input 
                             type="text" 
                             placeholder="Type Your Thoughts..........." 
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
                             className="bg-black/30 border-red-500 border-2 rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2"
                         />
-                        <Button variant="ghost" size="icon" className="text-red-500">
+                        <Button variant="ghost" size="icon" className="text-red-500" onClick={handleSendComment}>
                             <Send className="h-6 w-6" />
                         </Button>
                     </div>
