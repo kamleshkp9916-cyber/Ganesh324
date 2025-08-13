@@ -135,15 +135,15 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="flex items-center gap-2">
                     <Button 
-                        variant="secondary" 
                         size="icon" 
                         className={cn(
-                            "rounded-full bg-white text-black hover:bg-white/90 h-8 w-8",
+                            "rounded-full h-8 w-8",
+                            isFollowing ? "bg-destructive hover:bg-destructive/90" : "bg-white text-black hover:bg-white/90",
                             animateFollow && "animate-pulse-red"
                         )}
                         onClick={handleFollowClick}
                     >
-                        {isFollowing ? <Check className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4" />}
+                        {isFollowing ? <Check className="h-4 w-4 text-black" /> : <Plus className="h-4 w-4" />}
                     </Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
