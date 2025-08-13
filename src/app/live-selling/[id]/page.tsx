@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye, Plus, Check } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronLeft, Send, Smile, Eye, Plus, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -157,11 +157,11 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             {/* Product Drawer */}
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 m-2 bg-black/30 hover:bg-black/50 text-white rounded-full">
-                        <ChevronRight className="h-6 w-6" />
+                    <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 m-2 bg-black/30 hover:bg-black/50 text-white rounded-full">
+                        <ChevronLeft className="h-6 w-6" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-background text-foreground" aria-describedby="products-sheet-description">
+                <SheetContent side="right" className="bg-background text-foreground" aria-describedby="products-sheet-description">
                     <SheetHeader>
                         <SheetTitle>Products</SheetTitle>
                         <SheetDescription id="products-sheet-description">
@@ -284,5 +284,3 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
-
-    
