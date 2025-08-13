@@ -83,7 +83,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="flex flex-col">
-        <div className="relative h-48 bg-muted">
+        <div className="relative h-40 bg-muted">
              {loading ? <Skeleton className="w-full h-full" /> : 
                 <Image src={userProfile.bannerUrl} alt="Banner" layout="fill" objectFit="cover" data-ai-hint="stay positive" />
              }
