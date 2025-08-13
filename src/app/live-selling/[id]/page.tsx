@@ -33,7 +33,7 @@ const mockNewComments = [
     { user: "@Fashionista", comment: "So stylish!", avatar: "https://placehold.co/32x32.png" },
 ];
 
-const emojis = ['😀', '😂', '😍', '🔥', '👍', '❤️', '🚀', '🎉', '💯', '🙌', '🤔', '😢'];
+const emojis = ['😀', '😂', '😍', '🔥', '👍', '❤️', '💰', '🤑', '💵', '💳', '💸', '🎉'];
 
 export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const router = useRouter();
