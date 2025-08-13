@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,6 +36,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const headerRef = useRef<HTMLElement>(null);
   const [userProfile, setUserProfile] = useState({
     name: 'Samael Prajapati',
     username: '@SamaelPr9916',
@@ -76,9 +77,26 @@ export default function ProfilePage() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setIsSearchVisible(false);
+        setSearchQuery('');
+      }
+    }
+    if (isSearchVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSearchVisible]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-       <header className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-transparent">
+       <header ref={headerRef} className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-transparent">
         <Button variant="ghost" size="icon" onClick={() => {
             if (isSearchVisible) {
                 setIsSearchVisible(false);
@@ -224,3 +242,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
