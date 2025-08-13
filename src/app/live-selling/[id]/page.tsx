@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -45,10 +45,12 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
+    const [viewers, setViewers] = useState(0);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setLoading(false);
+            setViewers(Math.floor(Math.random() * 500) + 100);
         }, 2000);
         return () => clearTimeout(timer);
     }, []);
@@ -64,9 +66,14 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 return allComments.slice(Math.max(allComments.length - 4, 0));
             });
         }, 3000);
+
+        const viewerInterval = setInterval(() => {
+            setViewers(prev => prev + Math.floor(Math.random() * 11) - 5);
+        }, 5000);
         
         return () => {
             clearInterval(commentInterval);
+            clearInterval(viewerInterval);
         }
     }, [loading]);
 
@@ -108,15 +115,21 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         </Avatar>
                         <div className="flex flex-col items-start">
                             <p className="font-semibold">{userName}</p>
-                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
-                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                <span className="text-xs text-red-400 font-bold">Live</span>
+                            <div className="flex flex-col items-start">
+                                <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                    <span className="text-xs text-red-400 font-bold">Live</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-300">
+                                    <Eye className="h-3 w-3" />
+                                    <span>{viewers}</span>
+                                </div>
                             </div>
+                             <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 mt-1 self-start">Follow</Button>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 self-center">Follow</Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
                     </Button>
