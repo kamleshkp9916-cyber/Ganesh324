@@ -4,15 +4,8 @@
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/login-form';
 import Image from 'next/image';
-import { useState } from 'react';
 
 export default function Home() {
-  const [animateButton, setAnimateButton] = useState(false);
-
-  const handleOverlayClick = () => {
-    setAnimateButton(true);
-    setTimeout(() => setAnimateButton(false), 1000); // Reset after 1s
-  };
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -27,7 +20,7 @@ export default function Home() {
               Enter your credentials to access your account
             </p>
           </div>
-          <LoginForm animate={animateButton} />
+          <LoginForm />
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline font-semibold text-primary">
@@ -38,7 +31,6 @@ export default function Home() {
       </div>
       <div 
         className="hidden bg-primary lg:flex items-center justify-center p-10 relative cursor-pointer"
-        onClick={handleOverlayClick}
       >
         <div className="absolute inset-0 bg-black/30" />
         <div className="text-center text-primary-foreground relative z-10">
