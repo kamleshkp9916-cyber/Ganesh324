@@ -146,11 +146,10 @@ export default function ProfilePage() {
         </div>
         
         <Tabs defaultValue="posts" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 rounded-none border-b">
+          <TabsList className="grid w-full grid-cols-3 rounded-none border-b">
             <TabsTrigger value="posts">Posts</TabsTrigger>
             <TabsTrigger value="replies">Replies</TabsTrigger>
-            <TabsTrigger value="highlights">Highlights</TabsTrigger>
-            <TabsTrigger value="articles">Articles</TabsTrigger>
+            <TabsTrigger value="likes">Likes</TabsTrigger>
           </TabsList>
           <TabsContent value="posts" className="p-0">
              {loading ? (
@@ -176,14 +175,9 @@ export default function ProfilePage() {
                     <p className="text-muted-foreground">No replies yet.</p>
                 </div>
           </TabsContent>
-          <TabsContent value="highlights">
+          <TabsContent value="likes">
                 <div className="flex items-center justify-center h-48">
-                    <p className="text-muted-foreground">No highlights yet.</p>
-                </div>
-          </TabsContent>
-          <TabsContent value="articles">
-                <div className="flex items-center justify-center h-48">
-                    <p className="text-muted-foreground">No articles yet.</p>
+                    <p className="text-muted-foreground">No likes yet.</p>
                 </div>
           </TabsContent>
         </Tabs>
