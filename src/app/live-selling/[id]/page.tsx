@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
-import { ArrowLeft, MoreVertical, ChevronRight, Send } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const initialComments = [
@@ -31,6 +32,8 @@ const mockNewComments = [
     { user: "@CryptoKing", comment: "To the moon! 🚀", avatar: "https://placehold.co/32x32.png" },
     { user: "@Fashionista", comment: "So stylish!", avatar: "https://placehold.co/32x32.png" },
 ];
+
+const emojis = ['😀', '😂', '😍', '🔥', '👍', '❤️', '🚀', '🎉', '💯', '🙌', '🤔', '😢'];
 
 export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -78,6 +81,10 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         });
         setNewComment("");
     };
+
+    const handleEmojiSelect = (emoji: string) => {
+        setNewComment(prev => prev + emoji);
+    }
     
     if (loading) {
         return <LiveStreamSkeleton />;
@@ -163,6 +170,26 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                             onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
                             className="bg-black/30 border-red-500 border-2 rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2"
                         />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-white">
+                                    <Smile className="h-6 w-6" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-2 bg-black/50 border-gray-700">
+                                <div className="grid grid-cols-6 gap-2">
+                                    {emojis.map((emoji) => (
+                                        <button 
+                                            key={emoji} 
+                                            onClick={() => handleEmojiSelect(emoji)}
+                                            className="text-2xl hover:scale-125 transition-transform"
+                                        >
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <Button variant="ghost" size="icon" className="text-red-500" onClick={handleSendComment}>
                             <Send className="h-6 w-6" />
                         </Button>
