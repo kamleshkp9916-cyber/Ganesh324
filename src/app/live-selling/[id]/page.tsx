@@ -136,7 +136,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     </div>
                 </div>
                
-                <div className="flex items-center gap-2 mr-3">
+                <div className="flex items-center gap-2">
                     <Button 
                         size="icon" 
                         className={cn(
