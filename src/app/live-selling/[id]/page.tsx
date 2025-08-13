@@ -107,11 +107,11 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     <Button variant="ghost" size="icon" className="text-white" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <Avatar className="h-10 w-10 border-2 border-red-500">
-                        <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
-                        <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-center gap-2">
+                        <Avatar className="h-10 w-10 border-2 border-red-500">
+                            <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
+                            <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                        </Avatar>
                         <div>
                             <p className="font-semibold">{userName}</p>
                             <div className="flex items-center gap-2">
@@ -125,10 +125,10 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                 </div>
                             </div>
                         </div>
-                         <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 self-center">Follow</Button>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 self-center">Follow</Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
                     </Button>
@@ -263,3 +263,5 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
