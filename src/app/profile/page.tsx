@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Search, MoreVertical, Briefcase, Calendar, Cake, Star, LayoutGrid, MessageCircle, Heart } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Star, LayoutGrid, MessageCircle, Heart, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -144,7 +144,11 @@ export default function ProfilePage() {
         
         <div className="p-4 mt-12">
             <div className="flex justify-end mb-4">
-                 {loading ? <Skeleton className="h-9 w-24" /> : <Button variant="outline">Edit profile</Button>}
+                 {loading ? <Skeleton className="h-9 w-9 rounded-full" /> : 
+                    <Button variant="outline" size="icon">
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                 }
             </div>
 
             {loading ? (
@@ -152,11 +156,6 @@ export default function ProfilePage() {
                     <Skeleton className="h-7 w-48" />
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="h-5 w-40" />
-                    <div className="space-y-2 pt-2">
-                        <Skeleton className="h-5 w-40" />
-                        <Skeleton className="h-5 w-44" />
-                        <Skeleton className="h-5 w-36" />
-                    </div>
                     <div className="flex gap-4 pt-2">
                         <Skeleton className="h-5 w-20" />
                         <Skeleton className="h-5 w-20" />
@@ -228,4 +227,4 @@ export default function ProfilePage() {
       </main>
     </div>
   );
-}
+ 
