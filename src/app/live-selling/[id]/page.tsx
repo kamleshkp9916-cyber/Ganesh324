@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -125,11 +125,13 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                     <span>{viewers}</span>
                                 </div>
                             </div>
-                             <Button variant="secondary" size="sm" className="rounded-full bg-white text-black hover:bg-white/90 h-auto px-4 py-1.5 mt-1 self-start">Follow</Button>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button variant="secondary" size="icon" className="rounded-full bg-white text-black hover:bg-white/90 h-8 w-8">
+                        <Plus className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
                     </Button>
