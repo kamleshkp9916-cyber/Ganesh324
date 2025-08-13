@@ -112,7 +112,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                             <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
                             <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex flex-col items-start">
                             <p className="font-semibold">{userName}</p>
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
