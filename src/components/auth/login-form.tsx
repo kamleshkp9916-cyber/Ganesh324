@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   identifier: z.string().refine((value) => {
@@ -65,15 +67,21 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 export function LoginForm() {
   const router = useRouter();
   const { signInWithGoogle } = useAuthActions();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { identifier: "", password: "", rememberMe: false },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // TODO: Implement actual login logic
-    router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
+    setIsLoading(true);
+    setTimeout(() => {
+      // In a real app, you'd do authentication here.
+      console.log(values);
+      setIsLoading(false);
+      router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
+    }, 2000);
   }
 
   return (
@@ -86,7 +94,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email / Phone</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com or 1234567890" {...field} />
+                <Input placeholder="name@example.com or 1234567890" {...field} disabled={isLoading}/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -99,7 +107,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading}/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,6 +124,7 @@ export function LoginForm() {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         id="remember-me"
+                        disabled={isLoading}
                     />
                     </FormControl>
                     <FormLabel htmlFor="remember-me" className="font-normal cursor-pointer">
@@ -124,15 +133,21 @@ export function LoginForm() {
                 </FormItem>
                 )}
             />
-            <Link href="#" className="inline-block text-sm underline text-primary">
+            <Link href="#" className={cn("inline-block text-sm underline text-primary", isLoading && "pointer-events-none opacity-50")}>
                 Forgot your password?
             </Link>
         </div>
-        <Button type="submit" className="w-full font-semibold">
-          Login
-          <ArrowRight className="ml-2 h-4 w-4" />
+        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+          {isLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-red-500" />
+          ) : (
+            <>
+              Login
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
-         <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle}>
+         <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Sign In With Google
         </Button>
