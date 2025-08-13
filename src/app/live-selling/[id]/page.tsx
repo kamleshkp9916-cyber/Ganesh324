@@ -68,6 +68,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [highestBidder, setHighestBidder] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState(60);
     const [isAuctionRunning, setIsAuctionRunning] = useState(true);
+    const [customBid, setCustomBid] = useState('');
 
 
     useEffect(() => {
@@ -142,12 +143,23 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
 
     const handlePlaceBid = () => {
         if (!isAuctionRunning) return;
-        const newBid = currentBid + auctionItem.bidIncrement;
-        setCurrentBid(newBid);
+        const bidAmount = parseFloat(customBid);
+
+        if (isNaN(bidAmount) || bidAmount <= currentBid) {
+            toast({
+                title: "Invalid Bid",
+                description: `Your bid must be higher than the current bid of $${currentBid}.`,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setCurrentBid(bidAmount);
         setHighestBidder("@You");
+        setCustomBid('');
         toast({
             title: "Bid Placed!",
-            description: `You are now the highest bidder with $${newBid}.`,
+            description: `You are now the highest bidder with $${bidAmount}.`,
         });
     };
 
@@ -239,14 +251,31 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                     <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
                                     <p className="text-xs text-center mt-1 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
                                 </div>
-                                <Button 
-                                    className="w-full mt-3 bg-red-500 hover:bg-red-600 font-bold" 
-                                    onClick={handlePlaceBid}
-                                    disabled={!isAuctionRunning}
-                                >
-                                    <Gavel className="h-4 w-4 mr-2" />
-                                    {isAuctionRunning ? `Bid ($${currentBid + auctionItem.bidIncrement})` : 'Auction Ended'}
-                                </Button>
+                                {!isAuctionRunning ? (
+                                     <Button className="w-full mt-3 bg-gray-600 font-bold" disabled>
+                                        Auction Ended
+                                    </Button>
+                                ) : (
+                                    <div className="flex w-full mt-3 gap-2">
+                                        <Input 
+                                            type="number"
+                                            placeholder={`> $${currentBid}`}
+                                            value={customBid}
+                                            onChange={(e) => setCustomBid(e.target.value)}
+                                            disabled={!isAuctionRunning}
+                                            className="bg-gray-800 border-gray-700 focus:ring-red-500"
+                                            min={currentBid + 1}
+                                        />
+                                        <Button 
+                                            className="bg-red-500 hover:bg-red-600 font-bold" 
+                                            onClick={handlePlaceBid}
+                                            disabled={!isAuctionRunning || !customBid}
+                                        >
+                                            <Gavel className="h-4 w-4" />
+                                            <span className='sr-only'>Place Bid</span>
+                                        </Button>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
