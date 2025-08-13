@@ -202,7 +202,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
-                            className="bg-black/30 border-red-500 border-2 rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2"
+                            className="bg-black/30 border-red-500 border rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2"
                         />
                         <Popover>
                             <PopoverTrigger asChild>
