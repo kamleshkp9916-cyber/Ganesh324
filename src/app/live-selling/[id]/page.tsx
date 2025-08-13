@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const initialComments = [
     {
@@ -44,6 +45,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
+    const [viewers, setViewers] = useState(1234);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -63,8 +65,15 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 return allComments.slice(Math.max(allComments.length - 4, 0));
             });
         }, 3000);
+        
+        const viewerInterval = setInterval(() => {
+            setViewers(prev => prev + Math.floor(Math.random() * 10) - 4);
+        }, 5000);
 
-        return () => clearInterval(commentInterval);
+        return () => {
+            clearInterval(commentInterval);
+            clearInterval(viewerInterval);
+        }
     }, [loading]);
 
     const handleSendComment = () => {
@@ -104,9 +113,15 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     </Avatar>
                     <div>
                         <p className="font-semibold">{userName}</p>
-                        <div className="flex items-center gap-1">
-                            <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                            <span className="text-xs text-red-400 font-bold">Live</span>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                <span className="text-xs text-red-400 font-bold">Live</span>
+                            </div>
+                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                <Eye className="h-3 w-3 text-white" />
+                                <span className="text-xs text-white font-bold">{viewers.toLocaleString()}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
