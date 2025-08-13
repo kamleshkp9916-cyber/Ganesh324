@@ -52,6 +52,9 @@ export default function ProfilePage() {
     { id: 1, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 1', hint: 'fashion clothing' },
     { id: 2, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 2', hint: 'street style' },
     { id: 3, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 3', hint: 'summer outfit' },
+    { id: 4, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 4', hint: 'travel photo' },
+    { id: 5, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 5', hint: 'food photography' },
+    { id: 6, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 6', hint: 'architectural design' },
   ];
 
   useEffect(() => {
@@ -152,7 +155,7 @@ export default function ProfilePage() {
           <TabsContent value="posts" className="p-0">
              {loading ? (
               <div className="grid grid-cols-3 gap-1 mt-0.5">
-                {Array.from({ length: 3 }).map((_, index) => (
+                {Array.from({ length: 6 }).map((_, index) => (
                   <div key={index} className="relative aspect-[3/4]">
                     <Skeleton className="w-full h-full" />
                   </div>
