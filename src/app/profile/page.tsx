@@ -45,11 +45,6 @@ export default function ProfilePage() {
     following: 541,
     followers: 34,
     bio: 'Sanatan Dharma.',
-    details: [
-        { icon: Briefcase, text: 'Entrepreneur' },
-        { icon: Cake, text: 'Born 10 January 2003' },
-        { icon: Calendar, text: 'Joined September 2021' },
-    ],
   });
 
   const userPosts = useMemo(() => [
@@ -180,14 +175,6 @@ export default function ProfilePage() {
                         <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
                         <FoldedHandsIcon className="w-4 h-4 text-yellow-500" />
                     </p>
-                    <div className="mt-4 space-y-2 text-sm text-muted-foreground">
-                        {userProfile.details.map((detail, index) => (
-                             <div key={index} className="flex items-center gap-2">
-                                <detail.icon className="w-4 h-4" />
-                                <span>{detail.text}</span>
-                            </div>
-                        ))}
-                    </div>
                     <div className="mt-4 flex gap-4 text-sm">
                         <p><span className="font-bold text-foreground">{userProfile.following}</span> <span className="text-muted-foreground">Following</span></p>
                         <p><span className="font-bold text-foreground">{userProfile.followers}</span> <span className="text-muted-foreground">Followers</span></p>
