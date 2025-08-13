@@ -247,42 +247,43 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                             <Gavel className="h-7 w-7" />
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent side="left" align="center" className="bg-gray-900 border-gray-800 text-white w-80 p-0 mr-4">
+                    <PopoverContent side="left" align="center" className="bg-gray-900 border-gray-800 text-white w-64 p-0 mr-4">
                          <Card className="w-full bg-transparent border-0 text-white">
-                            <CardContent className="p-4">
-                                <div className="relative aspect-square mb-4">
+                            <CardContent className="p-3">
+                                <div className="relative aspect-square mb-2">
                                     <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
-                                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-pulse">
+                                    <div className="absolute top-1 left-1 bg-red-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
                                         AUCTION
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-lg truncate">{auctionItem.name}</h3>
-                                <div className="text-sm mt-2">
+                                <h3 className="font-bold text-base truncate">{auctionItem.name}</h3>
+                                <div className="text-xs mt-1">
                                     <p className="text-gray-400">Current Bid</p>
-                                    <p className="text-xl font-bold text-green-400">${currentBid}</p>
-                                    {highestBidder && <p className="text-xs text-gray-300">by {highestBidder}</p>}
+                                    <p className="text-lg font-bold text-green-400">${currentBid}</p>
+                                    {highestBidder && <p className="text-[10px] text-gray-300">by {highestBidder}</p>}
                                 </div>
-                                 <div className="mt-4">
-                                    <Progress value={(timeLeft / 60) * 100} className="h-2 bg-gray-600 [&>div]:bg-red-500" />
-                                    <p className="text-xs text-center mt-1.5 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
+                                 <div className="mt-2">
+                                    <Progress value={(timeLeft / 60) * 100} className="h-1.5 bg-gray-600 [&>div]:bg-red-500" />
+                                    <p className="text-[10px] text-center mt-1 text-red-400">{`Time left: ${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`}</p>
                                 </div>
                                 {!isAuctionRunning ? (
-                                     <Button className="w-full mt-4 bg-gray-600 font-bold" disabled>
+                                     <Button className="w-full mt-2 h-9 bg-gray-600 font-bold text-xs" disabled>
                                         Auction Ended
                                     </Button>
                                 ) : (
-                                    <div className="flex w-full mt-4 gap-2">
+                                    <div className="flex w-full mt-2 gap-2">
                                         <Input 
                                             type="number"
                                             placeholder={`> $${currentBid}`}
                                             value={customBid}
                                             onChange={(e) => setCustomBid(e.target.value)}
                                             disabled={!isAuctionRunning}
-                                            className="bg-gray-800 border-gray-700 focus:ring-red-500"
+                                            className="bg-gray-800 border-gray-700 focus:ring-red-500 h-9 text-xs"
                                             min={currentBid + 1}
                                         />
                                         <Button 
-                                            className="bg-red-500 hover:bg-red-600 font-bold" 
+                                            size="icon"
+                                            className="bg-red-500 hover:bg-red-600 font-bold h-9 w-9" 
                                             onClick={handlePlaceBid}
                                             disabled={!isAuctionRunning || !customBid}
                                         >
@@ -408,5 +409,7 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
 
     
