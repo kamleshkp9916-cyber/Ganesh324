@@ -225,7 +225,6 @@ function AppSidebar() {
   });
 
   const menuItems = [
-    { icon: User, label: 'My Profile', href: '/profile' },
     { icon: ShoppingCart, label: 'Orders', href: '/orders' },
     { icon: Award, label: 'Top Seller', href: '/top-seller' },
     { icon: MessageSquare, label: 'Message', href: '/message' },
@@ -240,7 +239,7 @@ function AppSidebar() {
 
   const renderSkeletonMenu = () => (
     <>
-      {Array.from({ length: 6 }).map((_, index) => (
+      {Array.from({ length: 5 }).map((_, index) => (
          <SidebarMenuItem key={`menu-skeleton-${index}`}>
             <div className="flex items-center gap-2 p-2 w-full">
               <Skeleton className="h-6 w-6 rounded-md" />
@@ -280,10 +279,12 @@ function AppSidebar() {
           </div>
         ) : (
           <div className="flex flex-col items-center text-center p-4 pt-8">
-              <Avatar className="w-20 h-20 mb-4 border-2 border-primary">
+            <Link href="/profile">
+              <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
                   <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
                   <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
               </Avatar>
+            </Link>
               <p className="font-semibold">{userProfile.name}</p>
               <p className="text-sm text-muted-foreground">{userProfile.username}</p>
               <div className="flex gap-4 text-sm text-muted-foreground mt-2">
