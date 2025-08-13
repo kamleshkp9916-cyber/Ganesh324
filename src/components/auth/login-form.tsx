@@ -7,7 +7,7 @@ import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -64,10 +64,19 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     );
   }
 
-export function LoginForm() {
+export function LoginForm({ animate }: { animate?: boolean }) {
   const router = useRouter();
   const { signInWithGoogle } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (animate) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 1000); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [animate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -137,9 +146,13 @@ export function LoginForm() {
                 Forgot your password?
             </Link>
         </div>
-        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className={cn("w-full font-semibold", isAnimating && "animate-pulse-red")}
+          disabled={isLoading}
+        >
           {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin text-red-500" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <>
               Login
