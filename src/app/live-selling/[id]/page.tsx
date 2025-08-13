@@ -67,11 +67,11 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                 return allComments.slice(Math.max(allComments.length - 4, 0));
             });
         }, 3000);
-
+        
         const viewerInterval = setInterval(() => {
             setViewers(prev => prev + Math.floor(Math.random() * 11) - 5);
         }, 5000);
-        
+
         return () => {
             clearInterval(commentInterval);
             clearInterval(viewerInterval);
@@ -121,16 +121,14 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                     </Avatar>
                     <div className="flex flex-col items-start">
                         <p className="font-semibold">{userName}</p>
-                        <div className="flex items-center gap-2">
-                            <div className="flex flex-col items-start">
-                                <div className="flex items-center gap-1">
-                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                    <span className="text-xs text-red-400 font-bold">Live</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-300">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{viewers}</span>
-                                </div>
+                        <div className="flex flex-col items-start">
+                            <div className="flex items-center gap-1">
+                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                <span className="text-xs text-red-400 font-bold">Live</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-gray-300">
+                                <Eye className="h-3 w-3" />
+                                <span>{viewers}</span>
                             </div>
                         </div>
                     </div>
