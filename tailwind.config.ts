@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 const { fontFamily } = require("tailwindcss/defaultTheme")
@@ -102,13 +103,28 @@ export default {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
         },
+        "pulse-red": {
+            "0%, 100%": {
+                backgroundColor: 'hsl(var(--destructive))',
+                transform: 'scale(1)',
+                opacity: '1',
+            },
+            "50%": {
+                backgroundColor: 'hsl(var(--destructive))',
+                transform: 'scale(1.1)',
+                opacity: '0.9',
+            },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         "caret-blink": "caret-blink 1.25s ease-out infinite",
+        "pulse-red": "pulse-red 1s cubic-bezier(0.4, 0, 0.6, 1)",
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye, Plus } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronRight, Send, Smile, Eye, Plus, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +46,8 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
     const [viewers, setViewers] = useState(0);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [animateFollow, setAnimateFollow] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -62,7 +64,6 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             setComments(prevComments => {
                 const nextMockComment = mockNewComments[Math.floor(Math.random() * mockNewComments.length)];
                 const allComments = [...prevComments, { ...nextMockComment, id: Date.now() }];
-                // Keep only the last 4 comments
                 return allComments.slice(Math.max(allComments.length - 4, 0));
             });
         }, 3000);
@@ -76,6 +77,12 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
             clearInterval(viewerInterval);
         }
     }, [loading]);
+    
+    const handleFollowClick = () => {
+        setIsFollowing(prev => !prev);
+        setAnimateFollow(true);
+        setTimeout(() => setAnimateFollow(false), 1000); // Animation duration
+    };
 
     const handleSendComment = () => {
         if (newComment.trim() === "") return;
@@ -115,22 +122,28 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         </Avatar>
                         <div className="flex flex-col items-start">
                             <p className="font-semibold">{userName}</p>
-                            <div className="flex flex-col items-start">
-                                <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
-                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                    <span className="text-xs text-red-400 font-bold">Live</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-300">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{viewers}</span>
-                                </div>
+                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-md">
+                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                <span className="text-xs text-red-400 font-bold">Live</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-gray-300">
+                                <Eye className="h-3 w-3" />
+                                <span>{viewers}</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="icon" className="rounded-full bg-white text-black hover:bg-white/90 h-8 w-8">
-                        <Plus className="h-4 w-4" />
+                    <Button 
+                        variant="secondary" 
+                        size="icon" 
+                        className={cn(
+                            "rounded-full bg-white text-black hover:bg-white/90 h-8 w-8",
+                            animateFollow && "animate-pulse-red"
+                        )}
+                        onClick={handleFollowClick}
+                    >
+                        {isFollowing ? <Check className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4" />}
                     </Button>
                     <Button variant="ghost" size="icon" className="text-white">
                         <MoreVertical className="h-6 w-6" />
@@ -266,3 +279,5 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    
