@@ -43,7 +43,7 @@ const emojis = ['😀', '😂', '😍', '🔥', '👍', '❤️', '💰', '🤑'
 const initialAuctionItem = {
     id: 'prod-123',
     name: 'Vintage Leather Jacket',
-    image: 'https://placehold.co/300x400.png',
+    image: 'https://placehold.co/300x300.png',
     startingBid: 50,
     bidIncrement: 5,
 };
@@ -213,17 +213,17 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         <Gavel className="h-7 w-7" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="bg-gray-900 border-gray-800 text-white w-80 p-0" aria-describedby="auction-sheet-description">
+                <SheetContent side="left" className="bg-gray-900 border-gray-800 text-white w-72 p-0" aria-describedby="auction-sheet-description">
                     <SheetHeader>
                         <SheetTitle className="sr-only">Auction Details</SheetTitle>
                         <SheetDescription id="auction-sheet-description" className="sr-only">
                             Current auction item details and bidding options.
                         </SheetDescription>
                     </SheetHeader>
-                    <div className="p-4">
+                    <div className="p-2">
                          <Card className="w-full bg-black/50 border-gray-700 text-white mt-4">
-                            <CardContent className="p-3">
-                                <div className="relative aspect-[3/4] mb-2">
+                            <CardContent className="p-2">
+                                <div className="relative aspect-square mb-2">
                                     <Image src={auctionItem.image} alt={auctionItem.name} layout="fill" objectFit="cover" className="rounded-md" data-ai-hint="fashion product" />
                                     <div className="absolute top-1 left-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
                                         AUCTION
