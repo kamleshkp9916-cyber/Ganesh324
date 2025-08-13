@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit, Grid3x3, Heart, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Settings, Grid3x3, Heart, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -47,7 +48,11 @@ export default function ProfilePage() {
           <ArrowLeft className="h-6 w-6" />
         </Button>
         <h1 className="text-xl font-bold">Profile</h1>
-        <div className="w-10"></div>
+        <Link href="/setting">
+          <Button variant="ghost" size="icon">
+            <Settings className="h-6 w-6" />
+          </Button>
+        </Link>
       </header>
 
       <main className="p-4 space-y-4">
@@ -108,9 +113,6 @@ export default function ProfilePage() {
                                 <p className="text-sm text-muted-foreground">Following</p>
                             </div>
                         </div>
-                        <div className="mt-6 flex gap-2">
-                            <Button className="flex-1 font-semibold"><Edit className="mr-2 h-4 w-4" /> Edit Profile</Button>
-                        </div>
                     </>
                 )}
             </CardContent>
@@ -168,5 +170,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
