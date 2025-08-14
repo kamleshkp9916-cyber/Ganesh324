@@ -5,13 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { useAuthActions } from "@/lib/auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -178,9 +177,12 @@ function LiveSellingContent() {
             <Home className="h-10 w-10" />
             <span className="text-xs font-bold -mt-1">_</span>
           </Button>
-          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <FilePen className="h-10 w-10" />
-          </Button>
+          <Link href="/feed" passHref>
+            <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
+              <Rss className="h-10 w-10" />
+              <span className="text-xs">Feed</span>
+            </Button>
+          </Link>
           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
             <LayoutGrid className="h-10 w-10" />
           </Button>
