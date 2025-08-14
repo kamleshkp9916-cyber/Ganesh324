@@ -74,14 +74,14 @@ export function LoginForm() {
     defaultValues: { identifier: "", password: "", rememberMe: false },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setTimeout(() => {
-      // In a real app, you'd do authentication here.
-      console.log(values);
-      setIsLoading(false);
-      router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
-    }, 2000);
+    // In a real app, you'd do authentication here.
+    console.log(values);
+    // We are removing the timeout to make it faster
+    // await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsLoading(false);
+    router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
   }
 
   return (

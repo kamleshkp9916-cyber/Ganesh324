@@ -33,7 +33,7 @@ function FoldedHandsIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const headerRef = useRef<HTMLElement>(null);
@@ -64,13 +64,6 @@ export default function ProfilePage() {
         post.hint.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, userPosts]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500); 
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -227,5 +220,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

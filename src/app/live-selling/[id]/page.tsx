@@ -55,7 +55,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const userName = searchParams.get('userName') || `User ${params.id}`;
     const userImage = searchParams.get('userImage') || 'https://placehold.co/40x40.png';
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
     const [viewers, setViewers] = useState(0);
@@ -72,11 +72,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
 
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-            setViewers(Math.floor(Math.random() * 500) + 100);
-        }, 2000);
-        return () => clearTimeout(timer);
+        setViewers(Math.floor(Math.random() * 500) + 100);
     }, []);
 
     useEffect(() => {
@@ -409,9 +405,3 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
-
-    
-
-    
-
-    

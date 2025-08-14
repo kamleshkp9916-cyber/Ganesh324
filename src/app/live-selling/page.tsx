@@ -19,7 +19,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 function LiveSellingContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const liveProducts = [
     {
@@ -107,13 +107,6 @@ function LiveSellingContent() {
       productName: "Classic Hat"
     },
   ];
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000); 
-    return () => clearTimeout(timer);
-  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery) return liveProducts;
@@ -221,14 +214,7 @@ function LiveSellingContent() {
 function AppSidebar() {
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const [userProfile, setUserProfile] = useState({
     name: 'bantypr324',
