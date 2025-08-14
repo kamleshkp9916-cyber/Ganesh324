@@ -19,7 +19,6 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 function LiveSellingContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const liveProducts = [
     {
@@ -152,21 +151,7 @@ function LiveSellingContent() {
         <Separator className="my-2" />
         <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
             <div className="grid grid-cols-2 gap-4">
-            {loading ? (
-                Array.from({ length: 8 }).map((_, index) => (
-                    <Card key={index} className="overflow-hidden relative aspect-[9/16] bg-muted">
-                        <CardContent className="p-2 flex items-end h-full">
-                            <div className="flex items-center gap-2 w-full">
-                                <Skeleton className="h-10 w-10 rounded-full" />
-                                <div className="space-y-2 flex-1">
-                                    <Skeleton className="h-4 w-3/4" />
-                                    <Skeleton className="h-4 w-1/2" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))
-            ) : (
+            {
                 filteredProducts.map((product) => (
                   <Link key={product.id} href={`/live-selling/${product.id}?userName=${encodeURIComponent(product.userName)}&userImage=${encodeURIComponent(product.userImage)}`} passHref>
                     <Card className="overflow-hidden relative aspect-[9/16] cursor-pointer">
@@ -183,7 +168,7 @@ function LiveSellingContent() {
                     </Card>
                   </Link>
                 ))
-            )}
+            }
             </div>
         </div>
       </main>
@@ -214,7 +199,6 @@ function LiveSellingContent() {
 function AppSidebar() {
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
   const [userProfile, setUserProfile] = useState({
     name: 'bantypr324',
@@ -238,28 +222,6 @@ function AppSidebar() {
     { icon: LifeBuoy, label: 'Help 24/7', href: '/help' },
   ];
 
-  const renderSkeletonMenu = () => (
-    <>
-      {Array.from({ length: 6 }).map((_, index) => (
-         <SidebarMenuItem key={`menu-skeleton-${index}`}>
-            <div className="flex items-center gap-2 p-2 w-full">
-              <Skeleton className="h-6 w-6 rounded-md" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-         </SidebarMenuItem>
-      ))}
-      <Separator className="my-4" />
-      {Array.from({ length: 2 }).map((_, index) => (
-         <SidebarMenuItem key={`help-skeleton-${index}`}>
-            <div className="flex items-center gap-2 p-2 w-full">
-              <Skeleton className="h-6 w-6 rounded-md" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-         </SidebarMenuItem>
-      ))}
-    </>
-  );
-
   return (
     <Sidebar>
       <SidebarHeader className="relative">
@@ -268,17 +230,6 @@ function AppSidebar() {
                 <ArrowLeft className="h-5 w-5" />
             </SidebarTrigger>
         </div>
-         {loading ? (
-          <div className="flex flex-col items-center text-center p-4 pt-8">
-            <Skeleton className="w-20 h-20 mb-4 rounded-full" />
-            <Skeleton className="h-5 w-24 mb-2" />
-            <Skeleton className="h-4 w-20" />
-            <div className="flex gap-4 mt-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-20" />
-            </div>
-          </div>
-        ) : (
           <div className="flex flex-col items-center text-center p-4 pt-8">
             <Link href="/profile">
               <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
@@ -293,11 +244,9 @@ function AppSidebar() {
                   <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
               </div>
           </div>
-        )}
       </SidebarHeader>
       <SidebarContent className="overflow-y-auto no-scrollbar">
         <SidebarMenu>
-          {loading ? renderSkeletonMenu() : (
             <>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
@@ -321,7 +270,6 @@ function AppSidebar() {
                   </SidebarMenuItem>
               ))}
             </>
-          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
