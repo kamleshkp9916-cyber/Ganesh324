@@ -1,11 +1,10 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, User } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -43,4 +42,7 @@ export function useAuthActions() {
     return { signInWithGoogle, signOut };
 }
 
+export { useAuth } from '@/hooks/use-auth.tsx';
 export { auth };
+
+    

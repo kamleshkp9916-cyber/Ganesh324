@@ -11,6 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
+import type { UserProfile } from '@/services/user-service';
+import { getUserProfile, getUserPosts } from '@/services/user-service';
+import { useAuth } from '@/hooks/use-auth';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 function OmIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -33,28 +37,34 @@ function FoldedHandsIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const headerRef = useRef<HTMLElement>(null);
-  const [userProfile, setUserProfile] = useState({
-    name: 'Samael Prajapati',
-    username: '@SamaelPr9916',
-    avatarUrl: 'https://placehold.co/100x100.png',
-    bannerUrl: 'https://placehold.co/600x200.png',
-    following: 541,
-    followers: 34,
-    bio: 'Sanatan Dharma.',
-  });
+  
 
-  const userPosts = useMemo(() => [
-    { id: 1, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 1', hint: 'fashion clothing' },
-    { id: 2, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 2', hint: 'street style' },
-    { id: 3, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 3', hint: 'summer outfit' },
-    { id: 4, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 4', hint: 'travel photo' },
-    { id: 5, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 5', hint: 'food photography' },
-    { id: 6, imageUrl: 'https://placehold.co/300x400.png', caption: 'Post 6', hint: 'architectural design' },
-  ], []);
+  useEffect(() => {
+    async function fetchProfile() {
+      if (user) {
+        try {
+          const profile = await getUserProfile(user.uid);
+          setUserProfile(profile);
+        } catch (error) {
+          console.error("Failed to fetch user profile", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+    if (!authLoading) {
+        fetchProfile();
+    }
+  }, [user, authLoading]);
+
+  const userPosts = useMemo(() => getUserPosts(), []);
 
   const filteredPosts = useMemo(() => {
     if (!searchQuery) return userPosts;
@@ -81,6 +91,24 @@ export default function ProfilePage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isSearchVisible]);
+  
+  const isLoading = loading || authLoading;
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <LoadingSpinner />
+        </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Could not load profile. Please try again later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -122,55 +150,39 @@ export default function ProfilePage() {
 
       <main className="flex flex-col">
         <div className="relative h-40 bg-muted">
-             {loading ? <Skeleton className="w-full h-full" /> : 
-                <Image src={userProfile.bannerUrl} alt="Banner" layout="fill" objectFit="cover" data-ai-hint="stay positive" />
-             }
+             <Image src={userProfile.bannerUrl} alt="Banner" layout="fill" objectFit="cover" data-ai-hint="stay positive" />
              <div className="absolute -bottom-12 left-4">
-                {loading ? <Skeleton className="w-24 h-24 rounded-full border-4 border-background" /> : 
-                    <Avatar className="w-24 h-24 border-4 border-background">
-                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                }
+                <Avatar className="w-24 h-24 border-4 border-background">
+                    <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                    <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                </Avatar>
             </div>
         </div>
         
         <div className="p-4 mt-12">
             <div className="flex justify-between items-start">
-                {loading ? (
-                    <div className="space-y-3 flex-1">
-                        <Skeleton className="h-7 w-48" />
-                        <Skeleton className="h-5 w-32" />
-                        <Skeleton className="h-5 w-40" />
-                        <div className="flex gap-4 pt-2">
-                            <Skeleton className="h-5 w-20" />
-                            <Skeleton className="h-5 w-20" />
-                        </div>
+                <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                        <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
+                        <Star className="w-5 h-5 text-blue-500" fill="currentColor" />
                     </div>
-                ) : (
-                    <div className="flex-1">
-                        <div className="flex items-center gap-1.5">
-                            <h2 className="text-xl md:text-2xl font-bold">{userProfile.name}</h2>
-                            <Star className="w-5 h-5 text-blue-500" fill="currentColor" />
-                        </div>
-                        <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
-                        <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
-                            {userProfile.bio}
-                            <OmIcon className="w-4 h-4 text-purple-500" />
-                            <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
-                            <FoldedHandsIcon className="w-4 h-4 text-yellow-500" />
-                        </p>
-                        <div className="mt-4 flex gap-4 text-sm">
-                            <p><span className="font-bold text-foreground">{userProfile.following}</span> <span className="text-muted-foreground">Following</span></p>
-                            <p><span className="font-bold text-foreground">{userProfile.followers}</span> <span className="text-muted-foreground">Followers</span></p>
-                        </div>
+                    <p className="text-sm md:text-base text-muted-foreground">{userProfile.username}</p>
+                    <p className="mt-2 text-sm md:text-base flex items-center gap-1.5">
+                        {userProfile.bio}
+                        <OmIcon className="w-4 h-4 text-purple-500" />
+                        <StarOfDavidIcon className="w-4 h-4 text-purple-500" />
+                        <FoldedHandsIcon className="w-4 h-4 text-yellow-500" />
+                    </p>
+                    <div className="mt-4 flex gap-4 text-sm">
+                        <p><span className="font-bold text-foreground">{userProfile.following}</span> <span className="text-muted-foreground">Following</span></p>
+                        <p><span className="font-bold text-foreground">{userProfile.followers}</span> <span className="text-muted-foreground">Followers</span></p>
                     </div>
-                )}
-                {loading ? <Skeleton className="h-9 w-9 rounded-full" /> : 
+                </div>
+                <Link href="/profile/edit">
                     <Button variant="outline" size="icon">
                         <Edit className="h-4 w-4" />
                     </Button>
-                }
+                </Link>
             </div>
         </div>
         
@@ -181,28 +193,18 @@ export default function ProfilePage() {
             <TabsTrigger value="likes"><Heart className="w-5 h-5" /></TabsTrigger>
           </TabsList>
           <TabsContent value="posts" className="p-0">
-             {loading ? (
-                <div className="grid grid-cols-3 gap-1 mt-0.5">
-                    {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="relative aspect-[3/4]">
-                        <Skeleton className="w-full h-full" />
+            {filteredPosts.length > 0 ? (
+                <div className="grid grid-cols-3 gap-0.5 mt-0.5">
+                    {filteredPosts.map(post => (
+                    <div key={post.id} className="relative aspect-[3/4]">
+                        <Image src={post.imageUrl} alt={post.caption} fill className="object-cover" data-ai-hint={post.hint} />
                     </div>
                     ))}
                 </div>
-             ) : (
-                filteredPosts.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-0.5 mt-0.5">
-                        {filteredPosts.map(post => (
-                        <div key={post.id} className="relative aspect-[3/4]">
-                            <Image src={post.imageUrl} alt={post.caption} fill className="object-cover" data-ai-hint={post.hint} />
-                        </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-center h-48">
-                        <p className="text-muted-foreground">No posts found.</p>
-                    </div>
-                )
+            ) : (
+                <div className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground">No posts found.</p>
+                </div>
             )}
           </TabsContent>
            <TabsContent value="replies">
@@ -220,3 +222,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

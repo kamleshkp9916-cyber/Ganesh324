@@ -5,15 +5,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, FilePen, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss } from "lucide-react";
-import Image from "next/image";
-import { useState, useMemo, useEffect } from "react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions, useAuth } from "@/lib/auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import type { UserProfile } from "@/services/user-service";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 function LiveSellingContent() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -200,15 +200,16 @@ function LiveSellingContent() {
 
 function AppSidebar() {
   const { signOut } = useAuthActions();
-  const router = useRouter();
+  const { user, loading } = useAuth();
 
-  const [userProfile, setUserProfile] = useState({
-    name: 'bantypr324',
-    username: '@bantypr324',
-    avatarUrl: 'https://placehold.co/80x80.png',
+  const userProfile: UserProfile | null = user ? {
+    name: user.displayName || 'Anonymous',
+    username: user.email || 'No-email',
+    avatarUrl: user.photoURL || 'https://placehold.co/80x80.png',
     following: 200,
     followers: 100,
-  });
+  } : null;
+
 
   const menuItems = [
     { icon: User, label: 'My Profile', href: '/profile' },
@@ -233,18 +234,28 @@ function AppSidebar() {
             </SidebarTrigger>
         </div>
           <div className="flex flex-col items-center text-center p-4 pt-8">
-            <Link href="/profile">
-              <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
-                  <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                  <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </Link>
-              <p className="font-semibold">{userProfile.name}</p>
-              <p className="text-sm text-muted-foreground">{userProfile.username}</p>
-              <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                  <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
-                  <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
-              </div>
+            {loading ? (
+                <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner />
+                </div>
+            ) : userProfile ? (
+                <>
+                    <Link href="/profile">
+                    <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
+                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
+                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    </Link>
+                    <p className="font-semibold">{userProfile.name}</p>
+                    <p className="text-sm text-muted-foreground">{userProfile.username}</p>
+                    <div className="flex gap-4 text-sm text-muted-foreground mt-2">
+                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
+                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
+                    </div>
+                </>
+            ) : (
+                <p>Not signed in</p>
+            )}
           </div>
       </SidebarHeader>
       <SidebarContent className="overflow-y-auto no-scrollbar">
@@ -305,3 +316,5 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
+
+    
