@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss } from "lucide-react";
+import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss, LogIn } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -238,51 +238,64 @@ function AppSidebar() {
                 <div className="flex flex-col items-center gap-2">
                     <LoadingSpinner />
                 </div>
-            ) : userProfile ? (
+            ) : user ? (
                 <>
                     <Link href="/profile">
                     <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
-                        <AvatarImage src={userProfile.avatarUrl} alt={userProfile.username} data-ai-hint="profile picture" />
-                        <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={userProfile!.avatarUrl} alt={userProfile!.username} data-ai-hint="profile picture" />
+                        <AvatarFallback>{userProfile!.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     </Link>
-                    <p className="font-semibold">{userProfile.name}</p>
-                    <p className="text-sm text-muted-foreground">{userProfile.username}</p>
+                    <p className="font-semibold">{userProfile!.name}</p>
+                    <p className="text-sm text-muted-foreground">{userProfile!.username}</p>
                     <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.following}</span> Following</button>
-                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile.followers}</span> Followers</button>
+                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile!.following}</span> Following</button>
+                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile!.followers}</span> Followers</button>
                     </div>
                 </>
             ) : (
-                <p>Not signed in</p>
+                <div className="flex flex-col items-center gap-4">
+                    <Avatar className="w-20 h-20 mb-4 border-2">
+                        <AvatarFallback>?</AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold">Not Signed In</p>
+                    <Link href="/" passHref>
+                        <Button>
+                            <LogIn className="mr-2 h-4 w-4" />
+                            Login
+                        </Button>
+                    </Link>
+                </div>
             )}
           </div>
       </SidebarHeader>
       <SidebarContent className="overflow-y-auto no-scrollbar">
         <SidebarMenu>
-            <>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <Link href={item.href} passHref>
-                    <SidebarMenuButton>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              ))}
-              <Separator className="my-4" />
-              {helpItems.map((item) => (
-                  <SidebarMenuItem key={item.label}>
+            {user && (
+                <>
+                {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.label}>
                     <Link href={item.href} passHref>
-                      <SidebarMenuButton>
+                        <SidebarMenuButton>
                         <item.icon />
                         <span>{item.label}</span>
-                      </SidebarMenuButton>
+                        </SidebarMenuButton>
                     </Link>
-                  </SidebarMenuItem>
-              ))}
-            </>
+                    </SidebarMenuItem>
+                ))}
+                <Separator className="my-4" />
+                </>
+            )}
+            {helpItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                <Link href={item.href} passHref>
+                    <SidebarMenuButton>
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
@@ -292,14 +305,16 @@ function AppSidebar() {
                 <span>Dark Mode</span>
             </div>
         </div>
-        <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton onClick={signOut}>
-                    <LogOut />
-                    <span>Logout</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-        </SidebarMenu>
+        {user && (
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton onClick={signOut}>
+                        <LogOut />
+                        <span>Logout</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
@@ -316,5 +331,3 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
-    
