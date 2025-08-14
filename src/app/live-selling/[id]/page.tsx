@@ -119,7 +119,8 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const handleFollowClick = () => {
         setIsFollowing(prev => !prev);
         setAnimateFollow(true);
-        setTimeout(() => setAnimateFollow(false), 1000); // Animation duration
+        // We are removing the timeout to make it faster
+        // setTimeout(() => setAnimateFollow(false), 1000); // Animation duration
     };
 
     const handleSendComment = () => {
@@ -405,3 +406,5 @@ function LiveStreamSkeleton() {
         </div>
     );
 }
+
+    

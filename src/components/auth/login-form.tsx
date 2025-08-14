@@ -80,7 +80,6 @@ export function LoginForm() {
     console.log(values);
     // We are removing the timeout to make it faster
     // await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsLoading(false);
     router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
   }
 
@@ -159,3 +158,5 @@ export function LoginForm() {
     </Form>
   );
 }
+
+    
