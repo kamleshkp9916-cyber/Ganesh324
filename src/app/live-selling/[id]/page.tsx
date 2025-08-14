@@ -15,6 +15,7 @@ import { ArrowLeft, MoreVertical, Send, Smile, Eye, Plus, Check, ShoppingBag, Ga
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 const initialComments = [
     {
@@ -52,6 +53,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const { user } = useAuth();
     const userName = searchParams.get('userName') || `User ${params.id}`;
     const userImage = searchParams.get('userImage') || 'https://placehold.co/40x40.png';
 
@@ -70,6 +72,13 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [isAuctionRunning, setIsAuctionRunning] = useState(true);
     const [customBid, setCustomBid] = useState('');
 
+    const showLoginToast = () => {
+        toast({
+            title: "Authentication Required",
+            description: "Please log in to perform this action.",
+            variant: "destructive",
+        });
+    }
 
     useEffect(() => {
         setViewers(Math.floor(Math.random() * 500) + 100);
@@ -117,13 +126,20 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     }, [isAuctionRunning, timeLeft, loading, highestBidder, currentBid, toast]);
     
     const handleFollowClick = () => {
+        if (!user) {
+            showLoginToast();
+            return;
+        }
         setIsFollowing(prev => !prev);
         setAnimateFollow(true);
-        // We are removing the timeout to make it faster
-        // setTimeout(() => setAnimateFollow(false), 1000); // Animation duration
+        setTimeout(() => setAnimateFollow(false), 1000); // Animation duration
     };
 
     const handleSendComment = () => {
+        if (!user) {
+            showLoginToast();
+            return;
+        }
         if (newComment.trim() === "") return;
         const commentToSend = {
             id: Date.now(),
@@ -139,6 +155,10 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     };
 
     const handlePlaceBid = () => {
+        if (!user) {
+            showLoginToast();
+            return;
+        }
         if (!isAuctionRunning) return;
         const bidAmount = parseFloat(customBid);
 
@@ -161,6 +181,10 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     };
 
     const handleEmojiSelect = (emoji: string) => {
+        if (!user) {
+            showLoginToast();
+            return;
+        }
         setNewComment(prev => prev + emoji);
     }
     
@@ -274,7 +298,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                             placeholder={`> $${currentBid}`}
                                             value={customBid}
                                             onChange={(e) => setCustomBid(e.target.value)}
-                                            disabled={!isAuctionRunning}
+                                            disabled={!isAuctionRunning || !user}
                                             className="bg-gray-800 border-gray-700 focus:ring-red-500 h-8 text-xs"
                                             min={currentBid + 1}
                                         />
@@ -282,7 +306,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                             size="icon"
                                             className="bg-red-500 hover:bg-red-600 font-bold h-8 w-8" 
                                             onClick={handlePlaceBid}
-                                            disabled={!isAuctionRunning || !customBid}
+                                            disabled={!isAuctionRunning || !customBid || !user}
                                         >
                                             <Gavel className="h-4 w-4" />
                                             <span className='sr-only'>Place Bid</span>
@@ -323,15 +347,16 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                         <div className="relative flex-1">
                             <Input 
                                 type="text" 
-                                placeholder="Type Your Thoughts..........." 
+                                placeholder={user ? "Type Your Thoughts..........." : "Please login to comment"}
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter') handleSendComment(); }}
                                 className="bg-black/30 border-red-500 border rounded-full text-white placeholder:text-gray-300 focus:ring-red-500 focus:ring-2 pr-10"
+                                disabled={!user}
                             />
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-white">
+                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-white" disabled={!user}>
                                         <Smile className="h-5 w-5" />
                                     </Button>
                                 </PopoverTrigger>
@@ -350,7 +375,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <Button variant="ghost" size="icon" className="text-red-500" onClick={handleSendComment}>
+                        <Button variant="ghost" size="icon" className="text-red-500" onClick={handleSendComment} disabled={!user}>
                             <Send className="h-6 w-6" />
                         </Button>
                     </div>
