@@ -83,7 +83,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)} className="flex flex-col flex-grow min-h-0">
         <ScrollArea className="flex-grow">
-          <div className="grid gap-4 px-6">
+          <div className="grid gap-4 p-6">
             <FormField
               control={form.control}
               name="name"
