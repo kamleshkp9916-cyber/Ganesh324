@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Clapperboard,
   Home,
@@ -253,5 +254,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
