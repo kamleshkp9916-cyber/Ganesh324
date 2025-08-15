@@ -44,7 +44,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
 import { Logo } from '@/components/logo';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 
@@ -250,56 +249,18 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                             <Avatar className="h-9 w-9 cursor-pointer">
-                                {user ? (
-                                <>
-                                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                </>
-                                ) : (
-                                <AvatarFallback>
-                                    <User className="h-5 w-5" />
-                                </AvatarFallback>
-                                )}
-                            </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                             {user ? (
-                                <>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild><Link href="/wallet"><Wallet className="mr-2" />Wallet</Link></DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href="/setting"><Settings className="mr-2" />Setting</Link></DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut}><LogOut className="mr-2" />Log Out</DropdownMenuItem>
-                                </>
-                             ) : (
-                                <>
-                                    <DropdownMenuLabel>Guest</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/" className="w-full">
-                                            <Button variant="link" className="w-full justify-start p-0 text-red-500 hover:text-red-600">Login</Button>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/signup" className="w-full">
-                                            <Button variant="link" className="w-full justify-start p-0 text-red-500 hover:text-red-600">Create Account</Button>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </>
-                             )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                     <Avatar className="h-9 w-9 cursor-pointer">
+                        {user ? (
+                        <>
+                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                        </>
+                        ) : (
+                        <AvatarFallback>
+                            <User className="h-5 w-5" />
+                        </AvatarFallback>
+                        )}
+                    </Avatar>
                 </div>
             </header>
 
@@ -409,5 +370,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
