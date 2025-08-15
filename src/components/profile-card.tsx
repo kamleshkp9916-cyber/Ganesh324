@@ -4,12 +4,13 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DialogHeader, DialogTitle } from './ui/dialog';
+import { cn } from '@/lib/utils';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -36,12 +37,29 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (user) {
       setPlaceholder(generatePlaceholderDetails());
     }
   }, [user]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBackgroundImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   if (loading) {
       return (
@@ -66,30 +84,52 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
         </DialogHeader>
+        <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden" 
+        />
 
         {placeholder ? (
             <Card className="overflow-hidden border-0 shadow-none rounded-lg">
-                <div className="bg-primary/10 p-8 flex flex-col items-center gap-4">
-                    <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                        <AvatarImage src={user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
-                        <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-center">
-                        <h2 className="text-3xl font-bold">{user.displayName}</h2>
-                        <p className="text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="flex gap-8 pt-4">
+                <div 
+                    className={cn(
+                        "relative p-8 flex flex-col items-center gap-4 bg-cover bg-center",
+                        !backgroundImage && "bg-primary/10"
+                    )}
+                    style={{ backgroundImage: `url(${backgroundImage})` }}
+                >
+                    {backgroundImage && <div className="absolute inset-0 bg-black/40 z-0"></div>}
+                    
+                    <Button variant="outline" size="icon" className="absolute top-4 right-4 z-10 rounded-full" onClick={handleUploadClick}>
+                        <Camera className="h-5 w-5"/>
+                        <span className="sr-only">Upload background image</span>
+                    </Button>
+
+                    <div className="relative z-10 flex flex-col items-center gap-4">
+                        <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                            <AvatarImage src={user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
+                            <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                        </Avatar>
                         <div className="text-center">
-                            <p className="text-2xl font-bold">{placeholder.following}</p>
-                            <p className="text-sm text-muted-foreground">Following</p>
+                            <h2 className="text-3xl font-bold text-card-foreground">{user.displayName}</h2>
+                            <p className="text-muted-foreground">{user.email}</p>
                         </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Followers</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Likes</p>
+                        <div className="flex gap-8 pt-4 text-card-foreground">
+                            <div className="text-center">
+                                <p className="text-2xl font-bold">{placeholder.following}</p>
+                                <p className="text-sm text-muted-foreground">Following</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
+                                <p className="text-sm text-muted-foreground">Followers</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
+                                <p className="text-sm text-muted-foreground">Likes</p>
+                            </div>
                         </div>
                     </div>
                 </div>
