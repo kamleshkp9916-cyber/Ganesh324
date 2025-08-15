@@ -135,7 +135,7 @@ export default function LiveSellingPage() {
     <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground">
         <Sidebar>
-          <div className="sticky top-0 flex h-screen flex-col items-center border-r border-border bg-background py-4 gap-4 px-2">
+          <div className="sticky top-0 flex h-screen flex-col items-center border-r border-border bg-background py-4 gap-4">
              <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
             </Button>
