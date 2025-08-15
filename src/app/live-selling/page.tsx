@@ -29,7 +29,7 @@ const liveSellers = [
       id: 1,
       name: 'FashionFinds',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Fashion',
       viewers: 1200,
       hint: 'woman posing stylish outfit',
@@ -38,7 +38,7 @@ const liveSellers = [
       id: 2,
       name: 'GadgetGuru',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Electronics',
       viewers: 2500,
       hint: 'unboxing new phone',
@@ -47,7 +47,7 @@ const liveSellers = [
       id: 3,
       name: 'HomeHaven',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Home Goods',
       viewers: 850,
       hint: 'modern living room decor',
@@ -56,7 +56,7 @@ const liveSellers = [
       id: 4,
       name: 'BeautyBox',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Beauty',
       viewers: 3100,
       hint: 'makeup tutorial',
@@ -65,7 +65,7 @@ const liveSellers = [
       id: 5,
       name: 'KitchenWiz',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Kitchenware',
       viewers: 975,
       hint: 'cooking demonstration',
@@ -74,7 +74,7 @@ const liveSellers = [
       id: 6,
       name: 'FitFlow',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Fitness',
       viewers: 1500,
       hint: 'yoga session',
@@ -83,7 +83,7 @@ const liveSellers = [
       id: 7,
       name: 'ArtisanAlley',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Handmade',
       viewers: 450,
       hint: 'pottery making',
@@ -92,10 +92,28 @@ const liveSellers = [
       id: 8,
       name: 'PetPalace',
       avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/400x600.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Pet Supplies',
       viewers: 1800,
       hint: 'playing with puppy',
+    },
+    {
+      id: 9,
+      name: 'BookNook',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
+      category: 'Books',
+      viewers: 620,
+      hint: 'reading book cozy',
+    },
+    {
+      id: 10,
+      name: 'GamerGuild',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/300x450.png',
+      category: 'Gaming',
+      viewers: 4200,
+      hint: 'esports competition',
     },
 ]
 
@@ -211,7 +229,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                     {liveSellers.map((seller) => (
                         <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                              <div className="absolute top-2 left-2 z-10">
@@ -229,19 +247,19 @@ export default function LiveSellingPage() {
                             <Image 
                                 src={seller.thumbnailUrl} 
                                 alt={`Live stream from ${seller.name}`} 
-                                width={400} 
-                                height={600} 
+                                width={300} 
+                                height={450} 
                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 data-ai-hint={seller.hint}
                             />
-                             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10 border-2 border-primary">
+                             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-8 w-8 border-2 border-primary">
                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <h3 className="font-semibold text-primary-foreground truncate">{seller.name}</h3>
+                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                         <p className="text-xs text-muted-foreground">{seller.category}</p>
                                     </div>
                                 </div>
