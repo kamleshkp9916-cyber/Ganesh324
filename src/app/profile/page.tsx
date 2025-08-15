@@ -77,6 +77,7 @@ export default function ProfilePage() {
         setProfileData({
             ...profileData,
             address: newAddress,
+            phone: `+91 ${data.phone}`
         });
     }
     setIsAddressDialogOpen(false);
