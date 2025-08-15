@@ -33,7 +33,7 @@ const formSchema = z.object({
     .refine((val) => /^[a-z0-9_.]+$/.test(val.substring(1)), {
       message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
     }),
-  phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit phone number." }),
+  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
@@ -81,7 +81,7 @@ export function SignupForm() {
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "", userId: "@", phone: "", email: "", password: "" },
+    defaultValues: { firstName: "", lastName: "", userId: "@", phone: "+91 ", email: "", password: "" },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -169,12 +169,21 @@ export function SignupForm() {
             <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground text-sm">
-                        91+
-                        </div>
-                        <Input placeholder="0000000000" {...field} className="pl-10" disabled={isLoading} />
-                    </div>
+                    <Input 
+                        placeholder="98765 43210" 
+                        {...field} 
+                        disabled={isLoading}
+                        onChange={(e) => {
+                            let value = e.target.value;
+                            if (!value.startsWith('+91 ')) {
+                                value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                            }
+                            if (value.length > 14) {
+                                value = value.substring(0, 14);
+                            }
+                            field.onChange(value);
+                        }}
+                    />
                 </FormControl>
                 <FormMessage />
             </FormItem>

@@ -24,6 +24,7 @@ import {
 import { MapPin, LocateFixed } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 import { ScrollArea } from "./ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
@@ -33,7 +34,7 @@ const formSchema = z.object({
   country: z.string().min(1, { message: "Country is required." }),
   state: z.string().min(1, { message: "State is required." }),
   pincode: z.string().regex(/^\d{6}$/, { message: "Please enter a valid 6-digit pin code." }),
-  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit phone number with country code." }),
+  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
 });
 
 interface EditAddressFormProps {
@@ -62,7 +63,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
       state: currentAddress.state,
       country: currentAddress.country,
       pincode: currentAddress.pincode,
-      phone: currentPhone,
+      phone: currentPhone || "+91 ",
     },
   });
 
@@ -75,9 +76,9 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSave)}>
-        <ScrollArea className="h-[65vh]">
-          <div className="grid gap-4 py-4 px-6">
+      <form onSubmit={form.handleSubmit(onSave)} className="flex flex-col h-full">
+        <ScrollArea className="flex-grow">
+          <div className="grid gap-4 p-6">
             <FormField
               control={form.control}
               name="name"
@@ -196,7 +197,20 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="+91 9876543210" {...field} />
+                    <Input 
+                      placeholder="98765 43210" 
+                      {...field}
+                      onChange={(e) => {
+                          let value = e.target.value;
+                          if (!value.startsWith('+91 ')) {
+                              value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                          }
+                          if (value.length > 14) {
+                              value = value.substring(0, 14);
+                          }
+                          field.onChange(value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,7 +235,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end gap-2 p-6 pt-4 border-t">
+        <div className="flex justify-end gap-2 p-6 pt-4 border-t flex-shrink-0">
           <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button type="submit">Save Details</Button>
         </div>
