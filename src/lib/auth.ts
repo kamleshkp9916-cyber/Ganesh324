@@ -37,10 +37,7 @@ export function useAuthActions() {
             await updateProfile(user, {
                 displayName: `${profileData.firstName} ${profileData.lastName}`,
             });
-            toast({
-                title: "Account Created!",
-                description: "You have successfully created an account and logged in.",
-            });
+            // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
             router.push(`/live-selling`);
             return userCredential;
@@ -76,8 +73,8 @@ export function useAuthActions() {
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
             });
-            // The onAuthStateChanged listener in useAuth will handle the state update
-            // and the UI will rerender accordingly without a forced navigation.
+            // Force a redirect to the login page to ensure a clean state.
+            router.push('/');
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({
