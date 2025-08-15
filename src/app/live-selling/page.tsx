@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useRef, useEffect } from 'react';
 import {
   Clapperboard,
   Home,
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 const shows = [
     {
@@ -119,6 +121,9 @@ const shows = [
   ];
 
 export default function LiveSellingPage() {
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
     { icon: Clapperboard, tooltip: 'Movie' },
@@ -128,6 +133,19 @@ export default function LiveSellingPage() {
   ];
 
   const filterButtons = ['TV Shows', 'Genre', 'Country', 'Year', 'Rating', 'Quality', 'Recently updated'];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef]);
+
 
   return (
       <div className="flex min-h-screen bg-background text-foreground">
@@ -165,10 +183,26 @@ export default function LiveSellingPage() {
                 <Image src="https://placehold.co/1200x400.png" layout="fill" objectFit="cover" alt="Hero background" data-ai-hint="fantasy movie poster"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
                 <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-end">
-                    <div className="flex items-center gap-4">
-                        <div className="relative w-full max-w-[180px]">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                           <Input placeholder="Search" className="bg-background/50 pl-10 rounded-full" />
+                    <div className="flex items-center gap-2" ref={searchRef}>
+                         <div className={cn(
+                            "relative flex items-center transition-all duration-300 ease-in-out",
+                             isSearchExpanded ? "w-48" : "w-10"
+                         )}>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-white rounded-full bg-white/10 hover:bg-white/20 absolute right-0"
+                                onClick={() => setIsSearchExpanded(true)}
+                            >
+                                <Search />
+                            </Button>
+                           <Input 
+                                placeholder="Search..." 
+                                className={cn(
+                                    "bg-background/50 pl-4 pr-12 rounded-full transition-all duration-300 ease-in-out",
+                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                                )}
+                            />
                        </div>
                         <Button variant="ghost" size="icon" className="text-white rounded-full bg-white/10 hover:bg-white/20">
                             <Plus />
