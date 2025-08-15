@@ -205,10 +205,10 @@ export default function LiveSellingPage() {
 
 
   return (
-      <div className="flex min-h-screen bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)/0.3),_hsl(var(--background))_70%)] text-foreground">
+      <div className="flex min-h-screen bg-background text-foreground">
         <div className="sticky top-0 flex h-screen w-16 flex-col items-center border-r border-border bg-background/50 py-4 gap-4">
              <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                <Image src="/company-log.svg" alt="StreamCart" width={24} height={24} className="text-primary" />
             </Button>
             <div className="flex flex-col items-center gap-2 mt-4 flex-1">
               {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
@@ -237,7 +237,7 @@ export default function LiveSellingPage() {
         </div>
         <div className="flex-1 flex flex-col">
            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
-                <h1 className="text-2xl font-bold tracking-tight">Live Shopping</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                 <div className="flex items-center gap-2" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out",
@@ -292,7 +292,7 @@ export default function LiveSellingPage() {
                             <CarouselContent>
                                 {offerSlides.map((slide) => (
                                 <CarouselItem key={slide.id}>
-                                    <Card className="overflow-hidden">
+                                    <Card className="overflow-hidden bg-card">
                                     <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
                                         <Image
                                         src={slide.imageUrl}
@@ -302,7 +302,7 @@ export default function LiveSellingPage() {
                                         className="brightness-75"
                                         data-ai-hint={slide.hint}
                                         />
-                                        <div className="absolute text-center text-white p-4">
+                                        <div className="absolute text-center text-primary-foreground p-4">
                                         <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
                                         <p className="text-sm md:text-lg">{slide.description}</p>
                                         </div>
@@ -383,3 +383,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
