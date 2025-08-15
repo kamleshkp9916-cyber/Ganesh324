@@ -205,8 +205,8 @@ export default function LiveSellingPage() {
 
 
   return (
-      <div className="flex min-h-screen bg-background text-foreground">
-        <div className="sticky top-0 flex h-screen w-16 flex-col items-center border-r border-border bg-background py-4 gap-4">
+      <div className="flex min-h-screen bg-[radial-gradient(ellipse_at_top,_hsl(var(--destructive)/0.1),_hsl(var(--background))_50%)] text-foreground">
+        <div className="sticky top-0 flex h-screen w-16 flex-col items-center border-r border-border bg-background/50 py-4 gap-4">
              <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
             </Button>
@@ -236,7 +236,7 @@ export default function LiveSellingPage() {
             </div>
         </div>
         <div className="flex-1 flex flex-col">
-           <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+           <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
                 <h1 className="text-2xl font-bold tracking-tight">Live Shopping</h1>
                 <div className="flex items-center gap-2" ref={searchRef}>
                     <div className={cn(
@@ -330,11 +330,11 @@ export default function LiveSellingPage() {
 
                 <div className="flex flex-wrap gap-2 mb-6">
                     {filterButtons.map((filter) => (
-                    <Button key={filter} variant="outline" className="bg-card rounded-full">
+                    <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
                         {filter}
                     </Button>
                     ))}
-                     <Button variant="ghost" className="bg-card rounded-full">
+                     <Button variant="ghost" className="bg-card/50 rounded-full">
                         Filters
                         <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
