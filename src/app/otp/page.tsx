@@ -18,7 +18,7 @@ export default function OtpPage({ searchParams }: { searchParams: { identifier?:
       <div className="mx-auto grid w-[380px] gap-8">
         <div className="grid gap-4 text-center">
             <div className="flex justify-center">
-                <Logo className="h-16 w-16 text-primary" />
+                <Logo className="h-16 w-16" />
             </div>
             <p className="text-balance text-muted-foreground px-4">
                 OTP Sent on your Phone Number and Email Id - <span className="font-semibold text-foreground">{identifier}</span>

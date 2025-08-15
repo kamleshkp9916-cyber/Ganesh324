@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { SignupForm } from '@/components/auth/signup-form';
 import { Logo } from '@/components/logo';
@@ -16,7 +17,7 @@ export default function SignupPage() {
         <div className="grid gap-2 text-center">
             <div className="flex justify-center items-center gap-2">
                 <h1 className="text-3xl font-bold">Sign Up</h1>
-                <Logo className="h-10 w-10 text-primary" />
+                <Logo className="h-10 w-10" />
             </div>
         </div>
         <SignupForm />
