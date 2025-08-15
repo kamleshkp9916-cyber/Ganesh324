@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
@@ -48,25 +48,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // --- Mock user for development ---
-    // To use real Firebase authentication, you can comment out or remove this block
+    // To use real Firebase authentication, set enableMockUser to false
     const enableMockUser = true;
-    if (enableMockUser) {
-        // We use a timeout to better simulate a real network request
-        setTimeout(() => {
+
+    const handleAuthChange = (authUser: User | null) => {
+        if (enableMockUser && authUser) {
+            // If mock user is enabled and we get a real auth user,
+            // we can use a mock user instead or merge details.
+            // For now, let's just use the mock user.
+            setUser(mockUser);
+        } else {
+            setUser(authUser);
+        }
+        setLoading(false);
+
+        // Redirect if a user is logged in and on the login/signup page
+        if (authUser && (pathname === '/' || pathname === '/signup')) {
+            router.replace('/live-selling');
+        }
+    };
+    
+    const unsubscribe = onAuthStateChanged(auth, handleAuthChange);
+
+    // If mock user is enabled and there's no real user initially, set the mock user.
+    // This handles the initial load when not logged into Firebase.
+    if (enableMockUser && !auth.currentUser) {
+       // A small delay to simulate loading
+       setTimeout(() => {
             setUser(mockUser);
             setLoading(false);
-        }, 500);
-        return;
+       }, 500)
     }
-    // --------------------------------
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-      if (user && (pathname === '/' || pathname === '/signup')) {
-          router.replace('/live-selling');
-      }
-    });
+
     return () => unsubscribe();
     
   }, [pathname, router]);
@@ -81,5 +95,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
-
-    
