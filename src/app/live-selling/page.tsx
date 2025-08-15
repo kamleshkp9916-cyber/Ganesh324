@@ -174,6 +174,7 @@ export default function LiveSellingPage() {
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
   const { user } = useAuth();
+  const { signOut } = useAuthActions();
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
@@ -249,20 +250,49 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                    <Link href={user ? "/profile" : "/"}>
-                      <Avatar className="h-9 w-9 cursor-pointer">
-                        {user ? (
-                          <>
-                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                          </>
-                        ) : (
-                          <AvatarFallback>
-                            <User className="h-5 w-5" />
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                    </Link>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Avatar className="h-9 w-9 cursor-pointer">
+                                {user ? (
+                                <>
+                                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                </>
+                                ) : (
+                                <AvatarFallback>
+                                    <User className="h-5 w-5" />
+                                </AvatarFallback>
+                                )}
+                            </Avatar>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end">
+                             {user ? (
+                                <>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild><Link href="/profile"><User className="mr-2" />Profile</Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/wallet"><Wallet className="mr-2" />Wallet</Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/setting"><Settings className="mr-2" />Setting</Link></DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={signOut}><LogOut className="mr-2" />Log Out</DropdownMenuItem>
+                                </>
+                             ) : (
+                                <>
+                                    <DropdownMenuLabel>Welcome, Guest!</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild><Link href="/"><Button className="w-full justify-start" variant="ghost"><User className="mr-2" />Login</Button></Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/signup"><Button className="w-full justify-start" variant="ghost"><Plus className="mr-2" />Create Account</Button></Link></DropdownMenuItem>
+                                </>
+                             )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 
