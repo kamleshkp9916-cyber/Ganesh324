@@ -46,20 +46,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const enableMockUser = true;
 
   const checkAuth = useCallback(() => {
-    setLoading(true);
-    // Prioritize mock user if the session flag is set
     if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
       setUser(mockUser);
       setLoading(false);
-      return;
+      // We don't need to check Firebase if the mock session is active.
+      // We return an empty function to match the signature of onAuthStateChanged.
+      return () => {};
     }
 
-    // Fallback to Firebase auth
+    // Fallback to Firebase auth if mock session isn't active
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      if (authUser) {
-        setUser(authUser);
+      // Re-check for mock session in case it was set during a multi-step auth flow.
+      if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
+        setUser(mockUser);
       } else {
-        setUser(null);
+        setUser(authUser);
       }
       setLoading(false);
     });
@@ -71,14 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = checkAuth();
     
-    // Add a listener for storage changes, which helps in multi-tab scenarios
-    // but also for our session-based mock.
     const handleStorageChange = () => {
       checkAuth();
     };
 
     window.addEventListener('storage', handleStorageChange);
-    // Also re-check auth when the window gets focus
     window.addEventListener('focus', checkAuth);
 
 
