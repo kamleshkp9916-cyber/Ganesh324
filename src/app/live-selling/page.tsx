@@ -176,7 +176,7 @@ export default function LiveSellingPage() {
       {/* Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-20 flex-col items-center justify-between border-r border-border bg-background py-4 lg:flex">
         <div className="flex flex-col items-center gap-8">
-          <Logo className="h-8 w-8 text-primary" />
+          <Logo className="h-8 w-8 text-red-500" />
           <nav className="flex flex-col items-center gap-6">
             {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
               <Button
@@ -329,7 +329,7 @@ export default function LiveSellingPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center gap-8">
-              <Logo className="h-8 w-8 text-primary" />
+              <Logo className="h-8 w-8 text-red-500" />
               <nav className="flex flex-col items-start gap-4 self-stretch">
                 {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
                   <Button
