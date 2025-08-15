@@ -81,9 +81,9 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSave)} className="flex flex-col h-full">
+      <form onSubmit={form.handleSubmit(handleSave)} className="flex flex-col flex-grow min-h-0">
         <ScrollArea className="flex-grow">
-          <div className="grid gap-4 p-6">
+          <div className="grid gap-4 px-6">
             <FormField
               control={form.control}
               name="name"
@@ -242,7 +242,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end gap-2 p-6 pt-4 border-t flex-shrink-0">
+        <div className="flex justify-end gap-2 p-6 flex-shrink-0 border-t">
           <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button type="submit">Save Details</Button>
         </div>
