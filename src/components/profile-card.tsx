@@ -116,7 +116,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
         {placeholder ? (
              <div className="h-full flex flex-col">
                 <div 
-                  className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10 flex-shrink-0"
+                  className="p-6 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10 flex-shrink-0"
                 >
                   <div className={cn("absolute inset-0 bg-primary/10")} />
                     
