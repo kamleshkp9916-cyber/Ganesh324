@@ -83,6 +83,9 @@ export function LoginForm() {
     console.log("Simulating credential check for:", values.identifier);
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // This is key for the mock user flow
+    sessionStorage.setItem('mockUserSessionActive', 'true');
+
     toast({
         title: "Verification Required",
         description: "An OTP has been sent to your device.",

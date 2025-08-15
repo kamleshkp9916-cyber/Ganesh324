@@ -13,10 +13,16 @@ export function useAuthActions() {
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
+            // In a real app, you would let Firebase handle the popup and result.
+            // await signInWithPopup(auth, provider);
+            
+            // For mock flow, we simulate success immediately.
+            console.log("Simulating Google Sign-In...");
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             toast({
                 title: "Signed In!",
-                description: `Welcome back, ${result.user.displayName}!`,
+                description: `Welcome back!`,
             });
             // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
@@ -44,8 +50,9 @@ export function useAuthActions() {
             
             // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
-            router.push(`/live-selling`);
-            // return userCredential;
+            
+            // We still return a mock userCredential-like object if needed elsewhere
+            // return { user: { email, displayName: `${profileData.firstName} ${profileData.lastName}` } };
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";

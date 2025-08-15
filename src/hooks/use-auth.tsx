@@ -47,19 +47,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      if (authUser) {
-        setUser(authUser);
-        setLoading(false);
-      } else {
-        // If real auth user is null, check if we should use the mock user.
+        // If we have a real Firebase user, we can use it.
+        // For this project, we prioritize the mock user if the session flag is set.
         if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
           setUser(mockUser);
+        } else if (authUser) {
+          setUser(authUser);
         } else {
           setUser(null);
         }
         setLoading(false);
-      }
     });
+
+    // Also check session storage on initial load, in case auth state is already set
+    if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
+      setUser(mockUser);
+    }
+    setLoading(false);
+
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
