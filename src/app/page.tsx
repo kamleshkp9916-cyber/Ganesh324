@@ -11,7 +11,6 @@ function SplashScreen() {
         <div className="relative flex h-full w-full flex-col items-center justify-center bg-primary p-10 text-primary-foreground">
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10 flex flex-col items-center text-center">
-                <Logo className="h-24 w-24 mb-4" />
                 <h1 className="text-5xl font-black tracking-tighter">
                     Fast. Reliable. Yours.
                 </h1>
