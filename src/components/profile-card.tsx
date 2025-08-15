@@ -38,7 +38,9 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const { user, loading } = useAuth();
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -46,12 +48,23 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     }
   }, [user]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setBgImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -92,23 +105,42 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                        bgImage ? "bg-black/40" : "bg-primary/10"
                    )} />
                    <div className="relative z-10 w-full flex justify-end">
-                       <Button variant="outline" size="icon" className="rounded-full bg-background/20 text-white border-white/50 hover:bg-background/40" onClick={() => fileInputRef.current?.click()}>
+                       <Button variant="outline" size="icon" className="rounded-full bg-background/20 text-white border-white/50 hover:bg-background/40" onClick={() => bgFileInputRef.current?.click()}>
                            <Camera className="h-5 w-5" />
                            <span className="sr-only">Change background image</span>
                        </Button>
                        <input
                            type="file"
-                           ref={fileInputRef}
-                           onChange={handleImageUpload}
+                           ref={bgFileInputRef}
+                           onChange={handleBgImageUpload}
                            className="hidden"
                            accept="image/*"
                        />
                    </div>
-
-                    <Avatar className="h-32 w-32 border-4 border-background shadow-lg relative z-10">
-                        <AvatarImage src={user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
-                        <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    
+                    <div className="relative z-10">
+                        <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                            <AvatarImage src={profileImage || user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
+                            <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <Button
+                            size="icon"
+                            variant="outline"
+                            className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
+                            onClick={() => profileFileInputRef.current?.click()}
+                        >
+                            <Camera className="h-4 w-4" />
+                            <span className="sr-only">Change profile image</span>
+                        </Button>
+                        <input
+                            type="file"
+                            ref={profileFileInputRef}
+                            onChange={handleProfileImageUpload}
+                            className="hidden"
+                            accept="image/*"
+                        />
+                    </div>
+                    
                     <div className="text-center relative z-10 text-white">
                         <h2 className="text-3xl font-bold">{user.displayName}</h2>
                         <p className="text-white/80">{user.email}</p>
