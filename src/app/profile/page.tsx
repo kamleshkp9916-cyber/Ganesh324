@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
+import { EditProfileForm } from '@/components/edit-profile-form';
 
 // Mock data generation
 const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
@@ -52,6 +53,7 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -81,6 +83,20 @@ export default function ProfilePage() {
     setIsAddressDialogOpen(false);
   }
 
+  const handleProfileSave = (data: any) => {
+    if(profileData){
+        setProfileData({
+            ...profileData,
+            displayName: `${data.firstName} ${data.lastName}`,
+            bio: data.bio,
+            location: data.location,
+            phone: `+91 ${data.phone}`,
+            email: data.email, // email is read-only but we get it back from the form
+        });
+    }
+    setIsProfileDialogOpen(false);
+  };
+
   if (loading) {
       return (
           <div className="flex items-center justify-center min-h-screen">
@@ -100,16 +116,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+    <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
         <div className="min-h-screen bg-background text-foreground">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
                 <h1 className="text-xl font-bold">My Profile</h1>
-                <Button variant="ghost" size="icon">
-                    <Edit className="h-5 w-5" />
-                </Button>
+                <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Edit className="h-5 w-5" />
+                    </Button>
+                </DialogTrigger>
             </header>
 
             <main className="p-4 sm:p-6 md:p-8">
@@ -147,23 +165,38 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                             <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-lg font-semibold">Delivery Address</h3>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <Edit className="h-5 w-5" />
-                                            <span className="sr-only">Edit Address</span>
-                                        </Button>
-                                    </DialogTrigger>
+                             <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="text-lg font-semibold">Delivery Address</h3>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <Edit className="h-5 w-5" />
+                                                <span className="sr-only">Edit Address</span>
+                                            </Button>
+                                        </DialogTrigger>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
+                                        <p className="font-semibold text-foreground">{profileData.address.name}</p>
+                                        <p>{profileData.address.village}, {profileData.address.district}</p>
+                                        <p>{profileData.address.city}, {profileData.address.state} - {profileData.address.pincode}</p>
+                                        <p>{profileData.address.country}</p>
+                                    </div>
                                 </div>
-                                <div className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
-                                    <p className="font-semibold text-foreground">{profileData.address.name}</p>
-                                    <p>{profileData.address.village}, {profileData.address.district}</p>
-                                    <p>{profileData.address.city}, {profileData.address.state} - {profileData.address.pincode}</p>
-                                    <p>{profileData.address.country}</p>
-                                </div>
-                            </div>
+                                 <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+                                    <DialogHeader className="p-6 pb-4 border-b">
+                                        <DialogTitle>Edit Delivery Address</DialogTitle>
+                                    </DialogHeader>
+                                    {profileData && (
+                                        <EditAddressForm 
+                                            currentAddress={profileData.address}
+                                            currentPhone={profileData.phone}
+                                            onSave={handleAddressSave} 
+                                            onCancel={() => setIsAddressDialogOpen(false)}
+                                        />
+                                    )}
+                                </DialogContent>
+                            </Dialog>
                         </CardContent>
                     </Card>
                 </div>
@@ -176,14 +209,13 @@ export default function ProfilePage() {
         </div>
         <DialogContent className="max-w-2xl max-h-[90vh] p-0">
             <DialogHeader className="p-6 pb-4 border-b">
-                <DialogTitle>Edit Delivery Address</DialogTitle>
+                <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
-            {profileData && (
-                <EditAddressForm 
-                    currentAddress={profileData.address}
-                    currentPhone={profileData.phone}
-                    onSave={handleAddressSave} 
-                    onCancel={() => setIsAddressDialogOpen(false)}
+             {profileData && (
+                <EditProfileForm
+                    currentUser={profileData}
+                    onSave={handleProfileSave}
+                    onCancel={() => setIsProfileDialogOpen(false)}
                 />
             )}
         </DialogContent>
