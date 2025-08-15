@@ -39,7 +39,6 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const bgFileInputRef = useRef<HTMLInputElement>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,17 +47,6 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     }
   }, [user]);
 
-  const handleBgImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBgImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
   const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -104,19 +92,6 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                        "absolute inset-0",
                        bgImage ? "bg-black/40" : "bg-primary/10"
                    )} />
-                   <div className="relative z-10 w-full flex justify-end">
-                       <Button variant="outline" size="icon" className="rounded-full bg-background/20 text-white border-white/50 hover:bg-background/40" onClick={() => bgFileInputRef.current?.click()}>
-                           <Camera className="h-5 w-5" />
-                           <span className="sr-only">Change background image</span>
-                       </Button>
-                       <input
-                           type="file"
-                           ref={bgFileInputRef}
-                           onChange={handleBgImageUpload}
-                           className="hidden"
-                           accept="image/*"
-                       />
-                   </div>
                     
                     <div className="relative z-10">
                         <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
