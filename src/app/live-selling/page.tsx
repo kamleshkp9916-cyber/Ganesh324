@@ -46,6 +46,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 const liveSellers = [
@@ -249,18 +250,89 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                     <Avatar className="h-9 w-9 cursor-pointer">
-                        {user ? (
-                        <>
-                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                        </>
-                        ) : (
-                        <AvatarFallback>
-                            <User className="h-5 w-5" />
-                        </AvatarFallback>
-                        )}
-                    </Avatar>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Avatar className="h-9 w-9 cursor-pointer">
+                                {user ? (
+                                <>
+                                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                </>
+                                ) : (
+                                <AvatarFallback>
+                                    <User className="h-5 w-5" />
+                                </AvatarFallback>
+                                )}
+                            </Avatar>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end" forceMount>
+                            {user ? (
+                                <>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/placeholder"><User />My Profile</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/orders"><ShoppingBag />Orders</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/wishlist"><Heart />Wishlist</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/wallet"><Wallet />Wallet</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/listed-products"><List />Listed Products</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/top-seller"><Award />Top Seller</Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href="/message"><MessageSquare />Message</Link>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                       <DropdownMenuItem asChild>
+                                        <Link href="/setting"><Settings />Setting</Link>
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem asChild>
+                                        <Link href="/privacy-and-security"><Shield />Privacy And Security</Link>
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem asChild>
+                                        <Link href="/terms-and-conditions"><FileText />Term & Conditions</Link>
+                                       </DropdownMenuItem>
+                                       <DropdownMenuItem asChild>
+                                        <Link href="/help"><LifeBuoy />Help 24/7</Link>
+                                       </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={signOut}>
+                                        <LogOut />
+                                        Log Out
+                                    </DropdownMenuItem>
+                                </>
+                            ) : (
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/">Login</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/signup">Create Account</Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 
