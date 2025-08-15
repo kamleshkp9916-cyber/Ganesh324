@@ -25,7 +25,10 @@ const generatePlaceholderDetails = () => {
   return {
     bio: bios[Math.floor(Math.random() * bios.length)],
     location: locations[Math.floor(Math.random() * locations.length)],
-    phone: `+1 (555) ${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`
+    phone: `+1 (555) ${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
+    following: Math.floor(Math.random() * 500),
+    followers: Math.floor(Math.random() * 10000),
+    likes: Math.floor(Math.random() * 100000),
   };
 };
 
@@ -74,6 +77,20 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                     <div className="text-center">
                         <h2 className="text-3xl font-bold">{user.displayName}</h2>
                         <p className="text-muted-foreground">{user.email}</p>
+                    </div>
+                    <div className="flex gap-8 pt-4">
+                        <div className="text-center">
+                            <p className="text-2xl font-bold">{placeholder.following}</p>
+                            <p className="text-sm text-muted-foreground">Following</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
+                            <p className="text-sm text-muted-foreground">Followers</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
+                            <p className="text-sm text-muted-foreground">Likes</p>
+                        </div>
                     </div>
                 </div>
                 <CardContent className="p-6 space-y-6">
