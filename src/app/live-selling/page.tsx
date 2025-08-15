@@ -173,7 +173,7 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
 
 
@@ -259,7 +259,11 @@ export default function LiveSellingPage() {
                             </Avatar>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-64" align="end" forceMount>
-                            {user ? (
+                            {loading ? (
+                                <div className="p-4 text-center">
+                                    <p>Loading...</p>
+                                </div>
+                            ) : user ? (
                                 <>
                                     <DropdownMenuLabel className="font-normal text-center">
                                         <div className="flex flex-col items-center space-y-2">
