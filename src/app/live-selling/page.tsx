@@ -34,6 +34,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { Logo } from '@/components/logo';
 
 
 const liveSellers = [
@@ -209,19 +210,20 @@ export default function LiveSellingPage() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <Sidebar collapsible="icon" variant="sidebar" className="p-2 transition-all duration-300 ease-in-out">
+        <Sidebar variant="sidebar" className="p-2 transition-all duration-300 ease-in-out">
             <SidebarContent className="flex flex-col justify-between">
                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton tooltip="Menu" className="md:hidden">
-                            <Menu />
-                        </SidebarMenuButton>
+                     <SidebarMenuItem className="mb-4">
+                        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-primary">
+                            <Logo className="w-8 h-8" />
+                            <span className="group-data-[collapsible=icon]:hidden">StreamCart</span>
+                        </Link>
                     </SidebarMenuItem>
                     {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
                          <SidebarMenuItem key={tooltip}>
                             <SidebarMenuButton tooltip={tooltip} isActive={active}>
                                 <Icon />
-                                <span>{tooltip}</span>
+                                <span className="group-data-[collapsible=icon]:hidden">{tooltip}</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
@@ -230,13 +232,13 @@ export default function LiveSellingPage() {
                     <SidebarMenuItem>
                          <SidebarMenuButton tooltip="What's New?">
                             <Zap />
-                            <span>What's New?</span>
+                            <span className="group-data-[collapsible=icon]:hidden">What's New?</span>
                          </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton tooltip="Settings">
                             <Settings />
-                            <span>Settings</span>
+                            <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
