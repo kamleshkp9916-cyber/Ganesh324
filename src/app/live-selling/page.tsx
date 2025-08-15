@@ -303,11 +303,6 @@ export default function LiveSellingPage() {
                                     <DropdownMenuItem asChild>
                                         <Link href="/help" className="justify-center"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => signOut()} className="justify-center text-red-500">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Logout</span>
-                                    </DropdownMenuItem>
                                 </>
                             ) : (
                                 <div className="p-4 text-center">
@@ -429,5 +424,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
