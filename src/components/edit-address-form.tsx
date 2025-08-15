@@ -34,7 +34,7 @@ const formSchema = z.object({
   country: z.string().min(1, { message: "Country is required." }),
   state: z.string().min(1, { message: "State is required." }),
   pincode: z.string().regex(/^\d{6}$/, { message: "Please enter a valid 6-digit pin code." }),
-  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
+  phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
 });
 
 interface EditAddressFormProps {
@@ -48,7 +48,7 @@ interface EditAddressFormProps {
     pincode: string;
   };
   currentPhone: string;
-  onSave: (data: z.infer<typeof formSchema>) => void;
+  onSave: (data: z.infer<typeof formSchema> & { phone: string }) => void;
   onCancel: () => void;
 }
 
@@ -63,9 +63,14 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
       state: currentAddress.state,
       country: currentAddress.country,
       pincode: currentAddress.pincode,
-      phone: currentPhone || "+91 ",
+      phone: (currentPhone || "").replace('+91 ', ''),
     },
   });
+  
+  const handleSave = (values: z.infer<typeof formSchema>) => {
+    onSave({ ...values, phone: `+91 ${values.phone}` });
+  };
+
 
   const handleGetCurrentLocation = () => {
     // In a real app, you'd use navigator.geolocation here
@@ -76,7 +81,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSave)} className="flex flex-col h-full">
+      <form onSubmit={form.handleSubmit(handleSave)} className="flex flex-col h-full">
         <ScrollArea className="flex-grow">
           <div className="grid gap-4 p-6">
             <FormField
@@ -182,7 +187,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                   <FormItem>
                     <FormLabel>Country</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., India" {...field} />
+                      <Input placeholder="e.g., India" disabled {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,24 +200,26 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="98765 43210" 
-                      {...field}
-                      onChange={(e) => {
-                          let value = e.target.value;
-                          if (!value.startsWith('+91 ')) {
-                              value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                          }
-                          if (value.length > 14) {
-                              value = value.substring(0, 14);
-                          }
-                          field.onChange(value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
+                    <FormLabel>Phone Number</FormLabel>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground text-sm">
+                            +91
+                        </div>
+                        <FormControl>
+                            <Input 
+                                placeholder="98765 43210" 
+                                className="pl-10"
+                                {...field}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, '');
+                                    if (value.length <= 10) {
+                                        field.onChange(value);
+                                    }
+                                }}
+                            />
+                        </FormControl>
+                    </div>
+                    <FormMessage />
                 </FormItem>
               )}
             />
