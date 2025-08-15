@@ -58,17 +58,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Firebase auth listener
     const unsubscribe = onAuthStateChanged(auth, updateUserState);
 
+    // Initial check in case the component mounts after the initial auth state change
+    updateUserState(auth.currentUser);
+
     // Listener for session storage changes (e.g., logout from another tab)
-    const handleStorageChange = () => {
-      // Re-run the auth check when storage changes.
-      // We pass the current firebase user to avoid a race condition.
-      updateUserState(auth.currentUser); 
+    // This helps sync state across tabs.
+    const handleStorageChange = (event: StorageEvent) => {
+       if (event.key === 'mockUserSessionActive' || event.key === null) {
+          updateUserState(auth.currentUser); 
+       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-
-    // Initial check in case the component mounts after the initial auth state change
-    updateUserState(auth.currentUser);
 
     // Cleanup subscription on unmount
     return () => {

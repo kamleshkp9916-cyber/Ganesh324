@@ -70,7 +70,8 @@ export function OtpForm() {
             title: "Success!",
             description: "Your OTP has been verified.",
         });
-        router.push("/live-selling");
+        // Using window.location.href to ensure a full page load that correctly initializes the auth state.
+        window.location.href = "/live-selling";
       } else {
          toast({
             title: "Error",
