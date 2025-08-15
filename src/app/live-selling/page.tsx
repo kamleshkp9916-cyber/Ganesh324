@@ -4,7 +4,6 @@
 import {
   Clapperboard,
   Home,
-  Music,
   Bookmark,
   Heart,
   Star,
@@ -12,7 +11,8 @@ import {
   ChevronDown,
   Search,
   Bell,
-  Plus
+  Plus,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -122,7 +122,6 @@ export default function LiveSellingPage() {
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
     { icon: Clapperboard, tooltip: 'Movie' },
-    { icon: Music, tooltip: 'Music' },
     { icon: Heart, tooltip: 'Favorite' },
     { icon: Star, tooltip: 'Rated' },
     { icon: Bookmark, tooltip: 'Library' },
@@ -152,9 +151,14 @@ export default function LiveSellingPage() {
                 </Button>
               ))}
             </div>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-              <Zap className="h-6 w-6" />
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                <Zap className="h-6 w-6" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                <Settings className="h-6 w-6" />
+              </Button>
+            </div>
         </div>
         <div className="flex-1 flex flex-col">
             <div className="relative h-80 w-full">
