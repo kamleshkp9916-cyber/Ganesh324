@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Check, X } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
@@ -13,6 +13,7 @@ import { DialogHeader, DialogTitle } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
 import { Textarea } from './ui/textarea';
+import { ScrollArea } from './ui/scroll-area';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -160,70 +161,72 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         </div>
                     </div>
                 </div>
-                <CardContent className="p-6 space-y-6">
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">About Me</h3>
-                             <Button variant="ghost" size="icon" onClick={onEdit}>
-                                <Edit className="h-5 w-5" />
-                                <span className="sr-only">Edit Profile</span>
-                            </Button>
-                        </div>
-                        <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
-                    </div>
-
-                    <Separator />
-                    
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                            <div className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-muted-foreground" />
-                                <span>{user.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Phone className="w-5 h-5 text-muted-foreground" />
-                                <span>{placeholder.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <MapPin className="w-5 h-5 text-muted-foreground" />
-                                <span>{placeholder.location}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <Separator />
-
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Delivery Address</h3>
-                            {!isEditingAddress && (
-                                <Button variant="ghost" size="icon" onClick={handleEditAddress}>
+                <ScrollArea className="h-[40vh]">
+                    <CardContent className="p-6 space-y-6">
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-lg font-semibold">About Me</h3>
+                                <Button variant="ghost" size="icon" onClick={onEdit}>
                                     <Edit className="h-5 w-5" />
-                                    <span className="sr-only">Edit Address</span>
+                                    <span className="sr-only">Edit Profile</span>
                                 </Button>
-                            )}
+                            </div>
+                            <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
                         </div>
-                         {isEditingAddress ? (
-                            <div className="space-y-2">
-                                <Textarea 
-                                    value={tempAddress}
-                                    onChange={(e) => setTempAddress(e.target.value)}
-                                    className="min-h-[80px]"
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Cancel</Button>
-                                    <Button size="sm" onClick={handleSaveAddress}>Save</Button>
+
+                        <Separator />
+                        
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Mail className="w-5 h-5 text-muted-foreground" />
+                                    <span>{user.email}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Phone className="w-5 h-5 text-muted-foreground" />
+                                    <span>{placeholder.phone}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <MapPin className="w-5 h-5 text-muted-foreground" />
+                                    <span>{placeholder.location}</span>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="flex items-start gap-3">
-                                <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                                <span className="text-muted-foreground">{deliveryAddress}</span>
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-lg font-semibold">Delivery Address</h3>
+                                {!isEditingAddress && (
+                                    <Button variant="ghost" size="icon" onClick={handleEditAddress}>
+                                        <Edit className="h-5 w-5" />
+                                        <span className="sr-only">Edit Address</span>
+                                    </Button>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </CardContent>
+                            {isEditingAddress ? (
+                                <div className="space-y-2">
+                                    <Textarea 
+                                        value={tempAddress}
+                                        onChange={(e) => setTempAddress(e.target.value)}
+                                        className="min-h-[80px]"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+                                        <Button size="sm" onClick={handleSaveAddress}>Save</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-3">
+                                    <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                    <span className="text-muted-foreground">{deliveryAddress}</span>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </ScrollArea>
             </Card>
         ) : (
             <div className="flex items-center justify-center p-10 min-h-[400px]">
