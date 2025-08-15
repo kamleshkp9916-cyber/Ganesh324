@@ -96,7 +96,4 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .progress-red > div {
-    @apply bg-destructive;
-  }
 }

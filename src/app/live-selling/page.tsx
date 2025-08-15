@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
-import { Progress } from '@/components/ui/progress';
 
 
 const liveSellers = [
@@ -158,8 +157,8 @@ export default function LiveSellingPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
-  const [progress, setProgress] = useState(0)
-  
+  const [currentSlide, setCurrentSlide] = useState(0)
+
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
     { icon: Clapperboard, tooltip: 'Movie' },
@@ -169,23 +168,21 @@ export default function LiveSellingPage() {
   ];
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
-  
-  const onAutoplayProgress = useCallback((api: CarouselApi) => {
-      const progress = Math.max(0, Math.min(1, api.scrollProgress()))
-      setProgress(progress * 100)
-  }, [])
 
+  const onSelect = useCallback((api: CarouselApi) => {
+    if (!api) return;
+    setCurrentSlide(api.selectedScrollSnap());
+  }, []);
 
   useEffect(() => {
     if (!api) {
       return
     }
  
-    api.on('autoplay:progress', onAutoplayProgress)
-    api.on('reInit', (api) => {
-        onAutoplayProgress(api);
-    })
-  }, [api, onAutoplayProgress])
+    onSelect(api);
+    api.on('select', onSelect);
+    api.on('reInit', onSelect)
+  }, [api, onSelect])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -315,7 +312,18 @@ export default function LiveSellingPage() {
                                 ))}
                             </CarouselContent>
                         </Carousel>
-                         <Progress value={progress} className="h-1 mt-2 progress-red" />
+                        <div className="flex justify-center gap-2 mt-4">
+                            {offerSlides.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => api?.scrollTo(index)}
+                                    className={cn(
+                                        "h-2 w-2 rounded-full transition-colors",
+                                        index === currentSlide ? 'bg-destructive' : 'bg-muted'
+                                    )}
+                                />
+                            ))}
+                        </div>
                     </div>
                   )}
                 </div>
