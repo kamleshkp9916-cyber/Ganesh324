@@ -12,7 +12,7 @@ function SplashScreen() {
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10 flex flex-col items-center text-center">
                 <h1 className="text-5xl font-black tracking-tighter">
-                    Fast. Reliable. Yours.
+                    StreamCart
                 </h1>
                 <p className="mt-2 max-w-sm text-lg">
                     Your one-stop shop, delivered in a flash. The future of online retail is here.
