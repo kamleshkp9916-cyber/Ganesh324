@@ -174,7 +174,7 @@ export default function ProfilePage() {
             )}
             </main>
         </div>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>Edit Delivery Address</DialogTitle>
             </DialogHeader>
