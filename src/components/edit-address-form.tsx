@@ -25,7 +25,9 @@ import { MapPin, LocateFixed } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 
 const formSchema = z.object({
+  name: z.string().min(1, { message: "Name is required." }),
   village: z.string().min(1, { message: "Village/Area is required." }),
+  district: z.string().min(1, { message: "District is required." }),
   city: z.string().min(1, { message: "City is required." }),
   country: z.string().min(1, { message: "Country is required." }),
   state: z.string().min(1, { message: "State is required." }),
@@ -35,7 +37,9 @@ const formSchema = z.object({
 
 interface EditAddressFormProps {
   currentAddress: {
+    name: string;
     village: string;
+    district: string;
     city: string;
     state: string;
     country: string;
@@ -50,7 +54,9 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: currentAddress.name,
       village: currentAddress.village,
+      district: currentAddress.district,
       city: currentAddress.city,
       state: currentAddress.state,
       country: currentAddress.country,
@@ -69,6 +75,19 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSave)} className="grid gap-4 py-4">
+        <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Samael Prajapati" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
             control={form.control}
@@ -85,10 +104,10 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
             />
             <FormField
             control={form.control}
-            name="city"
+            name="district"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>City</FormLabel>
+                <FormLabel>District</FormLabel>
                 <FormControl>
                     <Input placeholder="e.g., Pune" {...field} />
                 </FormControl>
@@ -100,6 +119,19 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>City</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., Pune" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+             <FormField
                 control={form.control}
                 name="state"
                 render={({ field }) => (
@@ -121,6 +153,9 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 </FormItem>
                 )}
             />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
             control={form.control}
             name="pincode"
@@ -134,9 +169,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 </FormItem>
             )}
             />
-        </div>
-        
-         <FormField
+            <FormField
                 control={form.control}
                 name="country"
                 render={({ field }) => (
@@ -149,6 +182,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 </FormItem>
                 )}
             />
+        </div>
         
         <FormField
             control={form.control}

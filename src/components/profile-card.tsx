@@ -25,7 +25,7 @@ const bios = [
 ];
 const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Australia", "Paris, France"];
 
-const generatePlaceholderDetails = () => {
+const generatePlaceholderDetails = (user: any) => {
   return {
     bio: bios[Math.floor(Math.random() * bios.length)],
     location: locations[Math.floor(Math.random() * locations.length)],
@@ -34,7 +34,9 @@ const generatePlaceholderDetails = () => {
     followers: Math.floor(Math.random() * 10000),
     likes: Math.floor(Math.random() * 100000),
     address: {
+        name: user.displayName || "Samael Prajapati",
         village: "123 Main St",
+        district: "Koregaon",
         city: "Anytown",
         state: "Maharashtra",
         country: "India",
@@ -50,13 +52,13 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [address, setAddress] = useState(generatePlaceholderDetails().address);
-  const [phone, setPhone] = useState(generatePlaceholderDetails().phone);
+  const [address, setAddress] = useState(generatePlaceholderDetails(user || {}).address);
+  const [phone, setPhone] = useState(generatePlaceholderDetails(user || {}).phone);
 
 
   useEffect(() => {
     if (user) {
-      const details = generatePlaceholderDetails();
+      const details = generatePlaceholderDetails(user);
       setPlaceholder(details);
       setAddress(details.address);
       setPhone(details.phone);
@@ -76,7 +78,9 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   
   const handleAddressSave = (data: any) => {
     setAddress({
+        name: data.name,
         village: data.village,
+        district: data.district,
         city: data.city,
         state: data.state,
         country: data.country,
@@ -86,7 +90,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     setIsAddressDialogOpen(false);
   }
 
-  const formattedAddress = `${address.village}, ${address.city}, ${address.state}, ${address.country} - ${address.pincode}`;
+  const formattedAddress = `${address.name}\n${address.village}, ${address.district}\n${address.city}, ${address.state}, ${address.country} - ${address.pincode}`;
 
 
   if (loading) {
@@ -212,7 +216,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                            
                             <div className="flex items-start gap-3">
                                 <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                                <span className="text-muted-foreground">{formattedAddress}</span>
+                                <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
                             </div>
                         </div>
                     </CardContent>
