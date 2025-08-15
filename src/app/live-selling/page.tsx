@@ -436,7 +436,7 @@ export default function LiveSellingPage() {
                     </div>
                 </main>
             </div>
-            <DialogContent className="max-w-lg p-0 border-0 max-h-[85vh]">
+            <DialogContent className="max-w-lg border-0 p-0 max-h-[85vh]">
                 <DialogHeader>
                     <DialogTitle className="sr-only">Profile</DialogTitle>
                 </DialogHeader>
