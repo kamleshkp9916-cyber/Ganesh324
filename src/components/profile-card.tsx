@@ -9,11 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { Textarea } from './ui/textarea';
 import { ScrollArea } from './ui/scroll-area';
+import { EditAddressForm } from './edit-address-form';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -24,21 +24,22 @@ const bios = [
   "Tech reviewer and gadget lover. Unboxing the future."
 ];
 const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Australia", "Paris, France"];
-const addresses = [
-    "123 Main St, Anytown, USA 12345",
-    "456 Oak Ave, Springfield, USA 67890",
-    "789 Pine Ln, Metropolis, USA 11223",
-]
 
 const generatePlaceholderDetails = () => {
   return {
     bio: bios[Math.floor(Math.random() * bios.length)],
     location: locations[Math.floor(Math.random() * locations.length)],
-    phone: `+1 (555) ${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
+    phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`,
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 10000),
     likes: Math.floor(Math.random() * 100000),
-    deliveryAddress: addresses[Math.floor(Math.random() * addresses.length)],
+    address: {
+        village: "123 Main St",
+        city: "Anytown",
+        state: "Maharashtra",
+        country: "India",
+        pincode: "12345"
+    }
   };
 };
 
@@ -48,16 +49,17 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [tempAddress, setTempAddress] = useState('');
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [address, setAddress] = useState(generatePlaceholderDetails().address);
+  const [phone, setPhone] = useState(generatePlaceholderDetails().phone);
 
 
   useEffect(() => {
     if (user) {
       const details = generatePlaceholderDetails();
       setPlaceholder(details);
-      setDeliveryAddress(details.deliveryAddress);
+      setAddress(details.address);
+      setPhone(details.phone);
     }
   }, [user]);
 
@@ -71,20 +73,21 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleAddressSave = (data: any) => {
+    setAddress({
+        village: data.village,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        pincode: ""
+    });
+    setPhone(data.phone);
+    setIsAddressDialogOpen(false);
+  }
 
-  const handleEditAddress = () => {
-    setTempAddress(deliveryAddress);
-    setIsEditingAddress(true);
-  };
+  const formattedAddress = `${address.village}, ${address.city}, ${address.state}, ${address.country}`;
 
-  const handleSaveAddress = () => {
-    setDeliveryAddress(tempAddress);
-    setIsEditingAddress(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingAddress(false);
-  };
 
   if (loading) {
       return (
@@ -105,7 +108,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   }
 
   return (
-    <div className="relative">
+    <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
         </DialogHeader>
@@ -185,7 +188,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Phone className="w-5 h-5 text-muted-foreground" />
-                                    <span>{placeholder.phone}</span>
+                                    <span>{phone}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <MapPin className="w-5 h-5 text-muted-foreground" />
@@ -199,31 +202,18 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-lg font-semibold">Delivery Address</h3>
-                                {!isEditingAddress && (
-                                    <Button variant="ghost" size="icon" onClick={handleEditAddress}>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon">
                                         <Edit className="h-5 w-5" />
                                         <span className="sr-only">Edit Address</span>
                                     </Button>
-                                )}
+                                </DialogTrigger>
                             </div>
-                            {isEditingAddress ? (
-                                <div className="space-y-2">
-                                    <Textarea 
-                                        value={tempAddress}
-                                        onChange={(e) => setTempAddress(e.target.value)}
-                                        className="min-h-[80px]"
-                                    />
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Cancel</Button>
-                                        <Button size="sm" onClick={handleSaveAddress}>Save</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex items-start gap-3">
-                                    <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                                    <span className="text-muted-foreground">{deliveryAddress}</span>
-                                </div>
-                            )}
+                           
+                            <div className="flex items-start gap-3">
+                                <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                <span className="text-muted-foreground">{formattedAddress}</span>
+                            </div>
                         </div>
                     </CardContent>
                 </ScrollArea>
@@ -233,6 +223,17 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                 <LoadingSpinner />
             </div>
         )}
-    </div>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Edit Delivery Address</DialogTitle>
+            </DialogHeader>
+            <EditAddressForm 
+                currentAddress={address} 
+                currentPhone={phone}
+                onSave={handleAddressSave} 
+                onCancel={() => setIsAddressDialogOpen(false)}
+            />
+        </DialogContent>
+    </Dialog>
   );
 }
