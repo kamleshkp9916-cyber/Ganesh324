@@ -33,8 +33,8 @@ export default function LiveSellingPage() {
         <Sidebar>
             <div className="sticky top-0 flex h-screen flex-col items-center justify-between border-r border-border bg-background py-4">
                 <div className="flex flex-col items-center gap-8">
-                <Logo className="h-8 w-8 text-red-500" />
-                <nav className="flex flex-col items-center gap-6">
+                
+                <nav className="flex flex-col items-center gap-6 mt-8">
                     {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
                     <Button
                         key={tooltip}
