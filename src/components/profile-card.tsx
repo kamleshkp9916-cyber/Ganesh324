@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Check, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
@@ -12,6 +12,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DialogHeader, DialogTitle } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { Textarea } from './ui/textarea';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -46,10 +47,16 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [tempAddress, setTempAddress] = useState('');
+
 
   useEffect(() => {
     if (user) {
-      setPlaceholder(generatePlaceholderDetails());
+      const details = generatePlaceholderDetails();
+      setPlaceholder(details);
+      setDeliveryAddress(details.deliveryAddress);
     }
   }, [user]);
 
@@ -62,6 +69,20 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleEditAddress = () => {
+    setTempAddress(deliveryAddress);
+    setIsEditingAddress(true);
+  };
+
+  const handleSaveAddress = () => {
+    setDeliveryAddress(tempAddress);
+    setIsEditingAddress(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingAddress(false);
   };
 
   if (loading) {
@@ -174,11 +195,33 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                     <Separator />
 
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Delivery Address</h3>
-                        <div className="flex items-start gap-3">
-                            <Truck className="w-5 h-5 text-muted-foreground mt-1" />
-                            <span>{placeholder.deliveryAddress}</span>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">Delivery Address</h3>
+                            {!isEditingAddress && (
+                                <Button variant="ghost" size="icon" onClick={handleEditAddress}>
+                                    <Edit className="h-5 w-5" />
+                                    <span className="sr-only">Edit Address</span>
+                                </Button>
+                            )}
                         </div>
+                         {isEditingAddress ? (
+                            <div className="space-y-2">
+                                <Textarea 
+                                    value={tempAddress}
+                                    onChange={(e) => setTempAddress(e.target.value)}
+                                    className="min-h-[80px]"
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="ghost" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+                                    <Button size="sm" onClick={handleSaveAddress}>Save</Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-start gap-3">
+                                <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
+                                <span className="text-muted-foreground">{deliveryAddress}</span>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
