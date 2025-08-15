@@ -67,13 +67,14 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
 
   return (
     <div className="relative">
-        <DialogHeader className="absolute top-4 right-4 z-10">
-            <DialogClose asChild>
-                <Button variant="ghost" size="icon" onClick={onEdit}>
-                    <Edit className="h-5 w-5" />
-                    <span className="sr-only">Edit Profile</span>
-                </Button>
-            </DialogClose>
+        <DialogHeader>
+          <DialogTitle className="sr-only">User Profile</DialogTitle>
+          <DialogClose asChild>
+              <Button variant="ghost" size="icon" onClick={onEdit} className="absolute top-4 right-4 z-10">
+                  <Edit className="h-5 w-5" />
+                  <span className="sr-only">Edit Profile</span>
+              </Button>
+          </DialogClose>
         </DialogHeader>
 
         {randomUser ? (
