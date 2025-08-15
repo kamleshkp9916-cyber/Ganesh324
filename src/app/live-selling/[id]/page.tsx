@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, MoreVertical, Send, Smile, Eye, Plus, Check, ShoppingBag, Gavel } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Send, Smile, Eye, Plus, Check, ShoppingBag, Gavel, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -61,6 +61,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
     const [viewers, setViewers] = useState(0);
+    const [followers, setFollowers] = useState(0);
     const [isFollowing, setIsFollowing] = useState(false);
     const [animateFollow, setAnimateFollow] = useState(false);
 
@@ -82,6 +83,7 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
 
     useEffect(() => {
         setViewers(Math.floor(Math.random() * 500) + 100);
+        setFollowers(Math.floor(Math.random() * 10000) + 500);
     }, []);
 
     useEffect(() => {
@@ -196,48 +198,43 @@ export default function LiveStreamPage({ params }: { params: { id: string } }) {
         <div className="relative h-screen bg-black text-white flex flex-col">
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/50 to-transparent">
-                <div className="flex items-center gap-2 -ml-3">
-                    <Button variant="ghost" size="icon" className="text-white shrink-0" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full">
-                        <Avatar className="h-10 w-10 border-2 border-red-500">
-                            <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
-                            <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col items-start">
-                            <p className="font-semibold">{userName}</p>
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1">
-                                    <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                                    <span className="text-xs text-red-400 font-bold">Live</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-300">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{viewers}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                 <Button variant="ghost" size="icon" className="text-white shrink-0 -ml-2" onClick={() => router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
                
-                <div className="flex items-center gap-2 -mr-2">
-                    <Button 
-                        size="icon" 
+                <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full">
+                    <Avatar className="h-10 w-10 border-2 border-primary">
+                        <AvatarImage src={userImage} alt={userName} data-ai-hint="profile picture" />
+                        <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start">
+                        <p className="font-semibold">{userName}</p>
+                        <p className="text-xs text-muted-foreground">{followers.toLocaleString()} Followers</p>
+                    </div>
+                     <Button 
+                        size="sm" 
                         className={cn(
-                            "rounded-full h-8 w-8",
-                            isFollowing ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-white text-black hover:bg-white/90",
-                            animateFollow && "animate-pulse-red"
+                            "rounded-full h-8 px-4 ml-2",
+                            isFollowing ? "bg-secondary text-secondary-foreground" : "bg-primary text-primary-foreground",
+                            animateFollow && "animate-pulse"
                         )}
                         onClick={handleFollowClick}
                     >
-                        {isFollowing ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                        {isFollowing ? "Following" : "Follow"}
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-white">
+                </div>
+               
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-black/30 px-2 py-1 rounded-full text-xs text-gray-300">
+                        <Eye className="h-3 w-3" />
+                        <span>{viewers}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="text-white -mr-2">
                         <MoreVertical className="h-6 w-6" />
                     </Button>
                 </div>
             </header>
+
 
             {/* Right-side controls */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-4">
@@ -389,17 +386,19 @@ function LiveStreamSkeleton() {
     return (
         <div className="relative h-screen bg-black text-white flex flex-col">
             <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10">
+                 <Skeleton className="h-10 w-10 rounded-full" />
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-12" />
+                        <Skeleton className="h-3 w-16" />
                     </div>
-                </div>
-                <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-20 rounded-full" />
-                    <Skeleton className="h-8 w-8 rounded-full" />
                 </div>
+                 <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-12 rounded-full" />
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                 </div>
             </header>
 
             <main className="flex-1 bg-black" />
