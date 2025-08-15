@@ -9,12 +9,12 @@ export default function Home() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 relative">
+      <div className="absolute top-4 right-4 z-10">
+          <Link href="/live-selling" passHref>
+              <Button variant="ghost">Skip</Button>
+          </Link>
+      </div>
       <div className="flex items-center justify-center py-12 bg-card">
-        <div className="absolute top-4 right-4">
-            <Link href="/live-selling" passHref>
-                <Button variant="ghost">Skip</Button>
-            </Link>
-        </div>
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-4 text-center">
              <div className="flex justify-center">
