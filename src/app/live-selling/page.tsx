@@ -284,7 +284,7 @@ export default function LiveSellingPage() {
                                 </>
                              ) : (
                                 <>
-                                    <DropdownMenuLabel>Welcome, Guest!</DropdownMenuLabel>
+                                    <DropdownMenuLabel>Login or create account for using profile</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                         <Link href="/" className="w-full">
