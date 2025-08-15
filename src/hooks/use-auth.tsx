@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -45,30 +45,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // To use real Firebase authentication, set enableMockUser to false
   const enableMockUser = true;
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-        // If we have a real Firebase user, we can use it.
-        // For this project, we prioritize the mock user if the session flag is set.
-        if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
-          setUser(mockUser);
-        } else if (authUser) {
-          setUser(authUser);
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-    });
-
-    // Also check session storage on initial load, in case auth state is already set
+  const checkAuth = useCallback(() => {
+    setLoading(true);
+    // Prioritize mock user if the session flag is set
     if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
       setUser(mockUser);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // Fallback to Firebase auth
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      if (authUser) {
+        setUser(authUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [enableMockUser]);
+
+
+  useEffect(() => {
+    const unsubscribe = checkAuth();
+    
+    // Add a listener for storage changes, which helps in multi-tab scenarios
+    // but also for our session-based mock.
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also re-check auth when the window gets focus
+    window.addEventListener('focus', checkAuth);
 
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [enableMockUser]);
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', checkAuth);
+    };
+  }, [checkAuth]);
 
 
   return (

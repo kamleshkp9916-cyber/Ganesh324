@@ -79,15 +79,21 @@ export function useAuthActions() {
 
     const signOut = async () => {
         try {
-            await firebaseSignOut(auth);
+            // In a real app, you would sign out from Firebase
+            // await firebaseSignOut(auth);
+            
             // This is key for the mock user flow
             sessionStorage.removeItem('mockUserSessionActive');
+            
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
             });
             // Force a redirect to the login page to ensure a clean state.
             router.push('/');
+            // A hard reload can also help ensure all state is cleared.
+            router.refresh(); 
+
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({
