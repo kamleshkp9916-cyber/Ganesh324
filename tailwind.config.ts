@@ -105,14 +105,10 @@ export default {
         },
         "pulse-red": {
             "0%, 100%": {
-                backgroundColor: 'hsl(var(--destructive))',
-                transform: 'scale(1)',
-                opacity: '1',
+                boxShadow: '0 0 0 0 hsl(var(--destructive) / 0.7)',
             },
             "50%": {
-                backgroundColor: 'hsl(var(--destructive))',
-                transform: 'scale(1.1)',
-                opacity: '0.9',
+                boxShadow: '0 0 0 0.5rem hsl(var(--destructive) / 0)',
             },
         },
       },
@@ -120,7 +116,7 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         "caret-blink": "caret-blink 1.25s ease-out infinite",
-        "pulse-red": "pulse-red 1s cubic-bezier(0.4, 0, 0.6, 1)",
+        "pulse-red": "pulse-red 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       spacing: {
         '2.5': '0.625rem',
@@ -129,5 +125,6 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
 
     

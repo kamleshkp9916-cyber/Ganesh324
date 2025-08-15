@@ -13,112 +13,90 @@ import {
   Search,
   Bell,
   Plus,
-  Settings
+  Settings,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-const shows = [
+const liveSellers = [
     {
-      title: 'Dead Ringers',
-      season: 'Season 2',
-      year: 2023,
-      rating: 5.6,
-      imageUrl: 'https://placehold.co/300x450/f44336/ffffff.png',
-      hint: 'red dress',
+      id: 1,
+      name: 'FashionFinds',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Fashion',
+      viewers: 1200,
+      hint: 'woman posing stylish outfit',
     },
     {
-      title: 'Lockwood & co',
-      season: 'Season 2',
-      year: 2023,
-      rating: 7.4,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'people standing night',
+      id: 2,
+      name: 'GadgetGuru',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Electronics',
+      viewers: 2500,
+      hint: 'unboxing new phone',
     },
     {
-      title: 'Wilderness',
-      season: 'Season 2',
-      year: 2023,
-      rating: 6.3,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'couple sitting',
+      id: 3,
+      name: 'HomeHaven',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Home Goods',
+      viewers: 850,
+      hint: 'modern living room decor',
     },
     {
-      title: 'Obsession',
-      season: 'Season 1',
-      year: 2023,
-      rating: 5.1,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'man woman intense',
+      id: 4,
+      name: 'BeautyBox',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Beauty',
+      viewers: 3100,
+      hint: 'makeup tutorial',
     },
     {
-      title: 'Who is erin carter?',
-      season: 'Season 1',
-      year: 2023,
-      rating: 6.5,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'woman gun',
+      id: 5,
+      name: 'KitchenWiz',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Kitchenware',
+      viewers: 975,
+      hint: 'cooking demonstration',
     },
     {
-      title: 'The lake',
-      season: 'Season 2',
-      year: 2023,
-      rating: 7.4,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'people beach summer',
+      id: 6,
+      name: 'FitFlow',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Fitness',
+      viewers: 1500,
+      hint: 'yoga session',
     },
     {
-      title: 'Outlander',
-      season: 'Season 7',
-      year: 2023,
-      rating: 8.4,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'couple historic clothing',
+      id: 7,
+      name: 'ArtisanAlley',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Handmade',
+      viewers: 450,
+      hint: 'pottery making',
     },
     {
-      title: 'Shining Vale',
-      season: 'Season 2',
-      year: 2023,
-      rating: 7.2,
-      imageUrl: 'https://placehold.co/300x450.png',
-      hint: 'woman smiling',
+      id: 8,
+      name: 'PetPalace',
+      avatarUrl: 'https://placehold.co/40x40.png',
+      thumbnailUrl: 'https://placehold.co/400x600.png',
+      category: 'Pet Supplies',
+      viewers: 1800,
+      hint: 'playing with puppy',
     },
-    {
-        title: 'The Night Agent',
-        season: 'Season 1',
-        year: 2023,
-        rating: 7.5,
-        imageUrl: 'https://placehold.co/300x450.png',
-        hint: 'man looking serious',
-    },
-    {
-        title: 'The Ultimatum',
-        season: 'Season 2',
-        year: 2023,
-        rating: 6.1,
-        imageUrl: 'https://placehold.co/300x450.png',
-        hint: 'woman green dress',
-    },
-    {
-        title: 'Kaleidoscope',
-        season: 'Season 1',
-        year: 2023,
-        rating: 7.0,
-        imageUrl: 'https://placehold.co/300x450.png',
-        hint: 'group colorful background',
-    },
-    {
-        title: 'Fake Profile',
-        season: 'Season 1',
-        year: 2023,
-        rating: 6.0,
-        imageUrl: 'https://placehold.co/300x450.png',
-        hint: 'couple in love',
-    }
-  ];
+]
 
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -132,7 +110,7 @@ export default function LiveSellingPage() {
     { icon: Bookmark, tooltip: 'Library' },
   ];
 
-  const filterButtons = ['TV Shows', 'Genre', 'Country', 'Year', 'Rating', 'Quality', 'Recently updated'];
+  const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -179,82 +157,101 @@ export default function LiveSellingPage() {
             </div>
         </div>
         <div className="flex-1 flex flex-col">
-            <div className="relative h-80 w-full">
-                <Image src="https://placehold.co/1200x400.png" layout="fill" objectFit="cover" alt="Hero background" data-ai-hint="fantasy movie poster"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-end">
-                    <div className="flex items-center gap-2" ref={searchRef}>
-                        <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out",
-                            isSearchExpanded ? "w-48" : "w-10"
-                        )}>
-                            <Input 
-                                placeholder="Search..." 
-                                className={cn(
-                                    "bg-background/50 pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
-                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                                )}
-                                onFocus={() => setIsSearchExpanded(true)}
-                            />
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="text-white rounded-full bg-white/10 hover:bg-white/20 absolute right-0 top-1/2 -translate-y-1/2"
-                                onClick={() => setIsSearchExpanded(true)}
-                            >
-                                <Search className={cn("h-5 w-5", isSearchExpanded && "absolute left-3 top-1/2 -translate-y-1/2")} />
-                            </Button>
-                       </div>
-                        <Button variant="ghost" size="icon" className="text-white rounded-full bg-white/10 hover:bg-white/20">
-                            <Plus />
+           <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+                <h1 className="text-2xl font-bold tracking-tight">Live Shopping</h1>
+                <div className="flex items-center gap-2" ref={searchRef}>
+                    <div className={cn(
+                        "relative flex items-center transition-all duration-300 ease-in-out",
+                        isSearchExpanded ? "w-48" : "w-10"
+                    )}>
+                        <Input 
+                            placeholder="Search streams..." 
+                            className={cn(
+                                "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
+                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                            )}
+                            onFocus={() => setIsSearchExpanded(true)}
+                        />
+                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-white rounded-full bg-white/10 hover:bg-white/20">
-                            <Bell />
-                        </Button>
-                        <Avatar className="h-9 w-9">
+                   </div>
+                    <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                        <Plus />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                        <Bell />
+                    </Button>
+                    <Link href="/profile" passHref>
+                        <Avatar className="h-9 w-9 cursor-pointer">
                             <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="female person"/>
                             <AvatarFallback>U</AvatarFallback>
                         </Avatar>
-                    </div>
-                </header>
-                <div className="absolute bottom-0 left-0 p-8 text-white">
-                    <h1 className="text-5xl font-extrabold tracking-tight">TV Shows</h1>
-                    <p className="mt-2 max-w-xl text-muted-foreground">Watch past seasons of exclusive shows, current-season episodes the day after they air, 40+ acclaimed series from FX, classic favorites, and tons more.</p>
+                    </Link>
                 </div>
-            </div>
+            </header>
 
-            <div className="p-4 sm:p-6 lg:p-8">
+            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                 <div className="flex flex-wrap gap-2 mb-6">
                     {filterButtons.map((filter) => (
-                    <Button key={filter} variant="outline" className="bg-card">
+                    <Button key={filter} variant="outline" className="bg-card rounded-full">
                         {filter}
-                        <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                     ))}
+                     <Button variant="ghost" className="bg-card rounded-full">
+                        Filters
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                    {shows.map((show, index) => (
-                        <div key={index} className="space-y-2">
-                            <div className="aspect-[2/3] rounded-lg overflow-hidden">
-                                 <Image src={show.imageUrl} alt={show.title} width={300} height={450} className="w-full h-full object-cover" data-ai-hint={show.hint}/>
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                    <span>{show.year}</span>
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                        <span>{show.rating}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {liveSellers.map((seller) => (
+                        <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                             <div className="absolute top-2 left-2 z-10">
+                                <Badge className="bg-destructive text-destructive-foreground animate-pulse-red">
+                                    LIVE
+                                </Badge>
+                             </div>
+                             <div className="absolute top-2 right-2 z-10">
+                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                    <Users className="w-3 h-3 mr-1.5" />
+                                    {seller.viewers}
+                                </Badge>
+                             </div>
+
+                            <Image 
+                                src={seller.thumbnailUrl} 
+                                alt={`Live stream from ${seller.name}`} 
+                                width={400} 
+                                height={600} 
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                data-ai-hint={seller.hint}
+                            />
+                             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10 border-2 border-primary">
+                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <h3 className="font-semibold text-primary-foreground truncate">{seller.name}</h3>
+                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
                                     </div>
                                 </div>
-                                <h3 className="font-semibold truncate">{show.title}</h3>
-                                <p className="text-xs text-muted-foreground">{show.season}</p>
                             </div>
                         </div>
                     ))}
                 </div>
-            </div>
+            </main>
         </div>
       </div>
   );
 }
+
+    
