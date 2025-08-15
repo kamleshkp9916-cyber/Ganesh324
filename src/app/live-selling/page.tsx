@@ -47,8 +47,6 @@ import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ProfileCard } from '@/components/profile-card';
 
 
 const liveSellers = [
@@ -175,7 +173,6 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
 
@@ -218,7 +215,6 @@ export default function LiveSellingPage() {
 
   return (
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
                     <div className="flex items-center gap-2">
@@ -276,8 +272,8 @@ export default function LiveSellingPage() {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem onSelect={() => setIsProfileOpen(true)}>
-                                            <User className="mr-2 h-4 w-4" /><span>My Profile</span>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                         <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
@@ -436,13 +432,6 @@ export default function LiveSellingPage() {
                     </div>
                 </main>
             </div>
-            <DialogContent className="max-w-lg border-0 p-0 max-h-[85vh]">
-                <DialogHeader>
-                    <DialogTitle className="sr-only">Profile</DialogTitle>
-                </DialogHeader>
-                <ProfileCard onEdit={() => setIsProfileOpen(false)} />
-            </DialogContent>
-        </Dialog>
       </div>
   );
 }
