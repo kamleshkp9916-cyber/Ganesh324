@@ -222,7 +222,6 @@ export default function LiveSellingPage() {
                          <SidebarMenuItem key={tooltip}>
                             <SidebarMenuButton tooltip={tooltip} isActive={active}>
                                 <Icon />
-                                <span className="group-data-[collapsible=icon]:hidden">{tooltip}</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
@@ -231,13 +230,11 @@ export default function LiveSellingPage() {
                     <SidebarMenuItem>
                          <SidebarMenuButton tooltip="What's New?">
                             <Zap />
-                            <span className="group-data-[collapsible=icon]:hidden">What's New?</span>
                          </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton tooltip="Settings">
                             <Settings />
-                            <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -398,4 +395,3 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
