@@ -93,8 +93,9 @@ export function SignupForm() {
       });
       toast({
           title: "Account Created!",
-          description: "You have successfully created an account.",
+          description: "An OTP has been sent to your device for verification.",
       });
+      router.push(`/otp?identifier=${values.email}`);
     } catch (error: any) {
         toast({
             title: "Sign Up Failed",

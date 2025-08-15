@@ -78,20 +78,17 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // This simulates a successful login.
-    console.log("Simulating login with:", values);
+    // This simulates a login check before OTP.
+    // In a real app, you'd verify password here.
+    console.log("Simulating credential check for:", values.identifier);
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Set a session item to activate the mock user in useAuth hook
-    sessionStorage.setItem('mockUserSessionActive', 'true');
-
     toast({
-        title: "Logged In!",
-        description: "Welcome back!",
+        title: "Verification Required",
+        description: "An OTP has been sent to your device.",
     });
-    
-    // We are removing the timeout to make it faster
-    // await new Promise(resolve => setTimeout(resolve, 1000));
-    router.push('/live-selling');
+
+    router.push(`/otp?identifier=${values.identifier}`);
   }
 
   return (

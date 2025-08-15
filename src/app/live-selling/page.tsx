@@ -173,9 +173,6 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const { user, loading } = useAuth();
-  const { signOut } = useAuthActions();
-
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
@@ -251,79 +248,6 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                             <Avatar className="h-9 w-9 cursor-pointer">
-                                <AvatarImage src={user?.photoURL || "https://placehold.co/40x40.png"} alt="User" data-ai-hint="female person"/>
-                                <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                            </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-64" align="end" forceMount>
-                            {loading ? (
-                                <div className="p-4 text-center">
-                                    <p>Loading...</p>
-                                </div>
-                            ) : user ? (
-                                <>
-                                    <DropdownMenuLabel className="font-normal text-center">
-                                        <div className="flex flex-col items-center space-y-2">
-                                            <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/profile" className="justify-center"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/orders" className="justify-center"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/wishlist" className="justify-center"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/wallet" className="justify-center"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/listed-products" className="justify-center"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/top-seller" className="justify-center"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/message" className="justify-center"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/setting" className="justify-center"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/privacy-and-security" className="justify-center"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/terms-and-conditions" className="justify-center"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/help" className="justify-center"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut} className="justify-center text-red-500 hover:!text-red-500 focus:!text-red-500">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Log Out</span>
-                                    </DropdownMenuItem>
-                                </>
-                            ) : (
-                                <div className="p-4 text-center">
-                                    <p className="mb-4">Please login or create an account to see your profile.</p>
-                                    <div className="flex flex-col gap-2">
-                                        <Button asChild><Link href="/">Login</Link></Button>
-                                        <Button asChild variant="outline"><Link href="/signup">Create Account</Link></Button>
-                                    </div>
-                                </div>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </header>
 
@@ -433,5 +357,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
