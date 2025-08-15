@@ -70,7 +70,7 @@ export function OtpForm() {
             title: "Success!",
             description: "Your OTP has been verified.",
         });
-        router.push("/profile");
+        router.push("/live-selling");
       } else {
          toast({
             title: "Error",
