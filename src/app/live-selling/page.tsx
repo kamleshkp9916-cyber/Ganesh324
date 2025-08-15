@@ -1,331 +1,353 @@
 
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Home, LayoutGrid, AlignJustify, Search, ShoppingCart, Wallet, ArrowLeft, User, Award, MessageSquare, Settings, Shield, FileText, LifeBuoy, LogOut, Rss, LogIn } from "lucide-react";
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
-import { useAuthActions, useAuth } from "@/lib/auth";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import type { UserProfile } from "@/services/user-service";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useState } from 'react';
+import Image from 'next/image';
+import {
+  Bell,
+  Bookmark,
+  ChevronDown,
+  Clapperboard,
+  Home,
+  Menu,
+  MessageCircle,
+  Music,
+  Plus,
+  Search,
+  Star,
+  Tv,
+  Heart,
+  Zap,
+} from 'lucide-react';
 
-function LiveSellingContent() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Logo } from '@/components/logo';
 
-  const liveProducts = [
-    {
-      id: "user-1",
-      bgColor: "bg-gradient-to-b from-red-400 to-red-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 1",
-      productName: "New Arrival Shirt"
-    },
-    {
-      id: "user-2",
-      bgColor: "bg-gradient-to-b from-blue-400 to-blue-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 2",
-      productName: "Latest Sneakers"
-    },
-    {
-      id: "user-3",
-      bgColor: "bg-gradient-to-b from-green-400 to-green-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 3",
-      productName: "Summer Dress"
-    },
-    {
-      id: "user-4",
-      bgColor: "bg-gradient-to-b from-purple-400 to-purple-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 4",
-      productName: "New Handbag"
-    },
-    {
-      id: "user-5",
-      bgColor: "bg-gradient-to-b from-yellow-400 to-yellow-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 5",
-      productName: "Vintage Watch"
-    },
-    {
-      id: "user-6",
-      bgColor: "bg-gradient-to-b from-pink-400 to-pink-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 6",
-      productName: "Sunglasses"
-    },
-    {
-      id: "user-7",
-      bgColor: "bg-gradient-to-b from-indigo-400 to-indigo-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 7",
-      productName: "Leather Jacket"
-    },
-    {
-      id: "user-8",
-      bgColor: "bg-gradient-to-b from-gray-400 to-gray-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 8",
-      productName: "Formal Shoes"
-    },
-     {
-      id: "user-9",
-      bgColor: "bg-gradient-to-b from-red-400 to-red-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 9",
-      productName: "Cool T-Shirt"
-    },
-    {
-      id: "user-10",
-      bgColor: "bg-gradient-to-b from-blue-400 to-blue-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 10",
-      productName: "Denim Jeans"
-    },
-    {
-      id: "user-11",
-      bgColor: "bg-gradient-to-b from-green-400 to-green-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 11",
-      productName: "Designer Skirt"
-    },
-    {
-      id: "user-12",
-      bgColor: "bg-gradient-to-b from-purple-400 to-purple-600",
-      userImage: "https://placehold.co/40x40.png",
-      userName: "User 12",
-      productName: "Classic Hat"
-    },
-  ];
+const shows = [
+  {
+    title: 'Dead Ringers',
+    year: '2023',
+    season: 'Season 2',
+    rating: '5.6',
+    image: 'https://placehold.co/300x450/d32f2f/ffffff?text=Dead+Ringers',
+    hint: 'red dress',
+  },
+  {
+    title: 'Lockwood & co',
+    year: '2023',
+    season: 'Season 2',
+    rating: '7.4',
+    image: 'https://placehold.co/300x450/223a4a/ffffff?text=Lockwood+&+co',
+    hint: 'people holding swords',
+  },
+  {
+    title: 'Wilderness',
+    year: '2023',
+    season: 'Season 2',
+    rating: '6.3',
+    image: 'https://placehold.co/300x450/1a2228/ffffff?text=Wilderness',
+    hint: 'couple posing',
+  },
+  {
+    title: 'Obsession',
+    year: '2023',
+    season: 'Season 1',
+    rating: '5.1',
+    image: 'https://placehold.co/300x450/000000/ffffff?text=Obsession',
+    hint: 'man face fire',
+  },
+  {
+    title: "Who is carter?",
+    year: '2023',
+    season: 'Season 1',
+    rating: '6.5',
+    image: 'https://placehold.co/300x450/a69a8a/000000?text=Who+is+erin+carter?',
+    hint: 'woman holding gun',
+  },
+  {
+    title: 'The Lake',
+    year: '2023',
+    season: 'Season 2',
+    rating: '7.4',
+    image: 'https://placehold.co/300x450/9ad5e2/000000?text=The+Lake',
+    hint: 'family on dock',
+  },
+  {
+    title: 'Outlander',
+    year: '2023',
+    season: 'Season 7',
+    rating: '8.4',
+    image: 'https://placehold.co/300x450/c8c0b8/000000?text=Outlander',
+    hint: 'historical couple',
+  },
+  {
+    title: 'Shining Vale',
+    year: '2023',
+    season: 'Season 2',
+    rating: '6.9',
+    image: 'https://placehold.co/300x450/a9a4a1/000000?text=Shining+Vale',
+    hint: 'woman portrait',
+  },
+  {
+    title: 'The Night Agent',
+    year: '2023',
+    season: 'Season 1',
+    rating: '7.5',
+    image: 'https://placehold.co/300x450/b0b0b0/000000?text=The+Night+Agent',
+    hint: 'man portrait intense',
+  },
+  {
+    title: 'The Ultimatum',
+    year: '2023',
+    season: 'Season 2',
+    rating: '6.1',
+    image: 'https://placehold.co/300x450/007464/ffffff?text=The+Ultimatum',
+    hint: 'woman in green dress',
+  },
+  {
+    title: 'Kaleidoscope',
+    year: '2023',
+    season: 'Season 1',
+    rating: '7.1',
+    image: 'https://placehold.co/300x450/f0f0f0/000000?text=Kaleidoscope',
+    hint: 'colorful bars',
+  },
+  {
+    title: 'Fake Profile',
+    year: '2023',
+    season: 'Season 1',
+    rating: '6.0',
+    image: 'https://placehold.co/300x450/8a4f4d/ffffff?text=Fake+Profile',
+    hint: 'couple posing romance',
+  },
+];
 
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery) return liveProducts;
-    return liveProducts.filter(
-      (product) =>
-        product.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.productName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery, liveProducts]);
-
-  return (
-    <div className="flex flex-col h-screen">
-      <header className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <SidebarTrigger>
-            <AlignJustify className="h-6 w-6" />
-          </SidebarTrigger>
-          <div className="flex-1 mx-4">
-            {isSearchVisible ? (
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search by user or product..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full rounded-full"
-                />
-              </div>
-            ) : (
-              <div className="flex justify-center">
-                 <h1 className="text-2xl font-bold text-primary">StreamCart</h1>
-              </div>
-            )}
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsSearchVisible(!isSearchVisible)}>
-            {isSearchVisible ? <ArrowLeft className="h-6 w-6" /> : <Search className="h-6 w-6" />}
-          </Button>
-        </div>
-      </header>
-      <main className="flex-1 px-4 flex flex-col overflow-hidden">
-        <h2 className="text-xl font-semibold mt-4">Live Sellers</h2>
-        <Separator className="my-2" />
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
-            <div className="grid grid-cols-2 gap-4">
-            {
-                filteredProducts.map((product) => (
-                    <Card key={product.id} className="overflow-hidden relative aspect-[9/16]">
-                      <div className={`absolute inset-0 ${product.bgColor}`} />
-                      <CardContent className="p-2 flex items-end h-full">
-                          <div className="flex items-center gap-2 text-white text-sm font-semibold">
-                          <Avatar className="border-2 border-primary">
-                              <AvatarImage src={product.userImage} alt={product.userName} data-ai-hint="profile picture" />
-                              <AvatarFallback>{product.userName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span>{product.userName}<br/>{product.productName}</span>
-                          </div>
-                      </CardContent>
-                    </Card>
-                ))
-            }
-            </div>
-        </div>
-      </main>
-      <footer className="sticky bottom-0 bg-background border-t p-2">
-        <div className="flex justify-around items-center">
-          <Button variant="ghost" className="flex flex-col h-auto p-2 text-primary">
-            <Home className="h-10 w-10" />
-            <span className="text-xs font-bold -mt-1">_</span>
-          </Button>
-          <Link href="/feed" passHref>
-            <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-              <Rss className="h-10 w-10" />
-              <span className="text-xs">Feed</span>
-            </Button>
-          </Link>
-          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <LayoutGrid className="h-10 w-10" />
-          </Button>
-          <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <ShoppingCart className="h-10 w-10" />
-          </Button>
-           <Button variant="ghost" className="flex flex-col h-auto p-2 text-foreground">
-            <Wallet className="h-10 w-10" />
-          </Button>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function AppSidebar() {
-  const { signOut } = useAuthActions();
-  const { user, loading } = useAuth();
-
-  const userProfile: UserProfile | null = user ? {
-    name: user.displayName || 'Anonymous',
-    username: user.email || 'No-email',
-    avatarUrl: user.photoURL || 'https://placehold.co/80x80.png',
-    following: 200,
-    followers: 100,
-  } : null;
-
-
-  const menuItems = [
-    { icon: User, label: 'My Profile', href: '/profile' },
-    { icon: ShoppingCart, label: 'Orders', href: '/orders' },
-    { icon: Award, label: 'Top Seller', href: '/top-seller' },
-    { icon: MessageSquare, label: 'Message', href: '/message' },
-    { icon: Settings, label: 'Setting', href: '/setting' },
-    { icon: Shield, label: 'Privacy And Security', href: '/privacy-and-security' },
-  ];
-
-  const helpItems = [
-    { icon: FileText, label: 'Term & Conditions', href: '/terms-and-conditions' },
-    { icon: LifeBuoy, label: 'Help 24/7', href: '/help' },
-  ];
-
-  return (
-    <Sidebar>
-      <SidebarHeader className="relative">
-        <div className="absolute top-2 right-2">
-            <SidebarTrigger>
-                <ArrowLeft className="h-5 w-5" />
-            </SidebarTrigger>
-        </div>
-          <div className="flex flex-col items-center text-center p-4 pt-8">
-            {loading ? (
-                <div className="flex flex-col items-center gap-2">
-                    <LoadingSpinner />
-                </div>
-            ) : user ? (
-                <>
-                    <Link href="/profile">
-                    <Avatar className="w-20 h-20 mb-4 border-2 border-primary cursor-pointer">
-                        <AvatarImage src={userProfile!.avatarUrl} alt={userProfile!.username} data-ai-hint="profile picture" />
-                        <AvatarFallback>{userProfile!.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    </Link>
-                    <p className="font-semibold">{userProfile!.name}</p>
-                    <p className="text-sm text-muted-foreground">{userProfile!.username}</p>
-                    <div className="flex gap-4 text-sm text-muted-foreground mt-2">
-                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile!.following}</span> Following</button>
-                        <button className="hover:text-primary"><span className="font-bold text-primary-foreground">{userProfile!.followers}</span> Followers</button>
-                    </div>
-                </>
-            ) : (
-                <div className="flex flex-col items-center gap-4">
-                    <Avatar className="w-20 h-20 mb-4 border-2">
-                        <AvatarFallback>?</AvatarFallback>
-                    </Avatar>
-                    <p className="font-semibold">Not Signed In</p>
-                    <Link href="/" passHref>
-                        <Button>
-                            <LogIn className="mr-2 h-4 w-4" />
-                            Login
-                        </Button>
-                    </Link>
-                </div>
-            )}
-          </div>
-      </SidebarHeader>
-      <SidebarContent className="overflow-y-auto no-scrollbar">
-        <SidebarMenu>
-            {user && (
-                <>
-                {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.label}>
-                    <Link href={item.href} passHref>
-                        <SidebarMenuButton>
-                        <item.icon />
-                        <span>{item.label}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                    </SidebarMenuItem>
-                ))}
-                <Separator className="my-4" />
-                </>
-            )}
-            {helpItems.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                <Link href={item.href} passHref>
-                    <SidebarMenuButton>
-                    <item.icon />
-                    <span>{item.label}</span>
-                    </SidebarMenuButton>
-                </Link>
-                </SidebarMenuItem>
-            ))}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-        <div className="flex items-center justify-between p-2">
-            <div className="flex items-center gap-2">
-                <ThemeSwitcher/>
-                <span>Dark Mode</span>
-            </div>
-        </div>
-        {user && (
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton onClick={signOut}>
-                        <LogOut />
-                        <span>Logout</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        )}
-      </SidebarFooter>
-    </Sidebar>
-  );
-}
-
+const FilterSelect = ({
+  placeholder,
+  items,
+}: {
+  placeholder: string
+  items: string[]
+}) => (
+  <Select>
+    <SelectTrigger className="w-auto gap-2 rounded-full border-none bg-secondary px-4 py-2 text-sm font-medium focus:ring-primary">
+      <SelectValue placeholder={placeholder} />
+    </SelectTrigger>
+    <SelectContent>
+      {items.map((item) => (
+        <SelectItem key={item} value={item.toLowerCase()}>
+          {item}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
 
 export default function LiveSellingPage() {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const sidebarIcons = [
+    { icon: Home, tooltip: 'Home' },
+    { icon: Clapperboard, tooltip: 'Movies' },
+    { icon: Tv, tooltip: 'TV Shows', active: true },
+    { icon: Music, tooltip: 'Music' },
+    { icon: MessageCircle, tooltip: 'Community' },
+    { icon: Heart, tooltip: 'Favorites' },
+    { icon: Bookmark, tooltip: 'Watchlist' },
+  ];
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <LiveSellingContent />
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* Sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-20 flex-col items-center justify-between border-r border-border bg-background py-4 lg:flex">
+        <div className="flex flex-col items-center gap-8">
+          <Logo className="h-8 w-8 text-primary" />
+          <nav className="flex flex-col items-center gap-6">
+            {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
+              <Button
+                key={tooltip}
+                variant="ghost"
+                size="icon"
+                className={`rounded-lg ${
+                  active ? 'text-primary' : 'text-muted-foreground'
+                } hover:text-primary`}
+              >
+                <Icon className="h-6 w-6" />
+              </Button>
+            ))}
+          </nav>
+        </div>
+        <Button variant="ghost" size="icon" className="text-primary">
+          <Zap className="h-6 w-6" />
+        </Button>
+      </aside>
+
+      <div className="flex-1">
+        {/* Header */}
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-sm md:px-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search"
+              className="w-full max-w-md rounded-full border-none bg-secondary pl-10 focus-visible:ring-primary"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Plus className="h-6 w-6" />
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Bell className="h-6 w-6" />
+            </Button>
+            <Avatar className="h-9 w-9">
+              <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="p-4 md:p-6">
+          {/* Hero Section */}
+          <section className="relative -mx-4 -mt-4 mb-6 h-64 w-auto overflow-hidden md:-mx-6 md:h-80 lg:h-96">
+            <Image
+              src="https://placehold.co/1600x900.png"
+              alt="Hero background"
+              layout="fill"
+              objectFit="cover"
+              className="opacity-20"
+              data-ai-hint="fantasy movie poster"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+              <h1 className="text-3xl font-bold md:text-5xl">TV Shows</h1>
+              <p className="mt-2 max-w-xl text-muted-foreground">
+                Watch past seasons of exclusive shows, current-season episodes
+                the day after they air, 40+ acclaimed series from FX, classic
+                favorites, and tons more.
+              </p>
+            </div>
+          </section>
+
+          {/* Filters */}
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <FilterSelect
+              placeholder="TV Shows"
+              items={['Movies', 'Series', 'Anime']}
+            />
+            <FilterSelect
+              placeholder="Genre"
+              items={['Action', 'Comedy', 'Drama', 'Horror']}
+            />
+            <FilterSelect
+              placeholder="Country"
+              items={['USA', 'UK', 'Canada']}
+            />
+            <FilterSelect placeholder="Year" items={['2024', '2023', '2022']} />
+            <FilterSelect
+              placeholder="Rating"
+              items={['9+', '8+', '7+', '6+']}
+            />
+            <FilterSelect
+              placeholder="Quality"
+              items={['4K', '1080p', '720p']}
+            />
+            <div className="ml-auto">
+              <FilterSelect
+                placeholder="Recently updated"
+                items={['Most popular', 'Newest']}
+              />
+            </div>
+          </div>
+
+          {/* Shows Grid */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {shows.map((show, index) => (
+              <div key={index} className="group relative">
+                <div className="overflow-hidden rounded-lg">
+                  <Image
+                    src={show.image}
+                    alt={show.title}
+                    width={300}
+                    height={450}
+                    className="h-auto w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    data-ai-hint={show.hint}
+                  />
+                </div>
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{show.year}</span>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 text-yellow-500" />
+                      <span>{show.rating}</span>
+                    </div>
+                  </div>
+                  <h3 className="mt-1 font-semibold">{show.title}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {show.season}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Sidebar */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <div
+            className="h-full w-64 border-r border-border bg-background p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center gap-8">
+              <Logo className="h-8 w-8 text-primary" />
+              <nav className="flex flex-col items-start gap-4 self-stretch">
+                {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
+                  <Button
+                    key={tooltip}
+                    variant="ghost"
+                    className={`w-full justify-start gap-2 ${
+                      active ? 'text-primary' : 'text-muted-foreground'
+                    } hover:text-primary`}
+                  >
+                    <Icon className="h-6 w-6" />
+                    <span>{tooltip}</span>
+                  </Button>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
