@@ -23,6 +23,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { Skeleton } from '@/components/ui/skeleton';
+import Autoplay from "embla-carousel-autoplay";
+
 
 const liveSellers = [
     {
@@ -117,9 +128,35 @@ const liveSellers = [
     },
 ]
 
+const offerSlides = [
+  {
+    id: 1,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'Flash Sale!',
+    description: 'Up to 50% off on electronics.',
+    hint: 'electronics sale',
+  },
+  {
+    id: 2,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'New Arrivals',
+    description: 'Check out the latest fashion trends.',
+    hint: 'fashion clothing runway',
+  },
+  {
+    id: 3,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'Home Decor Deals',
+    description: 'Beautify your space for less.',
+    hint: 'modern living room',
+  },
+];
+
+
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
@@ -130,6 +167,13 @@ export default function LiveSellingPage() {
   ];
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoadingOffers(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -183,6 +227,7 @@ export default function LiveSellingPage() {
                         "relative flex items-center transition-all duration-300 ease-in-out",
                         isSearchExpanded ? "w-48" : "w-10"
                     )}>
+                        <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                         <Input 
                             placeholder="Search streams..." 
                             className={cn(
@@ -191,7 +236,7 @@ export default function LiveSellingPage() {
                             )}
                             onFocus={() => setIsSearchExpanded(true)}
                         />
-                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                         
                         <Button 
                             variant="ghost" 
                             size="icon" 
@@ -217,6 +262,43 @@ export default function LiveSellingPage() {
             </header>
 
             <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              <div className="mb-6">
+                  {isLoadingOffers ? (
+                    <Skeleton className="w-full aspect-[3/1] rounded-lg" />
+                  ) : (
+                    <Carousel
+                      className="w-full"
+                      plugins={[Autoplay({ delay: 5000 })]}
+                      opts={{ loop: true }}
+                    >
+                      <CarouselContent>
+                        {offerSlides.map((slide) => (
+                          <CarouselItem key={slide.id}>
+                            <Card className="overflow-hidden">
+                              <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
+                                <Image
+                                  src={slide.imageUrl}
+                                  alt={slide.title}
+                                  layout="fill"
+                                  objectFit="cover"
+                                  className="brightness-75"
+                                  data-ai-hint={slide.hint}
+                                />
+                                <div className="absolute text-center text-white p-4">
+                                  <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
+                                  <p className="text-sm md:text-lg">{slide.description}</p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="hidden sm:flex" />
+                      <CarouselNext className="hidden sm:flex" />
+                    </Carousel>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-2 mb-6">
                     {filterButtons.map((filter) => (
                     <Button key={filter} variant="outline" className="bg-card rounded-full">
@@ -272,3 +354,6 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+
+    
