@@ -152,8 +152,7 @@ function LiveSellingContent() {
             <div className="grid grid-cols-2 gap-4">
             {
                 filteredProducts.map((product) => (
-                  <Link key={product.id} href={`/live-selling/${product.id}?userName=${encodeURIComponent(product.userName)}&userImage=${encodeURIComponent(product.userImage)}`} passHref>
-                    <Card className="overflow-hidden relative aspect-[9/16] cursor-pointer">
+                    <Card key={product.id} className="overflow-hidden relative aspect-[9/16]">
                       <div className={`absolute inset-0 ${product.bgColor}`} />
                       <CardContent className="p-2 flex items-end h-full">
                           <div className="flex items-center gap-2 text-white text-sm font-semibold">
@@ -165,7 +164,6 @@ function LiveSellingContent() {
                           </div>
                       </CardContent>
                     </Card>
-                  </Link>
                 ))
             }
             </div>
