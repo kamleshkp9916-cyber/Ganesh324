@@ -47,6 +47,8 @@ import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ProfileCard } from '@/components/profile-card';
 
 
 const liveSellers = [
@@ -173,6 +175,7 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
 
@@ -215,223 +218,228 @@ export default function LiveSellingPage() {
 
   return (
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <div className="flex-1 flex flex-col">
-           <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
-                </div>
-                <div className="flex items-center gap-2" ref={searchRef}>
-                    <div className={cn(
-                        "relative flex items-center transition-all duration-300 ease-in-out",
-                        isSearchExpanded ? "w-48" : "w-10"
-                    )}>
-                        <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
-                        <Input 
-                            placeholder="Search streams..." 
-                            className={cn(
-                                "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
-                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                            )}
-                            onFocus={() => setIsSearchExpanded(true)}
-                        />
-                         
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                            <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
+        <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+            <div className="flex-1 flex flex-col">
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
+                    </div>
+                    <div className="flex items-center gap-2" ref={searchRef}>
+                        <div className={cn(
+                            "relative flex items-center transition-all duration-300 ease-in-out",
+                            isSearchExpanded ? "w-48" : "w-10"
+                        )}>
+                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                            <Input 
+                                placeholder="Search streams..." 
+                                className={cn(
+                                    "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
+                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                                )}
+                                onFocus={() => setIsSearchExpanded(true)}
+                            />
+                            
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
+                                onClick={() => setIsSearchExpanded(p => !p)}
+                            >
+                                <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
+                            </Button>
+                    </div>
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                            <Plus />
                         </Button>
-                   </div>
-                    <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
-                        <Plus />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
-                        <Bell />
-                    </Button>
-                     
-                    {loading ? (
-                        <Skeleton className="h-9 w-9 rounded-full" />
-                    ) : user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Avatar className="h-9 w-9 cursor-pointer">
-                                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                </Avatar>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                        {user.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                            <Bell />
+                        </Button>
+                        
+                        {loading ? (
+                            <Skeleton className="h-9 w-9 rounded-full" />
+                        ) : user ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Avatar className="h-9 w-9 cursor-pointer">
+                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                    </Avatar>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem onSelect={() => setIsProfileOpen(true)}>
+                                            <User className="mr-2 h-4 w-4" /><span>My Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={signOut}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Log Out</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={signOut}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log Out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                            <Button asChild variant="outline" size="sm">
+                                <Link href="/">Login</Link>
+                            </Button>
+                            <Button asChild size="sm">
+                                    <Link href="/signup">Create Account</Link>
+                            </Button>
+                            </div>
+                        )}
+                    </div>
+                </header>
+
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                <div className="mb-6">
+                    {isLoadingOffers ? (
+                        <Skeleton className="w-full aspect-[3/1] rounded-lg" />
                     ) : (
-                        <div className="flex items-center gap-2">
-                           <Button asChild variant="outline" size="sm">
-                               <Link href="/">Login</Link>
-                           </Button>
-                           <Button asChild size="sm">
-                                <Link href="/signup">Create Account</Link>
-                           </Button>
+                        <div>
+                            <Carousel
+                                className="w-full"
+                                plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+                                opts={{ loop: true }}
+                                setApi={setApi}
+                            >
+                                <CarouselContent>
+                                    {offerSlides.map((slide) => (
+                                    <CarouselItem key={slide.id}>
+                                        <Card className="overflow-hidden bg-card">
+                                        <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
+                                            <Image
+                                            src={slide.imageUrl}
+                                            alt={slide.title}
+                                            layout="fill"
+                                            objectFit="cover"
+                                            className="brightness-75"
+                                            data-ai-hint={slide.hint}
+                                            />
+                                            <div className="absolute text-center text-primary-foreground p-4">
+                                            <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
+                                            <p className="text-sm md:text-lg">{slide.description}</p>
+                                            </div>
+                                        </CardContent>
+                                        </Card>
+                                    </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                            </Carousel>
+                            <div className="flex justify-center gap-2 mt-4">
+                                {offerSlides.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => api?.scrollTo(index)}
+                                        className={cn(
+                                            "h-2 w-2 rounded-full transition-colors",
+                                            index === currentSlide ? 'bg-primary' : 'bg-muted'
+                                        )}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
-                </div>
-            </header>
-
-            <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-              <div className="mb-6">
-                  {isLoadingOffers ? (
-                    <Skeleton className="w-full aspect-[3/1] rounded-lg" />
-                  ) : (
-                    <div>
-                        <Carousel
-                            className="w-full"
-                            plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
-                            opts={{ loop: true }}
-                            setApi={setApi}
-                        >
-                            <CarouselContent>
-                                {offerSlides.map((slide) => (
-                                <CarouselItem key={slide.id}>
-                                    <Card className="overflow-hidden bg-card">
-                                    <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
-                                        <Image
-                                        src={slide.imageUrl}
-                                        alt={slide.title}
-                                        layout="fill"
-                                        objectFit="cover"
-                                        className="brightness-75"
-                                        data-ai-hint={slide.hint}
-                                        />
-                                        <div className="absolute text-center text-primary-foreground p-4">
-                                        <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
-                                        <p className="text-sm md:text-lg">{slide.description}</p>
-                                        </div>
-                                    </CardContent>
-                                    </Card>
-                                </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                        </Carousel>
-                        <div className="flex justify-center gap-2 mt-4">
-                            {offerSlides.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => api?.scrollTo(index)}
-                                    className={cn(
-                                        "h-2 w-2 rounded-full transition-colors",
-                                        index === currentSlide ? 'bg-primary' : 'bg-muted'
-                                    )}
-                                />
-                            ))}
-                        </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="flex flex-wrap gap-2 mb-6">
-                    {filterButtons.map((filter) => (
-                    <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
-                        {filter}
-                    </Button>
-                    ))}
-                     <Button variant="ghost" className="bg-card/50 rounded-full">
-                        Filters
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        {filterButtons.map((filter) => (
+                        <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
+                            {filter}
+                        </Button>
+                        ))}
+                        <Button variant="ghost" className="bg-card/50 rounded-full">
+                            Filters
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {liveSellers.map((seller) => (
-                        <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                             <div className="absolute top-2 left-2 z-10">
-                                <Badge className="bg-destructive text-destructive-foreground animate-pulse-red">
-                                    LIVE
-                                </Badge>
-                             </div>
-                             <div className="absolute top-2 right-2 z-10">
-                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                    <Users className="w-3 h-3 mr-1.5" />
-                                    {seller.viewers}
-                                </Badge>
-                             </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        {liveSellers.map((seller) => (
+                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                <div className="absolute top-2 left-2 z-10">
+                                    <Badge className="bg-destructive text-destructive-foreground animate-pulse-red">
+                                        LIVE
+                                    </Badge>
+                                </div>
+                                <div className="absolute top-2 right-2 z-10">
+                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                        <Users className="w-3 h-3 mr-1.5" />
+                                        {seller.viewers}
+                                    </Badge>
+                                </div>
 
-                            <Image 
-                                src={seller.thumbnailUrl} 
-                                alt={`Live stream from ${seller.name}`} 
-                                width={300} 
-                                height={450} 
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint={seller.hint}
-                            />
-                             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="h-8 w-8 border-2 border-primary">
-                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                <Image 
+                                    src={seller.thumbnailUrl} 
+                                    alt={`Live stream from ${seller.name}`} 
+                                    width={300} 
+                                    height={450} 
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    data-ai-hint={seller.hint}
+                                />
+                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                            <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </main>
-        </div>
+                        ))}
+                    </div>
+                </main>
+            </div>
+            <DialogContent className="max-w-3xl p-0 border-0">
+                <ProfileCard onEdit={() => setIsProfileOpen(false)} />
+            </DialogContent>
+        </Dialog>
       </div>
   );
 }
