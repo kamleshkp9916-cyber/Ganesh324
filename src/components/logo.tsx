@@ -1,17 +1,12 @@
 
 import type { SVGProps } from 'react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import { ShoppingCart } from 'lucide-react';
 
-export function Logo(props: Omit<React.ComponentProps<typeof Image>, 'src' | 'alt'>) {
+export function Logo(props: SVGProps<SVGSVGElement>) {
   return (
-    <Image
-      src="/logo.png"
-      alt="StreamCart Logo"
-      width={100}
-      height={100}
-      {...props}
-      className={cn("w-16 h-16", props.className)}
-    />
+    <div className={cn("flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground", props.className)}>
+        <ShoppingCart className="w-8 h-8" />
+    </div>
   );
 }
