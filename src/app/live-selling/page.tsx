@@ -40,10 +40,8 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
 
 
 const liveSellers = [
@@ -171,12 +169,6 @@ export default function LiveSellingPage() {
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  const sidebarIcons = [
-    { icon: Home, tooltip: 'Home', active: true, href: '/live-selling' },
-    { icon: Clapperboard, tooltip: 'Feed', href: '/feed' },
-    { icon: Heart, tooltip: 'Top Seller', href: '/top-seller' },
-  ];
-
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
   const onSelect = useCallback((api: CarouselApi) => {
@@ -215,51 +207,10 @@ export default function LiveSellingPage() {
 
 
   return (
-    <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <Sidebar variant="sidebar" collapsible="offcanvas" className="p-2 transition-all duration-300 ease-in-out hidden md:block">
-            <SidebarContent className="flex flex-col justify-between">
-                <SidebarMenu>
-                     <SidebarMenuItem className="mb-4">
-                        <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg text-primary">
-                            <Logo className="w-8 h-8" />
-                        </Link>
-                    </SidebarMenuItem>
-                    {sidebarIcons.map(({ icon: Icon, tooltip, active, href }) => (
-                         <SidebarMenuItem key={tooltip}>
-                            <Link href={href} passHref>
-                                <SidebarMenuButton tooltip={tooltip} isActive={active}>
-                                    <Icon />
-                                </SidebarMenuButton>
-                            </Link>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <Link href="/live-selling/#new" passHref>
-                            <SidebarMenuButton tooltip="What's New?">
-                                <Zap />
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/setting" passHref>
-                            <SidebarMenuButton tooltip="Settings">
-                                <Settings />
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarContent>
-        </Sidebar>
-
         <div className="flex-1 flex flex-col">
            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
                 <div className="flex items-center gap-2">
-                    <SidebarTrigger className="md:hidden">
-                        <Menu />
-                    </SidebarTrigger>
                     <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
                 </div>
                 <div className="flex items-center gap-2" ref={searchRef}>
@@ -449,6 +400,7 @@ export default function LiveSellingPage() {
             </main>
         </div>
       </div>
-    </SidebarProvider>
   );
 }
+
+    
