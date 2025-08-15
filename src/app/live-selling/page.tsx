@@ -2,39 +2,19 @@
 "use client";
 
 import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import {
-  Bell,
-  Bookmark,
-  ChevronRight,
   Clapperboard,
   Home,
   Menu,
-  MessageCircle,
   Music,
-  Play,
-  Search,
-  Settings,
-  Tv,
+  Bookmark,
   Heart,
-  Zap,
   TrendingUp,
-  Plus,
+  Zap,
 } from 'lucide-react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
-
-const favoriteStreamers = [
-  { name: 'Ninja', avatar: 'https://placehold.co/40x40.png', hint: 'streamer avatar' },
-  { name: 'Shroud', avatar: 'https://placehold.co/40x40.png', hint: 'streamer avatar' },
-  { name: 'Pokimane', avatar: 'https://placehold.co/40x40.png', hint: 'streamer avatar' },
-];
-
-const topCategories = ['Gaming', 'Music', 'Esports', 'Creative'];
 
 export default function LiveSellingPage() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -77,9 +57,8 @@ export default function LiveSellingPage() {
       </aside>
 
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-sm md:px-6">
-          <div className='flex items-center gap-4'>
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-sm md:px-6 lg:hidden">
             <Button
               variant="ghost"
               size="icon"
@@ -88,90 +67,15 @@ export default function LiveSellingPage() {
             >
               <Menu className="h-6 w-6" />
             </Button>
-            <nav className="hidden items-center gap-4 md:flex">
-                <Link href="#" className="text-sm font-medium hover:text-primary">Watch now</Link>
-                <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-primary">Category</Link>
-                <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-primary">Upcoming</Link>
-                <Link href="#" className="text-sm font-medium text-muted-foreground hover:text-primary">Pricing</Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Avatar className="h-9 w-9">
-              <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-          </div>
+            <Logo className="h-8 w-8 text-red-500 lg:hidden" />
+            <div className="w-6"></div>
         </header>
-
-        {/* Main Content */}
-        <main className="flex-1 flex overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                {/* Hero Section */}
-                <section className="relative -mx-4 -mt-4 mb-6 h-80 w-auto overflow-hidden md:-mx-6 md:h-[450px]">
-                    <Image
-                        src="https://placehold.co/1200x600/000000/ffffff?text=Slime+You+Out"
-                        alt="Hero background"
-                        layout="fill"
-                        objectFit="cover"
-                        className="opacity-40"
-                        data-ai-hint="drake album art"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                        <h1 className="text-3xl font-bold md:text-5xl">Slime you out</h1>
-                        <p className="mt-2 text-lg font-medium text-muted-foreground">Drake ft. SZA</p>
-                        <Button className="mt-4 bg-red-600 hover:bg-red-700 text-white font-semibold">
-                            <Play className="mr-2 h-5 w-5" />
-                            Watch now
-                        </Button>
-                    </div>
-                </section>
-                {/* Other content can go here */}
-            </div>
-             {/* Right Sidebar */}
-            <aside className="hidden w-72 flex-col gap-6 border-l border-border bg-background p-4 xl:flex">
-                <div>
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Favorite Streamers</h3>
-                        <Button variant="ghost" size="sm">See all</Button>
-                    </div>
-                    <div className="mt-4 flex flex-col gap-4">
-                        {favoriteStreamers.map(streamer => (
-                            <div key={streamer.name} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={streamer.avatar} alt={streamer.name} data-ai-hint={streamer.hint} />
-                                        <AvatarFallback>{streamer.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-medium">{streamer.name}</span>
-                                </div>
-                                <Button variant="secondary" size="sm">Follow</Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="border-t border-border pt-6">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Top Categories</h3>
-                        <Button variant="ghost" size="sm">See all</Button>
-                    </div>
-                     <div className="mt-4 grid grid-cols-2 gap-2">
-                        {topCategories.map(category => (
-                            <Button key={category} variant="outline" className="justify-start">{category}</Button>
-                        ))}
-                    </div>
-                </div>
-            </aside>
+        
+        <main className="flex-1 p-4 md:p-6">
+            <h1 className="text-2xl font-bold">Start building from scratch here</h1>
         </main>
       </div>
+
 
       {/* Mobile Sidebar */}
       {isSidebarOpen && (
