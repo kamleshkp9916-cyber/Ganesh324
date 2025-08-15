@@ -277,7 +277,6 @@ export default function LiveSellingPage() {
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem asChild><Link href="/profile"><User className="mr-2" />Profile</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href="/wallet"><Wallet className="mr-2" />Wallet</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href="/setting"><Settings className="mr-2" />Setting</Link></DropdownMenuItem>
                                     <DropdownMenuSeparator />
