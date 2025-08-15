@@ -61,7 +61,6 @@ export function useAuthActions() {
     const signOut = async () => {
         try {
             await firebaseSignOut(auth);
-            router.push("/");
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({
