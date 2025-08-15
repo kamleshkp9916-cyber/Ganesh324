@@ -288,12 +288,12 @@ export default function LiveSellingPage() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                         <Link href="/" className="w-full">
-                                            <Button className="w-full justify-start" variant="ghost"><User className="mr-2" />Login</Button>
+                                            <Button className="w-full justify-start text-destructive" variant="ghost"><User className="mr-2" />Login</Button>
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link href="/signup" className="w-full">
-                                            <Button className="w-full justify-start" variant="ghost"><Plus className="mr-2" />Create Account</Button>
+                                            <Button className="w-full justify-start text-destructive" variant="ghost"><Plus className="mr-2" />Create Account</Button>
                                         </Link>
                                     </DropdownMenuItem>
                                 </>
