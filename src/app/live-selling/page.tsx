@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
+import { Logo } from '@/components/logo';
 
 
 const liveSellers = [
@@ -205,10 +206,10 @@ export default function LiveSellingPage() {
 
 
   return (
-      <div className="flex min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
         <div className="sticky top-0 flex h-screen w-16 flex-col items-center border-r border-border bg-background/50 py-4 gap-4">
              <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
-                <Image src="/logo.png" alt="StreamCart" width={24} height={24} />
+                <Logo className="w-6 h-6" />
             </Button>
             <div className="flex flex-col items-center gap-2 mt-4 flex-1">
               {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
