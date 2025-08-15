@@ -77,7 +77,6 @@ export default function ProfilePage() {
         setProfileData({
             ...profileData,
             address: newAddress,
-            phone: data.phone,
         });
     }
     setIsAddressDialogOpen(false);
@@ -183,14 +182,13 @@ export default function ProfilePage() {
                                         <p>{profileData.address.country}</p>
                                     </div>
                                 </div>
-                                 <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+                                 <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
                                     <DialogHeader className="p-6 pb-4 border-b">
                                         <DialogTitle>Edit Delivery Address</DialogTitle>
                                     </DialogHeader>
                                     {profileData && (
                                         <EditAddressForm 
                                             currentAddress={profileData.address}
-                                            currentPhone={profileData.phone}
                                             onSave={handleAddressSave} 
                                             onCancel={() => setIsAddressDialogOpen(false)}
                                         />
@@ -207,7 +205,7 @@ export default function ProfilePage() {
             )}
             </main>
         </div>
-        <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
             <DialogHeader className="p-6 pb-4 border-b">
                 <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>

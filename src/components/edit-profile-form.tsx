@@ -163,7 +163,7 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
                     />
                 </div>
             </ScrollArea>
-             <div className="flex justify-end gap-2 p-4 border-t bg-background">
+             <div className="flex justify-end gap-2 p-4 border-t bg-background flex-shrink-0">
               <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
               <Button type="submit">Save Changes</Button>
             </div>
