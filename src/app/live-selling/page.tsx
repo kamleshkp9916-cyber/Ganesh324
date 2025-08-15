@@ -173,6 +173,7 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { user } = useAuth();
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
@@ -248,6 +249,20 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
+                    <Link href={user ? "/profile" : "/"}>
+                      <Avatar className="h-9 w-9 cursor-pointer">
+                        {user ? (
+                          <>
+                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                          </>
+                        ) : (
+                          <AvatarFallback>
+                            <User className="h-5 w-5" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </Link>
                 </div>
             </header>
 
