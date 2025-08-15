@@ -1,11 +1,10 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -19,6 +18,7 @@ export function useAuthActions() {
                 title: "Signed In!",
                 description: `Welcome back, ${result.user.displayName}!`,
             });
+            sessionStorage.setItem('mockUserSessionActive', 'true');
             router.push("/live-selling");
         } catch (error) {
             console.error("Error signing in with Google: ", error);
@@ -41,6 +41,7 @@ export function useAuthActions() {
                 title: "Account Created!",
                 description: "You have successfully created an account and logged in.",
             });
+            sessionStorage.setItem('mockUserSessionActive', 'true');
             router.push(`/live-selling`);
             return userCredential;
         } catch (error: any) {
@@ -69,11 +70,14 @@ export function useAuthActions() {
     const signOut = async () => {
         try {
             await firebaseSignOut(auth);
+            // This is key for the mock user flow
+            sessionStorage.removeItem('mockUserSessionActive');
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
             });
-            // No redirect, user stays on the current page.
+            // The onAuthStateChanged listener in useAuth will handle the state update
+            // and the UI will rerender accordingly without a forced navigation.
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({
@@ -89,5 +93,3 @@ export function useAuthActions() {
 
 export { useAuth } from '@/hooks/use-auth.tsx';
 export { auth };
-
-    
