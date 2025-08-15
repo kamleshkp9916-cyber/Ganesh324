@@ -164,12 +164,12 @@ export default function LiveSellingPage() {
             <div className="relative h-80 w-full">
                 <Image src="https://placehold.co/1200x400.png" layout="fill" objectFit="cover" alt="Hero background" data-ai-hint="fantasy movie poster"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
-                     <div className="relative w-full max-w-[180px]">
-                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input placeholder="Search" className="bg-background/50 pl-10 rounded-full" />
-                    </div>
+                <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-end">
                     <div className="flex items-center gap-4">
+                        <div className="relative w-full max-w-[180px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                           <Input placeholder="Search" className="bg-background/50 pl-10 rounded-full" />
+                       </div>
                         <Button variant="ghost" size="icon" className="text-white rounded-full bg-white/10 hover:bg-white/20">
                             <Plus />
                         </Button>
