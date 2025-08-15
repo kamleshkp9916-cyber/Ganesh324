@@ -115,8 +115,8 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
         
         {placeholder ? (
-            <div className="flex flex-col h-full">
-                 <div 
+            <ScrollArea className="h-full">
+                <div 
                   className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
                 >
                    <div className={cn(
@@ -166,60 +166,58 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                     </div>
                 </div>
 
-                <ScrollArea className="flex-grow">
-                    <CardContent className="p-6 space-y-6">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-lg font-semibold">About Me</h3>
-                                <Button variant="ghost" size="icon" onClick={onEdit}>
+                <CardContent className="p-6 space-y-6">
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">About Me</h3>
+                            <Button variant="ghost" size="icon" onClick={onEdit}>
+                                <Edit className="h-5 w-5" />
+                                <span className="sr-only">Edit Profile</span>
+                            </Button>
+                        </div>
+                        <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
+                    </div>
+
+                    <Separator />
+                    
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div className="flex items-center gap-3">
+                                <Mail className="w-5 h-5 text-muted-foreground" />
+                                <span>{user.email}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Phone className="w-5 h-5 text-muted-foreground" />
+                                <span>{phone}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <MapPin className="w-5 h-5 text-muted-foreground" />
+                                <span>{placeholder.location}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">Delivery Address</h3>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
                                     <Edit className="h-5 w-5" />
-                                    <span className="sr-only">Edit Profile</span>
+                                    <span className="sr-only">Edit Address</span>
                                 </Button>
-                            </div>
-                            <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
+                            </DialogTrigger>
                         </div>
-
-                        <Separator />
-                        
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                <div className="flex items-center gap-3">
-                                    <Mail className="w-5 h-5 text-muted-foreground" />
-                                    <span>{user.email}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Phone className="w-5 h-5 text-muted-foreground" />
-                                    <span>{phone}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <MapPin className="w-5 h-5 text-muted-foreground" />
-                                    <span>{placeholder.location}</span>
-                                </div>
-                            </div>
+                       
+                        <div className="flex items-start gap-3">
+                            <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
+                            <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
                         </div>
-
-                        <Separator />
-
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-lg font-semibold">Delivery Address</h3>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <Edit className="h-5 w-5" />
-                                        <span className="sr-only">Edit Address</span>
-                                    </Button>
-                                </DialogTrigger>
-                            </div>
-                           
-                            <div className="flex items-start gap-3">
-                                <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                                <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </ScrollArea>
-            </div>
+                    </div>
+                </CardContent>
+            </ScrollArea>
         ) : (
             <div className="flex items-center justify-center p-10 min-h-[400px]">
                 <LoadingSpinner />
