@@ -26,7 +26,7 @@ export function useAuthActions() {
             });
             // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
-            router.push("/live-selling");
+            router.push("/profile");
         } catch (error) {
             console.error("Error signing in with Google: ", error);
             toast({
@@ -89,10 +89,9 @@ export function useAuthActions() {
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
             });
-            // Force a redirect to the login page to ensure a clean state.
-            router.push('/');
-            // A hard reload can also help ensure all state is cleared.
-            router.refresh(); 
+            // We are now handling the UI update in the auth hook, so no need to force a redirect.
+            // router.push('/');
+            // router.refresh(); 
 
         } catch (error) {
             console.error("Error signing out: ", error);

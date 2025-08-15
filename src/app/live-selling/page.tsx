@@ -173,7 +173,7 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
@@ -250,89 +250,82 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Avatar className="h-9 w-9 cursor-pointer">
-                                {user ? (
-                                <>
+                     
+                    {loading ? (
+                        <Skeleton className="h-9 w-9 rounded-full" />
+                    ) : user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Avatar className="h-9 w-9 cursor-pointer">
                                     <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
                                     <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                </>
-                                ) : (
-                                <AvatarFallback>
-                                    <User className="h-5 w-5" />
-                                </AvatarFallback>
-                                )}
-                            </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end" forceMount>
-                            {user ? (
-                                <>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/placeholder"><User />My Profile</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/orders"><ShoppingBag />Orders</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/wishlist"><Heart />Wishlist</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/wallet"><Wallet />Wallet</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/listed-products"><List />Listed Products</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/top-seller"><Award />Top Seller</Link>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem asChild>
-                                        <Link href="/message"><MessageSquare />Message</Link>
-                                      </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                       <DropdownMenuItem asChild>
-                                        <Link href="/setting"><Settings />Setting</Link>
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem asChild>
-                                        <Link href="/privacy-and-security"><Shield />Privacy And Security</Link>
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem asChild>
-                                        <Link href="/terms-and-conditions"><FileText />Term & Conditions</Link>
-                                       </DropdownMenuItem>
-                                       <DropdownMenuItem asChild>
-                                        <Link href="/help"><LifeBuoy />Help 24/7</Link>
-                                       </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut}>
-                                        <LogOut />
-                                        Log Out
-                                    </DropdownMenuItem>
-                                </>
-                            ) : (
+                                </Avatar>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                        {user.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuGroup>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/">Login</Link>
+                                    <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link href="/signup">Create Account</Link>
+                                    <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={signOut}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Log Out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                           <Button asChild variant="outline" size="sm">
+                               <Link href="/">Login</Link>
+                           </Button>
+                           <Button asChild size="sm">
+                                <Link href="/signup">Create Account</Link>
+                           </Button>
+                        </div>
+                    )}
                 </div>
             </header>
 
