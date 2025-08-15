@@ -115,8 +115,8 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
         
         {placeholder ? (
-            <Card className="overflow-hidden border-0 shadow-none rounded-lg">
-                <div 
+            <div className="flex flex-col h-full">
+                 <div 
                   className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
                 >
                    <div className={cn(
@@ -165,7 +165,8 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         </div>
                     </div>
                 </div>
-                <ScrollArea className="h-[40vh]">
+
+                <ScrollArea className="flex-grow">
                     <CardContent className="p-6 space-y-6">
                         <div>
                             <div className="flex items-center justify-between mb-2">
@@ -218,13 +219,13 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         </div>
                     </CardContent>
                 </ScrollArea>
-            </Card>
+            </div>
         ) : (
             <div className="flex items-center justify-center p-10 min-h-[400px]">
                 <LoadingSpinner />
             </div>
         )}
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl h-[90vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>Edit Delivery Address</DialogTitle>
             </DialogHeader>

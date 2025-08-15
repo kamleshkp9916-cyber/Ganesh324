@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { MapPin, LocateFixed } from 'lucide-react';
 import { indianStates } from "@/lib/data";
+import { ScrollArea } from "./ui/scroll-area";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
@@ -73,153 +74,157 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSave)} className="grid gap-4 py-4">
-        <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., Samael Prajapati" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-            control={form.control}
-            name="village"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Village / Area</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., Koregaon Park" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="district"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>District</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., Pune" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-        </div>
+    <div className="flex flex-col h-full">
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSave)} className="flex flex-col h-full">
+                <ScrollArea className="flex-grow pr-6 -mr-6">
+                    <div className="grid gap-4 py-4">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Full Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Samael Prajapati" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                            control={form.control}
+                            name="village"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Village / Area</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Koregaon Park" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            <FormField
+                            control={form.control}
+                            name="district"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>District</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Pune" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-            control={form.control}
-            name="city"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>City</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., Pune" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-             <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>State</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                        <SelectTrigger>
-                        <SelectValue placeholder="Select a state" />
-                        </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        {indianStates.map((state) => (
-                        <SelectItem key={state} value={state}>{state}</SelectItem>
-                        ))}
-                    </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-            control={form.control}
-            name="pincode"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Pin Code</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., 411001" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                    <Input placeholder="e.g., India" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
-        
-        <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-            <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                    <Input placeholder="+91 9876543210" {...field} />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-            )}
-        />
-        
-        <div>
-            <FormLabel>Pinpoint Location on Map</FormLabel>
-            <div className="mt-2 flex flex-col md:flex-row gap-4">
-                <div className="flex-grow h-40 rounded-lg bg-muted flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                        <MapPin className="mx-auto h-8 w-8" />
-                        <p className="text-sm">Map placeholder</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                            control={form.control}
+                            name="city"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>City</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Pune" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="state"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>State</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="Select a state" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {indianStates.map((state) => (
+                                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                            control={form.control}
+                            name="pincode"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Pin Code</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., 411001" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="country"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Country</FormLabel>
+                                    <FormControl>
+                                    <Input placeholder="e.g., India" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                        
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="+91 9876543210" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        
+                        <div>
+                            <FormLabel>Pinpoint Location on Map</FormLabel>
+                            <div className="mt-2 flex flex-col md:flex-row gap-4">
+                                <div className="flex-grow h-40 rounded-lg bg-muted flex items-center justify-center">
+                                    <div className="text-center text-muted-foreground">
+                                        <MapPin className="mx-auto h-8 w-8" />
+                                        <p className="text-sm">Map placeholder</p>
+                                    </div>
+                                </div>
+                                <Button type="button" variant="outline" className="md:self-end" onClick={handleGetCurrentLocation}>
+                                    <LocateFixed className="mr-2 h-4 w-4" />
+                                    Use Current Location
+                                </Button>
+                            </div>
+                        </div>
                     </div>
+                </ScrollArea>
+                <div className="flex justify-end gap-2 pt-4 flex-shrink-0">
+                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                    <Button type="submit">Save Details</Button>
                 </div>
-                <Button type="button" variant="outline" className="md:self-end" onClick={handleGetCurrentLocation}>
-                    <LocateFixed className="mr-2 h-4 w-4" />
-                    Use Current Location
-                </Button>
-            </div>
-        </div>
-
-
-        <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-          <Button type="submit">Save Details</Button>
-        </div>
-      </form>
-    </Form>
+            </form>
+        </Form>
+    </div>
   );
 }
