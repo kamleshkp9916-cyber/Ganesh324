@@ -210,13 +210,12 @@ export default function LiveSellingPage() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <Sidebar variant="sidebar" className="p-2 transition-all duration-300 ease-in-out">
+        <Sidebar variant="sidebar" collapsible="offcanvas" className="p-2 transition-all duration-300 ease-in-out md:block hidden">
             <SidebarContent className="flex flex-col justify-between">
                 <SidebarMenu>
                      <SidebarMenuItem className="mb-4">
-                        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-primary">
+                        <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg text-primary">
                             <Logo className="w-8 h-8" />
-                            <span className="group-data-[collapsible=icon]:hidden">StreamCart</span>
                         </Link>
                     </SidebarMenuItem>
                     {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
@@ -400,4 +399,3 @@ export default function LiveSellingPage() {
   );
 }
 
-    
