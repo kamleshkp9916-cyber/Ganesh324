@@ -4,13 +4,14 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DialogHeader, DialogTitle } from './ui/dialog';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -21,6 +22,11 @@ const bios = [
   "Tech reviewer and gadget lover. Unboxing the future."
 ];
 const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Australia", "Paris, France"];
+const addresses = [
+    "123 Main St, Anytown, USA 12345",
+    "456 Oak Ave, Springfield, USA 67890",
+    "789 Pine Ln, Metropolis, USA 11223",
+]
 
 const generatePlaceholderDetails = () => {
   return {
@@ -30,6 +36,7 @@ const generatePlaceholderDetails = () => {
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 10000),
     likes: Math.floor(Math.random() * 100000),
+    deliveryAddress: addresses[Math.floor(Math.random() * addresses.length)],
   };
 };
 
@@ -37,7 +44,6 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
-  const [bgImage, setBgImage] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,12 +91,10 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
         {placeholder ? (
             <Card className="overflow-hidden border-0 shadow-none rounded-lg">
                 <div 
-                  className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center"
-                  style={bgImage ? { backgroundImage: `url(${bgImage})` } : {}}
+                  className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
                 >
                    <div className={cn(
-                       "absolute inset-0",
-                       bgImage ? "bg-black/40" : "bg-primary/10"
+                       "absolute inset-0 bg-primary/10"
                    )} />
                     
                     <div className="relative z-10">
@@ -116,22 +120,22 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         />
                     </div>
                     
-                    <div className="text-center relative z-10 text-white">
+                    <div className="text-center relative z-10 text-foreground">
                         <h2 className="text-3xl font-bold">{user.displayName}</h2>
-                        <p className="text-white/80">{user.email}</p>
+                        <p className="text-muted-foreground">{user.email}</p>
                     </div>
-                    <div className="flex gap-8 pt-4 relative z-10 text-white">
+                    <div className="flex gap-8 pt-4 relative z-10 text-foreground">
                         <div className="text-center">
                             <p className="text-2xl font-bold">{placeholder.following}</p>
-                            <p className="text-sm text-white/80">Following</p>
+                            <p className="text-sm text-muted-foreground">Following</p>
                         </div>
                         <div className="text-center">
                             <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-white/80">Followers</p>
+                            <p className="text-sm text-muted-foreground">Followers</p>
                         </div>
                         <div className="text-center">
                             <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-white/80">Likes</p>
+                            <p className="text-sm text-muted-foreground">Likes</p>
                         </div>
                     </div>
                 </div>
@@ -146,19 +150,34 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         </div>
                         <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
                     </div>
+
+                    <Separator />
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="flex items-center gap-3">
-                            <Mail className="w-5 h-5 text-muted-foreground" />
-                            <span>{user.email}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Phone className="w-5 h-5 text-muted-foreground" />
-                            <span>{placeholder.phone}</span>
-                        </div>
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                             <div className="flex items-center gap-3">
-                            <MapPin className="w-5 h-5 text-muted-foreground" />
-                            <span>{placeholder.location}</span>
+                                <Mail className="w-5 h-5 text-muted-foreground" />
+                                <span>{user.email}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Phone className="w-5 h-5 text-muted-foreground" />
+                                <span>{placeholder.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <MapPin className="w-5 h-5 text-muted-foreground" />
+                                <span>{placeholder.location}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4">Delivery Address</h3>
+                        <div className="flex items-start gap-3">
+                            <Truck className="w-5 h-5 text-muted-foreground mt-1" />
+                            <span>{placeholder.deliveryAddress}</span>
                         </div>
                     </div>
                 </CardContent>
