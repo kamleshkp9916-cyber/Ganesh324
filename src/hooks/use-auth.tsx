@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, createContext, useContext, useCallback } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -45,50 +45,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // To use real Firebase authentication, set enableMockUser to false
   const enableMockUser = true;
 
-  const checkAuth = useCallback(() => {
-    if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
-      setUser(mockUser);
-      setLoading(false);
-      // We don't need to check Firebase if the mock session is active.
-      // We return an empty function to match the signature of onAuthStateChanged.
-      return () => {};
-    }
-
-    // Fallback to Firebase auth if mock session isn't active
-    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
-      // Re-check for mock session in case it was set during a multi-step auth flow.
+  useEffect(() => {
+    const updateUserState = (firebaseUser: User | null) => {
       if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
         setUser(mockUser);
       } else {
-        setUser(authUser);
+        setUser(firebaseUser);
       }
       setLoading(false);
-    });
+    };
 
-    return unsubscribe;
-  }, [enableMockUser]);
+    // Firebase auth listener
+    const unsubscribe = onAuthStateChanged(auth, updateUserState);
 
-
-  useEffect(() => {
-    const unsubscribe = checkAuth();
-    
+    // Listener for session storage changes (e.g., logout from another tab)
     const handleStorageChange = () => {
-      checkAuth();
+      // Re-run the auth check when storage changes.
+      // We pass the current firebase user to avoid a race condition.
+      updateUserState(auth.currentUser); 
     };
 
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', checkAuth);
 
+    // Initial check in case the component mounts after the initial auth state change
+    updateUserState(auth.currentUser);
 
     // Cleanup subscription on unmount
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', checkAuth);
     };
-  }, [checkAuth]);
+  }, [enableMockUser]);
 
 
   return (
