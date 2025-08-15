@@ -215,7 +215,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                         </div>
                     </CardContent>
                 </ScrollArea>
-            </div>
+             </div>
         ) : (
             <div className="flex items-center justify-center p-10 min-h-[400px]">
                 <LoadingSpinner />
