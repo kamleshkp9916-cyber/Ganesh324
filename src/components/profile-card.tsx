@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { DialogHeader, DialogTitle, DialogClose } from './ui/dialog';
+import { DialogHeader, DialogTitle } from './ui/dialog';
 
 // Mock data generation
 const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
@@ -69,12 +69,6 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     <div className="relative">
         <DialogHeader>
           <DialogTitle className="sr-only">User Profile</DialogTitle>
-          <DialogClose asChild>
-              <Button variant="ghost" size="icon" onClick={onEdit} className="absolute top-4 right-4 z-10">
-                  <Edit className="h-5 w-5" />
-                  <span className="sr-only">Edit Profile</span>
-              </Button>
-          </DialogClose>
         </DialogHeader>
 
         {randomUser ? (
@@ -91,7 +85,13 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                 </div>
                 <CardContent className="p-6 space-y-6">
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">About Me</h3>
+                             <Button variant="ghost" size="icon" onClick={onEdit}>
+                                <Edit className="h-5 w-5" />
+                                <span className="sr-only">Edit Profile</span>
+                            </Button>
+                        </div>
                         <p className="text-muted-foreground italic">"{randomUser.bio}"</p>
                     </div>
                     
