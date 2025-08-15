@@ -15,7 +15,7 @@ export default function SignupPage() {
       <div className="mx-auto grid w-[400px] gap-6">
         <div className="grid gap-2 text-center">
             <div className="flex justify-center items-center gap-2">
-                <h1 className="text-3xl font-bold">Sign Up</h1>
+                <h1 className="text-3xl font-bold">Create an Account</h1>
             </div>
         </div>
         <SignupForm />

@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
@@ -73,19 +75,41 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuthActions();
+  const { signInWithGoogle, signUpWithEmailAndPassword } = useAuthActions();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", userId: "@", phone: "", email: "", password: "" },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-        title: "Account Created!",
-        description: "You have successfully created an account.",
-    })
-    router.push(`/live-selling`);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+        await signUpWithEmailAndPassword(values.email, values.password, {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            // You might want to save other details to user profile as well
+        });
+        toast({
+            title: "Account Created!",
+            description: "You have successfully created an account and logged in.",
+        });
+        router.push(`/live-selling`);
+    } catch (error) {
+        let errorMessage = "An unexpected error occurred during sign-up.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        toast({
+            title: "Sign-up Failed",
+            description: errorMessage,
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -99,7 +123,7 @@ export function SignupForm() {
                 <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                    <Input placeholder="John" {...field} />
+                    <Input placeholder="John" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -112,7 +136,7 @@ export function SignupForm() {
                 <FormItem>
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="Doe" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -129,6 +153,7 @@ export function SignupForm() {
                     <Input 
                         placeholder="@johndoe" 
                         {...field} 
+                        disabled={isLoading}
                         onChange={(e) => {
                             let value = e.target.value.toLowerCase();
                             if (!value.startsWith('@')) {
@@ -153,7 +178,7 @@ export function SignupForm() {
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground text-sm">
                         91+
                         </div>
-                        <Input placeholder="0000000000" {...field} className="pl-10" />
+                        <Input placeholder="0000000000" {...field} className="pl-10" disabled={isLoading} />
                     </div>
                 </FormControl>
                 <FormMessage />
@@ -167,7 +192,7 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Email Id</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} />
+                <Input placeholder="name@example.com" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -180,29 +205,29 @@ export function SignupForm() {
             <FormItem>
               <FormLabel>Create Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Make a strong password" {...field} />
+                <Input type="password" placeholder="Make a strong password" {...field} disabled={isLoading}/>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <Button type="submit" className="w-full font-semibold">
-          Create Account
+        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
-        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle}>
+        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>
 
         <div className="text-center text-sm">
-            <Link href="#" className="underline">
+            <Link href="/terms-and-conditions" className="underline">
                 Term & Conditions
             </Link>
         </div>
          <div className="mt-4 text-center text-sm flex items-center justify-center gap-2">
             Any Query ?{" "}
-            <Link href="#" className="underline font-semibold text-primary flex items-center gap-1">
+            <Link href="/help" className="underline font-semibold text-primary flex items-center gap-1">
               Get Help <BotIcon className="w-4 h-4" />
             </Link>
         </div>
