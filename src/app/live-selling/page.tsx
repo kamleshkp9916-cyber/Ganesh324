@@ -33,8 +33,7 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
-import { Logo } from '@/components/logo';
-import { Progress } from '@/components/ui/progress';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 
 const liveSellers = [
@@ -161,7 +160,6 @@ export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [progress, setProgress] = useState(0);
 
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
@@ -178,10 +176,6 @@ export default function LiveSellingPage() {
     setCurrentSlide(api.selectedScrollSnap());
   }, []);
 
-  const onAutoplayProgress = useCallback((api: CarouselApi, progress: number) => {
-    setProgress(progress);
-  }, []);
-
   useEffect(() => {
     if (!api) {
       return
@@ -190,12 +184,7 @@ export default function LiveSellingPage() {
     onSelect(api);
     api.on('select', onSelect);
     api.on('reInit', onSelect)
-
-    const autoplay = api.plugins().autoplay
-    if (autoplay) {
-        api.on('autoplay:progress', onAutoplayProgress);
-    }
-  }, [api, onSelect, onAutoplayProgress])
+  }, [api, onSelect])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -218,39 +207,50 @@ export default function LiveSellingPage() {
 
 
   return (
+    <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <div className="sticky top-0 flex h-screen w-16 flex-col items-center border-r border-border bg-background/50 py-4 gap-4">
-             <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
-                <Menu className="w-6 h-6" />
-            </Button>
-            <div className="flex flex-col items-center gap-2 mt-4 flex-1">
-              {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
-                <Button
-                  key={tooltip}
-                  variant="ghost"
-                  size="icon"
-                  className={`rounded-lg ${
-                    active
-                      ? 'bg-primary/20 text-primary'
-                      : 'text-muted-foreground'
-                  } hover:bg-primary/20 hover:text-primary`}
-                >
-                  <Icon className="h-6 w-6" />
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Zap className="h-6 w-6" />
-              </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Settings className="h-6 w-6" />
-              </Button>
-            </div>
-        </div>
+        <Sidebar collapsible="icon" variant="sidebar" className="p-2 transition-all duration-300 ease-in-out">
+            <SidebarContent className="flex flex-col justify-between">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton tooltip="Menu" className="md:hidden">
+                            <Menu />
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
+                         <SidebarMenuItem key={tooltip}>
+                            <SidebarMenuButton tooltip={tooltip} isActive={active}>
+                                <Icon />
+                                <span>{tooltip}</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+                 <SidebarMenu>
+                    <SidebarMenuItem>
+                         <SidebarMenuButton tooltip="What's New?">
+                            <Zap />
+                            <span>What's New?</span>
+                         </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton tooltip="Settings">
+                            <Settings />
+                            <span>Settings</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarContent>
+        </Sidebar>
+
         <div className="flex-1 flex flex-col">
            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
-                <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
+                <div className="flex items-center gap-2">
+                    <SidebarTrigger className="md:hidden">
+                        <Menu />
+                    </SidebarTrigger>
+                    <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
+                </div>
                 <div className="flex items-center gap-2" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out",
@@ -394,6 +394,7 @@ export default function LiveSellingPage() {
             </main>
         </div>
       </div>
+    </SidebarProvider>
   );
 }
 
