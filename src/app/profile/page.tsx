@@ -4,14 +4,15 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Mail, Phone, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { EditProfileForm } from '@/components/edit-profile-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Mock data generation
 const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
@@ -54,6 +55,8 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (user) {
@@ -96,6 +99,17 @@ export default function ProfilePage() {
     }
     setIsProfileDialogOpen(false);
   };
+  
+  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (loading) {
       return (
@@ -135,10 +149,28 @@ export default function ProfilePage() {
                 <div className="max-w-3xl mx-auto">
                     <Card className="overflow-hidden">
                         <div className="bg-primary/10 p-8 flex flex-col items-center gap-4">
-                        <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                                <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
-                                <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
-                            </Avatar>
+                            <div className="relative">
+                                <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                                    <AvatarImage src={profileImage || profileData.photoURL} alt={profileData.displayName} />
+                                    <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
+                                    onClick={() => profileFileInputRef.current?.click()}
+                                >
+                                    <Camera className="h-4 w-4" />
+                                    <span className="sr-only">Change profile image</span>
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={profileFileInputRef}
+                                    onChange={handleProfileImageUpload}
+                                    className="hidden"
+                                    accept="image/*"
+                                />
+                            </div>
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold">{profileData.displayName}</h2>
                                 <p className="text-muted-foreground">{profileData.email}</p>
@@ -183,8 +215,8 @@ export default function ProfilePage() {
                                         <p>{profileData.address.country}</p>
                                     </div>
                                 </div>
-                                 <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
-                                    <DialogHeader className="p-6 pb-4 border-b">
+                                 <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
                                         <DialogTitle>Edit Delivery Address</DialogTitle>
                                     </DialogHeader>
                                     {profileData && (
@@ -206,8 +238,8 @@ export default function ProfilePage() {
             )}
             </main>
         </div>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
-            <DialogHeader className="p-6 pb-4 border-b">
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
                 <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
              {profileData && (
@@ -221,3 +253,5 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
+
+    
