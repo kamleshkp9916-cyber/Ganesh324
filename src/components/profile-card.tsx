@@ -4,12 +4,13 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DialogHeader, DialogTitle } from './ui/dialog';
+import { cn } from '@/lib/utils';
 
 // Mock data generation for fields not in auth object
 const bios = [
@@ -36,12 +37,25 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [placeholder, setPlaceholder] = useState<ReturnType<typeof generatePlaceholderDetails> | null>(null);
-  
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (user) {
       setPlaceholder(generatePlaceholderDetails());
     }
   }, [user]);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBgImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (loading) {
       return (
@@ -69,27 +83,48 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
 
         {placeholder ? (
             <Card className="overflow-hidden border-0 shadow-none rounded-lg">
-                <div className="bg-primary/10 p-8 flex flex-col items-center gap-4">
-                    <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                <div 
+                  className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center"
+                  style={bgImage ? { backgroundImage: `url(${bgImage})` } : {}}
+                >
+                   <div className={cn(
+                       "absolute inset-0",
+                       bgImage ? "bg-black/40" : "bg-primary/10"
+                   )} />
+                   <div className="relative z-10 w-full flex justify-end">
+                       <Button variant="outline" size="icon" className="rounded-full bg-background/20 text-white border-white/50 hover:bg-background/40" onClick={() => fileInputRef.current?.click()}>
+                           <Camera className="h-5 w-5" />
+                           <span className="sr-only">Change background image</span>
+                       </Button>
+                       <input
+                           type="file"
+                           ref={fileInputRef}
+                           onChange={handleImageUpload}
+                           className="hidden"
+                           accept="image/*"
+                       />
+                   </div>
+
+                    <Avatar className="h-32 w-32 border-4 border-background shadow-lg relative z-10">
                         <AvatarImage src={user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
                         <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="text-center">
+                    <div className="text-center relative z-10 text-white">
                         <h2 className="text-3xl font-bold">{user.displayName}</h2>
-                        <p className="text-muted-foreground">{user.email}</p>
+                        <p className="text-white/80">{user.email}</p>
                     </div>
-                    <div className="flex gap-8 pt-4">
+                    <div className="flex gap-8 pt-4 relative z-10 text-white">
                         <div className="text-center">
                             <p className="text-2xl font-bold">{placeholder.following}</p>
-                            <p className="text-sm text-muted-foreground">Following</p>
+                            <p className="text-sm text-white/80">Following</p>
                         </div>
                         <div className="text-center">
                             <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Followers</p>
+                            <p className="text-sm text-white/80">Followers</p>
                         </div>
                         <div className="text-center">
                             <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Likes</p>
+                            <p className="text-sm text-white/80">Likes</p>
                         </div>
                     </div>
                 </div>
