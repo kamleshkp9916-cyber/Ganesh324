@@ -75,7 +75,7 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm() {
   const router = useRouter();
-  const { signInWithGoogle, signUpWithEmailAndPassword } = useAuthActions();
+  const { signInWithGoogle } = useAuthActions();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -86,30 +86,20 @@ export function SignupForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    try {
-        await signUpWithEmailAndPassword(values.email, values.password, {
-            firstName: values.firstName,
-            lastName: values.lastName,
-            // You might want to save other details to user profile as well
-        });
-        toast({
-            title: "Account Created!",
-            description: "You have successfully created an account and logged in.",
-        });
-        router.push(`/live-selling`);
-    } catch (error) {
-        let errorMessage = "An unexpected error occurred during sign-up.";
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-        toast({
-            title: "Sign-up Failed",
-            description: errorMessage,
-            variant: "destructive",
-        });
-    } finally {
-        setIsLoading(false);
-    }
+    // This simulates a successful signup.
+    console.log("Simulating signup with:", values);
+    
+    // Set a session item to activate the mock user in useAuth hook
+    sessionStorage.setItem('mockUserSessionActive', 'true');
+
+    toast({
+        title: "Account Created!",
+        description: "You have successfully created an account and logged in.",
+    });
+
+    // We are removing the timeout to make it faster
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    router.push('/live-selling');
   }
 
   return (

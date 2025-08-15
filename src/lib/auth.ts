@@ -18,6 +18,7 @@ export function useAuthActions() {
                 title: "Signed In!",
                 description: `Welcome back, ${result.user.displayName}!`,
             });
+            // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
             router.push("/live-selling");
         } catch (error) {
@@ -32,18 +33,23 @@ export function useAuthActions() {
     
     const signUpWithEmailAndPassword = async (email: string, password: string, profileData: { firstName: string; lastName: string; }) => {
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            await updateProfile(user, {
-                displayName: `${profileData.firstName} ${profileData.lastName}`,
-            });
+            // In a real app, you would use this. For now, we simulate.
+            // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            // const user = userCredential.user;
+            // await updateProfile(user, {
+            //     displayName: `${profileData.firstName} ${profileData.lastName}`,
+            // });
+            console.log("Simulating account creation for:", email);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             // This is key for the mock user flow
             sessionStorage.setItem('mockUserSessionActive', 'true');
             router.push(`/live-selling`);
-            return userCredential;
+            // return userCredential;
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";
+            // This error handling is kept for when you switch to real auth
             switch (error.code) {
                 case 'auth/email-already-in-use':
                     errorMessage = "This email address is already in use by another account.";

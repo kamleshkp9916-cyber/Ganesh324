@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   identifier: z.string().refine((value) => {
@@ -68,6 +69,7 @@ export function LoginForm() {
   const router = useRouter();
   const { signInWithGoogle } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,11 +78,20 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // In a real app, you'd do authentication here.
-    console.log(values);
+    // This simulates a successful login.
+    console.log("Simulating login with:", values);
+    
+    // Set a session item to activate the mock user in useAuth hook
+    sessionStorage.setItem('mockUserSessionActive', 'true');
+
+    toast({
+        title: "Logged In!",
+        description: "Welcome back!",
+    });
+    
     // We are removing the timeout to make it faster
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    router.push(`/otp?identifier=${encodeURIComponent(values.identifier)}`);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    router.push('/live-selling');
   }
 
   return (
@@ -158,5 +169,3 @@ export function LoginForm() {
     </Form>
   );
 }
-
-    
