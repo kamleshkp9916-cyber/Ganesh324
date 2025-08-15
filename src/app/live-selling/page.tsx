@@ -140,7 +140,6 @@ export default function LiveSellingPage() {
              <Button variant="ghost" size="icon" className="text-muted-foreground mt-2">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
             </Button>
-            <Logo className="h-8 w-8 text-primary" />
             <div className="flex flex-col items-center gap-2 mt-4 flex-1">
               {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
                 <Button
@@ -168,7 +167,7 @@ export default function LiveSellingPage() {
                     <Image src="https://placehold.co/1200x400.png" layout="fill" objectFit="cover" alt="Hero background" data-ai-hint="fantasy movie poster"/>
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
                     <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
-                         <div className="relative w-full max-w-xs">
+                         <div className="relative w-full max-w-[200px]">
                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input placeholder="Search" className="bg-background/50 pl-10 rounded-full" />
                         </div>
