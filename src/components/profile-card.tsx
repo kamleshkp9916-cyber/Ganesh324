@@ -113,9 +113,8 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-        
         {placeholder ? (
-            <ScrollArea className="h-full">
+             <ScrollArea className="h-full">
                 <div 
                   className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
                 >
@@ -223,7 +222,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
                 <LoadingSpinner />
             </div>
         )}
-        <DialogContent className="max-w-2xl h-[90vh] flex flex-col">
+        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>Edit Delivery Address</DialogTitle>
             </DialogHeader>
@@ -237,3 +236,5 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     </Dialog>
   );
 }
+
+    
