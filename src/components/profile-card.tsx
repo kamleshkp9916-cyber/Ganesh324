@@ -114,109 +114,111 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
         {placeholder ? (
-             <ScrollArea className="h-full">
-                <div 
-                  className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
-                >
-                   <div className={cn(
-                       "absolute inset-0 bg-primary/10"
-                   )} />
-                    
-                    <div className="relative z-10">
-                        <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                            <AvatarImage src={profileImage || user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
-                            <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <Button
-                            size="icon"
-                            variant="outline"
-                            className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
-                            onClick={() => profileFileInputRef.current?.click()}
-                        >
-                            <Camera className="h-4 w-4" />
-                            <span className="sr-only">Change profile image</span>
-                        </Button>
-                        <input
-                            type="file"
-                            ref={profileFileInputRef}
-                            onChange={handleProfileImageUpload}
-                            className="hidden"
-                            accept="image/*"
-                        />
-                    </div>
-                    
-                    <div className="text-center relative z-10 text-foreground">
-                        <h2 className="text-3xl font-bold">{user.displayName}</h2>
-                        <p className="text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="flex gap-8 pt-4 relative z-10 text-foreground">
-                        <div className="text-center">
-                            <p className="text-2xl font-bold">{placeholder.following}</p>
-                            <p className="text-sm text-muted-foreground">Following</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Followers</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
-                            <p className="text-sm text-muted-foreground">Likes</p>
-                        </div>
-                    </div>
-                </div>
+             <div className="h-full w-full">
+                <ScrollArea className="h-full">
+                  <div 
+                    className="p-8 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
+                  >
+                    <div className={cn(
+                        "absolute inset-0 bg-primary/10"
+                    )} />
+                      
+                      <div className="relative z-10">
+                          <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                              <AvatarImage src={profileImage || user.photoURL || `https://placehold.co/128x128.png?text=${user.displayName?.charAt(0)}`} alt={user.displayName || ""} />
+                              <AvatarFallback className="text-4xl">{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <Button
+                              size="icon"
+                              variant="outline"
+                              className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
+                              onClick={() => profileFileInputRef.current?.click()}
+                          >
+                              <Camera className="h-4 w-4" />
+                              <span className="sr-only">Change profile image</span>
+                          </Button>
+                          <input
+                              type="file"
+                              ref={profileFileInputRef}
+                              onChange={handleProfileImageUpload}
+                              className="hidden"
+                              accept="image/*"
+                          />
+                      </div>
+                      
+                      <div className="text-center relative z-10 text-foreground">
+                          <h2 className="text-3xl font-bold">{user.displayName}</h2>
+                          <p className="text-muted-foreground">{user.email}</p>
+                      </div>
+                      <div className="flex gap-8 pt-4 relative z-10 text-foreground">
+                          <div className="text-center">
+                              <p className="text-2xl font-bold">{placeholder.following}</p>
+                              <p className="text-sm text-muted-foreground">Following</p>
+                          </div>
+                          <div className="text-center">
+                              <p className="text-2xl font-bold">{(placeholder.followers / 1000).toFixed(1)}k</p>
+                              <p className="text-sm text-muted-foreground">Followers</p>
+                          </div>
+                          <div className="text-center">
+                              <p className="text-2xl font-bold">{(placeholder.likes / 1000).toFixed(1)}k</p>
+                              <p className="text-sm text-muted-foreground">Likes</p>
+                          </div>
+                      </div>
+                  </div>
 
-                <CardContent className="p-6 space-y-6">
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">About Me</h3>
-                            <Button variant="ghost" size="icon" onClick={onEdit}>
-                                <Edit className="h-5 w-5" />
-                                <span className="sr-only">Edit Profile</span>
-                            </Button>
-                        </div>
-                        <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
-                    </div>
+                  <CardContent className="p-6 space-y-6">
+                      <div>
+                          <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-semibold">About Me</h3>
+                              <Button variant="ghost" size="icon" onClick={onEdit}>
+                                  <Edit className="h-5 w-5" />
+                                  <span className="sr-only">Edit Profile</span>
+                              </Button>
+                          </div>
+                          <p className="text-muted-foreground italic">"{placeholder.bio}"</p>
+                      </div>
 
-                    <Separator />
-                    
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                            <div className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-muted-foreground" />
-                                <span>{user.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Phone className="w-5 h-5 text-muted-foreground" />
-                                <span>{phone}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <MapPin className="w-5 h-5 text-muted-foreground" />
-                                <span>{placeholder.location}</span>
-                            </div>
-                        </div>
-                    </div>
+                      <Separator />
+                      
+                      <div>
+                          <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                              <div className="flex items-center gap-3">
+                                  <Mail className="w-5 h-5 text-muted-foreground" />
+                                  <span>{user.email}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                  <Phone className="w-5 h-5 text-muted-foreground" />
+                                  <span>{phone}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                  <MapPin className="w-5 h-5 text-muted-foreground" />
+                                  <span>{placeholder.location}</span>
+                              </div>
+                          </div>
+                      </div>
 
-                    <Separator />
+                      <Separator />
 
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Delivery Address</h3>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <Edit className="h-5 w-5" />
-                                    <span className="sr-only">Edit Address</span>
-                                </Button>
-                            </DialogTrigger>
-                        </div>
-                       
-                        <div className="flex items-start gap-3">
-                            <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                            <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </ScrollArea>
+                      <div>
+                          <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-semibold">Delivery Address</h3>
+                              <DialogTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                      <Edit className="h-5 w-5" />
+                                      <span className="sr-only">Edit Address</span>
+                                  </Button>
+                              </DialogTrigger>
+                          </div>
+                        
+                          <div className="flex items-start gap-3">
+                              <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
+                              <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
+                          </div>
+                      </div>
+                  </CardContent>
+                </ScrollArea>
+            </div>
         ) : (
             <div className="flex items-center justify-center p-10 min-h-[400px]">
                 <LoadingSpinner />
@@ -236,5 +238,3 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
     </Dialog>
   );
 }
-
-    
