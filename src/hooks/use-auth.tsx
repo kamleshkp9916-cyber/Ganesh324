@@ -4,13 +4,12 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useRouter, usePathname } from 'next/navigation';
 
-// This is a mock user object to simulate a logged-in state.
-// We can use this for development to bypass Firebase auth.
 const mockUser: User = {
-  uid: 'mock-user-id',
-  email: 'test.user@example.com',
-  displayName: 'Test User',
+  uid: 'mock-user-id-123',
+  email: 'samael.prajapati@example.com',
+  displayName: 'Samael Prajapati',
   photoURL: 'https://placehold.co/40x40.png',
   emailVerified: true,
   isAnonymous: false,
@@ -44,24 +43,33 @@ const AuthContext = createContext<AuthContextType>({ user: null, loading: true }
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // To use real Firebase authentication, uncomment the lines below
-    // and remove the mock user logic.
-    /*
+    // --- Mock user for development ---
+    // To use real Firebase authentication, you can comment out or remove this block
+    const enableMockUser = true;
+    if (enableMockUser) {
+        // We use a timeout to better simulate a real network request
+        setTimeout(() => {
+            setUser(mockUser);
+            setLoading(false);
+        }, 500);
+        return;
+    }
+    // --------------------------------
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      if (user && (pathname === '/' || pathname === '/signup')) {
+          router.replace('/live-selling');
+      }
     });
     return () => unsubscribe();
-    */
-
-    // --- Mock user for development ---
-    setUser(mockUser);
-    setLoading(false);
-    // --------------------------------
-
-  }, []);
+    
+  }, [pathname, router]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
@@ -73,3 +81,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
+
+    

@@ -1,10 +1,11 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -13,7 +14,11 @@ export function useAuthActions() {
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            toast({
+                title: "Signed In!",
+                description: `Welcome back, ${result.user.displayName}!`,
+            });
             router.push("/live-selling");
         } catch (error) {
             console.error("Error signing in with Google: ", error);
@@ -32,11 +37,14 @@ export function useAuthActions() {
             await updateProfile(user, {
                 displayName: `${profileData.firstName} ${profileData.lastName}`,
             });
-            // You might want to store additional user info in Firestore here
+            toast({
+                title: "Account Created!",
+                description: "You have successfully created an account and logged in.",
+            });
+            router.push(`/live-selling`);
             return userCredential;
         } catch (error: any) {
             console.error("Error signing up: ", error);
-            // Translate Firebase error codes into user-friendly messages
             let errorMessage = "An unknown error occurred.";
             switch (error.code) {
                 case 'auth/email-already-in-use':
@@ -61,6 +69,11 @@ export function useAuthActions() {
     const signOut = async () => {
         try {
             await firebaseSignOut(auth);
+            toast({
+                title: "Signed Out",
+                description: "You have been successfully signed out.",
+            });
+            // No redirect, user stays on the current page.
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({
@@ -76,3 +89,5 @@ export function useAuthActions() {
 
 export { useAuth } from '@/hooks/use-auth.tsx';
 export { auth };
+
+    
