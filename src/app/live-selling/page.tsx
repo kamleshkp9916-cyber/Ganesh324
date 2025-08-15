@@ -184,15 +184,17 @@ export default function LiveSellingPage() {
                 variant="ghost"
                 size="icon"
                 className={`rounded-lg ${
-                  active ? 'text-primary' : 'text-muted-foreground'
-                } hover:text-primary`}
+                  active
+                    ? 'text-red-500'
+                    : 'text-red-500/50'
+                } hover:text-red-500`}
               >
                 <Icon className="h-6 w-6" />
               </Button>
             ))}
           </nav>
         </div>
-        <Button variant="ghost" size="icon" className="text-primary">
+        <Button variant="ghost" size="icon" className="text-red-500">
           <Zap className="h-6 w-6" />
         </Button>
       </aside>
@@ -336,8 +338,10 @@ export default function LiveSellingPage() {
                     key={tooltip}
                     variant="ghost"
                     className={`w-full justify-start gap-2 ${
-                      active ? 'text-primary' : 'text-muted-foreground'
-                    } hover:text-primary`}
+                      active
+                        ? 'text-red-500'
+                        : 'text-red-500/50'
+                    } hover:text-red-500`}
                   >
                     <Icon className="h-6 w-6" />
                     <span>{tooltip}</span>
