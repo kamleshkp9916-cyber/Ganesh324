@@ -284,16 +284,14 @@ export default function LiveSellingPage() {
                                 </>
                              ) : (
                                 <>
-                                    <DropdownMenuLabel>Login or create account for using profile</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
                                         <Link href="/" className="w-full">
-                                            <Button className="w-full justify-start text-destructive" variant="ghost"><User className="mr-2" />Login</Button>
+                                            <User className="mr-2" />Login
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                         <Link href="/signup" className="w-full">
-                                            <Button className="w-full justify-start text-destructive" variant="ghost"><Plus className="mr-2" />Create Account</Button>
+                                            <Plus className="mr-2" />Create Account
                                         </Link>
                                     </DropdownMenuItem>
                                 </>
