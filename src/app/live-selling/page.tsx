@@ -42,7 +42,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 
 const liveSellers = [
@@ -291,56 +292,48 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                    <Sheet>
+                        <SheetTrigger asChild>
                              <Avatar className="h-9 w-9 cursor-pointer">
                                 <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="female person"/>
                                 <AvatarFallback>U</AvatarFallback>
                             </Avatar>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-64" align="end">
-                            <DropdownMenuLabel className="font-normal">
-                                <div className="flex flex-col space-y-2">
-                                     <p className="text-sm font-medium leading-none">@bantypr324</p>
-                                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                        <span>
-                                            <span className="text-red-500">•</span> Following <span className="font-semibold text-foreground">200</span>
-                                        </span>
-                                        <span>
-                                            Followers <span className="font-semibold text-foreground">100</span>
-                                        </span>
-                                     </div>
-                                </div>
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                            </DropdownMenuItem>
-                             <DropdownMenuItem asChild>
-                                <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                               <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuItem asChild>
-                                <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                               <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
-                            </DropdownMenuItem>
-                             <DropdownMenuItem asChild>
-                                <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        </SheetTrigger>
+                        <SheetContent className="w-80 p-0">
+                            <SheetHeader className="p-4 text-left">
+                                <SheetTitle className="font-normal">
+                                    <div className="flex flex-col space-y-2">
+                                        <p className="text-sm font-medium leading-none">@bantypr324</p>
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                            <span>
+                                                <span className="text-red-500">•</span> Following <span className="font-semibold text-foreground">200</span>
+                                            </span>
+                                            <span>
+                                                Followers <span className="font-semibold text-foreground">100</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </SheetTitle>
+                            </SheetHeader>
+                            <Separator />
+                            <div className="py-2">
+                                <Link href="/profile" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                <Link href="/orders" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                <Link href="/top-seller" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                                <Link href="/message" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                            </div>
+                            <Separator />
+                            <div className="py-2">
+                                <Link href="/setting" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                                <Link href="/privacy-and-security" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                            </div>
+                            <Separator />
+                             <div className="py-2">
+                                <Link href="/terms-and-conditions" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
+                                <Link href="/help" className="flex items-center px-4 py-2 text-sm hover:bg-accent"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                             </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </header>
 
@@ -451,5 +444,3 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
-
-    
