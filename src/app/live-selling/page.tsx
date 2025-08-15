@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Clapperboard,
@@ -28,11 +28,11 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
+import { Progress } from '@/components/ui/progress';
 
 
 const liveSellers = [
@@ -157,6 +157,8 @@ export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+  const [api, setApi] = useState<CarouselApi>()
+  const [progress, setProgress] = useState(0)
   
   const sidebarIcons = [
     { icon: Home, tooltip: 'Home', active: true },
@@ -167,6 +169,23 @@ export default function LiveSellingPage() {
   ];
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
+  
+  const onAutoplayProgress = useCallback((api: CarouselApi) => {
+      const progress = Math.max(0, Math.min(1, api.scrollProgress()))
+      setProgress(progress * 100)
+  }, [])
+
+
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+ 
+    api.on('autoplay:progress', onAutoplayProgress)
+    api.on('reInit', (api) => {
+        onAutoplayProgress(api);
+    })
+  }, [api, onAutoplayProgress])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -266,36 +285,38 @@ export default function LiveSellingPage() {
                   {isLoadingOffers ? (
                     <Skeleton className="w-full aspect-[3/1] rounded-lg" />
                   ) : (
-                    <Carousel
-                      className="w-full"
-                      plugins={[Autoplay({ delay: 5000 })]}
-                      opts={{ loop: true }}
-                    >
-                      <CarouselContent>
-                        {offerSlides.map((slide) => (
-                          <CarouselItem key={slide.id}>
-                            <Card className="overflow-hidden">
-                              <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
-                                <Image
-                                  src={slide.imageUrl}
-                                  alt={slide.title}
-                                  layout="fill"
-                                  objectFit="cover"
-                                  className="brightness-75"
-                                  data-ai-hint={slide.hint}
-                                />
-                                <div className="absolute text-center text-white p-4">
-                                  <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
-                                  <p className="text-sm md:text-lg">{slide.description}</p>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="hidden sm:flex" />
-                      <CarouselNext className="hidden sm:flex" />
-                    </Carousel>
+                    <div>
+                        <Carousel
+                            className="w-full"
+                            plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+                            opts={{ loop: true }}
+                            setApi={setApi}
+                        >
+                            <CarouselContent>
+                                {offerSlides.map((slide) => (
+                                <CarouselItem key={slide.id}>
+                                    <Card className="overflow-hidden">
+                                    <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
+                                        <Image
+                                        src={slide.imageUrl}
+                                        alt={slide.title}
+                                        layout="fill"
+                                        objectFit="cover"
+                                        className="brightness-75"
+                                        data-ai-hint={slide.hint}
+                                        />
+                                        <div className="absolute text-center text-white p-4">
+                                        <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
+                                        <p className="text-sm md:text-lg">{slide.description}</p>
+                                        </div>
+                                    </CardContent>
+                                    </Card>
+                                </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                        </Carousel>
+                         <Progress value={progress} className="h-1 mt-2 progress-red" />
+                    </div>
                   )}
                 </div>
 
@@ -354,6 +375,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-
-    
