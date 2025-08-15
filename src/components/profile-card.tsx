@@ -113,10 +113,7 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-        <DialogHeader>
-          <DialogTitle className="sr-only">User Profile</DialogTitle>
-        </DialogHeader>
-
+        
         {placeholder ? (
             <Card className="overflow-hidden border-0 shadow-none rounded-lg">
                 <div 

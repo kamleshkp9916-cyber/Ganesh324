@@ -47,7 +47,7 @@ import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProfileCard } from '@/components/profile-card';
 
 
@@ -437,6 +437,9 @@ export default function LiveSellingPage() {
                 </main>
             </div>
             <DialogContent className="max-w-3xl p-0 border-0">
+                <DialogHeader>
+                    <DialogTitle className="sr-only">User Profile</DialogTitle>
+                </DialogHeader>
                 <ProfileCard onEdit={() => setIsProfileOpen(false)} />
             </DialogContent>
         </Dialog>
