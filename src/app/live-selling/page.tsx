@@ -184,25 +184,26 @@ export default function LiveSellingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
                 <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-end">
                     <div className="flex items-center gap-2" ref={searchRef}>
-                         <div className={cn(
+                        <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out",
-                             isSearchExpanded ? "w-48" : "w-10"
-                         )}>
+                            isSearchExpanded ? "w-48" : "w-10"
+                        )}>
+                            <Input 
+                                placeholder="Search..." 
+                                className={cn(
+                                    "bg-background/50 pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
+                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                                )}
+                                onFocus={() => setIsSearchExpanded(true)}
+                            />
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-white rounded-full bg-white/10 hover:bg-white/20 absolute right-0"
+                                className="text-white rounded-full bg-white/10 hover:bg-white/20 absolute right-0 top-1/2 -translate-y-1/2"
                                 onClick={() => setIsSearchExpanded(true)}
                             >
-                                <Search />
+                                <Search className={cn("h-5 w-5", isSearchExpanded && "absolute left-3 top-1/2 -translate-y-1/2")} />
                             </Button>
-                           <Input 
-                                placeholder="Search..." 
-                                className={cn(
-                                    "bg-background/50 pl-4 pr-12 rounded-full transition-all duration-300 ease-in-out",
-                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                                )}
-                            />
                        </div>
                         <Button variant="ghost" size="icon" className="text-white rounded-full bg-white/10 hover:bg-white/20">
                             <Plus />
