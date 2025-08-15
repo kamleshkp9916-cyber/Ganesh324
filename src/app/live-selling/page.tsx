@@ -244,9 +244,6 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
                 <div className="flex items-center gap-2">
-                    <SidebarTrigger className="md:hidden">
-                        <Menu />
-                    </SidebarTrigger>
                     <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
                 </div>
                 <div className="flex items-center gap-2" ref={searchRef}>
