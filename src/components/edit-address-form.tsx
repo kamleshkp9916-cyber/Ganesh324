@@ -29,6 +29,7 @@ const formSchema = z.object({
   city: z.string().min(1, { message: "City is required." }),
   country: z.string().min(1, { message: "Country is required." }),
   state: z.string().min(1, { message: "State is required." }),
+  pincode: z.string().regex(/^\d{6}$/, { message: "Please enter a valid 6-digit pin code." }),
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit phone number with country code." }),
 });
 
@@ -38,6 +39,7 @@ interface EditAddressFormProps {
     city: string;
     state: string;
     country: string;
+    pincode: string;
   };
   currentPhone: string;
   onSave: (data: z.infer<typeof formSchema>) => void;
@@ -52,6 +54,7 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
       city: currentAddress.city,
       state: currentAddress.state,
       country: currentAddress.country,
+      pincode: currentAddress.pincode,
       phone: currentPhone,
     },
   });
@@ -119,6 +122,21 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 )}
             />
             <FormField
+            control={form.control}
+            name="pincode"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Pin Code</FormLabel>
+                <FormControl>
+                    <Input placeholder="e.g., 411001" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        
+         <FormField
                 control={form.control}
                 name="country"
                 render={({ field }) => (
@@ -131,7 +149,6 @@ export function EditAddressForm({ currentAddress, currentPhone, onSave, onCancel
                 </FormItem>
                 )}
             />
-        </div>
         
         <FormField
             control={form.control}

@@ -38,7 +38,7 @@ const generatePlaceholderDetails = () => {
         city: "Anytown",
         state: "Maharashtra",
         country: "India",
-        pincode: "12345"
+        pincode: "123456"
     }
   };
 };
@@ -80,13 +80,13 @@ export function ProfileCard({ onEdit }: { onEdit?: () => void }) {
         city: data.city,
         state: data.state,
         country: data.country,
-        pincode: ""
+        pincode: data.pincode,
     });
     setPhone(data.phone);
     setIsAddressDialogOpen(false);
   }
 
-  const formattedAddress = `${address.village}, ${address.city}, ${address.state}, ${address.country}`;
+  const formattedAddress = `${address.village}, ${address.city}, ${address.state}, ${address.country} - ${address.pincode}`;
 
 
   if (loading) {
