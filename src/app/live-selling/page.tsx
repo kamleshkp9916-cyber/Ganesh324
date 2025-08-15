@@ -17,6 +17,13 @@ import {
   Settings,
   Users,
   Menu,
+  User,
+  ShoppingBag,
+  Award,
+  MessageSquare,
+  Shield,
+  FileText,
+  LifeBuoy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -35,6 +42,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 
 const liveSellers = [
@@ -163,11 +171,9 @@ export default function LiveSellingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
   const sidebarIcons = [
-    { icon: Home, tooltip: 'Home', active: true },
-    { icon: Clapperboard, tooltip: 'Movie' },
-    { icon: Heart, tooltip: 'Favorite' },
-    { icon: Star, tooltip: 'Rated' },
-    { icon: Bookmark, tooltip: 'Library' },
+    { icon: Home, tooltip: 'Home', active: true, href: '/live-selling' },
+    { icon: Clapperboard, tooltip: 'Feed', href: '/feed' },
+    { icon: Heart, tooltip: 'Top Seller', href: '/top-seller' },
   ];
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
@@ -210,7 +216,7 @@ export default function LiveSellingPage() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
-        <Sidebar variant="sidebar" collapsible="offcanvas" className="p-2 transition-all duration-300 ease-in-out md:block hidden">
+        <Sidebar variant="sidebar" collapsible="offcanvas" className="p-2 transition-all duration-300 ease-in-out hidden md:block">
             <SidebarContent className="flex flex-col justify-between">
                 <SidebarMenu>
                      <SidebarMenuItem className="mb-4">
@@ -218,24 +224,30 @@ export default function LiveSellingPage() {
                             <Logo className="w-8 h-8" />
                         </Link>
                     </SidebarMenuItem>
-                    {sidebarIcons.map(({ icon: Icon, tooltip, active }) => (
+                    {sidebarIcons.map(({ icon: Icon, tooltip, active, href }) => (
                          <SidebarMenuItem key={tooltip}>
-                            <SidebarMenuButton tooltip={tooltip} isActive={active}>
-                                <Icon />
-                            </SidebarMenuButton>
+                            <Link href={href} passHref>
+                                <SidebarMenuButton tooltip={tooltip} isActive={active}>
+                                    <Icon />
+                                </SidebarMenuButton>
+                            </Link>
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
                  <SidebarMenu>
                     <SidebarMenuItem>
-                         <SidebarMenuButton tooltip="What's New?">
-                            <Zap />
-                         </SidebarMenuButton>
+                        <Link href="/live-selling/#new" passHref>
+                            <SidebarMenuButton tooltip="What's New?">
+                                <Zap />
+                            </SidebarMenuButton>
+                        </Link>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                        <SidebarMenuButton tooltip="Settings">
-                            <Settings />
-                        </SidebarMenuButton>
+                        <Link href="/setting" passHref>
+                            <SidebarMenuButton tooltip="Settings">
+                                <Settings />
+                            </SidebarMenuButton>
+                        </Link>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarContent>
@@ -244,6 +256,9 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
                 <div className="flex items-center gap-2">
+                    <SidebarTrigger className="md:hidden">
+                        <Menu />
+                    </SidebarTrigger>
                     <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
                 </div>
                 <div className="flex items-center gap-2" ref={searchRef}>
@@ -276,12 +291,56 @@ export default function LiveSellingPage() {
                     <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
                         <Bell />
                     </Button>
-                    <Link href="/profile" passHref>
-                        <Avatar className="h-9 w-9 cursor-pointer">
-                            <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="female person"/>
-                            <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                    </Link>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Avatar className="h-9 w-9 cursor-pointer">
+                                <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="female person"/>
+                                <AvatarFallback>U</AvatarFallback>
+                            </Avatar>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-64" align="end">
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-2">
+                                     <p className="text-sm font-medium leading-none">@bantypr324</p>
+                                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                        <span>
+                                            <span className="text-red-500">•</span> Following <span className="font-semibold text-foreground">200</span>
+                                        </span>
+                                        <span>
+                                            Followers <span className="font-semibold text-foreground">100</span>
+                                        </span>
+                                     </div>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                               <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <DropdownMenuItem asChild>
+                                <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                               <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
+                            </DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 
@@ -392,3 +451,5 @@ export default function LiveSellingPage() {
     </SidebarProvider>
   );
 }
+
+    
