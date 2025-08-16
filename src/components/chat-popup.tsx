@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'them', timestamp: '10:01 AM' },
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +48,16 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     setNewMessage('');
   };
 
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('div');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    }
+  }, [messages]);
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <Card className="w-80 h-[450px] flex flex-col shadow-2xl rounded-xl">
@@ -62,8 +73,8 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
             <X className="h-5 w-5" />
           </Button>
         </CardHeader>
-        <CardContent className="flex-1 p-0">
-          <ScrollArea className="h-full p-4">
+        <CardContent className="flex-1 p-0 overflow-hidden">
+          <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
