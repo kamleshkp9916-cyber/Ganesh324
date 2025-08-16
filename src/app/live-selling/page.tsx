@@ -26,7 +26,12 @@ import {
   LifeBuoy,
   Wallet,
   List,
-  LogOut
+  LogOut,
+  MoreHorizontal,
+  Flag,
+  Share2,
+  MessageCircle,
+  Clipboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -51,6 +56,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreatePostForm } from '@/components/create-post-form';
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 
 const liveSellers = [
@@ -187,6 +203,15 @@ const mockFollowingFeed = [
     { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases', likes: 88, replies: 9 },
 ];
 
+const reportReasons = [
+    { id: "spam", label: "It's spam" },
+    { id: "hate", label: "Hate speech or symbols" },
+    { id: "violence", label: "Violence or dangerous organizations" },
+    { id: "scam", label: "Scam or fraud" },
+    { id: "false", label: "False information" },
+    { id: "bullying", label: "Bullying or harassment" },
+];
+
 
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -197,10 +222,32 @@ export default function LiveSellingPage() {
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [selectedReportReason, setSelectedReportReason] = useState("");
+  const { toast } = useToast();
 
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     setFollowingList(currentList => currentList.filter(user => user.id !== userId));
+  };
+  
+  const handleShare = (postId: number) => {
+    const link = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(link);
+    toast({
+        title: "Link Copied!",
+        description: "The post link has been copied to your clipboard.",
+    });
+  };
+
+  const submitReport = () => {
+    console.log("Submitting report for reason:", selectedReportReason);
+    toast({
+        title: "Report Submitted",
+        description: "Thank you for your feedback. We will review this post.",
+    });
+    setIsReportDialogOpen(false);
+    setSelectedReportReason("");
   };
 
 
@@ -512,6 +559,34 @@ export default function LiveSellingPage() {
                         </TabsContent>
 
                         <TabsContent value="feeds">
+                             <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Report Post</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Please select a reason for reporting this post. Your feedback is important to us.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <div className="grid gap-2">
+                                        {reportReasons.map(reason => (
+                                            <Button
+                                                key={reason.id}
+                                                variant={selectedReportReason === reason.id ? "secondary" : "ghost"}
+                                                onClick={() => setSelectedReportReason(reason.id)}
+                                                className="justify-start"
+                                            >
+                                                {reason.label}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setSelectedReportReason("")}>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={submitReport} disabled={!selectedReportReason}>
+                                        Submit Report
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                             </AlertDialog>
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                                 <div className="lg:col-span-3 space-y-4">
                                     {mockFollowingFeed.map(item => (
@@ -526,6 +601,43 @@ export default function LiveSellingPage() {
                                                         <p className="font-semibold text-destructive">{item.sellerName}</p>
                                                         <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                                     </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                <span>Share</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Feedback</span>
+                                                                </a>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger>
+                                                                    <Flag className="mr-2 h-4 w-4" />
+                                                                    <span>Report</span>
+                                                                </DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator />
+                                                                        {reportReasons.map(reason => (
+                                                                            <DropdownMenuItem key={reason.id} onClick={() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}>
+                                                                                <span>{reason.label}</span>
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </div>
                                             <div className="px-4 pb-4">
