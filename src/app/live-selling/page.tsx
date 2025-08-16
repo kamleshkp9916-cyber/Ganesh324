@@ -247,9 +247,6 @@ const shuffleArray = (array: any[]) => {
     return array;
 };
 
-const topLiveStreams = [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
-
-
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -267,6 +264,43 @@ export default function LiveSellingPage() {
   const [activeTab, setActiveTab] = useState("live");
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredLiveSellers = useMemo(() => {
+    if (!searchTerm) return liveSellers;
+    return liveSellers.filter(seller =>
+      seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seller.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredFeed = useMemo(() => {
+    if (!searchTerm) return mockFollowingFeed;
+    return mockFollowingFeed.filter(item =>
+        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, mockFollowingFeed]);
+  
+  const filteredTrendingTopics = useMemo(() => {
+    if (!searchTerm) return trendingTopics;
+    return trendingTopics.filter(topic =>
+        topic.topic.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredSuggestedUsers = useMemo(() => {
+    if (!searchTerm) return suggestedUsers;
+    return suggestedUsers.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.handle.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, suggestedUsers]);
+
+  const topLiveStreams = useMemo(() => {
+    return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+  }, []);
+
 
   useEffect(() => {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
@@ -381,12 +415,14 @@ export default function LiveSellingPage() {
                         )}>
                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                             <Input 
-                                placeholder="Search streams..." 
+                                placeholder="Search posts, streams, users..." 
                                 className={cn(
                                     "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
                                     isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
                                 )}
                                 onFocus={() => setIsSearchExpanded(true)}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             
                             <Button 
@@ -598,7 +634,7 @@ export default function LiveSellingPage() {
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {liveSellers.map((seller) => (
+                                {filteredLiveSellers.map((seller) => (
                                     <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
@@ -668,7 +704,7 @@ export default function LiveSellingPage() {
                              </AlertDialog>
                               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                                 <div className="lg:col-span-2 space-y-4">
-                                  {mockFollowingFeed.map((item, index) => (
+                                  {filteredFeed.map((item, index) => (
                                       <React.Fragment key={item.id}>
                                           <Card className="overflow-hidden">
                                               <div className="p-4">
@@ -758,7 +794,7 @@ export default function LiveSellingPage() {
                                                     </CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="space-y-3">
-                                                    {trendingTopics.map(topic => (
+                                                    {filteredTrendingTopics.map(topic => (
                                                         <div key={topic.id} className="text-sm cursor-pointer group">
                                                             <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                             <p className="text-xs text-muted-foreground">{topic.posts}</p>
@@ -774,7 +810,7 @@ export default function LiveSellingPage() {
                                                     </CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="space-y-4">
-                                                    {suggestedUsers.map(user => (
+                                                    {filteredSuggestedUsers.map(user => (
                                                         <div key={user.id} className="flex items-center justify-between">
                                                             <div className="flex items-center gap-3">
                                                                 <Avatar className="h-10 w-10">
