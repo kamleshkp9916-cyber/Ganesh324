@@ -10,6 +10,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Image from 'next/image';
+import { getMessages, sendMessage, Message } from '@/ai/flows/chat-flow';
+import { Skeleton } from './ui/skeleton';
 
 interface ChatPopupProps {
   user: {
@@ -19,41 +21,59 @@ interface ChatPopupProps {
   onClose: () => void;
 }
 
-interface Message {
-  id: number;
-  text?: string;
-  sender: 'me' | 'them';
-  timestamp: string;
-  image?: string;
-}
-
 export function ChatPopup({ user, onClose }: ChatPopupProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'them', timestamp: '10:00 AM' },
-    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'me', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'them', timestamp: '10:01 AM' },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createMessage = (msg: Omit<Message, 'id' | 'timestamp'>): Message => ({
-      ...msg,
-      id: messages.length + 1,
+  useEffect(() => {
+    const fetchMessages = async () => {
+      setIsLoading(true);
+      try {
+        const history = await getMessages(user.displayName);
+        setMessages(history);
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMessages();
+  }, [user.displayName]);
+
+  const handleSendMessage = async (e?: React.FormEvent, messageContent?: { text?: string; image?: string }) => {
+    if (e) e.preventDefault();
+    const content = messageContent || { text: newMessage.trim() };
+    if (!content.text && !content.image) return;
+
+    if (!messageContent) {
+      setNewMessage('');
+    }
+
+    // Optimistically update the UI
+    const optimisticMessage: Message = {
+      id: Math.random(), // Temporary ID
+      ...content,
+      sender: 'me',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  });
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newMessage.trim() === '') return;
-
-    setMessages(prev => [...prev, createMessage({ text: newMessage, sender: 'me' })]);
-    setNewMessage('');
+    try {
+      const updatedMessages = await sendMessage(user.displayName, content);
+      setMessages(updatedMessages);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      // Revert optimistic update on error if needed
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+    }
   };
 
   const handleSendOrderStatus = () => {
-    const orderMessage = "Hi, I'd like to check the status of my recent order. The order ID is #12345XYZ.";
-    setMessages(prev => [...prev, createMessage({ text: orderMessage, sender: 'me' })]);
+    const orderMessage = { text: "Hi, I'd like to check the status of my recent order. The order ID is #12345XYZ." };
+    handleSendMessage(undefined, orderMessage);
   };
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,16 +81,15 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setMessages(prev => [...prev, createMessage({ image: reader.result as string, sender: 'me' })]);
+        handleSendMessage(undefined, { image: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
   };
 
   useEffect(() => {
-    // Scroll to bottom when new messages are added
     if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('div');
+      const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
       if (viewport) {
         viewport.scrollTop = viewport.scrollHeight;
       }
@@ -93,27 +112,35 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
           </Button>
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden">
-          <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[75%] rounded-lg px-3 py-2 ${
-                    msg.sender === 'me'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}>
-                    {msg.text && <p className="text-sm">{msg.text}</p>}
-                    {msg.image && (
-                        <Image src={msg.image} alt="Sent image" width={150} height={150} className="rounded-md" />
-                    )}
-                    <p className={`text-xs mt-1 ${
-                        msg.sender === 'me'
-                        ? 'text-primary-foreground/70 text-right'
-                        : 'text-muted-foreground text-right'
-                    }`}>{msg.timestamp}</p>
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
+             <div className="p-4 space-y-4">
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-10 w-3/4" />
+                  <Skeleton className="h-10 w-3/4 ml-auto" />
+                  <Skeleton className="h-10 w-1/2" />
+                </>
+              ) : (
+                messages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[75%] rounded-lg px-3 py-2 ${
+                      msg.sender === 'me'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}>
+                      {msg.text && <p className="text-sm">{msg.text}</p>}
+                      {msg.image && (
+                          <Image src={msg.image} alt="Sent image" width={150} height={150} className="rounded-md" />
+                      )}
+                      <p className={`text-xs mt-1 ${
+                          msg.sender === 'me'
+                          ? 'text-primary-foreground/70 text-right'
+                          : 'text-muted-foreground text-right'
+                      }`}>{msg.timestamp}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </ScrollArea>
         </CardContent>
