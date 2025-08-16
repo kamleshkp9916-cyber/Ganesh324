@@ -49,6 +49,7 @@ import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const liveSellers = [
@@ -177,6 +178,12 @@ const initialFollowing = [
     { id: 'user6', name: 'AdventureJunkie', avatar: 'https://placehold.co/40x40.png' },
     { id: 'user7', name: 'BookWorm', avatar: 'https://placehold.co/40x40.png' },
     { id: 'user8', name: 'DIYDan', avatar: 'https://placehold.co/40x40.png' },
+];
+
+const mockFollowingFeed = [
+    { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion' },
+    { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying' },
+    { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases' },
 ];
 
 
@@ -392,106 +399,144 @@ export default function LiveSellingPage() {
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                <div className="mb-6">
-                    {isLoadingOffers ? (
-                        <Skeleton className="w-full aspect-[3/1] rounded-lg" />
-                    ) : (
-                        <div>
-                            <Carousel
-                                className="w-full"
-                                plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
-                                opts={{ loop: true }}
-                                setApi={setApi}
-                            >
-                                <CarouselContent>
-                                    {offerSlides.map((slide) => (
-                                    <CarouselItem key={slide.id}>
-                                        <Card className="overflow-hidden bg-card">
-                                        <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
-                                            <Image
-                                            src={slide.imageUrl}
-                                            alt={slide.title}
-                                            layout="fill"
-                                            objectFit="cover"
-                                            className="brightness-75"
-                                            data-ai-hint={slide.hint}
-                                            />
-                                            <div className="absolute text-center text-primary-foreground p-4">
-                                            <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
-                                            <p className="text-sm md:text-lg">{slide.description}</p>
-                                            </div>
-                                        </CardContent>
-                                        </Card>
-                                    </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                            </Carousel>
-                            <div className="flex justify-center gap-2 mt-4">
-                                {offerSlides.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => api?.scrollTo(index)}
-                                        className={cn(
-                                            "h-2 w-2 rounded-full transition-colors",
-                                            index === currentSlide ? 'bg-primary' : 'bg-muted'
-                                        )}
-                                    />
-                                ))}
-                            </div>
+                    <Tabs defaultValue="live" className="w-full">
+                        <div className="flex justify-center mb-6">
+                            <TabsList>
+                                <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                                <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                            </TabsList>
                         </div>
-                    )}
-                    </div>
 
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {filterButtons.map((filter) => (
-                        <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
-                            {filter}
-                        </Button>
-                        ))}
-                        <Button variant="ghost" className="bg-card/50 rounded-full">
-                            Filters
-                            <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                        {liveSellers.map((seller) => (
-                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                <div className="absolute top-2 left-2 z-10">
-                                    <Badge className="bg-destructive text-destructive-foreground animate-pulse-red">
-                                        LIVE
-                                    </Badge>
-                                </div>
-                                <div className="absolute top-2 right-2 z-10">
-                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                        <Users className="w-3 h-3 mr-1.5" />
-                                        {seller.viewers}
-                                    </Badge>
-                                </div>
-
-                                <Image 
-                                    src={seller.thumbnailUrl} 
-                                    alt={`Live stream from ${seller.name}`} 
-                                    width={300} 
-                                    height={450} 
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    data-ai-hint={seller.hint}
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-8 w-8 border-2 border-primary">
-                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <h3 className="font-semibold text-sm text-destructive truncate">{seller.name}</h3>
-                                            <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                        </div>
+                        <TabsContent value="live">
+                            <div className="mb-6">
+                            {isLoadingOffers ? (
+                                <Skeleton className="w-full aspect-[3/1] rounded-lg" />
+                            ) : (
+                                <div>
+                                    <Carousel
+                                        className="w-full"
+                                        plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+                                        opts={{ loop: true }}
+                                        setApi={setApi}
+                                    >
+                                        <CarouselContent>
+                                            {offerSlides.map((slide) => (
+                                            <CarouselItem key={slide.id}>
+                                                <Card className="overflow-hidden bg-card">
+                                                <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
+                                                    <Image
+                                                    src={slide.imageUrl}
+                                                    alt={slide.title}
+                                                    layout="fill"
+                                                    objectFit="cover"
+                                                    className="brightness-75"
+                                                    data-ai-hint={slide.hint}
+                                                    />
+                                                    <div className="absolute text-center text-primary-foreground p-4">
+                                                    <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
+                                                    <p className="text-sm md:text-lg">{slide.description}</p>
+                                                    </div>
+                                                </CardContent>
+                                                </Card>
+                                            </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                    </Carousel>
+                                    <div className="flex justify-center gap-2 mt-4">
+                                        {offerSlides.map((_, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => api?.scrollTo(index)}
+                                                className={cn(
+                                                    "h-2 w-2 rounded-full transition-colors",
+                                                    index === currentSlide ? 'bg-primary' : 'bg-muted'
+                                                )}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
+                            )}
                             </div>
-                        ))}
-                    </div>
+
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {filterButtons.map((filter) => (
+                                <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
+                                    {filter}
+                                </Button>
+                                ))}
+                                <Button variant="ghost" className="bg-card/50 rounded-full">
+                                    Filters
+                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                {liveSellers.map((seller) => (
+                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <div className="absolute top-2 left-2 z-10">
+                                            <Badge className="bg-destructive text-destructive-foreground">
+                                                LIVE
+                                            </Badge>
+                                        </div>
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                                <Users className="w-3 h-3 mr-1.5" />
+                                                {seller.viewers}
+                                            </Badge>
+                                        </div>
+
+                                        <Image 
+                                            src={seller.thumbnailUrl} 
+                                            alt={`Live stream from ${seller.name}`} 
+                                            width={300} 
+                                            height={450} 
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={seller.hint}
+                                        />
+                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8 border-2 border-primary">
+                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <h3 className="font-semibold text-sm text-destructive truncate">{seller.name}</h3>
+                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="feeds">
+                             <div className="max-w-2xl mx-auto space-y-4">
+                                {mockFollowingFeed.map(item => (
+                                     <Card key={item.id}>
+                                        <div className="p-4">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                    <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                    <p className="text-xs text-muted-foreground">{item.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <p className="text-sm mb-3 flex-1">{item.content}</p>
+                                                <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                                    <Image src={item.productImageUrl} alt="Feed item" width={100} height={100} className="w-full h-full object-cover" data-ai-hint={item.hint} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                     </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </main>
                 <Footer />
             </div>
