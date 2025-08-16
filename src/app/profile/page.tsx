@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from '@/hooks/use-auth.tsx';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,7 +52,10 @@ const generateRandomUser = (currentUser: any) => {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
   const { user, loading } = useAuth();
+
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -60,13 +63,14 @@ export default function ProfilePage() {
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
+  const isOwnProfile = !userId;
+
   useEffect(() => {
-    if (user) {
-      if (!profileData) {
-        setProfileData(generateRandomUser(user));
-      }
+    const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
+    if (activeUser) {
+        setProfileData(generateRandomUser(activeUser));
     }
-  }, [user, profileData]);
+  }, [user, userId, isOwnProfile]);
 
   const handleAddressSave = (data: any) => {
     if(profileData){
@@ -113,7 +117,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (loading || !profileData) {
       return (
           <div className="flex items-center justify-center min-h-screen">
               <LoadingSpinner />
@@ -121,7 +125,7 @@ export default function ProfilePage() {
       )
   }
 
-  if (!user) {
+  if (!user && isOwnProfile) {
     return (
          <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
              <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
@@ -138,12 +142,14 @@ export default function ProfilePage() {
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-xl font-bold">My Profile</h1>
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Edit className="h-5 w-5" />
-                    </Button>
-                </DialogTrigger>
+                <h1 className="text-xl font-bold">{isOwnProfile ? "My Profile" : "Profile"}</h1>
+                {isOwnProfile ? (
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Edit className="h-5 w-5" />
+                        </Button>
+                    </DialogTrigger>
+                ) : <div className="w-10" />}
             </header>
 
             <main className="p-4 sm:p-6 md:p-8">
@@ -156,15 +162,17 @@ export default function ProfilePage() {
                                     <AvatarImage src={profileImage || profileData.photoURL} alt={profileData.displayName} />
                                     <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <Button
-                                    size="icon"
-                                    variant="outline"
-                                    className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
-                                    onClick={() => profileFileInputRef.current?.click()}
-                                >
-                                    <Camera className="h-4 w-4" />
-                                    <span className="sr-only">Change profile image</span>
-                                </Button>
+                                {isOwnProfile && (
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
+                                        onClick={() => profileFileInputRef.current?.click()}
+                                    >
+                                        <Camera className="h-4 w-4" />
+                                        <span className="sr-only">Change profile image</span>
+                                    </Button>
+                                )}
                                 <input
                                     type="file"
                                     ref={profileFileInputRef}
@@ -203,12 +211,14 @@ export default function ProfilePage() {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <h3 className="text-lg font-semibold">Delivery Address</h3>
-                                        <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <Edit className="h-5 w-5" />
-                                                <span className="sr-only">Edit Address</span>
-                                            </Button>
-                                        </DialogTrigger>
+                                        {isOwnProfile && (
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <Edit className="h-5 w-5" />
+                                                    <span className="sr-only">Edit Address</span>
+                                                </Button>
+                                            </DialogTrigger>
+                                        )}
                                     </div>
                                     <div className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
                                         <p className="font-semibold text-foreground">{profileData.address.name}</p>
@@ -258,3 +268,5 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
+
+    

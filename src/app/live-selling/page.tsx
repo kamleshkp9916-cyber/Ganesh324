@@ -332,7 +332,7 @@ export default function LiveSellingPage() {
                                                             {followingList.length > 0 ? (
                                                                 followingList.map((followedUser) => (
                                                                     <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
-                                                                        <Link href="/profile" className="flex items-center gap-2 flex-grow">
+                                                                        <Link href={`/profile?userId=${followedUser.id}`} className="flex items-center gap-2 flex-grow">
                                                                             <Avatar className="h-6 w-6">
                                                                                 <AvatarImage src={followedUser.avatar} />
                                                                                 <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
@@ -496,3 +496,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
