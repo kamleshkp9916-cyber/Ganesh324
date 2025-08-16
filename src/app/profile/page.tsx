@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from '@/hooks/use-auth.tsx';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, CreditCard, Wallet, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -81,10 +81,9 @@ const mockAchievements = [
 ];
 
 
-export default function ProfilePage() {
+export default function ProfilePage({ searchParams }: { searchParams: { userId?: string } }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
+  const userId = searchParams.userId;
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
