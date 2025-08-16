@@ -432,9 +432,11 @@ export default function ProfilePage() {
                                             <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                         </div>
                                     </div>
-                                    <p className="text-sm mb-3">{item.content}</p>
-                                    <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                                       <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" data-ai-hint={item.hint} />
+                                    <div className="flex gap-4">
+                                        <p className="text-sm mb-3 flex-1">{item.content}</p>
+                                        <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                            <Image src={item.productImageUrl} alt="Feed item" width={100} height={100} className="w-full h-full object-cover" data-ai-hint={item.hint} />
+                                        </div>
                                     </div>
                                 </div>
                              </Card>
