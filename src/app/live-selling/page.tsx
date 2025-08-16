@@ -793,22 +793,39 @@ export default function LiveSellingPage() {
                                                             Top Live Streams
                                                         </CardTitle>
                                                     </CardHeader>
-                                                    <CardContent className="space-y-4">
+                                                    <CardContent className="space-y-2">
                                                         {topLiveStreams.map(seller => (
-                                                            <div key={seller.id} className="flex items-center justify-between cursor-pointer group">
-                                                                <div className="flex items-center gap-3">
-                                                                    <Avatar className="h-10 w-10">
-                                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    <div>
-                                                                        <p className="font-semibold text-sm group-hover:underline">{seller.name}</p>
-                                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                                    </div>
+                                                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/40 transition-shadow duration-300">
+                                                                <Image 
+                                                                    src={seller.thumbnailUrl} 
+                                                                    alt={`Live stream from ${seller.name}`} 
+                                                                    width={300} 
+                                                                    height={150} 
+                                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                                    data-ai-hint={seller.hint}
+                                                                />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                                                                <div className="absolute top-2 left-2 z-10">
+                                                                    <Badge className="bg-destructive text-destructive-foreground text-xs">
+                                                                        LIVE
+                                                                    </Badge>
                                                                 </div>
-                                                                <div className="flex items-center text-sm text-muted-foreground">
-                                                                   <Users className="w-4 h-4 mr-1.5" />
-                                                                   {(seller.viewers / 1000).toFixed(1)}k
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
+                                                                        <Users className="w-3 h-3 mr-1" />
+                                                                        {seller.viewers}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="absolute bottom-0 left-0 right-0 p-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Avatar className="h-6 w-6 border border-primary">
+                                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                            <AvatarFallback className="text-xs">{seller.name.charAt(0)}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div>
+                                                                            <h3 className="font-semibold text-xs text-primary-foreground truncate group-hover:underline">{seller.name}</h3>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ))}
