@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera, MessageSquare, Plus } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera, MessageSquare, Plus, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
@@ -71,9 +71,11 @@ export default function ProfilePage() {
   useEffect(() => {
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
     if (activeUser) {
-        setProfileData(generateRandomUser(activeUser));
+        if (!profileData) {
+            setProfileData(generateRandomUser(activeUser));
+        }
     }
-  }, [user, userId, isOwnProfile]);
+  }, [user, userId, isOwnProfile, profileData]);
 
   const handleFollowToggle = () => {
     setIsFollowing(!isFollowing);
@@ -280,7 +282,7 @@ export default function ProfilePage() {
              <DialogTitle>Edit Profile</DialogTitle>
            </DialogHeader>
            <EditProfileForm
-                currentUser={profileData!}
+                currentUser={profileData}
                 onSave={handleProfileSave}
                 onCancel={() => setIsProfileDialogOpen(false)}
             />
