@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Clapperboard,
@@ -33,7 +33,8 @@ import {
   MessageCircle,
   Clipboard,
   Hash,
-  UserPlus
+  UserPlus,
+  Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -259,6 +260,10 @@ export default function LiveSellingPage() {
   const [activeTab, setActiveTab] = useState("live");
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
+
+  const topLiveStreams = useMemo(() => {
+    return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+  }, []);
 
   useEffect(() => {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
@@ -779,6 +784,34 @@ export default function LiveSellingPage() {
                                                 ))}
                                             </CardContent>
                                         </Card>
+                                         <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2 text-lg">
+                                                    <Video className="h-5 w-5 text-primary"/>
+                                                    Top Live Streams
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {topLiveStreams.map(seller => (
+                                                    <div key={seller.id} className="flex items-center justify-between cursor-pointer group">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold text-sm group-hover:underline">{seller.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center text-sm text-muted-foreground">
+                                                           <Users className="w-4 h-4 mr-1.5" />
+                                                           {(seller.viewers / 1000).toFixed(1)}k
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
                                     </div>
                                 </div>
                             </div>
@@ -798,3 +831,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
