@@ -2,12 +2,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, X } from 'lucide-react';
+import { Send, X, PlusCircle, Image as ImageIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import Image from 'next/image';
 
 interface ChatPopupProps {
   user: {
@@ -19,9 +21,10 @@ interface ChatPopupProps {
 
 interface Message {
   id: number;
-  text: string;
+  text?: string;
   sender: 'me' | 'them';
   timestamp: string;
+  image?: string;
 }
 
 export function ChatPopup({ user, onClose }: ChatPopupProps) {
@@ -32,20 +35,36 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
   ]);
   const [newMessage, setNewMessage] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const createMessage = (msg: Omit<Message, 'id' | 'timestamp'>): Message => ({
+      ...msg,
+      id: messages.length + 1,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  });
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '') return;
 
-    const newMsg: Message = {
-      id: messages.length + 1,
-      text: newMessage,
-      sender: 'me',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages([...messages, newMsg]);
+    setMessages(prev => [...prev, createMessage({ text: newMessage, sender: 'me' })]);
     setNewMessage('');
+  };
+
+  const handleSendOrderStatus = () => {
+    const orderMessage = "Hi, I'd like to check the status of my recent order. The order ID is #12345XYZ.";
+    setMessages(prev => [...prev, createMessage({ text: orderMessage, sender: 'me' })]);
+  };
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMessages(prev => [...prev, createMessage({ image: reader.result as string, sender: 'me' })]);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   useEffect(() => {
@@ -83,7 +102,10 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
                   }`}>
-                    <p className="text-sm">{msg.text}</p>
+                    {msg.text && <p className="text-sm">{msg.text}</p>}
+                    {msg.image && (
+                        <Image src={msg.image} alt="Sent image" width={150} height={150} className="rounded-md" />
+                    )}
                     <p className={`text-xs mt-1 ${
                         msg.sender === 'me'
                         ? 'text-primary-foreground/70 text-right'
@@ -97,6 +119,40 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
         </CardContent>
         <CardFooter className="p-2 border-t">
           <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon">
+                        <PlusCircle className="h-5 w-5" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-2">
+                    <div className="grid gap-1">
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={handleSendOrderStatus}
+                        >
+                            <FileText className="mr-2 h-4 w-4" />
+                            Order Status
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <ImageIcon className="mr-2 h-4 w-4" />
+                            Send Image
+                        </Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleImageSelect}
+            />
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
