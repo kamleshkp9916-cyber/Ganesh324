@@ -177,7 +177,11 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <CardContent className="p-6 space-y-6">
-                        <div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Button>Follow</Button>
+                                <Button variant="outline">Message</Button>
+                            </div>
+                            <div>
                                 <h3 className="text-lg font-semibold mb-2">About Me</h3>
                                 <p className="text-muted-foreground italic">"{profileData.bio}"</p>
                             </div>
@@ -215,13 +219,14 @@ export default function ProfilePage() {
                                         <p>{profileData.address.country}</p>
                                     </div>
                                 </div>
-                                 <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
+                                 <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
+                                    <DialogHeader className="p-6 pb-0">
                                         <DialogTitle>Edit Delivery Address</DialogTitle>
                                     </DialogHeader>
                                     {profileData && (
                                         <EditAddressForm 
                                             currentAddress={profileData.address}
+                                            currentPhone={profileData.phone}
                                             onSave={handleAddressSave} 
                                             onCancel={() => setIsAddressDialogOpen(false)}
                                         />
@@ -238,8 +243,8 @@ export default function ProfilePage() {
             )}
             </main>
         </div>
-        <DialogContent className="max-w-2xl">
-            <DialogHeader>
+        <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-6 pb-0">
                 <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
              {profileData && (
@@ -253,5 +258,3 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
-
-    
