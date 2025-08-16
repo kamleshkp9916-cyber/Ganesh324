@@ -7,7 +7,7 @@ import { Video, MapPin, Smile, X, Image as ImageIcon } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
@@ -104,7 +104,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     }
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 p-4 z-50" ref={ref}>
+        <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 z-50" ref={ref}>
             <Card className="max-w-3xl mx-auto p-3 shadow-2xl rounded-2xl bg-background/80 backdrop-blur-sm border-border/50">
                 {replyTo && (
                     <Alert variant="default" className="mb-2">
@@ -116,8 +116,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         </AlertDescription>
                     </Alert>
                 )}
-                <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-9 w-9">
+                <div className="flex items-start sm:items-center gap-3 mb-3">
+                    <Avatar className="h-9 w-9 hidden sm:flex">
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
@@ -135,7 +135,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-80 h-64">
-                               <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto">
+                               <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
                                     {emojis.map((emoji, index) => (
                                         <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
                                             {emoji}
@@ -146,7 +146,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         </Popover>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-1">
                         <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoUpload} className="hidden" />
                         <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
