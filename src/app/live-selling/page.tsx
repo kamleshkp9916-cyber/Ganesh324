@@ -57,7 +57,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreatePostForm } from '@/components/create-post-form';
+import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -200,10 +200,10 @@ const initialFollowing = [
     { id: 'user8', name: 'DIYDan', avatar: 'https://placehold.co/40x40.png' },
 ];
 
-const mockFollowingFeed = [
-    { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion', likes: 120, replies: 15 },
-    { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying', likes: 350, replies: 42 },
-    { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases', likes: 88, replies: 9 },
+const initialMockFeed = [
+    { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion', likes: 120, replies: 15, location: null },
+    { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying', likes: 350, replies: 42, location: 'New York, USA' },
+    { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases', likes: 88, replies: 9, location: null },
 ];
 
 const reportReasons = [
@@ -222,12 +222,25 @@ const trendingTopics = [
     { id: 4, topic: 'HomeDecor', posts: '890 posts' },
 ];
 
-const suggestedUsers = [
+const allSuggestedUsers = [
     { id: 'retro', name: 'RetroClicks', handle: '@retroclicks', avatar: 'https://placehold.co/40x40.png' },
     { id: 'savvy', name: 'StyleSavvy', handle: '@stylesavvy', avatar: 'https://placehold.co/40x40.png' },
     { id: 'diy', name: 'DIYDan', handle: '@diydan', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'artisan', name: 'ArtisanAlley', handle: '@artisanalley', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'gamer', name: 'GamerGuild', handle: '@gamerguild', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'book', name: 'BookNook', handle: '@booknook', avatar: 'https://placehold.co/40x40.png' },
 ];
 
+// Function to shuffle an array
+const shuffleArray = (array: any[]) => {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+};
 
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -238,11 +251,47 @@ export default function LiveSellingPage() {
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
+  const [mockFollowingFeed, setMockFollowingFeed] = useState(initialMockFeed);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("live");
+  const createPostFormRef = useRef<HTMLDivElement>(null);
+  const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
+
+  useEffect(() => {
+    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
+  }, []);
+
+  const handleCreatePost = (postData: PostData) => {
+    if (!user) return;
+
+    const newPost = {
+      id: mockFollowingFeed.length + 1,
+      sellerName: user.displayName || 'You',
+      avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
+      timestamp: 'Just now',
+      content: postData.content,
+      productImageUrl: postData.media?.type === 'video' ? postData.media.url : 'https://placehold.co/400x300.png', // Placeholder for now
+      hint: 'new user post',
+      likes: 0,
+      replies: 0,
+      location: postData.location,
+    };
+
+    setMockFollowingFeed([newPost, ...mockFollowingFeed]);
+    toast({
+      title: "Post Created!",
+      description: "Your post has been added to the feed.",
+    });
+  };
+
+  const handleReply = (sellerName: string) => {
+    setReplyTo(sellerName);
+    // Smooth scroll to the form if it exists
+    createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
   
   const handleClearReply = () => {
     setReplyTo(null);
@@ -670,62 +719,67 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="px-4 pb-3 flex justify-start items-center gap-4 text-sm text-muted-foreground">
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
-                                                    <Heart className="w-4 h-4" />
-                                                    <span>{item.likes}</span>
-                                                </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => setReplyTo(item.sellerName)}>
-                                                    <MessageSquare className="w-4 h-4" />
-                                                    <span>{item.replies}</span>
-                                                </button>
+                                             <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-4">
+                                                    <button className="flex items-center gap-1.5 hover:text-primary">
+                                                        <Heart className="w-4 h-4" />
+                                                        <span>{item.likes}</span>
+                                                    </button>
+                                                    <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                        <MessageSquare className="w-4 h-4" />
+                                                        <span>{item.replies}</span>
+                                                    </button>
+                                                </div>
+                                                {item.location && <span className="text-xs">{item.location}</span>}
                                             </div>
                                         </Card>
                                     ))}
                                 </div>
-                                <div className="hidden lg:block lg:col-span-4 space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2 text-lg">
-                                                <Hash className="h-5 w-5 text-primary"/>
-                                                Trending
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-3">
-                                            {trendingTopics.map(topic => (
-                                                <div key={topic.id} className="text-sm cursor-pointer group">
-                                                    <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                </div>
-                                            ))}
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2 text-lg">
-                                                <UserPlus className="h-5 w-5 text-primary"/>
-                                                Who to follow
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            {suggestedUsers.map(user => (
-                                                <div key={user.id} className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-10 w-10">
-                                                            <AvatarImage src={user.avatar} alt={user.name} />
-                                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-semibold text-sm">{user.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{user.handle}</p>
-                                                        </div>
+                                <div className="hidden lg:block lg:col-span-4">
+                                     <div className="sticky top-20 space-y-6">
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2 text-lg">
+                                                    <Hash className="h-5 w-5 text-primary"/>
+                                                    Trending
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-3">
+                                                {trendingTopics.map(topic => (
+                                                    <div key={topic.id} className="text-sm cursor-pointer group">
+                                                        <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                                     </div>
-                                                    <Button size="sm" variant="outline">Follow</Button>
-                                                </div>
-                                            ))}
-                                        </CardContent>
-                                    </Card>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2 text-lg">
+                                                    <UserPlus className="h-5 w-5 text-primary"/>
+                                                    Who to follow
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {suggestedUsers.map(user => (
+                                                    <div key={user.id} className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={user.avatar} alt={user.name} />
+                                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold text-sm">{user.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                            </div>
+                                                        </div>
+                                                        <Button size="sm" variant="outline">Follow</Button>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
@@ -735,8 +789,10 @@ export default function LiveSellingPage() {
             </div>
             {user && activeTab === 'feeds' && (
                 <CreatePostForm
+                    ref={createPostFormRef}
                     replyTo={replyTo}
                     onClearReply={handleClearReply}
+                    onCreatePost={handleCreatePost}
                 />
             )}
       </div>
