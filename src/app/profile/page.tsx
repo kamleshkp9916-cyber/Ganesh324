@@ -67,7 +67,7 @@ export default function ProfilePage() {
         setProfileData(generateRandomUser(user));
       }
     }
-  }, [user, profileData]);
+  }, [user]);
 
   const handleAddressSave = (data: any) => {
     if(profileData){
@@ -231,12 +231,16 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                                  <DialogContent className="p-0 max-w-lg">
-                                    <EditAddressForm 
-                                        currentAddress={profileData.address}
-                                        currentPhone={profileData.phone}
-                                        onSave={handleAddressSave} 
-                                        onCancel={() => setIsAddressDialogOpen(false)}
-                                    />
+                                    <ScrollArea className="max-h-[90vh]">
+                                      <div className="p-6">
+                                        <EditAddressForm 
+                                            currentAddress={profileData.address}
+                                            currentPhone={profileData.phone}
+                                            onSave={handleAddressSave} 
+                                            onCancel={() => setIsAddressDialogOpen(false)}
+                                        />
+                                      </div>
+                                    </ScrollArea>
                                 </DialogContent>
                             </Dialog>
                         </CardContent>
@@ -250,11 +254,15 @@ export default function ProfilePage() {
             </main>
         </div>
         <DialogContent className="p-0 max-w-2xl">
-            <EditProfileForm
-                currentUser={profileData!}
-                onSave={handleProfileSave}
-                onCancel={() => setIsProfileDialogOpen(false)}
-            />
+           <ScrollArea className="max-h-[90vh]">
+              <div className="p-6">
+                <EditProfileForm
+                    currentUser={profileData!}
+                    onSave={handleProfileSave}
+                    onCancel={() => setIsProfileDialogOpen(false)}
+                />
+              </div>
+           </ScrollArea>
         </DialogContent>
         {isChatOpen && profileData && (
           <ChatPopup
