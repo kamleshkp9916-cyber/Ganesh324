@@ -33,7 +33,9 @@ import {
   Clipboard,
   Hash,
   UserPlus,
-  Video
+  Video,
+  Globe,
+  File,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -244,6 +246,9 @@ const shuffleArray = (array: any[]) => {
     return array;
 };
 
+const topLiveStreams = [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+
+
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -364,7 +369,7 @@ export default function LiveSellingPage() {
   return (
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
             <div className="flex-1 flex flex-col">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-10 border-b border-border/50">
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-20 border-b border-border/50">
                     <div className="flex items-center gap-2">
                         <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
                     </div>
@@ -660,134 +665,173 @@ export default function LiveSellingPage() {
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                              </AlertDialog>
-                              <div className="max-w-2xl mx-auto space-y-4">
-                                {mockFollowingFeed.map((item, index) => (
-                                    <React.Fragment key={item.id}>
-                                        <Card className="overflow-hidden">
-                                            <div className="p-4">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-grow">
-                                                        <p className="font-semibold text-destructive">{item.sellerName}</p>
-                                                        <p className="text-xs text-muted-foreground">{item.timestamp}</p>
-                                                    </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                <MoreHorizontal className="w-4 h-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                                                <Share2 className="mr-2 h-4 w-4" />
-                                                                <span>Share</span>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem asChild>
-                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                                                    <span>Feedback</span>
-                                                                </a>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuSub>
-                                                                <DropdownMenuSubTrigger>
-                                                                    <Flag className="mr-2 h-4 w-4" />
-                                                                    <span>Report</span>
-                                                                </DropdownMenuSubTrigger>
-                                                                <DropdownMenuPortal>
-                                                                    <DropdownMenuSubContent>
-                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                        <DropdownMenuSeparator />
-                                                                        {reportReasons.map(reason => (
-                                                                            <DropdownMenuItem key={reason.id} onClick={() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}>
-                                                                                <span>{reason.label}</span>
-                                                                            </DropdownMenuItem>
-                                                                        ))}
-                                                                    </DropdownMenuSubContent>
-                                                                </DropdownMenuPortal>
-                                                            </DropdownMenuSub>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
-                                            <div className="px-4 pb-4">
-                                                <div className="flex flex-col items-center gap-4 text-center">
-                                                    <p className="text-sm mb-2">{item.content}</p>
-                                                    {item.productImageUrl &&
-                                                      <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                          <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                                <div className="lg:col-span-2 space-y-4">
+                                  {mockFollowingFeed.map((item, index) => (
+                                      <React.Fragment key={item.id}>
+                                          <Card className="overflow-hidden">
+                                              <div className="p-4">
+                                                  <div className="flex items-center gap-3 mb-3">
+                                                      <Avatar className="h-10 w-10">
+                                                          <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                          <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                      </Avatar>
+                                                      <div className="flex-grow">
+                                                          <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                          <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                                       </div>
-                                                    }
-                                                </div>
-                                            </div>
-                                             <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                                <div className="flex items-center gap-4">
-                                                    <button className="flex items-center gap-1.5 hover:text-primary">
-                                                        <Heart className="w-4 h-4" />
-                                                        <span>{item.likes}</span>
-                                                    </button>
-                                                    <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
-                                                        <MessageSquare className="w-4 h-4" />
-                                                        <span>{item.replies}</span>
-                                                    </button>
-                                                </div>
-                                                {item.location && <span className="text-xs">{item.location}</span>}
-                                            </div>
-                                        </Card>
-                                        
-                                        {index === 0 && (
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                                        <Hash className="h-5 w-5 text-primary"/>
-                                                        Trending
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-3">
-                                                    {trendingTopics.map(topic => (
-                                                        <div key={topic.id} className="text-sm cursor-pointer group">
-                                                            <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                            <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                      <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                  <MoreHorizontal className="w-4 h-4" />
+                                                              </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                              <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                                  <Share2 className="mr-2 h-4 w-4" />
+                                                                  <span>Share</span>
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem asChild>
+                                                                  <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                      <MessageCircle className="mr-2 h-4 w-4" />
+                                                                      <span>Feedback</span>
+                                                                  </a>
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuSeparator />
+                                                              <DropdownMenuSub>
+                                                                  <DropdownMenuSubTrigger>
+                                                                      <Flag className="mr-2 h-4 w-4" />
+                                                                      <span>Report</span>
+                                                                  </DropdownMenuSubTrigger>
+                                                                  <DropdownMenuPortal>
+                                                                      <DropdownMenuSubContent>
+                                                                          <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                          <DropdownMenuSeparator />
+                                                                          {reportReasons.map(reason => (
+                                                                              <DropdownMenuItem key={reason.id} onClick={() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}>
+                                                                                  <span>{reason.label}</span>
+                                                                              </DropdownMenuItem>
+                                                                          ))}
+                                                                      </DropdownMenuSubContent>
+                                                                  </DropdownMenuPortal>
+                                                              </DropdownMenuSub>
+                                                          </DropdownMenuContent>
+                                                      </DropdownMenu>
+                                                  </div>
+                                              </div>
+                                              <div className="px-4 pb-4">
+                                                  <div className="flex flex-col items-center gap-4 text-center">
+                                                      <p className="text-sm mb-2">{item.content}</p>
+                                                      {item.productImageUrl &&
+                                                        <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                            <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
                                                         </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                        )}
-
-                                        {index === 2 && (
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                                        <UserPlus className="h-5 w-5 text-primary"/>
-                                                        Who to follow
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-4">
-                                                    {suggestedUsers.map(user => (
-                                                        <div key={user.id} className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-10 w-10">
-                                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <p className="font-semibold text-sm">{user.name}</p>
-                                                                    <p className="text-xs text-muted-foreground">{user.handle}</p>
-                                                                </div>
-                                                            </div>
-                                                            <Button size="sm" variant="outline">Follow</Button>
-                                                        </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                        )}
-
-                                    </React.Fragment>
-                                ))}
-                            </div>
+                                                      }
+                                                  </div>
+                                              </div>
+                                              <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                                  <div className="flex items-center gap-4">
+                                                      <button className="flex items-center gap-1.5 hover:text-primary">
+                                                          <Heart className="w-4 h-4" />
+                                                          <span>{item.likes}</span>
+                                                      </button>
+                                                      <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                          <MessageSquare className="w-4 h-4" />
+                                                          <span>{item.replies}</span>
+                                                      </button>
+                                                  </div>
+                                                  {item.location && <span className="text-xs">{item.location}</span>}
+                                              </div>
+                                          </Card>
+                                      </React.Fragment>
+                                  ))}
+                                </div>
+                                <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
+                                      <Card>
+                                          <CardHeader>
+                                              <CardTitle className="flex items-center gap-2 text-lg">
+                                                  <Hash className="h-5 w-5 text-primary"/>
+                                                  Trending
+                                              </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-3">
+                                              {trendingTopics.map(topic => (
+                                                  <div key={topic.id} className="text-sm cursor-pointer group">
+                                                      <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                      <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                  </div>
+                                              ))}
+                                          </CardContent>
+                                      </Card>
+                                      <Card>
+                                          <CardHeader>
+                                              <CardTitle className="flex items-center gap-2 text-lg">
+                                                  <UserPlus className="h-5 w-5 text-primary"/>
+                                                  Who to follow
+                                              </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-4">
+                                              {suggestedUsers.map(user => (
+                                                  <div key={user.id} className="flex items-center justify-between">
+                                                      <div className="flex items-center gap-3">
+                                                          <Avatar className="h-10 w-10">
+                                                              <AvatarImage src={user.avatar} alt={user.name} />
+                                                              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                          </Avatar>
+                                                          <div>
+                                                              <p className="font-semibold text-sm">{user.name}</p>
+                                                              <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                          </div>
+                                                      </div>
+                                                      <Button size="sm" variant="outline">Follow</Button>
+                                                  </div>
+                                              ))}
+                                          </CardContent>
+                                      </Card>
+                                      <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <Video className="h-5 w-5 text-primary"/>
+                                                Top Live Streams
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2">
+                                          {topLiveStreams.map((seller) => (
+                                              <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                                  <div className="absolute top-2 left-2 z-10">
+                                                      <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
+                                                  </div>
+                                                  <div className="absolute top-2 right-2 z-10">
+                                                      <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
+                                                          <Users className="w-3 h-3 mr-1" />
+                                                          {(seller.viewers / 1000).toFixed(1)}k
+                                                      </Badge>
+                                                  </div>
+                                                  <Image 
+                                                      src={seller.thumbnailUrl} 
+                                                      alt={`Live stream from ${seller.name}`} 
+                                                      width={300} 
+                                                      height={450} 
+                                                      className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                      data-ai-hint={seller.hint}
+                                                  />
+                                                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                      <div className="flex items-center gap-2">
+                                                          <Avatar className="h-8 w-8 border-2 border-primary">
+                                                              <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                              <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                          </Avatar>
+                                                          <div>
+                                                              <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                          ))}
+                                        </CardContent>
+                                      </Card>
+                                </div>
+                              </div>
                         </TabsContent>
                     </Tabs>
                 </main>
@@ -804,7 +848,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
-
-    
