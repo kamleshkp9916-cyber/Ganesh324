@@ -46,8 +46,8 @@ import Autoplay from "embla-carousel-autoplay";
 import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FollowingSheet } from '@/components/following-sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 const liveSellers = [
@@ -187,10 +187,10 @@ export default function LiveSellingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
-  const [isFollowingSheetOpen, setIsFollowingSheetOpen] = useState(false);
   const [followingList, setFollowingList] = useState(initialFollowing);
 
-  const handleUnfollow = (userId: string) => {
+  const handleUnfollow = (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation();
     setFollowingList(currentList => currentList.filter(user => user.id !== userId));
   };
 
@@ -280,19 +280,13 @@ export default function LiveSellingPage() {
                                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
                                     </Avatar>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuContent className="w-64" align="end" forceMount>
                                     <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-2">
-                                            <div>
-                                                <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                                <p className="text-xs leading-none text-muted-foreground">
-                                                {user.email}
-                                                </p>
-                                            </div>
-                                            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" onClick={() => setIsFollowingSheetOpen(true)}>
-                                                <Users className="h-3 w-3" />
-                                                <span>{followingList.length} follows</span>
-                                            </button>
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                            </p>
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
@@ -300,6 +294,40 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <Users className="mr-2 h-4 w-4" />
+                                                <span>Following ({followingList.length})</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent className="p-0">
+                                                    <ScrollArea className="h-72 w-48">
+                                                        <div className="p-1">
+                                                        {followingList.length > 0 ? (
+                                                            followingList.map((followedUser) => (
+                                                                <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Avatar className="h-6 w-6">
+                                                                            <AvatarImage src={followedUser.avatar} />
+                                                                            <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <span className="text-xs">{followedUser.name}</span>
+                                                                    </div>
+                                                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
+                                                                        Unfollow
+                                                                    </Button>
+                                                                </DropdownMenuItem>
+                                                            ))
+                                                        ) : (
+                                                            <div className="text-center text-xs text-muted-foreground p-4">
+                                                                Not following anyone.
+                                                            </div>
+                                                        )}
+                                                        </div>
+                                                    </ScrollArea>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
                                         <DropdownMenuItem asChild>
                                         <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
@@ -457,12 +485,6 @@ export default function LiveSellingPage() {
                     </div>
                 </main>
             </div>
-            <FollowingSheet
-                open={isFollowingSheetOpen}
-                onOpenChange={setIsFollowingSheetOpen}
-                followingList={followingList}
-                onUnfollow={handleUnfollow}
-            />
       </div>
   );
 }
