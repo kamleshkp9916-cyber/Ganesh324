@@ -705,7 +705,7 @@ export default function LiveSellingPage() {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="feeds" className="pb-28">
+                        <TabsContent value="feeds" className={cn(user && activeTab === 'feeds' && "pb-28")}>
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -737,82 +737,80 @@ export default function LiveSellingPage() {
                               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                                 <div className="lg:col-span-2 space-y-4">
                                   {filteredFeed.map((item) => (
-                                      <React.Fragment key={item.id}>
-                                          <Card className="overflow-hidden">
-                                              <div className="p-4">
-                                                  <div className="flex items-center gap-3 mb-3">
-                                                      <Avatar className="h-10 w-10">
-                                                          <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                          <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                      </Avatar>
-                                                      <div className="flex-grow">
-                                                          <p className="font-semibold text-destructive">{item.sellerName}</p>
-                                                          <p className="text-xs text-muted-foreground">{item.timestamp}</p>
-                                                      </div>
-                                                      <DropdownMenu>
-                                                          <DropdownMenuTrigger asChild>
-                                                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                  <MoreHorizontal className="w-4 h-4" />
-                                                              </Button>
-                                                          </DropdownMenuTrigger>
-                                                          <DropdownMenuContent align="end">
-                                                              <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                                                  <Share2 className="mr-2 h-4 w-4" />
-                                                                  <span>Share</span>
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem asChild>
-                                                                  <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                      <MessageCircle className="mr-2 h-4 w-4" />
-                                                                      <span>Feedback</span>
-                                                                  </a>
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuSeparator />
-                                                              <DropdownMenuSub>
-                                                                  <DropdownMenuSubTrigger>
-                                                                      <Flag className="mr-2 h-4 w-4" />
-                                                                      <span>Report</span>
-                                                                  </DropdownMenuSubTrigger>
-                                                                  <DropdownMenuPortal>
-                                                                      <DropdownMenuSubContent>
-                                                                          <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                          <DropdownMenuSeparator />
-                                                                          {reportReasons.map(reason => (
-                                                                              <DropdownMenuItem key={reason.id} onClick={() => { if(handleAuthAction()) { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}}>
-                                                                                  <span>{reason.label}</span>
-                                                                              </DropdownMenuItem>
-                                                                          ))}
-                                                                      </DropdownMenuSubContent>
-                                                                  </DropdownMenuPortal>
-                                                              </DropdownMenuSub>
-                                                          </DropdownMenuContent>
-                                                      </DropdownMenu>
+                                      <Card key={item.id} className="overflow-hidden">
+                                          <div className="p-4">
+                                              <div className="flex items-center gap-3 mb-3">
+                                                  <Avatar className="h-10 w-10">
+                                                      <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                      <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                  </Avatar>
+                                                  <div className="flex-grow">
+                                                      <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                      <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                                   </div>
+                                                  <DropdownMenu>
+                                                      <DropdownMenuTrigger asChild>
+                                                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                              <MoreHorizontal className="w-4 h-4" />
+                                                          </Button>
+                                                      </DropdownMenuTrigger>
+                                                      <DropdownMenuContent align="end">
+                                                          <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                              <Share2 className="mr-2 h-4 w-4" />
+                                                              <span>Share</span>
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem asChild>
+                                                              <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                                                  <span>Feedback</span>
+                                                              </a>
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuSeparator />
+                                                          <DropdownMenuSub>
+                                                              <DropdownMenuSubTrigger>
+                                                                  <Flag className="mr-2 h-4 w-4" />
+                                                                  <span>Report</span>
+                                                              </DropdownMenuSubTrigger>
+                                                              <DropdownMenuPortal>
+                                                                  <DropdownMenuSubContent>
+                                                                      <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                      <DropdownMenuSeparator />
+                                                                      {reportReasons.map(reason => (
+                                                                          <DropdownMenuItem key={reason.id} onClick={() => { if(handleAuthAction()) { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}}>
+                                                                              <span>{reason.label}</span>
+                                                                          </DropdownMenuItem>
+                                                                      ))}
+                                                                  </DropdownMenuSubContent>
+                                                              </DropdownMenuPortal>
+                                                          </DropdownMenuSub>
+                                                      </DropdownMenuContent>
+                                                  </DropdownMenu>
                                               </div>
-                                              <div className="px-4 pb-4">
-                                                  <div className="flex flex-col items-center gap-4 text-center">
-                                                      <p className="text-sm mb-2">{item.content}</p>
-                                                      {item.productImageUrl &&
-                                                        <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                            <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
-                                                        </div>
-                                                      }
-                                                  </div>
+                                          </div>
+                                          <div className="px-4 pb-4">
+                                              <div className="flex flex-col items-center gap-4 text-center">
+                                                  <p className="text-sm mb-2">{item.content}</p>
+                                                  {item.productImageUrl &&
+                                                    <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                        <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                                    </div>
+                                                  }
                                               </div>
-                                              <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                                  <div className="flex items-center gap-4">
-                                                      <button className="flex items-center gap-1.5 hover:text-primary" onClick={handleAuthAction}>
-                                                          <Heart className="w-4 h-4" />
-                                                          <span>{item.likes}</span>
-                                                      </button>
-                                                      <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
-                                                          <MessageSquare className="w-4 h-4" />
-                                                          <span>{item.replies}</span>
-                                                      </button>
-                                                  </div>
-                                                  {item.location && <span className="text-xs">{item.location}</span>}
+                                          </div>
+                                          <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                              <div className="flex items-center gap-4">
+                                                  <button className="flex items-center gap-1.5 hover:text-primary" onClick={handleAuthAction}>
+                                                      <Heart className="w-4 h-4" />
+                                                      <span>{item.likes}</span>
+                                                  </button>
+                                                  <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                      <MessageSquare className="w-4 h-4" />
+                                                      <span>{item.replies}</span>
+                                                  </button>
                                               </div>
-                                          </Card>
-                                      </React.Fragment>
+                                              {item.location && <span className="text-xs">{item.location}</span>}
+                                          </div>
+                                      </Card>
                                   ))}
                                 </div>
                                 <div className="lg:col-span-1 lg:sticky top-24 space-y-4">
