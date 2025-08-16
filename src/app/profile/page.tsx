@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, MessageSquare, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ChatPopup } from '@/components/chat-popup';
 import { Footer } from '@/components/footer';
@@ -69,8 +69,23 @@ export default function ProfilePage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const isOwnProfile = !userId;
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) return mockProducts;
+    return mockProducts.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredLikes = useMemo(() => {
+    if (!searchTerm) return mockLikes;
+    return mockLikes.filter(like =>
+      like.hint.toLowerCase().includes(searchTerm.toLowerCase()) || like.id.toString().includes(searchTerm)
+    );
+  }, [searchTerm]);
 
   useEffect(() => {
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
@@ -183,6 +198,8 @@ export default function ProfilePage() {
                                 isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
                             )}
                             onFocus={() => setIsSearchExpanded(true)}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <Button 
                             variant="ghost" 
@@ -201,46 +218,54 @@ export default function ProfilePage() {
             <div className="w-full max-w-4xl mx-auto">
                 <section>
                     <h3 className="text-xl font-bold mb-4">Listed Products</h3>
-                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                        {mockProducts.map((product) => (
-                            <Card key={product.id} className="min-w-[180px] shrink-0">
-                                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                    <Image 
-                                        src={product.imageUrl}
-                                        alt={product.name}
-                                        width={180}
-                                        height={180}
-                                        className="object-cover w-full h-full"
-                                        data-ai-hint={product.hint}
-                                    />
-                                </div>
-                                <div className="p-3">
-                                    <h4 className="font-semibold truncate">{product.name}</h4>
-                                    <p className="text-primary font-bold">{product.price}</p>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
+                    {filteredProducts.length > 0 ? (
+                        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                            {filteredProducts.map((product) => (
+                                <Card key={product.id} className="min-w-[180px] shrink-0">
+                                    <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                        <Image 
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            width={180}
+                                            height={180}
+                                            className="object-cover w-full h-full"
+                                            data-ai-hint={product.hint}
+                                        />
+                                    </div>
+                                    <div className="p-3">
+                                        <h4 className="font-semibold truncate">{product.name}</h4>
+                                        <p className="text-primary font-bold">{product.price}</p>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground text-center py-4">No products found.</p>
+                    )}
                 </section>
 
                 <Separator className="my-6" />
 
                 <section>
                     <h3 className="text-xl font-bold mb-4">Likes</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {mockLikes.map((like) => (
-                            <div key={like.id} className="aspect-square bg-muted rounded-lg overflow-hidden">
-                                 <Image 
-                                    src={like.imageUrl}
-                                    alt={`Liked item ${like.id}`}
-                                    width={400}
-                                    height={400}
-                                    className="object-cover w-full h-full"
-                                    data-ai-hint={like.hint}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                     {filteredLikes.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {filteredLikes.map((like) => (
+                                <div key={like.id} className="aspect-square bg-muted rounded-lg overflow-hidden">
+                                    <Image 
+                                        src={like.imageUrl}
+                                        alt={`Liked item ${like.id}`}
+                                        width={400}
+                                        height={400}
+                                        className="object-cover w-full h-full"
+                                        data-ai-hint={like.hint}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                     ) : (
+                        <p className="text-muted-foreground text-center py-4">No likes found.</p>
+                     )}
                 </section>
             </div>
         </main>
@@ -255,3 +280,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
