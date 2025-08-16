@@ -784,93 +784,89 @@ export default function LiveSellingPage() {
                                   ))}
                                 </div>
                                 <div className="lg:col-span-1 lg:sticky top-24 space-y-4">
-                                    <ScrollArea className="h-[calc(100vh-7rem)]">
-                                        <div className="space-y-4 pr-4">
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                                        <Hash className="h-5 w-5 text-primary"/>
-                                                        Trending
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-3">
-                                                    {filteredTrendingTopics.map(topic => (
-                                                        <div key={topic.id} className="text-sm cursor-pointer group">
-                                                            <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                            <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                        </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                                        <UserPlus className="h-5 w-5 text-primary"/>
-                                                        Who to follow
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-4">
-                                                    {filteredSuggestedUsers.map(user => (
-                                                        <div key={user.id} className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-10 w-10">
-                                                                    <AvatarImage src={user.avatar} alt={user.name} />
-                                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <p className="font-semibold text-sm">{user.name}</p>
-                                                                    <p className="text-xs text-muted-foreground">{user.handle}</p>
-                                                                </div>
-                                                            </div>
-                                                            <Button size="sm" variant="outline">Follow</Button>
-                                                        </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                                        <Video className="h-5 w-5 text-primary"/>
-                                                        Top Live Streams
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="space-y-2">
-                                                {topLiveStreams.map((seller) => (
-                                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                                        <div className="absolute top-2 left-2 z-10">
-                                                            <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
-                                                        </div>
-                                                        <div className="absolute top-2 right-2 z-10">
-                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
-                                                                <Users className="w-3 h-3 mr-1" />
-                                                                {(seller.viewers / 1000).toFixed(1)}k
-                                                            </Badge>
-                                                        </div>
-                                                        <Image 
-                                                            src={seller.thumbnailUrl} 
-                                                            alt={`Live stream from ${seller.name}`} 
-                                                            width={300} 
-                                                            height={450} 
-                                                            className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                            data-ai-hint={seller.hint}
-                                                        />
-                                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="h-8 w-8 border-2 border-primary">
-                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                                </div>
-                                                            </div>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <Hash className="h-5 w-5 text-primary"/>
+                                                Trending
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {filteredTrendingTopics.map(topic => (
+                                                <div key={topic.id} className="text-sm cursor-pointer group">
+                                                    <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <UserPlus className="h-5 w-5 text-primary"/>
+                                                Who to follow
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {filteredSuggestedUsers.map(user => (
+                                                <div key={user.id} className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10">
+                                                            <AvatarImage src={user.avatar} alt={user.name} />
+                                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{user.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{user.handle}</p>
                                                         </div>
                                                     </div>
-                                                ))}
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    </ScrollArea>
+                                                    <Button size="sm" variant="outline">Follow</Button>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <Video className="h-5 w-5 text-primary"/>
+                                                Top Live Streams
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2">
+                                        {topLiveStreams.map((seller) => (
+                                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                                <div className="absolute top-2 left-2 z-10">
+                                                    <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
+                                                </div>
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
+                                                        <Users className="w-3 h-3 mr-1" />
+                                                        {(seller.viewers / 1000).toFixed(1)}k
+                                                    </Badge>
+                                                </div>
+                                                <Image 
+                                                    src={seller.thumbnailUrl} 
+                                                    alt={`Live stream from ${seller.name}`} 
+                                                    width={300} 
+                                                    height={450} 
+                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    data-ai-hint={seller.hint}
+                                                />
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        </CardContent>
+                                    </Card>
                                 </div>
                               </div>
                         </TabsContent>
