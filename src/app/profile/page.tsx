@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare, Search } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 // Mock data generation
@@ -136,9 +137,31 @@ export default function ProfilePage() {
                 <ArrowLeft className="h-6 w-6" />
             </Button>
             <h1 className="text-xl font-bold">{profileData.displayName}</h1>
-            <Button variant="ghost" size="icon">
-                <MoreVertical className="h-6 w-6" />
-            </Button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-6 w-6" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                        <Flag className="mr-2 h-4 w-4" />
+                        <span>Report</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                         <MessageCircle className="mr-2 h-4 w-4" />
+                        <span>Feedback</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                         <HelpCircle className="mr-2 h-4 w-4" />
+                        <span>Help</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        <span>Share</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </header>
 
         <main className="flex-grow p-4">
@@ -280,5 +303,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
