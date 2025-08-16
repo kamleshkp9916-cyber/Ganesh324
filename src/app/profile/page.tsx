@@ -150,7 +150,7 @@ export default function ProfilePage() {
                      <h3 className="font-semibold mt-4">Location</h3>
                      <p className="text-sm text-muted-foreground mt-1">{profileData.location}</p>
 
-                     <div className="mt-4 flex justify-start items-center gap-2" ref={searchRef}>
+                     <div className="mt-4 flex justify-end items-center gap-2" ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out",
                             isSearchExpanded ? "w-48" : "w-10"
