@@ -20,6 +20,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 
 // Mock data generation
@@ -92,6 +102,16 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+
+  const handleAuthAction = (action: () => void) => {
+    if (!user) {
+        setIsAuthDialogOpen(true);
+    } else {
+        action();
+    }
+  };
 
   const isOwnProfile = !userId;
   const isSeller = !isOwnProfile;
@@ -173,6 +193,21 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Authentication Required</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        You need to be logged in to perform this action. Please log in or create an account to continue.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => router.push('/signup')}>Create Account</AlertDialogAction>
+                    <AlertDialogAction onClick={() => router.push('/')}>Login</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-6 w-6" />
@@ -185,7 +220,7 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAuthAction(() => console.log('Report'))}>
                         <Flag className="mr-2 h-4 w-4" />
                         <span>Report</span>
                     </DropdownMenuItem>
@@ -237,11 +272,11 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
                      <div className="mt-4 grid grid-cols-2 gap-2 w-full max-w-sm">
                         <Button 
                             variant={isFollowing ? 'secondary' : 'default'}
-                            onClick={() => setIsFollowing(!isFollowing)}
+                            onClick={() => handleAuthAction(() => setIsFollowing(!isFollowing))}
                         >
                             {isFollowing ? 'Following' : 'Follow'}
                         </Button>
-                        <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                        <Button variant="outline" onClick={() => handleAuthAction(() => setIsChatOpen(true))}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Message
                         </Button>
@@ -423,3 +458,5 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
     </div>
   );
 }
+
+    

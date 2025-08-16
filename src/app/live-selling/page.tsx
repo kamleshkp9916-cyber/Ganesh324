@@ -75,6 +75,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Separator } from '@/components/ui/separator';
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 
 const liveSellers = [
@@ -266,6 +267,17 @@ export default function LiveSellingPage() {
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const router = useRouter();
+
+
+  const handleAuthAction = () => {
+    if (!user) {
+        setIsAuthDialogOpen(true);
+        return false;
+    }
+    return true;
+  };
 
   const filteredLiveSellers = useMemo(() => {
     if (!searchTerm) return liveSellers;
@@ -308,12 +320,12 @@ export default function LiveSellingPage() {
   }, []);
 
   const handleCreatePost = (postData: PostData) => {
-    if (!user) return;
+    if (!handleAuthAction()) return;
 
     const newPost = {
       id: mockFollowingFeed.length + 1,
-      sellerName: user.displayName || 'You',
-      avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
+      sellerName: user!.displayName || 'You',
+      avatarUrl: user!.photoURL || 'https://placehold.co/40x40.png',
       timestamp: 'Just now',
       content: postData.content,
       productImageUrl: postData.media?.url || undefined,
@@ -331,6 +343,7 @@ export default function LiveSellingPage() {
   };
 
   const handleReply = (sellerName: string) => {
+    if (!handleAuthAction()) return;
     setReplyTo(sellerName);
     // Smooth scroll to the form if it exists
     createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -342,6 +355,7 @@ export default function LiveSellingPage() {
 
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
+    if (!handleAuthAction()) return;
     setFollowingList(currentList => currentList.filter(user => user.id !== userId));
   };
   
@@ -355,6 +369,7 @@ export default function LiveSellingPage() {
   };
 
   const submitReport = () => {
+    if (!handleAuthAction()) return;
     console.log("Submitting report for reason:", selectedReportReason);
     toast({
         title: "Report Submitted",
@@ -404,6 +419,21 @@ export default function LiveSellingPage() {
 
   return (
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
+            <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You need to be logged in to perform this action. Please log in or create an account to continue.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => router.push('/signup')}>Create Account</AlertDialogAction>
+                        <AlertDialogAction onClick={() => router.push('/')}>Login</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-20 border-b border-border/50">
                     <div className="flex items-center gap-2">
@@ -436,10 +466,10 @@ export default function LiveSellingPage() {
                                 {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                             </Button>
                     </div>
-                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent">
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Bell />
                         </Button>
                         
@@ -706,7 +736,7 @@ export default function LiveSellingPage() {
                              </AlertDialog>
                               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                                 <div className="lg:col-span-2 space-y-4">
-                                  {filteredFeed.map((item, index) => (
+                                  {filteredFeed.map((item) => (
                                       <React.Fragment key={item.id}>
                                           <Card className="overflow-hidden">
                                               <div className="p-4">
@@ -747,7 +777,7 @@ export default function LiveSellingPage() {
                                                                           <DropdownMenuLabel>Report this post</DropdownMenuLabel>
                                                                           <DropdownMenuSeparator />
                                                                           {reportReasons.map(reason => (
-                                                                              <DropdownMenuItem key={reason.id} onClick={() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}>
+                                                                              <DropdownMenuItem key={reason.id} onClick={() => { if(handleAuthAction()) { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}}>
                                                                                   <span>{reason.label}</span>
                                                                               </DropdownMenuItem>
                                                                           ))}
@@ -770,7 +800,7 @@ export default function LiveSellingPage() {
                                               </div>
                                               <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
                                                   <div className="flex items-center gap-4">
-                                                      <button className="flex items-center gap-1.5 hover:text-primary">
+                                                      <button className="flex items-center gap-1.5 hover:text-primary" onClick={handleAuthAction}>
                                                           <Heart className="w-4 h-4" />
                                                           <span>{item.likes}</span>
                                                       </button>
@@ -822,7 +852,7 @@ export default function LiveSellingPage() {
                                                             <p className="text-xs text-muted-foreground">{user.handle}</p>
                                                         </div>
                                                     </div>
-                                                    <Button size="sm" variant="outline">Follow</Button>
+                                                    <Button size="sm" variant="outline" onClick={handleAuthAction}>Follow</Button>
                                                 </div>
                                             ))}
                                         </CardContent>
@@ -887,3 +917,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
