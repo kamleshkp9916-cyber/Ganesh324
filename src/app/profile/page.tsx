@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 // Mock data generation
@@ -43,6 +44,7 @@ const generateRandomUser = (currentUser: any) => {
     location: locations[Math.floor(Math.random() * locations.length)],
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 20000),
+    topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> }
   };
 };
 
@@ -203,7 +205,15 @@ export default function ProfilePage() {
                     <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
                     <AvatarFallback className="text-3xl">{profileData.displayName.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <h2 className="text-2xl font-bold">{profileData.displayName}</h2>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold">{profileData.displayName}</h2>
+                    {profileData.topAchievement && (
+                        <Badge variant="secondary" className="text-sm">
+                            {profileData.topAchievement.icon}
+                            {profileData.topAchievement.name}
+                        </Badge>
+                    )}
+                </div>
                 <p className="text-muted-foreground">{profileData.email}</p>
 
                  <div className="flex gap-4 mt-4 text-center">
@@ -272,13 +282,15 @@ export default function ProfilePage() {
                     </div>
                 </div>
                 <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-                        {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
-                        <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
-                        <TabsTrigger value="reviews">My Reviews</TabsTrigger>
-                        <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                        <TabsTrigger value="feed">Following Feed</TabsTrigger>
-                    </TabsList>
+                    <ScrollArea className="w-full whitespace-nowrap">
+                        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+                            {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
+                            <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
+                            <TabsTrigger value="reviews">My Reviews</TabsTrigger>
+                            <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                            <TabsTrigger value="feed">Following Feed</TabsTrigger>
+                        </TabsList>
+                    </ScrollArea>
 
                     {!isOwnProfile && (
                         <TabsContent value="products" className="mt-4">
@@ -365,7 +377,7 @@ export default function ProfilePage() {
                            {mockAchievements.map(achievement => (
                                 <Card key={achievement.id} className="p-4 flex flex-col items-center justify-center text-center gap-2">
                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                       {achievement.icon}
+                                       {React.cloneElement(achievement.icon, { className: "w-6 h-6" })}
                                     </div>
                                     <h4 className="font-semibold">{achievement.name}</h4>
                                     <p className="text-xs text-muted-foreground">{achievement.description}</p>
@@ -410,3 +422,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
