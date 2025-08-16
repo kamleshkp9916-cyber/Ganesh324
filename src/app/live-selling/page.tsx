@@ -37,6 +37,7 @@ import {
   Globe,
   File,
   X,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -404,9 +405,10 @@ export default function LiveSellingPage() {
   return (
       <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
             <div className="flex-1 flex flex-col">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-20 border-b border-border/50">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-20 border-b border-border/50">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold tracking-tight text-primary">Live Shopping</h1>
+                        <ShoppingCart className="h-7 w-7 text-destructive" />
+                        <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                     </div>
                     <div className="flex items-center gap-2" ref={searchRef}>
                         <div className={cn(
@@ -415,7 +417,7 @@ export default function LiveSellingPage() {
                         )}>
                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                             <Input 
-                                placeholder="Search posts, streams, users..." 
+                                placeholder="Search posts, streams..." 
                                 className={cn(
                                     "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
                                     isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
