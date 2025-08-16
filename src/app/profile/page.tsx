@@ -4,16 +4,15 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Star, Plus, Send, Home, Edit, AppWindow, ShoppingCart, Wallet } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Star, Plus, Send, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from '@/components/ui/separator';
-import { BottomNav } from '@/components/bottom-nav';
+import { ChatPopup } from '@/components/chat-popup';
 
 
 // Mock data generation
@@ -33,13 +32,13 @@ const generateRandomUser = (currentUser: any) => {
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
   return {
     displayName: currentUser.displayName || `${firstName} ${lastName}`,
-    username: currentUser.username || `@${firstName}Pr${Math.floor(100 + Math.random() * 900)}`,
+    username: currentUser.username || `@${firstName.toLowerCase()}${Math.floor(100 + Math.random() * 900)}`,
     email: currentUser.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
     photoURL: currentUser.photoURL || `https://placehold.co/128x128.png?text=${firstName.charAt(0)}${lastName.charAt(0)}`,
     bio: bios[Math.floor(Math.random() * bios.length)],
     location: locations[Math.floor(Math.random() * locations.length)],
     following: Math.floor(Math.random() * 500),
-    followers: Math.floor(Math.random() * 200)
+    followers: Math.floor(Math.random() * 20000),
   };
 };
 
@@ -72,7 +71,9 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
-  
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const isOwnProfile = !userId;
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function ProfilePage() {
     return (
          <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
              <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your profile.</p>
+             <p className="text-muted-foreground mb-6">Please log in to your account to view your profile.</p>
              <Button onClick={() => router.push('/')}>Go to Login</Button>
         </div>
     );
@@ -116,30 +117,49 @@ export default function ProfilePage() {
             </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto pb-24">
+        <main className="flex-1 overflow-y-auto pb-6">
             <div className="p-4">
                 <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20 border-2">
                         <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
                         <AvatarFallback className="text-2xl">{profileData.displayName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold">{profileData.displayName}</h1>
-                            <Star className="w-5 h-5 text-primary fill-primary" />
-                            {!isOwnProfile && (
-                                <Button size="icon" variant="ghost" className="ml-auto">
-                                    <Plus className="h-6 w-6" />
-                                </Button>
-                            )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{profileData.username}</p>
-                        <div className="flex items-center gap-4 text-sm mt-2">
-                            <p><span className="font-semibold">{profileData.following}</span> <span className="text-muted-foreground">Following</span></p>
-                            <p><span className="font-semibold">{profileData.followers}</span> <span className="text-muted-foreground">Followers</span></p>
-                        </div>
+                    <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+                       <div>
+                           <p className="font-bold text-lg">{profileData.following}</p>
+                           <p className="text-xs text-muted-foreground">Following</p>
+                       </div>
+                       <div>
+                           <p className="font-bold text-lg">{(profileData.followers / 1000).toFixed(1)}k</p>
+                           <p className="text-xs text-muted-foreground">Followers</p>
+                       </div>
+                        <div>
+                           <p className="font-bold text-lg">{(Math.floor(Math.random() * 50000) / 1000).toFixed(1)}k</p>
+                           <p className="text-xs text-muted-foreground">Likes</p>
+                       </div>
                     </div>
                 </div>
+                 <div className="mt-4">
+                    <h1 className="text-xl font-bold flex items-center gap-2">
+                        {profileData.displayName}
+                        <Star className="w-5 h-5 text-primary fill-primary" />
+                    </h1>
+                    <p className="text-sm text-muted-foreground">{profileData.username}</p>
+                </div>
+                 {!isOwnProfile && (
+                     <div className="mt-4 grid grid-cols-3 gap-2">
+                        <Button 
+                            variant={isFollowing ? 'secondary' : 'default'}
+                            onClick={() => setIsFollowing(!isFollowing)}
+                            className="col-span-2"
+                        >
+                            {isFollowing ? 'Following' : 'Follow'}
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                            <MessageSquare className="h-5 w-5" />
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <Tabs defaultValue="info" className="w-full mt-4">
@@ -211,7 +231,12 @@ export default function ProfilePage() {
             </Tabs>
         </main>
         
-        <BottomNav />
+        {isChatOpen && !isOwnProfile && (
+            <ChatPopup 
+                user={{ displayName: profileData.displayName, photoURL: profileData.photoURL }}
+                onClose={() => setIsChatOpen(false)} 
+            />
+        )}
     </div>
   );
 }
