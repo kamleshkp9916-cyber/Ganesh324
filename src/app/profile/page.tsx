@@ -100,6 +100,7 @@ export default function ProfilePage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const isOwnProfile = !userId;
+  const isSeller = !isOwnProfile;
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return mockProducts;
@@ -171,7 +172,7 @@ export default function ProfilePage() {
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-6 w-6" />
             </Button>
-            <h1 className="text-xl font-bold">{profileData.displayName}</h1>
+            <h1 className={cn("text-xl font-bold", isSeller && "text-destructive")}>{profileData.displayName}</h1>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -206,7 +207,7 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-3xl">{profileData.displayName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold">{profileData.displayName}</h2>
+                    <h2 className={cn("text-2xl font-bold", isSeller && "text-destructive")}>{profileData.displayName}</h2>
                     {profileData.topAchievement && (
                         <Badge variant="secondary" className="text-sm">
                             {profileData.topAchievement.icon}
@@ -396,7 +397,7 @@ export default function ProfilePage() {
                                             <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="font-semibold">{item.sellerName}</p>
+                                            <p className={cn("font-semibold", isSeller && "text-destructive")}>{item.sellerName}</p>
                                             <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                         </div>
                                     </div>
