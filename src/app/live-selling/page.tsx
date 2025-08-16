@@ -291,34 +291,48 @@ export default function LiveSellingPage() {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuLabel>Following ({followingList.length})</DropdownMenuLabel>
-                                        <ScrollArea className="h-48">
-                                            <div className="p-1">
-                                                {followingList.length > 0 ? (
-                                                    followingList.map((followedUser) => (
-                                                        <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="h-6 w-6">
-                                                                    <AvatarImage src={followedUser.avatar} />
-                                                                    <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <span className="text-xs">{followedUser.name}</span>
-                                                            </div>
-                                                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
-                                                                Unfollow
-                                                            </Button>
-                                                        </DropdownMenuItem>
-                                                    ))
-                                                ) : (
-                                                    <div className="text-center text-xs text-muted-foreground p-4">
-                                                        Not following anyone.
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </ScrollArea>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
+                                         <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <Users className="mr-2 h-4 w-4" />
+                                                <span>Following</span>
+                                                <span className="ml-auto">{followingList.length}</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent className="p-0">
+                                                    <DropdownMenuLabel>
+                                                        <div className="flex items-center justify-between">
+                                                          <span>Following</span>
+                                                          <Badge variant="secondary">{followingList.length}</Badge>
+                                                        </div>
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                     <ScrollArea className="h-48">
+                                                        <div className="p-1">
+                                                            {followingList.length > 0 ? (
+                                                                followingList.map((followedUser) => (
+                                                                    <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Avatar className="h-6 w-6">
+                                                                                <AvatarImage src={followedUser.avatar} />
+                                                                                <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <span className="text-xs">{followedUser.name}</span>
+                                                                        </div>
+                                                                        <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
+                                                                            Unfollow
+                                                                        </Button>
+                                                                    </DropdownMenuItem>
+                                                                ))
+                                                            ) : (
+                                                                <div className="text-center text-xs text-muted-foreground p-4">
+                                                                    Not following anyone.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </ScrollArea>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
