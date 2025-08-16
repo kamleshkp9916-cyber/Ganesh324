@@ -58,7 +58,6 @@ export default function ProfilePage() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   useEffect(() => {
@@ -67,7 +66,7 @@ export default function ProfilePage() {
         setProfileData(generateRandomUser(user));
       }
     }
-  }, [user]);
+  }, [user, profileData]);
 
   const handleAddressSave = (data: any) => {
     if(profileData){
@@ -113,10 +112,6 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
   };
-
-  const handleFollowToggle = () => {
-    setIsFollowing(prev => !prev);
-  }
 
   if (loading) {
       return (
@@ -184,14 +179,6 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <CardContent className="p-6 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <Button onClick={handleFollowToggle}>
-                                  {isFollowing ? 'Following' : 'Follow'}
-                                </Button>
-                                <Button variant="outline" onClick={() => setIsChatOpen(true)}>
-                                  Message
-                                </Button>
-                            </div>
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">About Me</h3>
                                 <p className="text-muted-foreground italic">"{profileData.bio}"</p>
