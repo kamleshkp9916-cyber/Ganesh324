@@ -242,12 +242,6 @@ export default function LiveSellingPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const createPostFormRef = useRef<HTMLDivElement>(null);
-
-  const handleReply = (sellerName: string) => {
-    setReplyTo(sellerName);
-    createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
   
   const handleClearReply = () => {
     setReplyTo(null);
@@ -585,7 +579,7 @@ export default function LiveSellingPage() {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="feeds">
+                        <TabsContent value="feeds" className="pb-28">
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -614,22 +608,8 @@ export default function LiveSellingPage() {
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                              </AlertDialog>
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                <div className="hidden lg:block lg:col-span-3">
-                                  <CreatePostForm
-                                      formRef={createPostFormRef}
-                                      replyTo={replyTo}
-                                      onClearReply={handleClearReply}
-                                    />
-                                </div>
-                                <div className="lg:col-span-6 space-y-4">
-                                     <div className="lg:hidden mb-8">
-                                        <CreatePostForm
-                                          formRef={createPostFormRef}
-                                          replyTo={replyTo}
-                                          onClearReply={handleClearReply}
-                                        />
-                                      </div>
+                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                <div className="lg:col-span-8 space-y-4">
                                     {mockFollowingFeed.map(item => (
                                         <Card key={item.id} className="overflow-hidden">
                                             <div className="p-4">
@@ -694,7 +674,7 @@ export default function LiveSellingPage() {
                                                     <Heart className="w-4 h-4" />
                                                     <span>{item.likes}</span>
                                                 </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => setReplyTo(item.sellerName)}>
                                                     <MessageSquare className="w-4 h-4" />
                                                     <span>{item.replies}</span>
                                                 </button>
@@ -702,7 +682,7 @@ export default function LiveSellingPage() {
                                         </Card>
                                     ))}
                                 </div>
-                                <div className="hidden lg:block lg:col-span-3 space-y-6">
+                                <div className="hidden lg:block lg:col-span-4 space-y-6">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -752,6 +732,12 @@ export default function LiveSellingPage() {
                 </main>
                 <Footer />
             </div>
+            {user && (
+                <CreatePostForm
+                    replyTo={replyTo}
+                    onClearReply={handleClearReply}
+                />
+            )}
       </div>
   );
 }
