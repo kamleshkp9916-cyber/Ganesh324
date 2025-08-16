@@ -4,12 +4,14 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MessageSquare, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ChatPopup } from '@/components/chat-popup';
 import { Footer } from '@/components/footer';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 
 // Mock data generation
@@ -48,6 +50,8 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const isOwnProfile = !userId;
 
@@ -61,6 +65,18 @@ export default function ProfilePage() {
         }
     }
   }, [user, userId, isOwnProfile, profileData]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef]);
 
 
   if (loading || !profileData) {
@@ -133,6 +149,32 @@ export default function ProfilePage() {
                      <p className="text-sm text-muted-foreground mt-1">{profileData.bio}</p>
                      <h3 className="font-semibold mt-4">Location</h3>
                      <p className="text-sm text-muted-foreground mt-1">{profileData.location}</p>
+
+                     <div className="mt-4 flex justify-start items-center gap-2" ref={searchRef}>
+                        <div className={cn(
+                            "relative flex items-center transition-all duration-300 ease-in-out",
+                            isSearchExpanded ? "w-48" : "w-10"
+                        )}>
+                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                            <Input 
+                                placeholder="Search..." 
+                                className={cn(
+                                    "bg-muted pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
+                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                                )}
+                                onFocus={() => setIsSearchExpanded(true)}
+                            />
+                            
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
+                                onClick={() => setIsSearchExpanded(p => !p)}
+                            >
+                                <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
+                            </Button>
+                        </div>
+                    </div>
                  </div>
             </div>
         </main>
