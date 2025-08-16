@@ -167,32 +167,33 @@ export default function ProfilePage() {
                         <p className="text-sm text-muted-foreground mt-1">{profileData.bio}</p>
                         <h3 className="font-semibold mt-4">Location</h3>
                         <p className="text-sm text-muted-foreground mt-1">{profileData.location}</p>
-                        <div className="mt-4 flex justify-end items-center gap-2" ref={searchRef}>
-                            <div className={cn(
-                                "relative flex items-center transition-all duration-300 ease-in-out",
-                                isSearchExpanded ? "w-48" : "w-10"
-                            )}>
-                                <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
-                                <Input 
-                                    placeholder="Search..." 
-                                    className={cn(
-                                        "bg-muted pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
-                                        isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                                    )}
-                                    onFocus={() => setIsSearchExpanded(true)}
-                                />
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
-                                    onClick={() => setIsSearchExpanded(p => !p)}
-                                >
-                                    <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
-                                </Button>
-                            </div>
-                        </div>
                     </div>
                  </div>
+                 
+                 <div className="mt-4 flex justify-end items-center gap-2 w-full max-w-4xl" ref={searchRef}>
+                    <div className={cn(
+                        "relative flex items-center transition-all duration-300 ease-in-out",
+                        isSearchExpanded ? "w-48" : "w-10"
+                    )}>
+                        <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                        <Input 
+                            placeholder="Search..." 
+                            className={cn(
+                                "bg-muted pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
+                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                            )}
+                            onFocus={() => setIsSearchExpanded(true)}
+                        />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            <Search className={cn("h-5 w-5", isSearchExpanded && "hidden")} />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <Separator className="my-6" />
