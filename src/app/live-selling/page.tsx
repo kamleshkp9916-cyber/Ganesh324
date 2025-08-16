@@ -47,6 +47,7 @@ import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { FollowingSheet } from '@/components/following-sheet';
 
 
 const liveSellers = [
@@ -166,6 +167,17 @@ const offerSlides = [
   },
 ];
 
+const initialFollowing = [
+    { id: 'user1', name: 'CoolCat', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user2', name: 'GamerGirl92', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user3', name: 'TechWizard', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user4', name: 'StyleSavvy', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user5', name: 'FoodieFinds', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user6', name: 'AdventureJunkie', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user7', name: 'BookWorm', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'user8', name: 'DIYDan', avatar: 'https://placehold.co/40x40.png' },
+];
+
 
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -175,6 +187,13 @@ export default function LiveSellingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
+  const [isFollowingSheetOpen, setIsFollowingSheetOpen] = useState(false);
+  const [followingList, setFollowingList] = useState(initialFollowing);
+
+  const handleUnfollow = (userId: string) => {
+    setFollowingList(currentList => currentList.filter(user => user.id !== userId));
+  };
+
 
   const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
@@ -270,10 +289,10 @@ export default function LiveSellingPage() {
                                                 {user.email}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" onClick={() => setIsFollowingSheetOpen(true)}>
                                                 <Users className="h-3 w-3" />
-                                                <span>2,543 follows</span>
-                                            </div>
+                                                <span>{followingList.length} follows</span>
+                                            </button>
                                         </div>
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
@@ -438,6 +457,12 @@ export default function LiveSellingPage() {
                     </div>
                 </main>
             </div>
+            <FollowingSheet
+                open={isFollowingSheetOpen}
+                onOpenChange={setIsFollowingSheetOpen}
+                followingList={followingList}
+                onUnfollow={handleUnfollow}
+            />
       </div>
   );
 }
