@@ -332,14 +332,14 @@ export default function LiveSellingPage() {
                                                             {followingList.length > 0 ? (
                                                                 followingList.map((followedUser) => (
                                                                     <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
-                                                                        <div className="flex items-center gap-2">
+                                                                        <Link href="/profile" className="flex items-center gap-2 flex-grow">
                                                                             <Avatar className="h-6 w-6">
                                                                                 <AvatarImage src={followedUser.avatar} />
                                                                                 <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
                                                                             </Avatar>
                                                                             <span className="text-xs">{followedUser.name}</span>
-                                                                        </div>
-                                                                        <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
+                                                                        </Link>
+                                                                        <Button variant="outline" size="sm" className="h-6 px-2 text-xs ml-2" onClick={(e) => handleUnfollow(e, followedUser.id)}>
                                                                             Unfollow
                                                                         </Button>
                                                                     </DropdownMenuItem>
