@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera, MessageSquare, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
@@ -14,6 +14,7 @@ import { EditAddressForm } from '@/components/edit-address-form';
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatPopup } from '@/components/chat-popup';
+import { cn } from '@/lib/utils';
 
 // Mock data generation
 const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
@@ -45,7 +46,8 @@ const generateRandomUser = (currentUser: any) => {
         state: "Maharashtra",
         country: "India",
         pincode: "123456"
-    }
+    },
+    followers: Math.floor(Math.random() * 10000)
   };
 };
 
@@ -62,6 +64,7 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   const isOwnProfile = !userId;
 
@@ -71,6 +74,10 @@ export default function ProfilePage() {
         setProfileData(generateRandomUser(activeUser));
     }
   }, [user, userId, isOwnProfile]);
+
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+  };
 
   const handleAddressSave = (data: any) => {
     if(profileData){
@@ -187,6 +194,25 @@ export default function ProfilePage() {
                             </div>
                         </div>
                         <CardContent className="p-6 space-y-6">
+                            {!isOwnProfile && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                    <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'}>
+                                        <Plus className={cn("mr-2 h-4 w-4", isFollowing && "hidden")} />
+                                        {isFollowing ? "Following" : "Follow"}
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                                        <MessageSquare className="mr-2 h-4 w-4" />
+                                        Message
+                                    </Button>
+                                    <div className="flex items-center justify-center bg-muted rounded-md p-2">
+                                        <div className="text-center">
+                                            <p className="font-bold text-lg">{(profileData.followers / 1000).toFixed(1)}k</p>
+                                            <p className="text-xs text-muted-foreground">Followers</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">About Me</h3>
                                 <p className="text-muted-foreground italic">"{profileData.bio}"</p>
@@ -268,5 +294,3 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
-
-    
