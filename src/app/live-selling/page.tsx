@@ -225,6 +225,17 @@ export default function LiveSellingPage() {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const createPostFormRef = useRef<HTMLDivElement>(null);
+
+  const handleReply = (sellerName: string) => {
+    setReplyTo(sellerName);
+    createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  
+  const handleClearReply = () => {
+    setReplyTo(null);
+  };
 
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
@@ -589,7 +600,11 @@ export default function LiveSellingPage() {
                              </AlertDialog>
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                                 <div className="lg:col-span-1 lg:order-last">
-                                    <CreatePostForm />
+                                    <CreatePostForm
+                                      formRef={createPostFormRef}
+                                      replyTo={replyTo}
+                                      onClearReply={handleClearReply}
+                                    />
                                 </div>
                                 <div className="lg:col-span-3 space-y-4 lg:order-first">
                                     {mockFollowingFeed.map(item => (
@@ -656,7 +671,7 @@ export default function LiveSellingPage() {
                                                     <Heart className="w-4 h-4" />
                                                     <span>{item.likes}</span>
                                                 </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
                                                     <MessageSquare className="w-4 h-4" />
                                                     <span>{item.replies}</span>
                                                 </button>
