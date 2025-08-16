@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ChatPopup } from '@/components/chat-popup';
+import { Footer } from '@/components/footer';
 
 
 // Mock data generation
@@ -81,7 +82,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
         <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-6 w-6" />
@@ -92,7 +93,7 @@ export default function ProfilePage() {
             </Button>
         </header>
 
-        <main className="p-4">
+        <main className="flex-grow p-4">
             <div className="flex flex-col items-center">
                 <Avatar className="h-24 w-24 border-2 mb-4">
                     <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
@@ -142,6 +143,7 @@ export default function ProfilePage() {
                 onClose={() => setIsChatOpen(false)} 
             />
         )}
+        <Footer />
     </div>
   );
 }

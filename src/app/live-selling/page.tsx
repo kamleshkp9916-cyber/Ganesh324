@@ -48,6 +48,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Footer } from '@/components/footer';
 
 
 const liveSellers = [
@@ -492,9 +493,8 @@ export default function LiveSellingPage() {
                         ))}
                     </div>
                 </main>
+                <Footer />
             </div>
       </div>
   );
 }
-
-    
