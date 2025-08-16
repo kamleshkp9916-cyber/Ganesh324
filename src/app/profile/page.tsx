@@ -71,8 +71,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
     if (activeUser) {
-        if (!profileData) {
+        if (!profileData || (userId && profileData.displayName !== userId)) {
             setProfileData(generateRandomUser(activeUser));
+        } else if (isOwnProfile && user && (!profileData || profileData.email !== user.email)) {
+            setProfileData(generateRandomUser(user));
         }
     }
   }, [user, userId, isOwnProfile, profileData]);
@@ -287,7 +289,7 @@ export default function ProfilePage() {
                 onCancel={() => setIsProfileDialogOpen(false)}
             />
         </DialogContent>
-        {isChatOpen && profileData && (
+        {isChatOpen && profileData && !isOwnProfile && (
           <ChatPopup
             user={profileData}
             onClose={() => setIsChatOpen(false)}
@@ -296,3 +298,5 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
+
+    
