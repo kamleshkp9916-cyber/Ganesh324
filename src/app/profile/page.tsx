@@ -4,20 +4,20 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Mail, Phone, User, MapPin, Camera, MessageSquare, Plus, Users } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Star, Plus, Send, Home, Edit, AppWindow, ShoppingCart, Wallet } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { EditAddressForm } from '@/components/edit-address-form';
-import { EditProfileForm } from '@/components/edit-profile-form';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChatPopup } from '@/components/chat-popup';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from '@/components/ui/separator';
+import { BottomNav } from '@/components/bottom-nav';
+
 
 // Mock data generation
-const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
+const firstNames = ["Ganesh", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
 const lastNames = ["Prajapati", "Doe", "Smith", "Johnson", "Williams", "Brown", "Jones"];
 const bios = [
   "Live selling enthusiast. Love finding great deals!",
@@ -33,23 +33,36 @@ const generateRandomUser = (currentUser: any) => {
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
   return {
     displayName: currentUser.displayName || `${firstName} ${lastName}`,
+    username: currentUser.username || `@${firstName}Pr${Math.floor(100 + Math.random() * 900)}`,
     email: currentUser.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
     photoURL: currentUser.photoURL || `https://placehold.co/128x128.png?text=${firstName.charAt(0)}${lastName.charAt(0)}`,
     bio: bios[Math.floor(Math.random() * bios.length)],
     location: locations[Math.floor(Math.random() * locations.length)],
-    phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-    address: {
-        name: currentUser.displayName || `${firstName} ${lastName}`,
-        village: "123 Main St",
-        district: "Koregaon",
-        city: "Anytown",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "123456"
-    },
-    followers: Math.floor(Math.random() * 10000)
+    following: Math.floor(Math.random() * 500),
+    followers: Math.floor(Math.random() * 200)
   };
 };
+
+const listedProducts = Array.from({ length: 6 }, (_, i) => ({
+    id: i,
+    imageUrl: 'https://placehold.co/200x250.png',
+    hint: 'product placeholder'
+}));
+
+const userPosts = [
+    {
+        id: 1,
+        text: 'This is a new software and will be launching for such customer who will sell their product in this platform.',
+        imageUrl: 'https://placehold.co/400x300.png',
+        hint: 'modern office software'
+    },
+    {
+        id: 2,
+        text: 'Just unboxed the latest gadget! Stay tuned for the full review stream tomorrow.',
+        imageUrl: 'https://placehold.co/400x300.png',
+        hint: 'tech gadget unboxing'
+    }
+];
 
 
 export default function ProfilePage() {
@@ -59,12 +72,6 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const profileFileInputRef = useRef<HTMLInputElement>(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
   
   const isOwnProfile = !userId;
 
@@ -79,54 +86,6 @@ export default function ProfilePage() {
     }
   }, [user, userId, isOwnProfile, profileData]);
 
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
-  };
-
-  const handleAddressSave = (data: any) => {
-    if(profileData){
-        const newAddress = {
-            name: data.name,
-            village: data.village,
-            district: data.district,
-            city: data.city,
-            state: data.state,
-            country: data.country,
-            pincode: data.pincode,
-        }
-        setProfileData({
-            ...profileData,
-            address: newAddress,
-            phone: `+91 ${data.phone}`
-        });
-    }
-    setIsAddressDialogOpen(false);
-  }
-
-  const handleProfileSave = (data: any) => {
-    if(profileData){
-        setProfileData({
-            ...profileData,
-            displayName: `${data.firstName} ${data.lastName}`,
-            bio: data.bio,
-            location: data.location,
-            phone: `+91 ${data.phone}`,
-            email: data.email, // email is read-only but we get it back from the form
-        });
-    }
-    setIsProfileDialogOpen(false);
-  };
-  
-  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   if (loading || !profileData) {
       return (
@@ -147,156 +106,112 @@ export default function ProfilePage() {
   }
 
   return (
-    <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <div className="min-h-screen bg-background text-foreground">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-6 w-6" />
-                </Button>
-                <h1 className="text-xl font-bold">{isOwnProfile ? "My Profile" : "Profile"}</h1>
-                {isOwnProfile ? (
-                    <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <Edit className="h-5 w-5" />
-                        </Button>
-                    </DialogTrigger>
-                ) : <div className="w-10" />}
-            </header>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <Button variant="ghost" size="icon">
+                <MoreVertical className="h-6 w-6" />
+            </Button>
+        </header>
 
-            <main className="p-4 sm:p-6 md:p-8">
-            {profileData ? (
-                <div className="max-w-3xl mx-auto">
-                    <Card className="overflow-hidden">
-                        <div className="bg-primary/10 p-8 flex flex-col items-center gap-4">
-                            <div className="relative">
-                                <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                                    <AvatarImage src={profileImage || profileData.photoURL} alt={profileData.displayName} />
-                                    <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                {isOwnProfile && (
-                                    <Button
-                                        size="icon"
-                                        variant="outline"
-                                        className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
-                                        onClick={() => profileFileInputRef.current?.click()}
-                                    >
-                                        <Camera className="h-4 w-4" />
-                                        <span className="sr-only">Change profile image</span>
-                                    </Button>
-                                )}
-                                <input
-                                    type="file"
-                                    ref={profileFileInputRef}
-                                    onChange={handleProfileImageUpload}
-                                    className="hidden"
-                                    accept="image/*"
-                                />
-                            </div>
-                            <div className="text-center">
-                                <h2 className="text-3xl font-bold">{profileData.displayName}</h2>
-                                <p className="text-muted-foreground">{profileData.email}</p>
-                            </div>
-                        </div>
-                        <CardContent className="p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto pb-24">
+            <div className="p-4">
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-20 w-20 border-2">
+                        <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
+                        <AvatarFallback className="text-2xl">{profileData.displayName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl font-bold">{profileData.displayName}</h1>
+                            <Star className="w-5 h-5 text-primary fill-primary" />
                             {!isOwnProfile && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                                    <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'}>
-                                        <Plus className={cn("mr-2 h-4 w-4", isFollowing && "hidden")} />
-                                        {isFollowing ? "Following" : "Follow"}
-                                    </Button>
-                                    <Button variant="outline" onClick={() => setIsChatOpen(true)}>
-                                        <MessageSquare className="mr-2 h-4 w-4" />
-                                        Message
-                                    </Button>
-                                    <div className="flex items-center justify-center bg-muted rounded-md p-2">
-                                        <div className="text-center">
-                                            <p className="font-bold text-lg">{(profileData.followers / 1000).toFixed(1)}k</p>
-                                            <p className="text-xs text-muted-foreground">Followers</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                <Button size="icon" variant="ghost" className="ml-auto">
+                                    <Plus className="h-6 w-6" />
+                                </Button>
                             )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{profileData.username}</p>
+                        <div className="flex items-center gap-4 text-sm mt-2">
+                            <p><span className="font-semibold">{profileData.following}</span> <span className="text-muted-foreground">Following</span></p>
+                            <p><span className="font-semibold">{profileData.followers}</span> <span className="text-muted-foreground">Followers</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">About Me</h3>
-                                <p className="text-muted-foreground italic">"{profileData.bio}"</p>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex items-center gap-3">
-                                    <Mail className="w-5 h-5 text-muted-foreground" />
-                                    <span>{profileData.email}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <Phone className="w-5 h-5 text-muted-foreground" />
-                                    <span>{profileData.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <MapPin className="w-5 h-5 text-muted-foreground" />
-                                    <span>{profileData.location}</span>
-                                </div>
-                            </div>
-
-                             <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h3 className="text-lg font-semibold">Delivery Address</h3>
-                                        {isOwnProfile && (
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <Edit className="h-5 w-5" />
-                                                    <span className="sr-only">Edit Address</span>
-                                                </Button>
-                                            </DialogTrigger>
-                                        )}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground p-4 border rounded-lg bg-muted/50">
-                                        <p className="font-semibold text-foreground">{profileData.address.name}</p>
-                                        <p>{profileData.address.village}, {profileData.address.district}</p>
-                                        <p>{profileData.address.city}, {profileData.address.state} - {profileData.address.pincode}</p>
-                                        <p>{profileData.address.country}</p>
-                                    </div>
-                                </div>
-                                 <DialogContent className="p-0 max-w-lg">
-                                    <DialogHeader className="p-6 pb-0">
-                                        <DialogTitle>Edit Delivery Address</DialogTitle>
-                                    </DialogHeader>
-                                    <EditAddressForm 
-                                        currentAddress={profileData.address}
-                                        currentPhone={profileData.phone}
-                                        onSave={handleAddressSave} 
-                                        onCancel={() => setIsAddressDialogOpen(false)}
-                                    />
-                                </DialogContent>
-                            </Dialog>
+            <Tabs defaultValue="info" className="w-full mt-4">
+                <TabsList className="grid w-full grid-cols-3 bg-transparent px-4">
+                    <TabsTrigger value="info" className="pb-2 rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary">Info</TabsTrigger>
+                    <TabsTrigger value="products" className="pb-2 rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary">Listed Products</TabsTrigger>
+                    <TabsTrigger value="posts" className="pb-2 rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary">Post</TabsTrigger>
+                </TabsList>
+                <Separator />
+                <TabsContent value="info" className="p-4">
+                    <Card>
+                        <CardContent className="p-4">
+                             <h3 className="font-semibold mb-2">About</h3>
+                             <p className="text-sm text-muted-foreground">{profileData.bio}</p>
+                             <h3 className="font-semibold mt-4 mb-2">Location</h3>
+                             <p className="text-sm text-muted-foreground">{profileData.location}</p>
                         </CardContent>
                     </Card>
-                </div>
-            ) : (
-                <div className="flex items-center justify-center p-10">
-                    <LoadingSpinner />
-                </div>
-            )}
-            </main>
-        </div>
-        <DialogContent className="p-0 max-w-2xl">
-           <DialogHeader className="p-6 pb-0">
-             <DialogTitle>Edit Profile</DialogTitle>
-           </DialogHeader>
-           <EditProfileForm
-                currentUser={profileData}
-                onSave={handleProfileSave}
-                onCancel={() => setIsProfileDialogOpen(false)}
-            />
-        </DialogContent>
-        {isChatOpen && profileData && !isOwnProfile && (
-          <ChatPopup
-            user={profileData}
-            onClose={() => setIsChatOpen(false)}
-          />
-        )}
-    </Dialog>
+                </TabsContent>
+                <TabsContent value="products" className="p-4 space-y-4">
+                     <div className="flex items-center justify-between">
+                         <h2 className="text-lg font-bold">Listed Products</h2>
+                         <Button variant="link" className="text-primary">See All</Button>
+                     </div>
+                     <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                        {listedProducts.map(product => (
+                             <div key={product.id} className="flex-shrink-0">
+                                 <Card className="w-32 h-40 overflow-hidden">
+                                     <Image src={product.imageUrl} alt="Product" width={128} height={160} className="w-full h-full object-cover" data-ai-hint={product.hint} />
+                                 </Card>
+                             </div>
+                         ))}
+                     </div>
+                </TabsContent>
+                <TabsContent value="posts" className="p-4 space-y-4">
+                     <div className="flex items-center justify-between">
+                         <h2 className="text-lg font-bold">Post</h2>
+                     </div>
+                    {userPosts.map(post => (
+                    <Card key={post.id}>
+                        <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
+                                    <AvatarFallback>{profileData.displayName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-1">
+                                        <p className="font-semibold">{profileData.username}</p>
+                                        <Star className="w-4 h-4 text-primary fill-primary" />
+                                        <Button size="icon" variant="ghost" className="h-5 w-5"><Plus className="h-4 w-4" /></Button>
+                                    </div>
+                                    <p className="text-sm mt-1">{post.text}</p>
+                                </div>
+                                <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-5 w-5" />
+                                </Button>
+                            </div>
+                             <div className="relative mt-3">
+                                <Image src={post.imageUrl} alt="Post image" width={400} height={300} className="rounded-lg w-full object-cover" data-ai-hint={post.hint} />
+                                <Button size="icon" className="absolute bottom-3 right-3 bg-primary rounded-full h-10 w-10">
+                                    <Send className="h-5 w-5" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    ))}
+                </TabsContent>
+            </Tabs>
+        </main>
+        
+        <BottomNav />
+    </div>
   );
 }
-
-    
