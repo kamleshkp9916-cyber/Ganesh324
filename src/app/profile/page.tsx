@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditAddressForm } from '@/components/edit-address-form';
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChatPopup } from '@/components/chat-popup';
 
 // Mock data generation
 const firstNames = ["Samael", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
@@ -57,6 +58,8 @@ export default function ProfilePage() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -110,6 +113,10 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleFollowToggle = () => {
+    setIsFollowing(prev => !prev);
+  }
 
   if (loading) {
       return (
@@ -178,8 +185,12 @@ export default function ProfilePage() {
                         </div>
                         <CardContent className="p-6 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <Button>Follow</Button>
-                                <Button variant="outline">Message</Button>
+                                <Button onClick={handleFollowToggle}>
+                                  {isFollowing ? 'Following' : 'Follow'}
+                                </Button>
+                                <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                                  Message
+                                </Button>
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">About Me</h3>
@@ -219,18 +230,13 @@ export default function ProfilePage() {
                                         <p>{profileData.address.country}</p>
                                     </div>
                                 </div>
-                                 <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
-                                    <DialogHeader className="p-6 pb-0">
-                                        <DialogTitle>Edit Delivery Address</DialogTitle>
-                                    </DialogHeader>
-                                    {profileData && (
-                                        <EditAddressForm 
-                                            currentAddress={profileData.address}
-                                            currentPhone={profileData.phone}
-                                            onSave={handleAddressSave} 
-                                            onCancel={() => setIsAddressDialogOpen(false)}
-                                        />
-                                    )}
+                                 <DialogContent className="p-0 max-w-lg">
+                                    <EditAddressForm 
+                                        currentAddress={profileData.address}
+                                        currentPhone={profileData.phone}
+                                        onSave={handleAddressSave} 
+                                        onCancel={() => setIsAddressDialogOpen(false)}
+                                    />
                                 </DialogContent>
                             </Dialog>
                         </CardContent>
@@ -243,18 +249,19 @@ export default function ProfilePage() {
             )}
             </main>
         </div>
-        <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0">
-            <DialogHeader className="p-6 pb-0">
-                <DialogTitle>Edit Profile</DialogTitle>
-            </DialogHeader>
-             {profileData && (
-                <EditProfileForm
-                    currentUser={profileData}
-                    onSave={handleProfileSave}
-                    onCancel={() => setIsProfileDialogOpen(false)}
-                />
-            )}
+        <DialogContent className="p-0 max-w-2xl">
+            <EditProfileForm
+                currentUser={profileData!}
+                onSave={handleProfileSave}
+                onCancel={() => setIsProfileDialogOpen(false)}
+            />
         </DialogContent>
+        {isChatOpen && profileData && (
+          <ChatPopup
+            user={profileData}
+            onClose={() => setIsChatOpen(false)}
+          />
+        )}
     </Dialog>
   );
 }
