@@ -273,7 +273,7 @@ export default function LiveSellingPage() {
       avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
       timestamp: 'Just now',
       content: postData.content,
-      productImageUrl: postData.media?.type === 'video' ? postData.media.url : 'https://placehold.co/400x300.png', // Placeholder for now
+      productImageUrl: postData.media?.url || 'https://placehold.co/400x300.png', // Placeholder for now
       hint: 'new user post',
       likes: 0,
       replies: 0,

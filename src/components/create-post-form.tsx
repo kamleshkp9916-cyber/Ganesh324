@@ -3,7 +3,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, MapPin, Smile, X } from "lucide-react";
+import { Video, MapPin, Smile, X, Image as ImageIcon } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface PostData {
     content: string;
-    media: { type: 'video', url: string } | null;
+    media: { type: 'video' | 'image', url: string } | null;
     location: string | null;
 }
   
@@ -39,9 +39,10 @@ const emojis = [
 export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, onCreatePost }, ref) => {
     const { user } = useAuth();
     const [content, setContent] = useState("");
-    const [media, setMedia] = useState<{type: 'video', url: string} | null>(null);
+    const [media, setMedia] = useState<{type: 'video' | 'image', url: string} | null>(null);
     const [location, setLocation] = useState<string | null>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -73,6 +74,20 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             }
         }
     };
+    
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                 const imageUrl = URL.createObjectURL(file);
+                 setMedia({ type: 'image', url: imageUrl });
+                 toast({ title: 'Image attached!' });
+            } else {
+                toast({ variant: 'destructive', title: 'Invalid File', description: 'Please select an image file.' });
+            }
+        }
+    };
+
 
     const handleGetLocation = () => {
         // Simulate getting location
@@ -136,6 +151,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoUpload} className="hidden" />
                         <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
                             <Video className="mr-2 h-5 w-5" /> Video
+                        </Button>
+                        <input type="file" accept="image/*" ref={imageInputRef} onChange={handleImageUpload} className="hidden" />
+                        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()}>
+                            <ImageIcon className="mr-2 h-5 w-5" /> Image
                         </Button>
                         <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
                             <MapPin className="mr-2 h-5 w-5" /> Location
