@@ -741,77 +741,81 @@ export default function LiveSellingPage() {
                                     ))}
                                 </div>
                                 <div className="hidden lg:block lg:col-span-4">
-                                     <div className="sticky top-20 space-y-6">
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle className="flex items-center gap-2 text-lg">
-                                                    <Hash className="h-5 w-5 text-primary"/>
-                                                    Trending
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                {trendingTopics.map(topic => (
-                                                    <div key={topic.id} className="text-sm cursor-pointer group">
-                                                        <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                    </div>
-                                                ))}
-                                            </CardContent>
-                                        </Card>
+                                     <div className="sticky top-20">
+                                         <ScrollArea className="h-[calc(100vh-6rem)]">
+                                             <div className="space-y-6 pr-4">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                                            <Hash className="h-5 w-5 text-primary"/>
+                                                            Trending
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-3">
+                                                        {trendingTopics.map(topic => (
+                                                            <div key={topic.id} className="text-sm cursor-pointer group">
+                                                                <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                            </div>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
 
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle className="flex items-center gap-2 text-lg">
-                                                    <UserPlus className="h-5 w-5 text-primary"/>
-                                                    Who to follow
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-4">
-                                                {suggestedUsers.map(user => (
-                                                    <div key={user.id} className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={user.avatar} alt={user.name} />
-                                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold text-sm">{user.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                                            <UserPlus className="h-5 w-5 text-primary"/>
+                                                            Who to follow
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-4">
+                                                        {suggestedUsers.map(user => (
+                                                            <div key={user.id} className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <Avatar className="h-10 w-10">
+                                                                        <AvatarImage src={user.avatar} alt={user.name} />
+                                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    <div>
+                                                                        <p className="font-semibold text-sm">{user.name}</p>
+                                                                        <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <Button size="sm" variant="outline">Follow</Button>
                                                             </div>
-                                                        </div>
-                                                        <Button size="sm" variant="outline">Follow</Button>
-                                                    </div>
-                                                ))}
-                                            </CardContent>
-                                        </Card>
-                                         <Card>
-                                            <CardHeader>
-                                                <CardTitle className="flex items-center gap-2 text-lg">
-                                                    <Video className="h-5 w-5 text-primary"/>
-                                                    Top Live Streams
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent className="space-y-4">
-                                                {topLiveStreams.map(seller => (
-                                                    <div key={seller.id} className="flex items-center justify-between cursor-pointer group">
-                                                        <div className="flex items-center gap-3">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold text-sm group-hover:underline">{seller.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                                 <Card>
+                                                    <CardHeader>
+                                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                                            <Video className="h-5 w-5 text-primary"/>
+                                                            Top Live Streams
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-4">
+                                                        {topLiveStreams.map(seller => (
+                                                            <div key={seller.id} className="flex items-center justify-between cursor-pointer group">
+                                                                <div className="flex items-center gap-3">
+                                                                    <Avatar className="h-10 w-10">
+                                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    <div>
+                                                                        <p className="font-semibold text-sm group-hover:underline">{seller.name}</p>
+                                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                                   <Users className="w-4 h-4 mr-1.5" />
+                                                                   {(seller.viewers / 1000).toFixed(1)}k
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-muted-foreground">
-                                                           <Users className="w-4 h-4 mr-1.5" />
-                                                           {(seller.viewers / 1000).toFixed(1)}k
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </CardContent>
-                                        </Card>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
+                                         </ScrollArea>
                                     </div>
                                 </div>
                             </div>
@@ -831,5 +835,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
