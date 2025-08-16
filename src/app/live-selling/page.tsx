@@ -291,30 +291,6 @@ export default function LiveSellingPage() {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
                                         <DropdownMenuLabel>Following ({followingList.length})</DropdownMenuLabel>
                                         <ScrollArea className="h-48">
                                             <div className="p-1">
@@ -340,6 +316,30 @@ export default function LiveSellingPage() {
                                                 )}
                                             </div>
                                         </ScrollArea>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                        <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                                        </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
