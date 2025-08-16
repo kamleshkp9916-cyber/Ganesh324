@@ -146,22 +146,20 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         </Popover>
                     </div>
                 </div>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-1">
-                        <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoUpload} className="hidden" />
-                        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
-                            <Video className="mr-2 h-5 w-5" /> Video
-                        </Button>
-                        <input type="file" accept="image/*" ref={imageInputRef} onChange={handleImageUpload} className="hidden" />
-                        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()}>
-                            <ImageIcon className="mr-2 h-5 w-5" /> Image
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
-                            <MapPin className="mr-2 h-5 w-5" /> Location
-                        </Button>
-                    </div>
-                     <Button 
-                        className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80"
+                <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
+                    <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoUpload} className="hidden" />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
+                        <Video className="mr-2 h-5 w-5" /> Video
+                    </Button>
+                    <input type="file" accept="image/*" ref={imageInputRef} onChange={handleImageUpload} className="hidden" />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()}>
+                        <ImageIcon className="mr-2 h-5 w-5" /> Image
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
+                        <MapPin className="mr-2 h-5 w-5" /> Location
+                    </Button>
+                    <Button 
+                        className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handlePost} 
                         disabled={!content.trim()}
                     >
