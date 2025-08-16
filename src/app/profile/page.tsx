@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ChatPopup } from '@/components/chat-popup';
 import { Footer } from '@/components/footer';
@@ -422,5 +422,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
