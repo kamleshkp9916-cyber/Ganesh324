@@ -560,7 +560,7 @@ export default function LiveSellingPage() {
 
                         <TabsContent value="feeds">
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                                <AlertDialogContent>
+                                <AlertDialogContent onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Report Post</AlertDialogTitle>
                                     <AlertDialogDescription>
@@ -588,7 +588,10 @@ export default function LiveSellingPage() {
                                 </AlertDialogContent>
                              </AlertDialog>
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                                <div className="lg:col-span-3 space-y-4">
+                                <div className="lg:col-span-1 lg:order-last">
+                                    <CreatePostForm />
+                                </div>
+                                <div className="lg:col-span-3 space-y-4 lg:order-first">
                                     {mockFollowingFeed.map(item => (
                                         <Card key={item.id} className="overflow-hidden">
                                             <div className="p-4">
@@ -660,9 +663,6 @@ export default function LiveSellingPage() {
                                             </div>
                                         </Card>
                                     ))}
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <CreatePostForm />
                                 </div>
                             </div>
                         </TabsContent>
