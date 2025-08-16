@@ -4,7 +4,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Video, Mic } from "lucide-react";
+import { ImagePlus, Video } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 
@@ -34,9 +34,6 @@ export function CreatePostForm() {
             </Button>
             <Button variant="ghost" size="sm">
                 <Video className="mr-2 h-4 w-4" /> Video
-            </Button>
-            <Button variant="ghost" size="sm">
-                <Mic className="mr-2 h-4 w-4" /> Audio
             </Button>
         </div>
         <Button className="w-full">Post</Button>
