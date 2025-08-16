@@ -239,35 +239,38 @@ export default function ProfilePage() {
             <Separator className="my-6" />
 
             <div className="w-full max-w-4xl mx-auto">
-                <section>
-                    <h3 className="text-xl font-bold mb-4">Listed Products</h3>
-                    {filteredProducts.length > 0 ? (
-                        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                            {filteredProducts.map((product) => (
-                                <Card key={product.id} className="min-w-[180px] shrink-0">
-                                    <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                        <Image 
-                                            src={product.imageUrl}
-                                            alt={product.name}
-                                            width={180}
-                                            height={180}
-                                            className="object-cover w-full h-full"
-                                            data-ai-hint={product.hint}
-                                        />
-                                    </div>
-                                    <div className="p-3">
-                                        <h4 className="font-semibold truncate">{product.name}</h4>
-                                        <p className="text-primary font-bold">{product.price}</p>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-muted-foreground text-center py-4">No products found.</p>
-                    )}
-                </section>
-
-                <Separator className="my-6" />
+                {!isOwnProfile && (
+                    <>
+                        <section>
+                            <h3 className="text-xl font-bold mb-4">Listed Products</h3>
+                            {filteredProducts.length > 0 ? (
+                                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                                    {filteredProducts.map((product) => (
+                                        <Card key={product.id} className="min-w-[180px] shrink-0">
+                                            <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                                <Image 
+                                                    src={product.imageUrl}
+                                                    alt={product.name}
+                                                    width={180}
+                                                    height={180}
+                                                    className="object-cover w-full h-full"
+                                                    data-ai-hint={product.hint}
+                                                />
+                                            </div>
+                                            <div className="p-3">
+                                                <h4 className="font-semibold truncate">{product.name}</h4>
+                                                <p className="text-primary font-bold">{product.price}</p>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-center py-4">No products found.</p>
+                            )}
+                        </section>
+                        <Separator className="my-6" />
+                    </>
+                )}
 
                 <section>
                     <h3 className="text-xl font-bold mb-4">Likes</h3>
