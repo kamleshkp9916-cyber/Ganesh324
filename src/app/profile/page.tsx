@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,6 +16,8 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from '@/components/ui/badge';
 
 
 // Mock data generation
@@ -52,6 +54,36 @@ const mockProducts = [
     { id: 5, name: 'Leather Backpack', price: '₹6,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'brown leather backpack' },
 ];
 
+const recentlyViewedItems = [
+    { id: 6, name: 'Noise Cancelling Headphones', price: '₹14,999', imageUrl: 'https://placehold.co/300x300.png', hint: 'sleek black headphones' },
+    { id: 7, name: 'Minimalist Wall Clock', price: '₹1,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'modern wall clock' },
+    { id: 8, name: 'Running Shoes', price: '₹5,600', imageUrl: 'https://placehold.co/300x300.png', hint: 'colorful running shoes' },
+    { id: 9, name: 'Yoga Mat', price: '₹999', imageUrl: 'https://placehold.co/300x300.png', hint: 'rolled up yoga mat' },
+    { id: 10, name: 'Portable Blender', price: '₹3,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'blender with fruit' },
+];
+
+const mockReviews = [
+    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones' },
+    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'smartwatch face' },
+    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera' },
+];
+
+const mockAchievements = [
+    { id: 1, name: 'Top Shopper', icon: <ShoppingBag />, description: 'Made over 50 purchases' },
+    { id: 2, name: 'Power Viewer', icon: <Eye />, description: 'Watched over 100 hours of streams' },
+    { id: 3, name: 'Review Pro', icon: <ThumbsUp />, description: 'Wrote more than 20 helpful reviews' },
+    { id: 4, name: 'Pioneer', icon: <Award />, description: 'Joined within the first month of launch' },
+    { id: 5, name: 'One Year Club', icon: <History />, description: 'Member for over a year' },
+    { id: 6, name: 'Deal Hunter', icon: <Search />, description: 'Snagged 10+ flash sale items' },
+];
+
+const mockFollowingFeed = [
+    { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion' },
+    { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying' },
+    { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases' },
+];
+
+
 export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -71,6 +103,21 @@ export default function ProfilePage() {
     if (!searchTerm) return mockProducts;
     return mockProducts.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredRecentlyViewed = useMemo(() => {
+    if (!searchTerm) return recentlyViewedItems;
+    return recentlyViewedItems.filter(item =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredReviews = useMemo(() => {
+    if (!searchTerm) return mockReviews;
+    return mockReviews.filter(review =>
+      review.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.review.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm]);
 
@@ -192,16 +239,20 @@ export default function ProfilePage() {
                         <h3 className="font-semibold mt-4">Location</h3>
                         <p className="text-sm text-muted-foreground mt-1">{profileData.location}</p>
                     </div>
-                 </div>
-                 
-                 <div className="mt-4 flex justify-end items-center gap-2 w-full max-w-4xl" ref={searchRef}>
+                </div>
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="w-full max-w-4xl mx-auto">
+                <div className="flex justify-end items-center gap-2 mb-4" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out",
                         isSearchExpanded ? "w-48" : "w-10"
                     )}>
                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                         <Input 
-                            placeholder="Search..." 
+                            placeholder="Search content..." 
                             className={cn(
                                 "bg-muted pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
                                 isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
@@ -220,19 +271,21 @@ export default function ProfilePage() {
                         </Button>
                     </div>
                 </div>
-            </div>
+                <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+                        {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
+                        <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
+                        <TabsTrigger value="reviews">My Reviews</TabsTrigger>
+                        <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                        <TabsTrigger value="feed">Following Feed</TabsTrigger>
+                    </TabsList>
 
-            <Separator className="my-6" />
-
-            <div className="w-full max-w-4xl mx-auto">
-                {!isOwnProfile && (
-                    <>
-                        <section>
-                            <h3 className="text-xl font-bold mb-4">Listed Products</h3>
-                            {filteredProducts.length > 0 ? (
-                                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                    {!isOwnProfile && (
+                        <TabsContent value="products" className="mt-4">
+                             {filteredProducts.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {filteredProducts.map((product) => (
-                                        <Card key={product.id} className="min-w-[180px] shrink-0">
+                                        <Card key={product.id} className="w-full">
                                             <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
                                                 <Image 
                                                     src={product.imageUrl}
@@ -251,12 +304,99 @@ export default function ProfilePage() {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground text-center py-4">No products found.</p>
+                                <p className="text-muted-foreground text-center py-8">No products found.</p>
                             )}
-                        </section>
-                        <Separator className="my-6" />
-                    </>
-                )}
+                        </TabsContent>
+                    )}
+
+                    <TabsContent value="recent" className="mt-4">
+                        {filteredRecentlyViewed.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {filteredRecentlyViewed.map((item) => (
+                                    <Card key={item.id} className="w-full">
+                                        <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                            <Image 
+                                                src={item.imageUrl}
+                                                alt={item.name}
+                                                width={180}
+                                                height={180}
+                                                className="object-cover w-full h-full"
+                                                data-ai-hint={item.hint}
+                                            />
+                                        </div>
+                                        <div className="p-3">
+                                            <h4 className="font-semibold truncate">{item.name}</h4>
+                                            <p className="text-primary font-bold">{item.price}</p>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-muted-foreground text-center py-8">No recently viewed items.</p>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="reviews" className="mt-4 space-y-4">
+                        {filteredReviews.length > 0 ? (
+                            filteredReviews.map(review => (
+                                <Card key={review.id}>
+                                    <div className="p-4 flex gap-4">
+                                        <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
+                                        <div className="flex-grow">
+                                            <h4 className="font-semibold">{review.productName}</h4>
+                                            <div className="flex items-center gap-1 mt-1">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                ))}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
+                                            <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))
+                        ) : (
+                            <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                        )}
+                    </TabsContent>
+                    
+                    <TabsContent value="achievements" className="mt-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                           {mockAchievements.map(achievement => (
+                                <Card key={achievement.id} className="p-4 flex flex-col items-center justify-center text-center gap-2">
+                                    <div className="p-3 bg-primary/10 rounded-full text-primary">
+                                       {achievement.icon}
+                                    </div>
+                                    <h4 className="font-semibold">{achievement.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                                </Card>
+                           ))}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="feed" className="mt-4 space-y-4">
+                        {mockFollowingFeed.map(item => (
+                             <Card key={item.id}>
+                                <div className="p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                            <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold">{item.sellerName}</p>
+                                            <p className="text-xs text-muted-foreground">{item.timestamp}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm mb-3">{item.content}</p>
+                                    <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                                       <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" data-ai-hint={item.hint} />
+                                    </div>
+                                </div>
+                             </Card>
+                        ))}
+                    </TabsContent>
+                </Tabs>
             </div>
         </main>
         
