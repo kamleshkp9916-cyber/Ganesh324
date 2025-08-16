@@ -31,7 +31,9 @@ import {
   Flag,
   Share2,
   MessageCircle,
-  Clipboard
+  Clipboard,
+  Hash,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -39,7 +41,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -67,6 +69,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Separator } from '@/components/ui/separator';
 
 
 const liveSellers = [
@@ -210,6 +213,19 @@ const reportReasons = [
     { id: "scam", label: "Scam or fraud" },
     { id: "false", label: "False information" },
     { id: "bullying", label: "Bullying or harassment" },
+];
+
+const trendingTopics = [
+    { id: 1, topic: 'VintageFinds', posts: '1.2k posts' },
+    { id: 2, topic: 'TechDeals', posts: '3.4k posts' },
+    { id: 3, topic: 'SummerFashion', posts: '5.6k posts' },
+    { id: 4, topic: 'HomeDecor', posts: '890 posts' },
+];
+
+const suggestedUsers = [
+    { id: 'retro', name: 'RetroClicks', handle: '@retroclicks', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'savvy', name: 'StyleSavvy', handle: '@stylesavvy', avatar: 'https://placehold.co/40x40.png' },
+    { id: 'diy', name: 'DIYDan', handle: '@diydan', avatar: 'https://placehold.co/40x40.png' },
 ];
 
 
@@ -598,15 +614,22 @@ export default function LiveSellingPage() {
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                              </AlertDialog>
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                                <div className="lg:col-span-1 lg:order-last">
-                                    <CreatePostForm
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                <div className="hidden lg:block lg:col-span-3">
+                                  <CreatePostForm
                                       formRef={createPostFormRef}
                                       replyTo={replyTo}
                                       onClearReply={handleClearReply}
                                     />
                                 </div>
-                                <div className="lg:col-span-3 space-y-4 lg:order-first">
+                                <div className="lg:col-span-6 space-y-4">
+                                     <div className="lg:hidden mb-8">
+                                        <CreatePostForm
+                                          formRef={createPostFormRef}
+                                          replyTo={replyTo}
+                                          onClearReply={handleClearReply}
+                                        />
+                                      </div>
                                     {mockFollowingFeed.map(item => (
                                         <Card key={item.id} className="overflow-hidden">
                                             <div className="p-4">
@@ -678,6 +701,50 @@ export default function LiveSellingPage() {
                                             </div>
                                         </Card>
                                     ))}
+                                </div>
+                                <div className="hidden lg:block lg:col-span-3 space-y-6">
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <Hash className="h-5 w-5 text-primary"/>
+                                                Trending
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {trendingTopics.map(topic => (
+                                                <div key={topic.id} className="text-sm cursor-pointer group">
+                                                    <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <UserPlus className="h-5 w-5 text-primary"/>
+                                                Who to follow
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {suggestedUsers.map(user => (
+                                                <div key={user.id} className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10">
+                                                            <AvatarImage src={user.avatar} alt={user.name} />
+                                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{user.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button size="sm" variant="outline">Follow</Button>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             </div>
                         </TabsContent>
