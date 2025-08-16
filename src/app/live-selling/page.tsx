@@ -205,6 +205,7 @@ const initialMockFeed = [
     { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion', likes: 120, replies: 15, location: null },
     { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying', likes: 350, replies: 42, location: 'New York, USA' },
     { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases', likes: 88, replies: 9, location: null },
+    { id: 4, sellerName: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 days ago', content: 'My new skincare routine is a game changer. Live tutorial this Friday!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'skincare products', likes: 210, replies: 25, location: 'Los Angeles, USA' },
 ];
 
 const reportReasons = [
@@ -261,10 +262,6 @@ export default function LiveSellingPage() {
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
 
-  const topLiveStreams = useMemo(() => {
-    return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
-  }, []);
-
   useEffect(() => {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
   }, []);
@@ -278,7 +275,7 @@ export default function LiveSellingPage() {
       avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
       timestamp: 'Just now',
       content: postData.content,
-      productImageUrl: postData.media?.url || 'https://placehold.co/400x300.png', // Placeholder for now
+      productImageUrl: postData.media?.url || undefined,
       hint: 'new user post',
       likes: 0,
       replies: 0,
@@ -663,10 +660,10 @@ export default function LiveSellingPage() {
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                              </AlertDialog>
-                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                <div className="lg:col-span-8 space-y-4">
-                                    {mockFollowingFeed.map(item => (
-                                        <Card key={item.id} className="overflow-hidden">
+                              <div className="max-w-2xl mx-auto space-y-4">
+                                {mockFollowingFeed.map((item, index) => (
+                                    <React.Fragment key={item.id}>
+                                        <Card className="overflow-hidden">
                                             <div className="p-4">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <Avatar className="h-10 w-10">
@@ -719,9 +716,11 @@ export default function LiveSellingPage() {
                                             <div className="px-4 pb-4">
                                                 <div className="flex flex-col items-center gap-4 text-center">
                                                     <p className="text-sm mb-2">{item.content}</p>
-                                                    <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                        <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
-                                                    </div>
+                                                    {item.productImageUrl &&
+                                                      <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                          <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                                      </div>
+                                                    }
                                                 </div>
                                             </div>
                                              <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
@@ -738,99 +737,56 @@ export default function LiveSellingPage() {
                                                 {item.location && <span className="text-xs">{item.location}</span>}
                                             </div>
                                         </Card>
-                                    ))}
-                                </div>
-                                <div className="hidden lg:block lg:col-span-4">
-                                     <div className="sticky top-20">
-                                         <ScrollArea className="h-[calc(100vh-6rem)]">
-                                             <div className="space-y-6 pr-4">
-                                                <Card>
-                                                    <CardHeader>
-                                                        <CardTitle className="flex items-center gap-2 text-lg">
-                                                            <Hash className="h-5 w-5 text-primary"/>
-                                                            Trending
-                                                        </CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="space-y-3">
-                                                        {trendingTopics.map(topic => (
-                                                            <div key={topic.id} className="text-sm cursor-pointer group">
-                                                                <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                            </div>
-                                                        ))}
-                                                    </CardContent>
-                                                </Card>
-
-                                                <Card>
-                                                    <CardHeader>
-                                                        <CardTitle className="flex items-center gap-2 text-lg">
-                                                            <UserPlus className="h-5 w-5 text-primary"/>
-                                                            Who to follow
-                                                        </CardTitle>
-                                                    </CardHeader>
-                                                    <CardContent className="space-y-4">
-                                                        {suggestedUsers.map(user => (
-                                                            <div key={user.id} className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-3">
-                                                                    <Avatar className="h-10 w-10">
-                                                                        <AvatarImage src={user.avatar} alt={user.name} />
-                                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    <div>
-                                                                        <p className="font-semibold text-sm">{user.name}</p>
-                                                                        <p className="text-xs text-muted-foreground">{user.handle}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <Button size="sm" variant="outline">Follow</Button>
-                                                            </div>
-                                                        ))}
-                                                    </CardContent>
-                                                </Card>
-                                                <div className="space-y-4">
-                                                    <h3 className="flex items-center gap-2 text-lg font-semibold">
-                                                        <Video className="h-5 w-5 text-primary"/>
-                                                        Top Live Streams
-                                                    </h3>
-                                                    {topLiveStreams.map(seller => (
-                                                        <Card key={seller.id} className="group relative cursor-pointer overflow-hidden shadow-md hover:shadow-primary/40 transition-shadow duration-300">
-                                                            <Image 
-                                                                src={seller.thumbnailUrl} 
-                                                                alt={`Live stream from ${seller.name}`} 
-                                                                width={300} 
-                                                                height={150} 
-                                                                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                                data-ai-hint={seller.hint}
-                                                            />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                                                            <div className="absolute top-2 left-2 z-10">
-                                                                <Badge className="bg-destructive text-destructive-foreground text-xs">
-                                                                    LIVE
-                                                                </Badge>
-                                                            </div>
-                                                            <div className="absolute top-2 right-2 z-10">
-                                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
-                                                                    <Users className="w-3 h-3 mr-1" />
-                                                                    {seller.viewers}
-                                                                </Badge>
-                                                            </div>
-                                                            <div className="absolute bottom-0 left-0 right-0 p-2">
-                                                                <div className="flex items-center gap-2">
-                                                                    <Avatar className="h-6 w-6 border border-primary">
-                                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                        <AvatarFallback className="text-xs">{seller.name.charAt(0)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    <div>
-                                                                        <h3 className="font-semibold text-xs text-primary-foreground truncate group-hover:underline">{seller.name}</h3>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </Card>
+                                        
+                                        {index === 0 && (
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                                        <Hash className="h-5 w-5 text-primary"/>
+                                                        Trending
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {trendingTopics.map(topic => (
+                                                        <div key={topic.id} className="text-sm cursor-pointer group">
+                                                            <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                            <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                        </div>
                                                     ))}
-                                                </div>
-                                            </div>
-                                         </ScrollArea>
-                                    </div>
-                                </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                        {index === 2 && (
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="flex items-center gap-2 text-lg">
+                                                        <UserPlus className="h-5 w-5 text-primary"/>
+                                                        Who to follow
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
+                                                    {suggestedUsers.map(user => (
+                                                        <div key={user.id} className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar className="h-10 w-10">
+                                                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className="font-semibold text-sm">{user.name}</p>
+                                                                    <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Button size="sm" variant="outline">Follow</Button>
+                                                        </div>
+                                                    ))}
+                                                </CardContent>
+                                            </Card>
+                                        )}
+
+                                    </React.Fragment>
+                                ))}
                             </div>
                         </TabsContent>
                     </Tabs>
@@ -848,3 +804,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
