@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, CreditCard, Wallet, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -16,9 +16,10 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 // Mock data generation
@@ -65,9 +66,9 @@ const recentlyViewedItems = [
 ];
 
 const mockReviews = [
-    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones' },
-    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'smartwatch face' },
-    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera' },
+    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.', paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } },
+    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'smartwatch face', productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
+    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
 
 const mockAchievements = [
@@ -166,6 +167,17 @@ export default function ProfilePage() {
     );
   }
 
+  const PaymentIcon = ({method}: {method: {type: string, provider?: string}}) => {
+    if (method.type === 'COD') return <Truck className="w-4 h-4 text-muted-foreground" />;
+    if (method.provider?.toLowerCase().includes('wallet')) return <Wallet className="w-4 h-4 text-muted-foreground" />;
+    return <CreditCard className="w-4 h-4 text-muted-foreground" />;
+  }
+  
+  const paymentLabel = (method: {type: string, provider?: string}) => {
+      if (method.type === 'COD') return 'Paid with Cash on Delivery';
+      return `Paid with ${method.provider}`;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
         <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
@@ -210,7 +222,7 @@ export default function ProfilePage() {
                     <h2 className={cn("text-2xl font-bold", isSeller && "text-destructive")}>{profileData.displayName}</h2>
                     {profileData.topAchievement && (
                         <Badge variant="secondary" className="text-sm">
-                            {profileData.topAchievement.icon}
+                            {React.cloneElement(profileData.topAchievement.icon, { className: "w-4 h-4 mr-1.5" })}
                             {profileData.topAchievement.name}
                         </Badge>
                     )}
@@ -352,21 +364,40 @@ export default function ProfilePage() {
                     <TabsContent value="reviews" className="mt-4 space-y-4">
                         {filteredReviews.length > 0 ? (
                             filteredReviews.map(review => (
-                                <Card key={review.id}>
-                                    <div className="p-4 flex gap-4">
-                                        <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
-                                        <div className="flex-grow">
-                                            <h4 className="font-semibold">{review.productName}</h4>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                ))}
+                                <Collapsible key={review.id} asChild>
+                                    <Card>
+                                        <CollapsibleTrigger className="w-full text-left cursor-pointer">
+                                            <div className="p-4 flex gap-4">
+                                                <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
+                                                <div className="flex-grow">
+                                                    <h4 className="font-semibold">{review.productName}</h4>
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
+                                                    <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
-                                            <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
-                                        </div>
-                                    </div>
-                                </Card>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <div className="border-t p-4 space-y-3">
+                                                <div>
+                                                    <h5 className="text-sm font-semibold mb-1">Product Information</h5>
+                                                    <p className="text-sm text-muted-foreground">{review.productInfo}</p>
+                                                </div>
+                                                <div>
+                                                    <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
+                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                        <PaymentIcon method={review.paymentMethod} />
+                                                        <span>{paymentLabel(review.paymentMethod)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Card>
+                                </Collapsible>
                             ))
                         ) : (
                             <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
