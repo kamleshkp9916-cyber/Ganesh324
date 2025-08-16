@@ -294,40 +294,6 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>
-                                                <Users className="mr-2 h-4 w-4" />
-                                                <span>Following ({followingList.length})</span>
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent className="p-0">
-                                                    <ScrollArea className="h-72 w-48">
-                                                        <div className="p-1">
-                                                        {followingList.length > 0 ? (
-                                                            followingList.map((followedUser) => (
-                                                                <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Avatar className="h-6 w-6">
-                                                                            <AvatarImage src={followedUser.avatar} />
-                                                                            <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
-                                                                        </Avatar>
-                                                                        <span className="text-xs">{followedUser.name}</span>
-                                                                    </div>
-                                                                    <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
-                                                                        Unfollow
-                                                                    </Button>
-                                                                </DropdownMenuItem>
-                                                            ))
-                                                        ) : (
-                                                            <div className="text-center text-xs text-muted-foreground p-4">
-                                                                Not following anyone.
-                                                            </div>
-                                                        )}
-                                                        </div>
-                                                    </ScrollArea>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
                                         <DropdownMenuItem asChild>
                                         <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
@@ -346,6 +312,34 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                         <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
                                         </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuLabel>Following ({followingList.length})</DropdownMenuLabel>
+                                        <ScrollArea className="h-48">
+                                            <div className="p-1">
+                                                {followingList.length > 0 ? (
+                                                    followingList.map((followedUser) => (
+                                                        <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="h-6 w-6">
+                                                                    <AvatarImage src={followedUser.avatar} />
+                                                                    <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <span className="text-xs">{followedUser.name}</span>
+                                                            </div>
+                                                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={(e) => handleUnfollow(e, followedUser.id)}>
+                                                                Unfollow
+                                                            </Button>
+                                                        </DropdownMenuItem>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center text-xs text-muted-foreground p-4">
+                                                        Not following anyone.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </ScrollArea>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
