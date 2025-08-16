@@ -8,6 +8,7 @@ import { ImagePlus, Video, X } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useRef, useState } from "react";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface CreatePostFormProps {
   formRef?: React.RefObject<HTMLDivElement>;
@@ -22,8 +23,10 @@ export function CreatePostForm({ formRef, replyTo, onClearReply }: CreatePostFor
 
     useEffect(() => {
         if (replyTo && textareaRef.current) {
-            setContent(`Replying to @${replyTo} `);
+            setContent(`@${replyTo} `);
             textareaRef.current.focus();
+        } else {
+            setContent("");
         }
     }, [replyTo]);
   
@@ -37,24 +40,27 @@ export function CreatePostForm({ formRef, replyTo, onClearReply }: CreatePostFor
     return (
     <Card ref={formRef}>
       <CardHeader>
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
             {user && (
                 <Avatar>
                 <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                 <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
             )}
-            <CardTitle>{replyTo ? `Reply to @${replyTo}` : "Create a post"}</CardTitle>
-            </div>
-            {replyTo && (
+            <CardTitle>Create a post</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {replyTo && (
+             <Alert variant="default" className="flex items-center justify-between p-2 text-sm">
+                <AlertDescription>
+                    Replying to <span className="font-semibold text-primary">@{replyTo}</span>
+                </AlertDescription>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClearReply}>
                     <X className="h-4 w-4" />
                 </Button>
-            )}
-        </div>
-      </CardHeader>
-      <CardContent>
+            </Alert>
+        )}
         <Textarea 
             ref={textareaRef}
             placeholder="What's on your mind?" 

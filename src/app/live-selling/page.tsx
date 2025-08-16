@@ -559,7 +559,7 @@ export default function LiveSellingPage() {
                                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <h3 className="font-semibold text-sm text-destructive truncate">{seller.name}</h3>
+                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                 </div>
                                             </div>
@@ -571,7 +571,7 @@ export default function LiveSellingPage() {
 
                         <TabsContent value="feeds">
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                                <AlertDialogContent onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+                                <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Report Post</AlertDialogTitle>
                                     <AlertDialogDescription>
