@@ -50,6 +50,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CreatePostForm } from '@/components/create-post-form';
 
 
 const liveSellers = [
@@ -511,41 +512,46 @@ export default function LiveSellingPage() {
                         </TabsContent>
 
                         <TabsContent value="feeds">
-                            <div className="max-w-2xl mx-auto space-y-4">
-                                {mockFollowingFeed.map(item => (
-                                    <Card key={item.id} className="overflow-hidden">
-                                        <div className="p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                    <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-destructive">{item.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{item.timestamp}</p>
+                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                                <div className="lg:col-span-3 space-y-4">
+                                    {mockFollowingFeed.map(item => (
+                                        <Card key={item.id} className="overflow-hidden">
+                                            <div className="p-4">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{item.timestamp}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="px-4 pb-4">
-                                             <div className="flex flex-col items-center gap-4 text-center">
-                                                <p className="text-sm mb-2">{item.content}</p>
-                                                <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                    <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                            <div className="px-4 pb-4">
+                                                <div className="flex flex-col items-center gap-4 text-center">
+                                                    <p className="text-sm mb-2">{item.content}</p>
+                                                    <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                        <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="px-4 pb-3 flex justify-start items-center gap-4 text-sm text-muted-foreground">
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <Heart className="w-4 h-4" />
-                                                <span>{item.likes}</span>
-                                            </button>
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <MessageSquare className="w-4 h-4" />
-                                                <span>{item.replies}</span>
-                                            </button>
-                                        </div>
-                                    </Card>
-                                ))}
+                                            <div className="px-4 pb-3 flex justify-start items-center gap-4 text-sm text-muted-foreground">
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <Heart className="w-4 h-4" />
+                                                    <span>{item.likes}</span>
+                                                </button>
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    <span>{item.replies}</span>
+                                                </button>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <CreatePostForm />
+                                </div>
                             </div>
                         </TabsContent>
                     </Tabs>
