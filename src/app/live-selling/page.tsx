@@ -242,6 +242,7 @@ export default function LiveSellingPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("live");
   
   const handleClearReply = () => {
     setReplyTo(null);
@@ -468,7 +469,7 @@ export default function LiveSellingPage() {
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                    <Tabs defaultValue="live" className="w-full">
+                    <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                         <div className="flex justify-center mb-6">
                             <TabsList>
                                 <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -732,7 +733,7 @@ export default function LiveSellingPage() {
                 </main>
                 <Footer />
             </div>
-            {user && (
+            {user && activeTab === 'feeds' && (
                 <CreatePostForm
                     replyTo={replyTo}
                     onClearReply={handleClearReply}
