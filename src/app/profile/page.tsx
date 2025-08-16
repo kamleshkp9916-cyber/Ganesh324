@@ -52,13 +52,6 @@ const mockProducts = [
     { id: 5, name: 'Leather Backpack', price: '₹6,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'brown leather backpack' },
 ];
 
-const mockLikes = Array.from({ length: 9 }, (_, i) => ({
-    id: i + 1,
-    imageUrl: `https://placehold.co/400x400.png`,
-    hint: `abstract pattern ${i+1}`
-}));
-
-
 export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -78,13 +71,6 @@ export default function ProfilePage() {
     if (!searchTerm) return mockProducts;
     return mockProducts.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
-
-  const filteredLikes = useMemo(() => {
-    if (!searchTerm) return mockLikes;
-    return mockLikes.filter(like =>
-      like.hint.toLowerCase().includes(searchTerm.toLowerCase()) || like.id.toString().includes(searchTerm)
     );
   }, [searchTerm]);
 
@@ -271,28 +257,6 @@ export default function ProfilePage() {
                         <Separator className="my-6" />
                     </>
                 )}
-
-                <section>
-                    <h3 className="text-xl font-bold mb-4">Likes</h3>
-                     {filteredLikes.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {filteredLikes.map((like) => (
-                                <div key={like.id} className="aspect-square bg-muted rounded-lg overflow-hidden">
-                                    <Image 
-                                        src={like.imageUrl}
-                                        alt={`Liked item ${like.id}`}
-                                        width={400}
-                                        height={400}
-                                        className="object-cover w-full h-full"
-                                        data-ai-hint={like.hint}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                     ) : (
-                        <p className="text-muted-foreground text-center py-4">No likes found.</p>
-                     )}
-                </section>
             </div>
         </main>
         
