@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, initializeAuth, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   "projectId": "streamcart-login",
@@ -13,6 +13,10 @@ const firebaseConfig = {
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+
+// Initialize auth with local persistence
+const auth = initializeAuth(app, {
+  persistence: browserLocalPersistence
+});
 
 export { app, auth };
