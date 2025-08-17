@@ -536,7 +536,7 @@ export default function OrdersPage() {
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
                                     <div className="bg-muted/50 p-4 text-sm">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
                                              <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">User Details</p>
                                                 <div className="flex items-center gap-2">
@@ -547,6 +547,12 @@ export default function OrdersPage() {
                                                 </div>
                                                 <p>Email: {order.user.email}</p>
                                             </div>
+                                            <div>
+                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
+                                                <p>{order.address.name}, {order.address.phone}</p>
+                                                <p>{order.address.village}, {order.address.district}</p>
+                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                            </div>
                                              <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
                                                 <p>Method: {order.transaction.method}</p>
@@ -556,12 +562,6 @@ export default function OrdersPage() {
                                                         <Clipboard className="h-3 w-3" />
                                                     </Button>
                                                 </div>
-                                            </div>
-                                             <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                                <p>{order.address.name}, {order.address.phone}</p>
-                                                <p>{order.address.village}, {order.address.district}</p>
-                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
                                             </div>
                                              <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
