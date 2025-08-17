@@ -54,7 +54,6 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
-import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
@@ -73,7 +72,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Separator } from '@/components/ui/separator';
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -593,7 +591,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                <main className="flex-1 overflow-y-auto p-4">
                     <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                         <div className="flex justify-center mb-6">
                             <TabsList>
@@ -813,7 +811,7 @@ export default function LiveSellingPage() {
                                       </Card>
                                   ))}
                                 </div>
-                                <div className="lg:col-span-1 lg:sticky top-24 space-y-4">
+                                <div className="lg:col-span-1 space-y-4">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -862,39 +860,41 @@ export default function LiveSellingPage() {
                                                 Top Live Streams
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="space-y-2">
-                                        {topLiveStreams.map((seller) => (
-                                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                                <div className="absolute top-2 left-2 z-10">
-                                                    <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
-                                                </div>
-                                                <div className="absolute top-2 right-2 z-10">
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
-                                                        <Users className="w-3 h-3 mr-1" />
-                                                        {(seller.viewers / 1000).toFixed(1)}k
-                                                    </Badge>
-                                                </div>
-                                                <Image 
-                                                    src={seller.thumbnailUrl} 
-                                                    alt={`Live stream from ${seller.name}`} 
-                                                    width={300} 
-                                                    height={450} 
-                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    data-ai-hint={seller.hint}
-                                                />
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-8 w-8 border-2 border-primary">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                        <CardContent className="space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                                                {topLiveStreams.map((seller) => (
+                                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                                        <div className="absolute top-2 left-2 z-10">
+                                                            <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
+                                                        </div>
+                                                        <div className="absolute top-2 right-2 z-10">
+                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
+                                                                <Users className="w-3 h-3 mr-1" />
+                                                                {(seller.viewers / 1000).toFixed(1)}k
+                                                            </Badge>
+                                                        </div>
+                                                        <Image 
+                                                            src={seller.thumbnailUrl} 
+                                                            alt={`Live stream from ${seller.name}`} 
+                                                            width={300} 
+                                                            height={450} 
+                                                            className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                            data-ai-hint={seller.hint}
+                                                        />
+                                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="h-8 w-8 border-2 border-primary">
+                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -915,5 +915,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
