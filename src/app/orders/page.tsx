@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 
 const mockOrders = [
@@ -63,6 +64,33 @@ const mockOrders = [
       status: "Completed",
       transaction: "₹2,100.00",
     },
+    {
+      orderId: "#STREAM5901",
+      user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
+      address: "Hyderabad, Telangana",
+      dateTime: "23/07/2024 09:00 AM",
+      status: "Completed",
+      transaction: "₹1,500.00",
+    },
+    {
+      orderId: "#STREAM5902",
+      user: { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
+      address: "Kolkata, West Bengal",
+      dateTime: "22/07/2024 07:00 PM",
+      status: "Ongoing",
+      transaction: "₹3,200.00",
+    },
+    {
+      orderId: "#STREAM5903",
+      user: { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Coffee Maker", imageUrl: "https://placehold.co/60x60.png", hint: "coffee maker" },
+      address: "Jaipur, Rajasthan",
+      dateTime: "21/07/2024 11:00 AM",
+      status: "Cancelled",
+      transaction: "₹4,500.00",
+    },
 ];
 
 export default function OrdersPage() {
@@ -74,6 +102,8 @@ export default function OrdersPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [isClient, setIsClient] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     setIsClient(true);
@@ -94,6 +124,14 @@ export default function OrdersPage() {
     }
     return orders;
   }, [statusFilter, searchTerm]);
+  
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredOrders.slice(startIndex, endIndex);
+  }, [filteredOrders, currentPage, itemsPerPage]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -139,11 +177,17 @@ export default function OrdersPage() {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="flex flex-1">
         <aside className={cn(
-            "hidden md:flex flex-col w-[20%] border-r bg-background p-4 transition-all duration-300",
+            "hidden md:flex flex-col w-[20%] border-r bg-sidebar p-4 transition-all duration-300",
             !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
         )}>
             <div className="mb-8">
@@ -208,7 +252,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="flex-grow bg-card p-4 rounded-lg border">
+            <div className="flex-grow bg-card p-4 rounded-lg border flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
@@ -256,8 +300,8 @@ export default function OrdersPage() {
                     <span className="w-[13%] text-right">Transaction</span>
                 </div>
 
-                <div className="space-y-2 mt-2">
-                    {filteredOrders.map((order, index) => (
+                <div className="space-y-2 mt-2 flex-grow">
+                    {paginatedOrders.map((order, index) => (
                         <div key={index} className="flex items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
                             <span className="w-[12%] font-medium text-primary">{order.orderId}</span>
                             <div className="w-[15%] flex items-center gap-2">
@@ -279,12 +323,36 @@ export default function OrdersPage() {
                             <span className="w-[13%] text-right font-semibold">{order.transaction}</span>
                         </div>
                     ))}
-                </div>
-                 {filteredOrders.length === 0 && (
+                 {paginatedOrders.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
                         <p>No orders found.</p>
                     </div>
                  )}
+                </div>
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 mt-auto">
+                         <div className="text-sm text-muted-foreground">
+                            Showing {Math.min(paginatedOrders.length, (currentPage -1) * itemsPerPage + 1)}-{Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders.
+                        </div>
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }} />
+                                </PaginationItem>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <PaginationItem key={i}>
+                                        <PaginationLink href="#" isActive={currentPage === i + 1} onClick={(e) => { e.preventDefault(); handlePageChange(i + 1); }}>
+                                            {i + 1}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
+                                <PaginationItem>
+                                    <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }}/>
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                )}
             </div>
         </main>
       </div>
