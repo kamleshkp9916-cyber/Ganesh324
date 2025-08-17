@@ -165,7 +165,7 @@ const mockOrders = [
       productId: "prod-011",
       userId: "USER8442",
       user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
-      product: { id: "prod-001", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
+      product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
       address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
       dateTime: "29/07/2024 11:00 AM",
       status: "Pending",
@@ -215,7 +215,7 @@ export default function OrdersPage() {
   const [otherReason, setOtherReason] = useState("");
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
-  const [refundedOrders, setRefundedOrders] = useState<Set<string>>(new Set());
+  const [refundedOrders, setRefundedOrders] = useState(new Set<string>());
 
   useEffect(() => {
     setIsClient(true);
@@ -535,80 +535,77 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
-                                    <div className="bg-muted/50 pb-4 px-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 text-sm gap-y-4">
-                                            <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 pt-4">
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground">User Details</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <p>User ID: {order.userId}</p>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
-                                                    <p>Email: {order.user.email}</p>
+                                    <div className="bg-muted/50 p-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 text-sm gap-y-4 gap-x-6">
+                                            <div>
+                                                <p className="font-semibold text-muted-foreground">User Details</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p>User ID: {order.userId}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
                                                 </div>
-                                                 <div>
-                                                    <p className="font-semibold text-muted-foreground">Delivery Address</p>
-                                                    <p>{order.address.name}, {order.address.phone}</p>
-                                                    <p>{order.address.village}, {order.address.district}</p>
-                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                                </div>
-                                                 <div>
-                                                    <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                                    <p>{order.deliveryStatus}</p>
+                                                <p>Email: {order.user.email}</p>
+                                            </div>
+                                             <div>
+                                                <p className="font-semibold text-muted-foreground">Delivery Address</p>
+                                                <p>{order.address.name}, {order.address.phone}</p>
+                                                <p>{order.address.village}, {order.address.district}</p>
+                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                            </div>
+                                             <div>
+                                                <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                <p>{order.deliveryStatus}</p>
+                                            </div>
+                                            
+                                            <div className="md:col-start-3 md:text-right">
+                                                <p className="font-semibold text-muted-foreground">Transaction Details</p>
+                                                <p>Method: {order.transaction.method}</p>
+                                                <div className="flex items-center gap-1 md:justify-end">
+                                                    <p>ID: {order.transaction.id}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
                                                 </div>
                                             </div>
-
-                                            <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row md:items-start md:justify-between border-t pt-4 mt-2 gap-4">
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground">Transaction Details</p>
-                                                    <p>Method: {order.transaction.method}</p>
-                                                    <div className="flex items-center gap-1">
-                                                        <p>ID: {order.transaction.id}</p>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-end gap-2">
-                                                    {['Pending', 'In Progress'].includes(order.status) && (
-                                                        <Dialog>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="outline" size="sm">
-                                                                    <Edit className="h-3 w-3 mr-2"/>
-                                                                    Edit Address
-                                                                </Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Edit Delivery Address</DialogTitle>
-                                                                </DialogHeader>
-                                                                <EditAddressForm 
-                                                                    currentAddress={order.address}
-                                                                    currentPhone={order.address.phone}
-                                                                    onSave={(data) => handleAddressSave(order.orderId, data)}
-                                                                    onCancel={() => {}}
-                                                                />
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                    )}
-                                                    {order.status === 'Cancelled' && (
-                                                        <Button 
-                                                            variant="destructive" 
-                                                            size="sm"
-                                                            onClick={() => handleRequestRefund(order.orderId)}
-                                                            disabled={refundedOrders.has(order.orderId)}
-                                                        >
-                                                           {refundedOrders.has(order.orderId) ? "Refund Processed" : "Request Refund"}
-                                                        </Button>
-                                                    )}
-                                                    {order.status === 'On Way' && (
-                                                         <Button variant="destructive" size="sm" onClick={() => handleCancelOrderClick(order)}>
-                                                            Cancel Order
-                                                         </Button>
-                                                    )}
-                                                </div>
+                                            
+                                            <div className="col-span-1 md:col-span-3 flex justify-end items-end border-t pt-4 mt-2 gap-4">
+                                                {['Pending', 'In Progress'].includes(order.status) && (
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button variant="outline" size="sm">
+                                                                <Edit className="h-3 w-3 mr-2"/>
+                                                                Edit Address
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Edit Delivery Address</DialogTitle>
+                                                            </DialogHeader>
+                                                            <EditAddressForm 
+                                                                currentAddress={order.address}
+                                                                currentPhone={order.address.phone}
+                                                                onSave={(data) => handleAddressSave(order.orderId, data)}
+                                                                onCancel={() => {}}
+                                                            />
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
+                                                {order.status === 'Cancelled' && (
+                                                    <Button 
+                                                        variant="destructive" 
+                                                        size="sm"
+                                                        onClick={() => handleRequestRefund(order.orderId)}
+                                                        disabled={refundedOrders.has(order.orderId)}
+                                                    >
+                                                       {refundedOrders.has(order.orderId) ? "Refund Processed" : "Request Refund"}
+                                                    </Button>
+                                                )}
+                                                {order.status === 'On Way' && (
+                                                     <Button variant="destructive" size="sm" onClick={() => handleCancelOrderClick(order)}>
+                                                        Cancel Order
+                                                     </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -718,5 +715,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
