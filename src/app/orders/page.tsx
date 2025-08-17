@@ -139,7 +139,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     setIsClient(true);
@@ -292,7 +292,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="bg-card p-4 rounded-lg border flex flex-col flex-grow">
+            <div className="bg-card p-4 rounded-lg border flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
@@ -342,7 +342,7 @@ export default function OrdersPage() {
                     <span className="w-[13%] text-right">Transaction</span>
                 </div>
 
-                <div className="space-y-2 mt-2">
+                <div className="space-y-2 mt-2 flex-grow">
                     {paginatedOrders.map((order, index) => (
                         <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
                             <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
@@ -381,15 +381,10 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto">
-                         <div className="text-sm text-muted-foreground">
+                         <div className="text-sm text-muted-foreground w-1/3">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="hidden md:flex items-center gap-2">
-                                <Button variant="ghost" size="sm">About</Button>
-                                <Button variant="ghost" size="sm">Support</Button>
-                                <Button variant="ghost" size="sm">Contact us</Button>
-                            </div>
+                        <div className="w-1/3">
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
@@ -408,6 +403,11 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
+                        <div className="hidden md:flex items-center gap-2 justify-end w-1/3">
+                            <Button variant="ghost" size="sm">About</Button>
+                            <Button variant="ghost" size="sm">Support</Button>
+                            <Button variant="ghost" size="sm">Contact us</Button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -416,3 +416,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
