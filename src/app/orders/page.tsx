@@ -109,6 +109,24 @@ const mockOrders = [
       status: "Cancelled",
       transaction: "₹4,500.00",
     },
+    {
+      orderId: "#STREAM5906",
+      user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
+      address: "Bengaluru, Karnataka",
+      dateTime: "29/07/2024 11:00 AM",
+      status: "Pending",
+      transaction: "₹9,500.00",
+    },
+    {
+      orderId: "#STREAM5907",
+      user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
+      address: "Delhi, India",
+      dateTime: "29/07/2024 03:20 PM",
+      status: "In Progress",
+      transaction: "₹15,000.00",
+    }
 ];
 
 export default function OrdersPage() {
@@ -274,7 +292,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="flex-grow bg-card p-4 rounded-lg border flex flex-col">
+            <div className="bg-card p-4 rounded-lg border flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
