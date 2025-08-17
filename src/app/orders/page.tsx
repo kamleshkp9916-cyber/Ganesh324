@@ -117,7 +117,16 @@ export default function OrdersPage() {
   const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  if (loading) {
+  if (loading || !user) {
+    if (!user && !loading) {
+      return (
+           <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+               <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
+               <p className="text-muted-foreground mb-6">Please log in to view your orders.</p>
+               <Button onClick={() => router.push('/')}>Go to Login</Button>
+          </div>
+      );
+    }
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -125,15 +134,6 @@ export default function OrdersPage() {
     )
   }
 
-  if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your orders.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
@@ -157,14 +157,14 @@ export default function OrdersPage() {
         <main className="flex-grow p-6 flex flex-col gap-6">
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
+                        <PanelLeft />
+                    </Button>
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
                     <h3 className="font-semibold text-lg">{user.displayName}</h3>
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
-                        <PanelLeft />
-                    </Button>
                 </div>
             </header>
             
