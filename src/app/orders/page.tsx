@@ -324,7 +324,7 @@ export default function OrdersPage() {
                     <span className="w-[13%] text-right">Transaction</span>
                 </div>
 
-                <div className="space-y-2 mt-2 flex-grow">
+                <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order, index) => (
                         <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
                             <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
