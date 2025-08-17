@@ -495,15 +495,15 @@ export default function OrdersPage() {
                     {paginatedOrders.map((order: Order) => (
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
-                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0 text-white p-2 rounded-l-md" style={{background: 'linear-gradient(to right, #0396FF, #ABDCFF)'}}>
+                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0">
                                     <div className="font-medium flex items-center gap-1">
                                         <span className="sm:hidden font-semibold text-foreground">Order: </span> 
                                         {order.orderId}
                                     </div>
                                 </div>
-                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0 text-white p-2 rounded-r-md" style={{background: 'linear-gradient(to right, #ABDCFF, #0396FF)'}}>
+                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
                                      <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md bg-white p-1" data-ai-hint={order.product.hint} />
+                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                         <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                     </Link>
                                 </div>
