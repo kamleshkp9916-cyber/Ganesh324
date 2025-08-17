@@ -59,7 +59,6 @@ export default function OrdersPage() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="flex flex-1">
@@ -129,7 +128,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="flex-grow p-4 rounded-md">
+            <div className="flex-grow p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
@@ -165,6 +164,16 @@ export default function OrdersPage() {
                             </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                </div>
+                
+                <div className="flex justify-between items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                    <span>Order id</span>
+                    <span>User</span>
+                    <span>Product details</span>
+                    <span>Address</span>
+                    <span>date and time</span>
+                    <span>Status</span>
+                    <span>transaction</span>
                 </div>
 
                 <div className="space-y-4">
