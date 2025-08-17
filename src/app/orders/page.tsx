@@ -292,7 +292,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="bg-card p-4 rounded-lg border flex flex-col">
+            <div className="bg-card p-4 rounded-lg border flex flex-col flex-grow">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
@@ -384,23 +384,30 @@ export default function OrdersPage() {
                          <div className="text-sm text-muted-foreground">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                                      <ChevronLeft className="h-5 w-5" />
-                                    </Button>
-                                </PaginationItem>
-                                 <PaginationItem>
-                                     <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
-                                 </PaginationItem>
-                                <PaginationItem>
-                                   <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                                      <ChevronRight className="h-5 w-5" />
-                                    </Button>
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
+                        <div className="flex items-center gap-4">
+                            <div className="hidden md:flex items-center gap-2">
+                                <Button variant="ghost" size="sm">About</Button>
+                                <Button variant="ghost" size="sm">Support</Button>
+                                <Button variant="ghost" size="sm">Contact us</Button>
+                            </div>
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                        <ChevronLeft className="h-5 w-5" />
+                                        </Button>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                    <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                        <ChevronRight className="h-5 w-5" />
+                                        </Button>
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </div>
                     </div>
                 )}
             </div>
