@@ -3,8 +3,8 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, LayoutGrid } from 'lucide-react';
-import React, { useState } from 'react';
+import { Wallet, PanelLeft, Search, LayoutGrid, Heart, X } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -14,8 +14,9 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
-const ongoingOrders = [
+const allOngoingOrders = [
     {
       id: '#12548',
       productName: 'Gaming Headset',
@@ -36,7 +37,7 @@ const ongoingOrders = [
     },
 ];
 
-const completedOrders = [
+const allCompletedOrders = [
     {
       id: '#12540',
       productName: 'Vintage Camera',
@@ -57,7 +58,7 @@ const completedOrders = [
     },
 ];
 
-const cancelledOrders = [
+const allCancelledOrders = [
     {
       id: '#12535',
       productName: 'Smart Watch',
@@ -115,6 +116,34 @@ export default function OrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const filterOrders = (orders: any[]) => {
+      if (!searchTerm) return orders;
+      return orders.filter(order => 
+          order.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }
+
+  const ongoingOrders = useMemo(() => filterOrders(allOngoingOrders), [searchTerm]);
+  const completedOrders = useMemo(() => filterOrders(allCompletedOrders), [searchTerm]);
+  const cancelledOrders = useMemo(() => filterOrders(allCancelledOrders), [searchTerm]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef]);
+
 
   if (loading || !user) {
     if (!user && !loading) {
@@ -166,9 +195,39 @@ export default function OrdersPage() {
                              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                              <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex items-center gap-2">
                             <h3 className="font-semibold">{user.displayName}</h3>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive">
+                                <Heart className="h-5 w-5 fill-current" />
+                            </Button>
+                            <span className="text-muted-foreground text-sm">/ Overview</span>
                         </div>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-2" ref={searchRef}>
+                    <div className={cn(
+                        "relative flex items-center transition-all duration-300 ease-in-out",
+                        isSearchExpanded ? "w-64" : "w-10"
+                    )}>
+                        <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
+                        <Input 
+                            placeholder="Search orders..." 
+                            className={cn(
+                                "bg-background rounded-full transition-all duration-300 ease-in-out",
+                                isSearchExpanded ? "opacity-100 w-full pl-10 pr-4" : "opacity-0 w-0 pl-0 pr-0"
+                            )}
+                            onFocus={() => setIsSearchExpanded(true)}
+                             value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                        </Button>
                     </div>
                 </div>
             </header>
