@@ -34,7 +34,9 @@ import {
     InputOTPGroup,
     InputOTPSeparator,
     InputOTPSlot,
-  } from "@/components/ui/input-otp"
+} from "@/components/ui/input-otp"
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
   
 
 const mockOrders = [
@@ -172,6 +174,14 @@ const mockOrders = [
     }
 ];
 
+const cancellationReasons = [
+    { id: "mistake", label: "Ordered by mistake" },
+    { id: "not_required", label: "Item not required anymore" },
+    { id: "better_price", label: "Found a better price elsewhere" },
+    { id: "delivery_long", label: "Delivery is taking too long" },
+    { id: "other", label: "Other" },
+];
+
 type Order = typeof mockOrders[0];
 
 export default function OrdersPage() {
@@ -188,7 +198,8 @@ export default function OrdersPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState(mockOrders);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
-  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [isCancelReasonOpen, setIsCancelReasonOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
 
@@ -308,12 +319,16 @@ export default function OrdersPage() {
 
   const handleCancelOrderClick = (order: Order) => {
     setOrderToCancel(order);
-    setIsCancelConfirmOpen(true);
+    setIsCancelReasonOpen(true);
   };
 
-  const confirmCancelOrder = () => {
-      setIsCancelConfirmOpen(false);
-      setIsOtpOpen(true);
+  const handleReasonSubmit = () => {
+    if (!cancelReason) {
+        toast({ title: "Please select a reason", variant: "destructive" });
+        return;
+    }
+    setIsCancelReasonOpen(false);
+    setIsOtpOpen(true);
   };
 
   const handleOtpSubmit = (otp: string) => {
@@ -341,6 +356,7 @@ export default function OrdersPage() {
     }
     setIsOtpOpen(false);
     setOtpValue("");
+    setCancelReason("");
     setOrderToCancel(null);
   };
 
@@ -573,10 +589,10 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto">
-                         <div className="text-sm text-muted-foreground w-1/3 hidden md:block">
+                         <div className="text-sm text-muted-foreground w-1/3 hidden sm:block">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <div className="w-full md:w-1/3">
+                        <div className="w-full sm:w-1/3">
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
@@ -606,17 +622,25 @@ export default function OrdersPage() {
         </main>
       </div>
 
-       <AlertDialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+       <AlertDialog open={isCancelReasonOpen} onOpenChange={setIsCancelReasonOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                    <AlertDialogTitle>Reason for Cancellation</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently cancel the order {orderToCancel?.orderId}.
+                        Please select a reason for cancelling your order. This helps us improve our service.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
+                <RadioGroup value={cancelReason} onValueChange={setCancelReason} className="grid gap-4 my-4">
+                    {cancellationReasons.map((reason) => (
+                        <div key={reason.id} className="flex items-center space-x-2">
+                             <RadioGroupItem value={reason.id} id={reason.id} />
+                             <Label htmlFor={reason.id}>{reason.label}</Label>
+                        </div>
+                    ))}
+                </RadioGroup>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Back</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmCancelOrder}>Continue</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setCancelReason("")}>Back</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReasonSubmit} disabled={!cancelReason}>Continue</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -652,5 +676,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
