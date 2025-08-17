@@ -602,10 +602,10 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                         <div className="text-sm text-muted-foreground w-full sm:w-1/3 text-center sm:text-left">
+                         <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <div className="w-full sm:w-auto">
+                        <div className="w-full sm:w-auto mx-auto">
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
@@ -624,7 +624,7 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="w-full sm:w-1/3 justify-center sm:justify-end gap-2 flex">
+                        <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
                             <Button variant="ghost" size="sm">About</Button>
                             <Button variant="ghost" size="sm">Support</Button>
                             <Button variant="ghost" size="sm">Contact us</Button>
