@@ -32,8 +32,7 @@ export default function RootLayout({
         <AuthProvider>
             <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
-                enableSystem
+                defaultTheme="dark"
                 disableTransitionOnChange
             >
                 <React.Suspense fallback={<TopLoader />}>
