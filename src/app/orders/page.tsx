@@ -146,20 +146,20 @@ export default function OrdersPage() {
 
 
   if (loading || !user) {
-    if (!user && !loading) {
-      return (
-           <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-               <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-               <p className="text-muted-foreground mb-6">Please log in to view your orders.</p>
-               <Button onClick={() => router.push('/')}>Go to Login</Button>
-          </div>
-      );
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        )
     }
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <LoadingSpinner />
+         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
+             <p className="text-muted-foreground mb-6">Please log in to view your orders.</p>
+             <Button onClick={() => router.push('/')}>Go to Login</Button>
         </div>
-    )
+    );
   }
 
 
