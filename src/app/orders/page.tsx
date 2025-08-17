@@ -129,7 +129,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="flex-grow bg-background border p-4">
+            <div className="flex-grow bg-background p-4">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
