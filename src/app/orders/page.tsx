@@ -499,7 +499,7 @@ export default function OrdersPage() {
                                    <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 cursor-pointer group">
                                         <div className="flex justify-between items-center w-full sm:w-[18%] mb-2 sm:mb-0">
                                             <div className="font-medium text-primary flex-grow truncate">
-                                                <span className="sm:hidden font-semibold text-foreground">Order: </span>
+                                                <span className="sm:hidden font-semibold text-foreground">Order: </span> 
                                                 {order.orderId}
                                             </div>
                                             <div className="sm:hidden ml-2">
@@ -523,20 +523,24 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
-                                    <div className="bg-muted/50 text-sm px-4 pb-4">
-                                        <div className="flex flex-wrap items-start pt-4 pl-12">
-                                            <div className="w-full sm:w-[18%]">
+                                    <div className="bg-muted/50 text-sm">
+                                        <div className="flex flex-wrap items-start py-4 px-4">
+                                            <div className="w-full sm:w-[18%] sm:pl-12 pr-4 mb-4 sm:mb-0">
                                                 <p className="font-semibold text-muted-foreground mb-1">User Details</p>
                                                 <p>ID: {order.userId}</p>
                                                 <p>Email: {order.user.email}</p>
                                             </div>
-                                            <div className="w-full sm:w-[28%] mt-4 sm:mt-0">
+                                            <div className="w-full sm:w-[28%] pr-4 mb-4 sm:mb-0">
                                                 <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
                                                 <p>{order.address.name}, {order.address.phone}</p>
                                                 <p>{order.address.village}, {order.address.district}</p>
                                                 <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
                                             </div>
-                                            <div className="w-full sm:w-[20%] mt-4 sm:mt-0">
+                                            <div className="w-full sm:w-[20%] pr-4 mb-4 sm:mb-0">
+                                                 <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
+                                                 <p>{order.deliveryStatus}</p>
+                                            </div>
+                                            <div className="w-full sm:w-[18%] pr-4 mb-4 sm:mb-0">
                                                 <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
                                                 <p>Amount: {order.transaction.amount}</p>
                                                 <p>Method: {order.transaction.method}</p>
@@ -547,11 +551,7 @@ export default function OrdersPage() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                             <div className="w-full sm:w-[18%] mt-4 sm:mt-0">
-                                                 <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
-                                                 <p>{order.deliveryStatus}</p>
-                                             </div>
-                                            <div className="w-full sm:w-[16%] flex justify-end items-end mt-4 sm:mt-0">
+                                            <div className="w-full sm:w-[16%] flex justify-start sm:justify-end items-end">
                                                 <div className="flex items-center gap-2">
                                                     {['Pending', 'In Progress'].includes(order.status) && (
                                                         <Dialog>
@@ -699,3 +699,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
