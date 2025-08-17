@@ -406,6 +406,7 @@ export default function LiveSellingPage() {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchExpanded(false);
+        setSearchTerm('');
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -591,7 +592,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-4">
+                <main className="flex-1 overflow-y-auto p-2 md:p-4">
                     <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                         <div className="flex justify-center mb-6">
                             <TabsList>
@@ -811,7 +812,7 @@ export default function LiveSellingPage() {
                                       </Card>
                                   ))}
                                 </div>
-                                <div className="lg:col-span-1 space-y-4">
+                                <div className="lg:col-span-1 space-y-4 sticky top-20">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -915,3 +916,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
