@@ -417,7 +417,7 @@ export default function LiveSellingPage() {
 
 
   return (
-      <div className="flex min-h-screen bg-background text-foreground" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), hsl(var(--background)) 70%)' }}>
+      <div className="flex min-h-screen bg-background text-foreground">
             <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -434,7 +434,7 @@ export default function LiveSellingPage() {
                 </AlertDialogContent>
             </AlertDialog>
             <div className="flex-1 flex flex-col">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/30 backdrop-blur-sm z-20 border-b border-border/50">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
                     <div className="flex items-center gap-2">
                         <ShoppingCart className="h-7 w-7 text-destructive" />
                         <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
@@ -442,7 +442,7 @@ export default function LiveSellingPage() {
                     <div className="flex items-center gap-2" ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out",
-                            isSearchExpanded ? "w-48" : "w-10"
+                            isSearchExpanded ? "w-48 sm:w-64" : "w-10"
                         )}>
                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                             <Input 
@@ -704,7 +704,7 @@ export default function LiveSellingPage() {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="feeds" className={cn(user && activeTab === 'feeds' && "pb-28")}>
+                        <TabsContent value="feeds" className={cn("w-full", user && activeTab === 'feeds' && "pb-28")}>
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -861,41 +861,39 @@ export default function LiveSellingPage() {
                                                 Top Live Streams
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                                                {topLiveStreams.map((seller) => (
-                                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                                        <div className="absolute top-2 left-2 z-10">
-                                                            <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
-                                                        </div>
-                                                        <div className="absolute top-2 right-2 z-10">
-                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
-                                                                <Users className="w-3 h-3 mr-1" />
-                                                                {(seller.viewers / 1000).toFixed(1)}k
-                                                            </Badge>
-                                                        </div>
-                                                        <Image 
-                                                            src={seller.thumbnailUrl} 
-                                                            alt={`Live stream from ${seller.name}`} 
-                                                            width={300} 
-                                                            height={450} 
-                                                            className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                            data-ai-hint={seller.hint}
-                                                        />
-                                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="h-8 w-8 border-2 border-primary">
-                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                                </div>
+                                        <CardContent className="space-y-2">
+                                            {topLiveStreams.slice(0, 2).map((seller) => (
+                                                <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                                    <div className="absolute top-2 left-2 z-10">
+                                                        <Badge className="bg-destructive text-destructive-foreground text-xs">LIVE</Badge>
+                                                    </div>
+                                                    <div className="absolute top-2 right-2 z-10">
+                                                        <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs">
+                                                            <Users className="w-3 h-3 mr-1" />
+                                                            {(seller.viewers / 1000).toFixed(1)}k
+                                                        </Badge>
+                                                    </div>
+                                                    <Image 
+                                                        src={seller.thumbnailUrl} 
+                                                        alt={`Live stream from ${seller.name}`} 
+                                                        width={300} 
+                                                        height={450} 
+                                                        className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                        data-ai-hint={seller.hint}
+                                                    />
+                                                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8 border-2 border-primary">
+                                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ))}
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -916,5 +914,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
