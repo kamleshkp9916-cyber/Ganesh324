@@ -3,18 +3,15 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import Link from 'next/link';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -23,6 +20,7 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -125,7 +123,43 @@ export default function OrdersPage() {
             </header>
             
             <div className="flex-grow">
-                <h3 className="text-2xl font-bold mb-6">Order list</h3>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold">Order list</h3>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Filter className="h-4 w-4 mr-2" />
+                                Filter
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-64" align="end">
+                            <DropdownMenuLabel>Filter Orders</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                                <div className="px-2 py-1.5">
+                                     <Label htmlFor="orderIdFilter">Order ID</Label>
+                                     <Input id="orderIdFilter" placeholder="Search by Order ID..." className="mt-1 h-8" />
+                                </div>
+                                <div className="px-2 py-1.5">
+                                     <Label htmlFor="customerNameFilter">Customer Name</Label>
+                                     <Input id="customerNameFilter" placeholder="Search by Name..." className="mt-1 h-8" />
+                                </div>
+                                 <div className="px-2 py-1.5">
+                                     <Label htmlFor="productNameFilter">Product Name</Label>
+                                     <Input id="productNameFilter" placeholder="Search by Product..." className="mt-1 h-8" />
+                                </div>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                <DropdownMenuRadioItem value="all">All Statuses</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="ongoing">Ongoing</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
                 <div className="space-y-4">
                 </div>
             </div>
@@ -134,3 +168,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
