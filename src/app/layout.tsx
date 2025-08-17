@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth.tsx';
+import { TopLoader } from '@/components/top-loader';
+import React from 'react';
 
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
@@ -27,6 +29,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+        <React.Suspense fallback={null}>
+          <TopLoader />
+        </React.Suspense>
         <AuthProvider>
             <ThemeProvider
                 attribute="class"
