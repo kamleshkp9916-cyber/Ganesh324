@@ -165,7 +165,7 @@ const mockOrders = [
       productId: "prod-011",
       userId: "USER8442",
       user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
-      product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
+      product: { id: "prod-001", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
       address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
       dateTime: "29/07/2024 11:00 AM",
       status: "Pending",
@@ -523,12 +523,12 @@ export default function OrdersPage() {
                                                 <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                             </Link>
                                         </div>
-                                        <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address.village}, {order.address.city}</div>
-                                        <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
+                                        <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                                        <div className="sm:w-[15%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime}</div>
                                         <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
                                             <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                         </div>
-                                        <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span className="sm:hidden font-normal text-foreground">Amount: </span>{order.transaction.amount}</div>
+                                        <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span>Amount: </span>{order.transaction.amount}</div>
                                         <div className="sm:w-8 flex justify-end">
                                             <ChevronDown className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:-rotate-180"/>
                                         </div>
@@ -718,3 +718,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
