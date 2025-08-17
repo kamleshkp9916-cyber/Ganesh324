@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter, Heart } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
