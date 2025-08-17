@@ -156,30 +156,14 @@ export default function OrdersPage() {
         </aside>
         <main className="flex-grow p-6 flex flex-col gap-6">
             <header className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden">
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                    <h3 className="font-semibold text-lg">{user.displayName}</h3>
+                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
                         <PanelLeft />
-                    </Button>
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h3 className="font-semibold text-lg">{user.displayName}</h3>
-                            <p className="text-sm text-muted-foreground">Welcome Back</p>
-                        </div>
-                         <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex ml-2">
-                            <PanelLeft />
-                        </Button>
-                    </div>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                        <Search className="h-6 w-6" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
                     </Button>
                 </div>
             </header>
