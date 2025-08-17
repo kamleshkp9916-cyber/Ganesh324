@@ -142,7 +142,13 @@ export default function OrdersPage() {
             "hidden md:flex flex-col w-[20%] border-r bg-background p-4 transition-all duration-300",
             !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
         )}>
-            <h2 className="text-destructive font-bold text-2xl mb-8 whitespace-nowrap">StreamCart</h2>
+             <div className="flex flex-col items-center gap-4 mb-8">
+                <Avatar className="h-20 w-20">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                    <AvatarFallback className="text-2xl">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                <h3 className="font-semibold text-lg text-center whitespace-nowrap">{user.displayName}</h3>
+            </div>
             <nav className="flex flex-col gap-2">
                 <Link href="#" className="flex items-center gap-3 p-3 rounded-md bg-primary/10 text-primary font-semibold">
                     <LayoutGrid className="h-5 w-5" />
@@ -160,11 +166,6 @@ export default function OrdersPage() {
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
                         <PanelLeft />
                     </Button>
-                    <Avatar className="h-12 w-12">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                    <h3 className="font-semibold text-lg">{user.displayName}</h3>
                 </div>
             </header>
             
