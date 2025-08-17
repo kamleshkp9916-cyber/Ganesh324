@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { Wallet, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -383,6 +383,11 @@ export default function OrdersPage() {
         description: "Your refund will be credited to your bank account in 1-2 working days."
     });
   }
+  
+  const handleRowClick = (orderId: string) => {
+      const encodedOrderId = encodeURIComponent(orderId);
+      router.push(`/delivery-information/${encodedOrderId}`);
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
@@ -471,7 +476,7 @@ export default function OrdersPage() {
 
                 <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order: Order) => (
-                        <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
+                        <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
                                 <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0">{order.orderId}</div>
                                 <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
@@ -489,11 +494,11 @@ export default function OrdersPage() {
                                 <div className="w-full sm:w-auto sm:ml-auto">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="h-8 w-8">
+                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-64">
+                                        <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
                                             <DropdownMenuLabel>Order Details</DropdownMenuLabel>
                                             <DropdownMenuSeparator/>
                                             <div className="p-2 space-y-2 text-sm">
@@ -678,3 +683,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
