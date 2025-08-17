@@ -44,7 +44,7 @@ const mockOrders = [
       orderId: "#STREAM5896",
       userId: "USER8432",
       user: { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png", email: "ganesh@example.com" },
-      product: { name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
+      product: { id: "prod-001", name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
       address: { name: "Ganesh Prajapati", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
       dateTime: "27/07/2024 10:30 PM",
       status: "On Way",
@@ -55,7 +55,7 @@ const mockOrders = [
       orderId: "#STREAM5897",
       userId: "USER8433",
       user: { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png", email: "jane.doe@example.com" },
-      product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
+      product: { id: "prod-002", name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
       address: { name: "Jane Doe", village: "Bandra West", district: "Mumbai", city: "Mumbai", state: "Maharashtra", country: "India", pincode: "400050", phone: "+91 9876543211" },
       dateTime: "26/07/2024 08:15 AM",
       status: "Completed",
@@ -66,7 +66,7 @@ const mockOrders = [
       orderId: "#STREAM5898",
       userId: "USER8434",
       user: { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png", email: "alex.smith@example.com" },
-      product: { name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
+      product: { id: "prod-003", name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
       address: { name: "Alex Smith", village: "Indiranagar", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560038", phone: "+91 9876543212" },
       dateTime: "25/07/2024 02:00 PM",
       status: "Completed",
@@ -77,7 +77,7 @@ const mockOrders = [
       orderId: "#STREAM5899",
       userId: "USER8435",
       user: { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png", email: "emily.brown@example.com" },
-      product: { name: "Smart Watch", imageUrl: "https://placehold.co/60x60.png", hint: "smart watch" },
+      product: { id: "prod-004", name: "Smart Watch", imageUrl: "https://placehold.co/60x60.png", hint: "smart watch" },
       address: { name: "Emily Brown", village: "Connaught Place", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110001", phone: "+91 9876543213" },
       dateTime: "25/07/2024 11:45 AM",
       status: "Cancelled",
@@ -88,7 +88,7 @@ const mockOrders = [
       orderId: "#STREAM5900",
       userId: "USER8436",
       user: { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png", email: "chris.wilson@example.com" },
-      product: { name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
+      product: { id: "prod-005", name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
       address: { name: "Chris Wilson", village: "T. Nagar", district: "Chennai", city: "Chennai", state: "Tamil Nadu", country: "India", pincode: "600017", phone: "+91 9876543214" },
       dateTime: "24/07/2024 06:30 PM",
       status: "Completed",
@@ -99,7 +99,7 @@ const mockOrders = [
       orderId: "#STREAM5904",
       userId: "USER8437",
       user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
-      product: { name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
+      product: { id: "prod-006", name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
       address: { name: "Laura Williams", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543215" },
       dateTime: "28/07/2024 01:00 PM",
       status: "In Progress",
@@ -110,7 +110,7 @@ const mockOrders = [
       orderId: "#STREAM5905",
       userId: "USER8438",
       user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
-      product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
+      product: { id: "prod-007", name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
       address: { name: "Peter Jones", village: "Calangute", district: "North Goa", city: "Goa", state: "Goa", country: "India", pincode: "403516", phone: "+91 9876543216" },
       dateTime: "28/07/2024 02:30 PM",
       status: "Pending",
@@ -121,7 +121,7 @@ const mockOrders = [
       orderId: "#STREAM5901",
       userId: "USER8439",
       user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png", email: "sarah.m@example.com" },
-      product: { name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
+      product: { id: "prod-008", name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
       address: { name: "Sarah Miller", village: "Banjara Hills", district: "Hyderabad", city: "Hyderabad", state: "Telangana", country: "India", pincode: "500034", phone: "+91 9876543217" },
       dateTime: "23/07/2024 09:00 AM",
       status: "Completed",
@@ -132,7 +132,7 @@ const mockOrders = [
       orderId: "#STREAM5902",
       userId: "USER8440",
       user: { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png", email: "david.g@example.com" },
-      product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
+      product: { id: "prod-009", name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
       address: { name: "David Garcia", village: "Park Street", district: "Kolkata", city: "Kolkata", state: "West Bengal", country: "India", pincode: "700016", phone: "+91 9876543218" },
       dateTime: "22/07/2024 07:00 PM",
       status: "On Way",
@@ -143,7 +143,7 @@ const mockOrders = [
       orderId: "#STREAM5903",
       userId: "USER8441",
       user: { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png", email: "jessica.r@example.com" },
-      product: { name: "Coffee Maker", imageUrl: "https://placehold.co/60x60.png", hint: "coffee maker" },
+      product: { id: "prod-010", name: "Coffee Maker", imageUrl: "https://placehold.co/60x60.png", hint: "coffee maker" },
       address: { name: "Jessica Rodriguez", village: "C-Scheme", district: "Jaipur", city: "Jaipur", state: "Rajasthan", country: "India", pincode: "302001", phone: "+91 9876543219" },
       dateTime: "21/07/2024 11:00 AM",
       status: "Cancelled",
@@ -154,7 +154,7 @@ const mockOrders = [
       orderId: "#STREAM5906",
       userId: "USER8442",
       user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
-      product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
+      product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
       address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
       dateTime: "29/07/2024 11:00 AM",
       status: "Pending",
@@ -165,7 +165,7 @@ const mockOrders = [
       orderId: "#STREAM5907",
       userId: "USER8443",
       user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
-      product: { name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
+      product: { id: "prod-012", name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
       address: { name: "Olivia Martinez", village: "Greater Kailash", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110048", phone: "+91 9876543221" },
       dateTime: "29/07/2024 03:20 PM",
       status: "In Progress",
@@ -500,9 +500,11 @@ export default function OrdersPage() {
                                             </Avatar>
                                             <p className="truncate flex-1">{order.user.name}</p>
                                         </div>
-                                        <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
-                                            <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                            <p className="truncate flex-1">{order.product.name}</p>
+                                        <div className="sm:w-[20%] mb-2 sm:mb-0">
+                                            <Link href={`/product/${order.product.id}`} className="flex items-center gap-3 group/product">
+                                                <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                                <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
+                                            </Link>
                                         </div>
                                         <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address.village}, {order.address.city}</div>
                                         <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
@@ -516,8 +518,8 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <div className="flex flex-wrap text-sm bg-muted/50 px-4 pb-4">
-                                        <div className="w-full sm:w-[12%] pr-4 py-2 space-y-1">
+                                    <div className="flex flex-col md:flex-row text-sm bg-muted/50 px-4 pb-4">
+                                        <div className="w-full md:w-[12%] pr-4 py-2 space-y-1">
                                             <p className="font-semibold text-muted-foreground">Order ID</p>
                                             <div className="flex items-center gap-2">
                                                 <p>{order.userId}</p>
@@ -526,15 +528,15 @@ export default function OrdersPage() {
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="w-full sm:w-[15%] pr-4 py-2 space-y-1">
+                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
                                             <p className="font-semibold text-muted-foreground">User Details</p>
                                             <p>{order.user.name}</p>
                                             <p>{order.user.email}</p>
                                         </div>
-                                        <div className="w-full sm:w-[20%] pr-4 py-2 space-y-1">
+                                        <div className="w-full md:w-[20%] pr-4 py-2 space-y-1">
                                             {/* This space is intentionally left for alignment with product column. */}
                                         </div>
-                                        <div className="w-full sm:w-[15%] pr-4 py-2 space-y-1">
+                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
                                             <p className="font-semibold text-muted-foreground">Delivery Address</p>
                                             <p>{order.address.name}, {order.address.phone}</p>
                                             <p>{order.address.village}, {order.address.district}</p>
@@ -561,17 +563,17 @@ export default function OrdersPage() {
                                                 </Dialog>
                                             )}
                                         </div>
-                                        <div className="w-full sm:w-[15%] pr-4 py-2 space-y-1">
-                                            {/* This space is for date time alignment */}
-                                        </div>
-                                        <div className="w-full sm:w-[10%] pr-4 text-left sm:text-center py-2 space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
+                                             <p className="font-semibold text-muted-foreground">Delivery Status</p>
                                             <p>{order.deliveryStatus}</p>
                                         </div>
-                                        <div className="w-full sm:w-[13%] sm:text-right py-2 space-y-1 flex flex-col items-start sm:items-end">
+                                        <div className="w-full md:w-[10%] pr-4 text-left md:text-center py-2 space-y-1">
+                                            {/* This space is for status alignment */}
+                                        </div>
+                                        <div className="w-full md:w-[13%] md:text-right py-2 space-y-1 flex flex-col items-start md:items-end">
                                             <p className="font-semibold text-muted-foreground">Transaction Details</p>
                                             <p>Method: {order.transaction.method}</p>
-                                            <div className="flex items-center gap-1 justify-start sm:justify-end">
+                                            <div className="flex items-center gap-1 justify-start md:justify-end">
                                                 <p>ID: {order.transaction.id}</p>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
                                                     <Clipboard className="h-3 w-3" />
