@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 
@@ -64,6 +64,24 @@ const mockOrders = [
       status: "Completed",
       transaction: "₹2,100.00",
     },
+     {
+      orderId: "#STREAM5904",
+      user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
+      address: "Pune, Maharashtra",
+      dateTime: "28/07/2024 01:00 PM",
+      status: "In Progress",
+      transaction: "₹3,500.00",
+    },
+    {
+      orderId: "#STREAM5905",
+      user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
+      address: "Goa, India",
+      dateTime: "28/07/2024 02:30 PM",
+      status: "Pending",
+      transaction: "₹7,800.00",
+    },
     {
       orderId: "#STREAM5901",
       user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png" },
@@ -103,7 +121,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 6;
 
   useEffect(() => {
     setIsClient(true);
@@ -164,14 +182,18 @@ export default function OrdersPage() {
     );
   }
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
         case 'Completed':
-            return 'default';
+            return 'success';
         case 'Ongoing':
-            return 'secondary';
+            return 'warning';
         case 'Cancelled':
             return 'destructive';
+        case 'Pending':
+            return 'info';
+        case 'In Progress':
+            return 'purple';
         default:
             return 'outline';
     }
@@ -285,12 +307,14 @@ export default function OrdersPage() {
                                 <DropdownMenuRadioItem value="ongoing">Ongoing</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="in progress">In Progress</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
                             </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
                 
-                <div className="flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
                     <span className="w-[12%]">Order id</span>
                     <span className="w-[15%]">User</span>
                     <span className="w-[20%]">Product details</span>
@@ -302,25 +326,25 @@ export default function OrdersPage() {
 
                 <div className="space-y-2 mt-2 flex-grow">
                     {paginatedOrders.map((order, index) => (
-                        <div key={index} className="flex items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
-                            <span className="w-[12%] font-medium text-primary">{order.orderId}</span>
-                            <div className="w-[15%] flex items-center gap-2">
+                        <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
+                            <div className="sm:w-[12%] font-medium text-primary mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">Order: </span>{order.orderId}</div>
+                            <div className="sm:w-[15%] flex items-center gap-2 mb-2 sm:mb-0">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={order.user.avatarUrl} />
                                     <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <span>{order.user.name}</span>
                             </div>
-                            <div className="w-[20%] flex items-center gap-3">
+                            <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
                                 <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                 <span>{order.product.name}</span>
                             </div>
-                            <span className="w-[15%] truncate">{order.address}</span>
-                            <span className="w-[15%]">{order.dateTime}</span>
-                            <div className="w-[10%] text-center">
-                                <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                            <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address}</div>
+                            <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
+                            <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0">
+                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                             </div>
-                            <span className="w-[13%] text-right font-semibold">{order.transaction}</span>
+                            <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span className="sm:hidden font-normal text-foreground">Amount: </span>{order.transaction}</div>
                         </div>
                     ))}
                  {paginatedOrders.length === 0 && (
@@ -332,22 +356,22 @@ export default function OrdersPage() {
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto">
                          <div className="text-sm text-muted-foreground">
-                            Showing {Math.min(paginatedOrders.length, (currentPage -1) * itemsPerPage + 1)}-{Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders.
+                            Showing page {currentPage} of {totalPages}
                         </div>
                         <Pagination>
                             <PaginationContent>
                                 <PaginationItem>
-                                    <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }} />
+                                    <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                      <ChevronLeft className="h-5 w-5" />
+                                    </Button>
                                 </PaginationItem>
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <PaginationItem key={i}>
-                                        <PaginationLink href="#" isActive={currentPage === i + 1} onClick={(e) => { e.preventDefault(); handlePageChange(i + 1); }}>
-                                            {i + 1}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                ))}
+                                 <PaginationItem>
+                                     <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
+                                 </PaginationItem>
                                 <PaginationItem>
-                                    <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }}/>
+                                   <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                      <ChevronRight className="h-5 w-5" />
+                                    </Button>
                                 </PaginationItem>
                             </PaginationContent>
                         </Pagination>
@@ -359,3 +383,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
