@@ -19,7 +19,22 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+  } from "@/components/ui/input-otp"
+  
 
 const mockOrders = [
     {
@@ -29,7 +44,7 @@ const mockOrders = [
       product: { name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
       address: { name: "Ganesh Prajapati", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
       dateTime: "27/07/2024 10:30 PM",
-      status: "Ongoing",
+      status: "On Way",
       transaction: { id: "TRN123456789", amount: "₹12,500.00", method: "Credit Card" },
       deliveryStatus: "In transit to Delhi",
     },
@@ -64,7 +79,7 @@ const mockOrders = [
       dateTime: "25/07/2024 11:45 AM",
       status: "Cancelled",
       transaction: { id: "TRN123456792", amount: "₹8,750.00", method: "Credit Card" },
-      deliveryStatus: "Order cancelled by user",
+      deliveryStatus: "Cancelled by user",
     },
     {
       orderId: "#STREAM5900",
@@ -117,7 +132,7 @@ const mockOrders = [
       product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
       address: { name: "David Garcia", village: "Park Street", district: "Kolkata", city: "Kolkata", state: "West Bengal", country: "India", pincode: "700016", phone: "+91 9876543218" },
       dateTime: "22/07/2024 07:00 PM",
-      status: "Ongoing",
+      status: "On Way",
       transaction: { id: "TRN123456797", amount: "₹3,200.00", method: "UPI" },
       deliveryStatus: "Out for delivery",
     },
@@ -130,7 +145,7 @@ const mockOrders = [
       dateTime: "21/07/2024 11:00 AM",
       status: "Cancelled",
       transaction: { id: "TRN123456798", amount: "₹4,500.00", method: "Credit Card" },
-      deliveryStatus: "Order cancelled by user",
+      deliveryStatus: "Cancelled by seller",
     },
     {
       orderId: "#STREAM5906",
@@ -171,6 +186,10 @@ export default function OrdersPage() {
   const itemsPerPage = 10;
   const { toast } = useToast();
   const [orders, setOrders] = useState(mockOrders);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [isOtpOpen, setIsOtpOpen] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -179,7 +198,7 @@ export default function OrdersPage() {
   const filteredOrders = useMemo(() => {
     let currentOrders = orders;
     if (statusFilter !== "all") {
-        currentOrders = currentOrders.filter(order => order.status.toLowerCase() === statusFilter);
+        currentOrders = currentOrders.filter(order => order.status.toLowerCase().replace(' ', '-') === statusFilter);
     }
     if (searchTerm) {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -236,7 +255,7 @@ export default function OrdersPage() {
     switch (status) {
         case 'Completed':
             return 'success';
-        case 'Ongoing':
+        case 'On Way':
             return 'warning';
         case 'Cancelled':
             return 'destructive';
@@ -286,8 +305,46 @@ export default function OrdersPage() {
       }));
   };
 
+  const handleCancelOrderClick = (order: Order) => {
+    setOrderToCancel(order);
+    setIsCancelConfirmOpen(true);
+  };
+
+  const confirmCancelOrder = () => {
+      setIsCancelConfirmOpen(false);
+      setIsOtpOpen(true);
+  };
+
+  const handleOtpSubmit = (otp: string) => {
+    if (otp === '123456' && orderToCancel) {
+        setOrders(currentOrders => currentOrders.map(o => {
+            if (o.orderId === orderToCancel.orderId) {
+                return {
+                    ...o,
+                    status: "Cancelled",
+                    deliveryStatus: "Cancelled by user"
+                };
+            }
+            return o;
+        }));
+        toast({
+            title: "Order Cancelled",
+            description: `${orderToCancel.orderId} has been cancelled. Funds will be credited in 1-2 working days.`,
+        });
+    } else {
+        toast({
+            title: "Invalid OTP",
+            description: "The OTP you entered is incorrect. Please try again.",
+            variant: "destructive",
+        });
+    }
+    setIsOtpOpen(false);
+    setOtpValue("");
+    setOrderToCancel(null);
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
         <aside className={cn(
             "hidden md:flex flex-col w-[20%] border-r bg-sidebar p-4 transition-all duration-300",
@@ -370,10 +427,10 @@ export default function OrdersPage() {
                             <DropdownMenuSeparator />
                             <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
                                 <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="ongoing">Ongoing</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="in progress">In Progress</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
                             </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
@@ -429,64 +486,75 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-muted-foreground">User Details</p>
-                                            <p>{order.user.name}</p>
-                                            <p>{order.user.email}</p>
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-muted-foreground">User ID: {order.userId}</p>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                    <Clipboard className="h-3 w-3" />
-                                                </Button>
+                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                                        <div className="space-y-2">
+                                             <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">User Details</p>
+                                                <p>{order.user.name}</p>
+                                                <p>{order.user.email}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-muted-foreground">Order ID: {order.orderId}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                <p>{order.deliveryStatus}</p>
                                             </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Delivery Address</p>
-                                            <p>{order.address.name}, {order.address.phone}</p>
-                                            <p>{order.address.village}, {order.address.district}</p>
-                                            <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                            {['Pending', 'Cancelled', 'In Progress'].includes(order.status) && (
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="mt-2">
-                                                            <Edit className="h-3 w-3 mr-2"/>
-                                                            Edit Address
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Edit Delivery Address</DialogTitle>
-                                                        </DialogHeader>
-                                                        <EditAddressForm 
-                                                            currentAddress={order.address}
-                                                            currentPhone={order.address.phone}
-                                                            onSave={(data) => {
-                                                                handleAddressSave(order.orderId, data);
-                                                                // Potentially close dialog here if EditAddressForm doesn't do it
-                                                            }}
-                                                            onCancel={() => {
-                                                                // Close dialog logic
-                                                            }}
-                                                        />
-                                                    </DialogContent>
-                                                </Dialog>
+                                        <div className="space-y-2">
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Delivery Address</p>
+                                                <p>{order.address.name}, {order.address.phone}</p>
+                                                <p>{order.address.village}, {order.address.district}</p>
+                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                {['Pending', 'In Progress'].includes(order.status) && (
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="mt-2">
+                                                                <Edit className="h-3 w-3 mr-2"/>
+                                                                Edit Address
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Edit Delivery Address</DialogTitle>
+                                                            </DialogHeader>
+                                                            <EditAddressForm 
+                                                                currentAddress={order.address}
+                                                                currentPhone={order.address.phone}
+                                                                onSave={(data) => handleAddressSave(order.orderId, data)}
+                                                                onCancel={() => {}}
+                                                            />
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Transaction Details</p>
+                                                <p>Amount: {order.transaction.amount}</p>
+                                                <p>Method: {order.transaction.method}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-muted-foreground">ID: {order.transaction.id}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {order.status === 'Cancelled' && (
+                                                 <Button variant="destructive" size="sm" className="mt-2">
+                                                    Request Refund
+                                                 </Button>
                                             )}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Transaction Details</p>
-                                            <p>Amount: {order.transaction.amount}</p>
-                                            <p>Method: {order.transaction.method}</p>
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-muted-foreground">ID: {order.transaction.id}</p>
-                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                    <Clipboard className="h-3 w-3" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                            <p>{order.deliveryStatus}</p>
+                                            {order.status === 'On Way' && (
+                                                 <Button variant="destructive" size="sm" className="mt-2" onClick={() => handleCancelOrderClick(order)}>
+                                                    Cancel Order
+                                                 </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </CollapsibleContent>
@@ -523,7 +591,7 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="w-1/3 justify-end gap-2 hidden sm:flex">
+                        <div className="w-1/3 justify-end gap-2 flex sm:hidden md:flex">
                             <Button variant="ghost" size="sm">About</Button>
                             <Button variant="ghost" size="sm">Support</Button>
                             <Button variant="ghost" size="sm">Contact us</Button>
@@ -533,8 +601,50 @@ export default function OrdersPage() {
             </div>
         </main>
       </div>
+
+       <AlertDialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently cancel the order {orderToCancel?.orderId}.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Back</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmCancelOrder}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <Dialog open={isOtpOpen} onOpenChange={setIsOtpOpen}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Enter OTP</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col items-center gap-4">
+                    <p className="text-muted-foreground">
+                        An OTP has been sent to your registered mobile number to confirm cancellation.
+                    </p>
+                    <InputOTP maxLength={6} value={otpValue} onChange={(value) => setOtpValue(value)}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
+                    <Button onClick={() => handleOtpSubmit(otpValue)} disabled={otpValue.length < 6}>
+                        Verify & Cancel
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
-
-    
