@@ -29,9 +29,6 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <React.Suspense fallback={null}>
-          <TopLoader />
-        </React.Suspense>
         <AuthProvider>
             <ThemeProvider
                 attribute="class"
@@ -39,7 +36,9 @@ export default function RootLayout({
                 enableSystem
                 disableTransitionOnChange
             >
-                {children}
+                <React.Suspense fallback={<TopLoader />}>
+                    {children}
+                </React.Suspense>
                 <Toaster />
             </ThemeProvider>
         </AuthProvider>
@@ -47,5 +46,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    
