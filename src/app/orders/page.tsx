@@ -61,7 +61,7 @@ export default function OrdersPage() {
 
 
   return (
-    <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="flex flex-1">
         <aside className={cn(
             "hidden md:flex flex-col w-[20%] border-r bg-background p-4 transition-all duration-300",
