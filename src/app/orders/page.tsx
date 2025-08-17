@@ -233,16 +233,16 @@ export default function OrdersPage() {
                         <PanelLeft />
                     </Button>
                     <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-8 w-8 md:h-10 md:w-10">
                              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                              <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{user.displayName}</h3>
+                            <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
                                 <Star className="h-6 w-6 fill-current" />
                             </Button>
-                            <span className="text-muted-foreground text-base">/ Overview</span>
+                            <span className="text-muted-foreground text-sm md:text-base">/ Overview</span>
                         </div>
                     </div>
                 </div>
@@ -327,7 +327,15 @@ export default function OrdersPage() {
                 <div className="space-y-2 mt-2 flex-grow">
                     {paginatedOrders.map((order, index) => (
                         <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
-                            <div className="sm:w-[12%] font-medium text-primary mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">Order: </span>{order.orderId}</div>
+                            <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
+                                <div className="font-medium text-primary">
+                                    <span className="sm:hidden font-semibold text-foreground">Order: </span>
+                                    {order.orderId}
+                                </div>
+                                <div className="sm:hidden">
+                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                </div>
+                            </div>
                             <div className="sm:w-[15%] flex items-center gap-2 mb-2 sm:mb-0">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={order.user.avatarUrl} />
@@ -341,7 +349,7 @@ export default function OrdersPage() {
                             </div>
                             <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address}</div>
                             <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
-                            <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0">
+                            <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
                                 <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                             </div>
                             <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span className="sm:hidden font-normal text-foreground">Amount: </span>{order.transaction}</div>
