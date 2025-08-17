@@ -536,10 +536,10 @@ export default function OrdersPage() {
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
                                     <div className="bg-muted/50 px-4 pb-4 text-sm">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 py-4">
-                                             <div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-8 py-4">
+                                            <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">User Details</p>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1">
                                                     <p>User ID: {order.userId}</p>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
                                                         <Clipboard className="h-3 w-3" />
@@ -547,13 +547,17 @@ export default function OrdersPage() {
                                                 </div>
                                                 <p>Email: {order.user.email}</p>
                                             </div>
-                                             <div>
+                                            <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
                                                 <p>{order.address.name}, {order.address.phone}</p>
                                                 <p>{order.address.village}, {order.address.district}</p>
                                                 <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
                                             </div>
-                                             <div>
+                                            <div>
+                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
+                                                <p>{order.deliveryStatus}</p>
+                                            </div>
+                                            <div>
                                                 <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
                                                 <p>Method: {order.transaction.method}</p>
                                                 <div className="flex items-center gap-1">
@@ -562,10 +566,6 @@ export default function OrdersPage() {
                                                         <Clipboard className="h-3 w-3" />
                                                     </Button>
                                                 </div>
-                                            </div>
-                                             <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
-                                                <p>{order.deliveryStatus}</p>
                                             </div>
                                         </div>
                                         <div className="border-t mt-4 pt-4 flex justify-end items-center gap-4">
