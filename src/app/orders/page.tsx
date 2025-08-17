@@ -120,17 +120,16 @@ export default function OrdersPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const filterOrders = (orders: any[]) => {
-      if (!searchTerm) return orders;
-      return orders.filter(order => 
-          order.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.id.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-  }
+  const allOrders = useMemo(() => [...allOngoingOrders, ...allCompletedOrders, ...allCancelledOrders], []);
 
-  const ongoingOrders = useMemo(() => filterOrders(allOngoingOrders), [searchTerm]);
-  const completedOrders = useMemo(() => filterOrders(allCompletedOrders), [searchTerm]);
-  const cancelledOrders = useMemo(() => filterOrders(allCancelledOrders), [searchTerm]);
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm) return allOrders;
+    return allOrders.filter(order => 
+        order.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, allOrders]);
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -233,28 +232,10 @@ export default function OrdersPage() {
             </header>
             
             <div className="flex-grow">
-                <Tabs defaultValue="ongoing">
-                    <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex bg-background rounded-lg p-1">
-                        <TabsTrigger value="ongoing" className="flex-1">
-                            Ongoing <Badge className="ml-2 bg-primary/20 text-primary">{ongoingOrders.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="completed" className="flex-1">
-                            Completed <Badge className="ml-2">{completedOrders.length}</Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="cancelled" className="flex-1">
-                            Cancelled <Badge className="ml-2">{cancelledOrders.length}</Badge>
-                        </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="ongoing" className="mt-6 space-y-4">
-                        {ongoingOrders.map(order => <OrderCard key={order.id} order={order} />)}
-                    </TabsContent>
-                    <TabsContent value="completed" className="mt-6 space-y-4">
-                        {completedOrders.map(order => <OrderCard key={order.id} order={order} />)}
-                    </TabsContent>
-                    <TabsContent value="cancelled" className="mt-6 space-y-4">
-                        {cancelledOrders.map(order => <OrderCard key={order.id} order={order} />)}
-                    </TabsContent>
-                </Tabs>
+                <h3 className="text-2xl font-bold mb-6">Order list</h3>
+                <div className="space-y-4">
+                    {filteredOrders.map(order => <OrderCard key={order.id} order={order} />)}
+                </div>
             </div>
         </main>
       </div>
