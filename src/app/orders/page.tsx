@@ -269,6 +269,7 @@ export default function OrdersPage() {
               return {
                   ...o,
                   address: {
+                      ...o.address, // keep original phone
                       name: data.name,
                       village: data.village,
                       district: data.district,
@@ -276,6 +277,7 @@ export default function OrdersPage() {
                       state: data.state,
                       country: data.country,
                       pincode: data.pincode,
+                      phone: data.phone,
                   },
                   user: { ...o.user, name: data.name }
               };
@@ -392,9 +394,9 @@ export default function OrdersPage() {
                 <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order: Order) => (
                         <Collapsible key={order.orderId} asChild>
-                            <div className='border-b hover:bg-muted/50 rounded-lg'>
+                            <div className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                                 <CollapsibleTrigger asChild>
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 cursor-pointer">
+                                   <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 cursor-pointer group">
                                         <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
                                             <div className="font-medium text-primary">
                                                 <span className="sm:hidden font-semibold text-foreground">Order: </span>
