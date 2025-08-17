@@ -502,7 +502,7 @@ export default function OrdersPage() {
                                         </div>
                                         <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
                                             <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                            <span className="truncate">{order.product.name}</span>
+                                            <p className="truncate flex-1">{order.product.name}</p>
                                         </div>
                                         <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address.village}, {order.address.city}</div>
                                         <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
@@ -602,7 +602,7 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                        <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 hidden md:block">
+                        <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
                             Showing page {currentPage} of {totalPages}
                         </div>
                         <div className="w-full sm:w-auto mx-auto">
