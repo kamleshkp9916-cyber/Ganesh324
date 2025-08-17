@@ -25,7 +25,7 @@ export default function OrdersPage() {
             <p>This is the orders page. You can add content here.</p>
           </div>
         </main>
-        <aside className="hidden md:block w-64 border-l p-4">
+        <aside className="hidden md:block w-[7%] border-l p-4">
             <h2 className="text-destructive font-bold text-lg mb-6">StreamCart</h2>
             <nav className="flex flex-col gap-2">
                 <Link href="#" className="flex items-center gap-3 p-2 rounded-md hover:bg-accent">
