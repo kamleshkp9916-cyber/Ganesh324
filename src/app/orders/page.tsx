@@ -495,18 +495,15 @@ export default function OrdersPage() {
                     {paginatedOrders.map((order: Order) => (
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
-                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0">
-                                    <div className="font-medium text-primary flex items-center gap-1">
+                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0 text-white p-2 rounded-l-md" style={{background: 'linear-gradient(to right, #0396FF, #ABDCFF)'}}>
+                                    <div className="font-medium flex items-center gap-1">
                                         <span className="sm:hidden font-semibold text-foreground">Order: </span> 
                                         {order.orderId}
-                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
-                                            <Clipboard className="h-3 w-3" />
-                                        </Button>
                                     </div>
                                 </div>
-                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
+                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0 text-white p-2 rounded-r-md" style={{background: 'linear-gradient(to right, #ABDCFF, #0396FF)'}}>
                                      <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md bg-white p-1" data-ai-hint={order.product.hint} />
                                         <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                     </Link>
                                 </div>
@@ -527,6 +524,15 @@ export default function OrdersPage() {
                                             <DropdownMenuLabel>Order Details</DropdownMenuLabel>
                                             <DropdownMenuSeparator/>
                                             <div className="p-2 space-y-2 text-sm">
+                                                 <div className="flex items-center justify-between">
+                                                      <p className="font-semibold text-muted-foreground">Order ID</p>
+                                                      <div className="flex items-center gap-1">
+                                                          <span>{order.orderId}</span>
+                                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
+                                                              <Clipboard className="h-3 w-3" />
+                                                          </Button>
+                                                      </div>
+                                                  </div>
                                                 <div className="flex items-center justify-between">
                                                     <p className="font-semibold text-muted-foreground">User ID</p>
                                                     <div className="flex items-center gap-1">
@@ -553,9 +559,12 @@ export default function OrdersPage() {
                                                     <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
+                                                    <p className="font-semibold text-muted-foreground">Delivery Status</p>
                                                     <p>{order.deliveryStatus}</p>
-                                                    <p className="text-xs text-muted-foreground">({order.dateTime})</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground">Date & Time</p>
+                                                    <p className="text-xs text-muted-foreground">{order.dateTime}</p>
                                                 </div>
                                             </div>
                                             <DropdownMenuSeparator/>
@@ -705,6 +714,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-
-    
