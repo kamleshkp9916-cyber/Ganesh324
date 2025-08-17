@@ -3,9 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, LayoutGrid, Wallet, PanelLeft, Search } from 'lucide-react';
-import { Footer } from '@/components/footer';
-import Link from 'next/link';
+import { Wallet, PanelLeft, Search, LayoutGrid } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -15,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 const ongoingOrders = [
     {
@@ -142,21 +141,17 @@ export default function OrdersPage() {
             "hidden md:flex flex-col w-[20%] border-r bg-background p-4 transition-all duration-300",
             !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
         )}>
-             <div className="flex flex-col items-center gap-4 mb-8">
-                <Avatar className="h-20 w-20">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                    <AvatarFallback className="text-2xl">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-                <h3 className="font-semibold text-lg text-center whitespace-nowrap">{user.displayName}</h3>
+            <div className="mb-8">
+                <h2 className="text-2xl font-bold text-destructive">StreamCart</h2>
             </div>
             <nav className="flex flex-col gap-2">
                 <Link href="#" className="flex items-center gap-3 p-3 rounded-md bg-primary/10 text-primary font-semibold">
                     <LayoutGrid className="h-5 w-5" />
-                    <span className="whitespace-nowrap">Overview</span>
+                    <span>Overview</span>
                 </Link>
                 <Link href="/wallet" className="flex items-center gap-3 p-3 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground">
                     <Wallet className="h-5 w-5" />
-                    <span className="whitespace-nowrap">Wallet</span>
+                    <span>Wallet</span>
                 </Link>
             </nav>
         </aside>
@@ -166,6 +161,15 @@ export default function OrdersPage() {
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
                         <PanelLeft />
                     </Button>
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h3 className="font-semibold">{user.displayName}</h3>
+                        </div>
+                    </div>
                 </div>
             </header>
             
