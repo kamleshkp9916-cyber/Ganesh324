@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, LayoutGrid, Heart, X } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -175,7 +175,7 @@ export default function OrdersPage() {
             </div>
             <nav className="flex flex-col gap-2">
                 <Link href="#" className="flex items-center gap-3 p-3 rounded-md bg-primary/10 text-primary font-semibold">
-                    <LayoutGrid className="h-5 w-5" />
+                    <Wallet className="h-5 w-5" />
                     <span>Overview</span>
                 </Link>
                 <Link href="/wallet" className="flex items-center gap-3 p-3 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground">
@@ -197,10 +197,10 @@ export default function OrdersPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold">{user.displayName}</h3>
-                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive">
-                                <Heart className="h-5 w-5 fill-current" />
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                <Star className="h-6 w-6 fill-current" />
                             </Button>
-                            <span className="text-muted-foreground text-sm">/ Overview</span>
+                            <span className="text-muted-foreground text-base">/ Overview</span>
                         </div>
                     </div>
                 </div>
