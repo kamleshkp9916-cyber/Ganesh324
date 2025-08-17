@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from '@/hooks/use-auth.tsx';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, CreditCard, Wallet, Truck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -91,9 +91,10 @@ const mockAchievements = [
 ];
 
 
-export default function ProfilePage({ searchParams }: { searchParams: { userId?: string } }) {
+export default function ProfilePage() {
   const router = useRouter();
-  const { userId } = searchParams;
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
@@ -363,7 +364,7 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
 
                     <TabsContent value="recent" className="mt-4">
                         {filteredRecentlyViewed.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {filteredRecentlyViewed.map((item) => (
                                     <Card key={item.id} className="w-full">
                                         <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
@@ -432,7 +433,7 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
                     </TabsContent>
                     
                     <TabsContent value="achievements" className="mt-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                            {mockAchievements.map(achievement => (
                                 <Card key={achievement.id} className="p-4 flex flex-col items-center justify-center text-center gap-2">
                                     <div className="p-3 bg-primary/10 rounded-full text-primary">
@@ -458,3 +459,5 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
     </div>
   );
 }
+
+    

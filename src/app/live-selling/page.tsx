@@ -442,9 +442,9 @@ export default function LiveSellingPage() {
                     <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end" ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                             isSearchExpanded ? "sm:w-64" : "w-10"
+                             isSearchExpanded ? "sm:w-64" : "w-10 sm:w-10"
                         )}>
-                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
+                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden sm:block')} />
                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
@@ -465,7 +465,7 @@ export default function LiveSellingPage() {
                                 {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                             </Button>
                     </div>
-                       <div className={cn("items-center gap-2", isSearchExpanded ? "hidden" : "flex")}>
+                       <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
@@ -916,3 +916,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    
