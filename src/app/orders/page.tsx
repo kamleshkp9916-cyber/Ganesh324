@@ -33,6 +33,7 @@ import {
     InputOTP,
     InputOTPGroup,
     InputOTPSeparator,
+    InputOTPSlot,
   } from "@/components/ui/input-otp"
   
 
@@ -486,25 +487,24 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-                                        <div className="space-y-2">
-                                             <div className="space-y-1">
-                                                <p className="font-semibold text-muted-foreground">User Details</p>
-                                                <p>{order.user.name}</p>
-                                                <p>{order.user.email}</p>
+                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Order ID</p>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-muted-foreground">Order ID: {order.orderId}</p>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
+                                                    <p>{order.userId}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
                                                         <Clipboard className="h-3 w-3" />
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                                <p>{order.deliveryStatus}</p>
+                                             <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">User Details</p>
+                                                <p>{order.user.name}</p>
+                                                <p>{order.user.email}</p>
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-4">
                                             <div className="space-y-1">
                                                 <p className="font-semibold text-muted-foreground">Delivery Address</p>
                                                 <p>{order.address.name}, {order.address.phone}</p>
@@ -532,14 +532,18 @@ export default function OrdersPage() {
                                                     </Dialog>
                                                 )}
                                             </div>
+                                             <div className="space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                <p>{order.deliveryStatus}</p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
+                                        <div className="space-y-4">
                                             <div className="space-y-1">
                                                 <p className="font-semibold text-muted-foreground">Transaction Details</p>
                                                 <p>Amount: {order.transaction.amount}</p>
                                                 <p>Method: {order.transaction.method}</p>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-muted-foreground">ID: {order.transaction.id}</p>
+                                                    <p>ID: {order.transaction.id}</p>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
                                                         <Clipboard className="h-3 w-3" />
                                                     </Button>
@@ -591,7 +595,7 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="w-1/3 justify-end gap-2 flex sm:hidden md:flex">
+                        <div className="w-1/3 justify-end gap-2 hidden sm:flex">
                             <Button variant="ghost" size="sm">About</Button>
                             <Button variant="ghost" size="sm">Support</Button>
                             <Button variant="ghost" size="sm">Contact us</Button>
@@ -648,3 +652,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
