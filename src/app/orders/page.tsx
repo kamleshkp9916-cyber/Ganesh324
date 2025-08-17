@@ -11,8 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
@@ -225,8 +224,8 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <div className="flex flex-1">
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      <div className="flex flex-1 h-screen overflow-hidden">
         <aside className={cn(
             "hidden md:flex flex-col w-[20%] border-r bg-sidebar p-4 transition-all duration-300",
             !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
@@ -245,7 +244,7 @@ export default function OrdersPage() {
                 </Link>
             </nav>
         </aside>
-        <main className="flex-grow p-6 flex flex-col gap-6">
+        <main className="flex-grow p-6 flex flex-col gap-6 overflow-y-auto">
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
