@@ -13,6 +13,57 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+
+
+const mockOrders = [
+    {
+      orderId: "#STREAM5896",
+      user: { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
+      address: "Pune, Maharashtra",
+      dateTime: "27/07/2024 10:30 PM",
+      status: "Ongoing",
+      transaction: "₹12,500.00",
+    },
+    {
+      orderId: "#STREAM5897",
+      user: { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
+      address: "Mumbai, Maharashtra",
+      dateTime: "26/07/2024 08:15 AM",
+      status: "Completed",
+      transaction: "₹4,999.00",
+    },
+    {
+      orderId: "#STREAM5898",
+      user: { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
+      address: "Bengaluru, Karnataka",
+      dateTime: "25/07/2024 02:00 PM",
+      status: "Completed",
+      transaction: "₹6,200.00",
+    },
+    {
+      orderId: "#STREAM5899",
+      user: { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Smart Watch", imageUrl: "https://placehold.co/60x60.png", hint: "smart watch" },
+      address: "Delhi, India",
+      dateTime: "25/07/2024 11:45 AM",
+      status: "Cancelled",
+      transaction: "₹8,750.00",
+    },
+    {
+      orderId: "#STREAM5900",
+      user: { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png" },
+      product: { name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
+      address: "Chennai, Tamil Nadu",
+      dateTime: "24/07/2024 06:30 PM",
+      status: "Completed",
+      transaction: "₹2,100.00",
+    },
+];
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -27,6 +78,22 @@ export default function OrdersPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const filteredOrders = useMemo(() => {
+    let orders = mockOrders;
+    if (statusFilter !== "all") {
+        orders = orders.filter(order => order.status.toLowerCase() === statusFilter);
+    }
+    if (searchTerm) {
+        orders = orders.filter(order =>
+            order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.address.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    return orders;
+  }, [statusFilter, searchTerm]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -58,6 +125,19 @@ export default function OrdersPage() {
         </div>
     );
   }
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+        case 'Completed':
+            return 'default';
+        case 'Ongoing':
+            return 'secondary';
+        case 'Cancelled':
+            return 'destructive';
+        default:
+            return 'outline';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -128,7 +208,7 @@ export default function OrdersPage() {
                 </div>
             </header>
             
-            <div className="flex-grow p-4">
+            <div className="flex-grow bg-card p-4 rounded-lg border">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold">Order list</h3>
                     <DropdownMenu>
@@ -166,18 +246,45 @@ export default function OrdersPage() {
                     </DropdownMenu>
                 </div>
                 
-                <div className="flex justify-between items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                    <span>Order id</span>
-                    <span>User</span>
-                    <span>Product details</span>
-                    <span>Address</span>
-                    <span>date and time</span>
-                    <span>Status</span>
-                    <span>transaction</span>
+                <div className="flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                    <span className="w-[12%]">Order id</span>
+                    <span className="w-[15%]">User</span>
+                    <span className="w-[20%]">Product details</span>
+                    <span className="w-[15%]">Address</span>
+                    <span className="w-[15%]">Date and Time</span>
+                    <span className="w-[10%] text-center">Status</span>
+                    <span className="w-[13%] text-right">Transaction</span>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2 mt-2">
+                    {filteredOrders.map((order, index) => (
+                        <div key={index} className="flex items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
+                            <span className="w-[12%] font-medium text-primary">{order.orderId}</span>
+                            <div className="w-[15%] flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={order.user.avatarUrl} />
+                                    <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{order.user.name}</span>
+                            </div>
+                            <div className="w-[20%] flex items-center gap-3">
+                                <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                <span>{order.product.name}</span>
+                            </div>
+                            <span className="w-[15%] truncate">{order.address}</span>
+                            <span className="w-[15%]">{order.dateTime}</span>
+                            <div className="w-[10%] text-center">
+                                <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                            </div>
+                            <span className="w-[13%] text-right font-semibold">{order.transaction}</span>
+                        </div>
+                    ))}
                 </div>
+                 {filteredOrders.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <p>No orders found.</p>
+                    </div>
+                 )}
             </div>
         </main>
       </div>
