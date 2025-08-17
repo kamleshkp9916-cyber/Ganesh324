@@ -15,7 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 
 
 const mockOrders = [
@@ -151,11 +151,12 @@ export default function OrdersPage() {
         orders = orders.filter(order => order.status.toLowerCase() === statusFilter);
     }
     if (searchTerm) {
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
         orders = orders.filter(order =>
-            order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.address.toLowerCase().includes(searchTerm.toLowerCase())
+            order.orderId.toLowerCase().includes(lowercasedSearchTerm) ||
+            order.user.name.toLowerCase().includes(lowercasedSearchTerm) ||
+            order.product.name.toLowerCase().includes(lowercasedSearchTerm) ||
+            order.address.toLowerCase().includes(lowercasedSearchTerm)
         );
     }
     return orders;
@@ -302,26 +303,11 @@ export default function OrdersPage() {
                                 Filter
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-64" align="end">
-                            <DropdownMenuLabel>Filter Orders</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <div className="px-2 py-1.5">
-                                     <Label htmlFor="orderIdFilter">Order ID</Label>
-                                     <Input id="orderIdFilter" placeholder="Search by Order ID..." className="mt-1 h-8" />
-                                </div>
-                                <div className="px-2 py-1.5">
-                                     <Label htmlFor="customerNameFilter">Customer Name</Label>
-                                     <Input id="customerNameFilter" placeholder="Search by Name..." className="mt-1 h-8" />
-                                </div>
-                                 <div className="px-2 py-1.5">
-                                     <Label htmlFor="productNameFilter">Product Name</Label>
-                                     <Input id="productNameFilter" placeholder="Search by Product..." className="mt-1 h-8" />
-                                </div>
-                            </DropdownMenuGroup>
+                        <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                <DropdownMenuRadioItem value="all">All Statuses</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="ongoing">Ongoing</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
@@ -342,7 +328,7 @@ export default function OrdersPage() {
                     <span className="w-[13%] text-right">Transaction</span>
                 </div>
 
-                <div className="space-y-2 mt-2 flex-grow">
+                <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order, index) => (
                         <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
                             <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
@@ -416,4 +402,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
