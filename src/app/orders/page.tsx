@@ -288,7 +288,7 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <div className="flex flex-1 h-screen overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         <aside className={cn(
             "hidden md:flex flex-col w-[20%] border-r bg-sidebar p-4 transition-all duration-300",
             !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
@@ -394,7 +394,7 @@ export default function OrdersPage() {
                 <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order: Order) => (
                         <Collapsible key={order.orderId} asChild>
-                            <div className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
+                             <div className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                                 <CollapsibleTrigger asChild>
                                    <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 cursor-pointer group">
                                         <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
@@ -429,7 +429,7 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
                                         <div className="space-y-1">
                                             <p className="font-semibold text-muted-foreground">User Details</p>
                                             <p>{order.user.name}</p>
@@ -523,10 +523,10 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="flex items-center gap-2 justify-end w-1/3">
-                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">About</Button>
-                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Support</Button>
-                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Contact us</Button>
+                        <div className="w-1/3 justify-end gap-2 hidden sm:flex">
+                            <Button variant="ghost" size="sm">About</Button>
+                            <Button variant="ghost" size="sm">Support</Button>
+                            <Button variant="ghost" size="sm">Contact us</Button>
                         </div>
                     </div>
                 )}
@@ -536,3 +536,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
