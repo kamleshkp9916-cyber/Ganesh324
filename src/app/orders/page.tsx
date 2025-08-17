@@ -4,18 +4,17 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
@@ -486,65 +485,58 @@ export default function OrdersPage() {
                 <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
                     <span className="w-[15%]">Order id</span>
                     <span className="w-[28%]">Product details</span>
-                    <span className="w-[18%]">Address</span>
+                    <span className="w-[20%]">Address</span>
                     <span className="w-[15%]">Date</span>
-                    <span className="w-[12%]">Transaction</span>
+                    <span className="w-[10%]">Transaction</span>
                     <span className="w-[12%] text-center">Status</span>
                 </div>
 
                 <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order: Order) => (
-                        <Collapsible key={order.orderId} asChild>
-                             <div className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
-                                <CollapsibleTrigger asChild>
-                                   <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 cursor-pointer group">
-                                        <div className="w-full sm:w-[15%] mb-2 sm:mb-0">
-                                            <div className="font-medium text-primary flex-grow truncate">
-                                                <span className="sm:hidden font-semibold text-foreground">Order: </span> 
-                                                {order.orderId}
-                                            </div>
-                                        </div>
-                                        <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
-                                             <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                                <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                                <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
-                                            </Link>
-                                        </div>
-                                        <div className="w-full sm:w-[18%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                                        <div className="w-full sm:w-[15%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                        <div className="w-full sm:w-[12%] mb-2 sm:mb-0">{order.transaction.amount}</div>
-                                        <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0">
-                                            <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                                        </div>
-                                        <div className="hidden sm:w-8 sm:flex justify-end ml-auto">
-                                            <ChevronDown className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:-rotate-180"/>
-                                        </div>
+                        <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
+                           <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
+                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0">
+                                    <div className="font-medium text-primary flex items-center gap-1">
+                                        <span className="sm:hidden font-semibold text-foreground">Order: </span> 
+                                        {order.orderId}
+                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
+                                            <Clipboard className="h-3 w-3" />
+                                        </Button>
                                     </div>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent asChild>
-                                    <div className="bg-muted/50 text-sm">
-                                        <div className="p-4 space-y-4">
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="col-span-2 md:col-span-1">
+                                </div>
+                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
+                                     <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
+                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                        <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
+                                    </Link>
+                                </div>
+                                <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
+                                <div className="w-full sm:w-[10%] mb-2 sm:mb-0">{order.transaction.amount}</div>
+                                <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0">
+                                    <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                </div>
+                                <div className="w-full sm:w-auto sm:ml-auto">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                             <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-64">
+                                            <DropdownMenuLabel>Order Details</DropdownMenuLabel>
+                                            <DropdownMenuSeparator/>
+                                            <div className="p-2 space-y-2 text-sm">
+                                                <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">User ID</p>
-                                                    <div className="flex items-center gap-1">
-                                                        <span>{order.userId}</span>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
+                                                    <p>{order.userId}</p>
                                                 </div>
-                                                <div className="col-span-2 md:col-span-1">
+                                                <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                                    <div className="flex items-center gap-1">
-                                                        ID: {order.transaction.id}
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
+                                                    <p>ID: {order.transaction.id}</p>
                                                     <p>Method: {order.transaction.method}</p>
                                                 </div>
-                                                <div className="col-span-2">
+                                                <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
                                                     <p>{order.address.name}, {order.address.phone}</p>
                                                     <p>{order.address.village}, {order.address.district}</p>
@@ -552,15 +544,15 @@ export default function OrdersPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
-                                                    <p>{order.deliveryStatus}</p>
-                                                    <p className="text-xs text-muted-foreground">{order.dateTime}</p>
+                                                    <p>{order.deliveryStatus} on {order.dateTime}</p>
                                                 </div>
                                             </div>
-                                            <div className="border-t p-4 flex justify-end items-center gap-2 -mx-4 -mb-4">
-                                                {['Pending', 'In Progress'].includes(order.status) && (
-                                                    <Dialog>
+                                            <DropdownMenuSeparator/>
+                                            <div className="p-2 flex justify-end gap-2">
+                                                 {['Pending', 'In Progress'].includes(order.status) && (
+                                                    <Dialog onOpenChange={(open) => !open && document.body.style.removeProperty('pointer-events')}>
                                                         <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm">
+                                                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); document.body.style.setProperty('pointer-events', 'none') }}>
                                                                 <Edit className="h-3 w-3 mr-2"/>
                                                                 Edit
                                                             </Button>
@@ -582,23 +574,23 @@ export default function OrdersPage() {
                                                     <Button 
                                                         variant="destructive" 
                                                         size="sm"
-                                                        onClick={() => handleRequestRefund(order.orderId)}
+                                                        onClick={(e) => { e.stopPropagation(); handleRequestRefund(order.orderId); }}
                                                         disabled={refundedOrders.has(order.orderId)}
                                                     >
                                                     {refundedOrders.has(order.orderId) ? "Refund Processed" : "Request Refund"}
                                                     </Button>
                                                 )}
                                                 {order.status === 'On Way' && (
-                                                    <Button variant="destructive" size="sm" onClick={() => handleCancelOrderClick(order)}>
+                                                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); handleCancelOrderClick(order);}}>
                                                         Cancel Order
                                                     </Button>
                                                 )}
                                             </div>
-                                        </div>
-                                    </div>
-                                </CollapsibleContent>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             </div>
-                        </Collapsible>
+                        </div>
                     ))}
                  {paginatedOrders.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
