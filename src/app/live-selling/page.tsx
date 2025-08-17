@@ -442,7 +442,7 @@ export default function LiveSellingPage() {
                     <div className="flex items-center gap-2" ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out",
-                            isSearchExpanded ? "w-48 sm:w-64" : "w-10"
+                            isSearchExpanded ? "w-36 sm:w-64" : "w-10"
                         )}>
                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden')} />
                             <Input 
@@ -617,7 +617,7 @@ export default function LiveSellingPage() {
                                             {offerSlides.map((slide) => (
                                             <CarouselItem key={slide.id}>
                                                 <Card className="overflow-hidden bg-card">
-                                                <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1]">
+                                                <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1] md:aspect-[4/1]">
                                                     <Image
                                                     src={slide.imageUrl}
                                                     alt={slide.title}
@@ -812,7 +812,7 @@ export default function LiveSellingPage() {
                                       </Card>
                                   ))}
                                 </div>
-                                <div className="lg:col-span-1 space-y-4 sticky top-20">
+                                <div className="lg:col-span-1 space-y-4 lg:sticky top-20">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2 text-lg">
