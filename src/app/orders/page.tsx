@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/input-otp"
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-  
+import { Textarea } from '@/components/ui/textarea';
 
 const mockOrders = [
     {
@@ -200,6 +200,7 @@ export default function OrdersPage() {
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [isCancelReasonOpen, setIsCancelReasonOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [otherReason, setOtherReason] = useState("");
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
 
@@ -327,6 +328,10 @@ export default function OrdersPage() {
         toast({ title: "Please select a reason", variant: "destructive" });
         return;
     }
+    if (cancelReason === "other" && !otherReason.trim()) {
+        toast({ title: "Please provide a reason", variant: "destructive" });
+        return;
+    }
     setIsCancelReasonOpen(false);
     setIsOtpOpen(true);
   };
@@ -357,8 +362,16 @@ export default function OrdersPage() {
     setIsOtpOpen(false);
     setOtpValue("");
     setCancelReason("");
+    setOtherReason("");
     setOrderToCancel(null);
   };
+
+  const handleRequestRefund = () => {
+    toast({
+        title: "Refund Processed",
+        description: "Your refund will be credited to your bank account in 1-2 working days."
+    });
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
@@ -485,11 +498,11 @@ export default function OrdersPage() {
                                                 <AvatarImage src={order.user.avatarUrl} />
                                                 <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span>{order.user.name}</span>
+                                            <span className="truncate">{order.user.name}</span>
                                         </div>
                                         <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
                                             <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                            <span>{order.product.name}</span>
+                                            <span className="truncate">{order.product.name}</span>
                                         </div>
                                         <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address.village}, {order.address.city}</div>
                                         <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
@@ -566,7 +579,7 @@ export default function OrdersPage() {
                                                 </div>
                                             </div>
                                             {order.status === 'Cancelled' && (
-                                                 <Button variant="destructive" size="sm" className="mt-2">
+                                                 <Button variant="destructive" size="sm" className="mt-2" onClick={handleRequestRefund}>
                                                     Request Refund
                                                  </Button>
                                             )}
@@ -588,11 +601,11 @@ export default function OrdersPage() {
                  )}
                 </div>
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 mt-auto">
-                         <div className="text-sm text-muted-foreground w-1/3 hidden sm:block">
+                    <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
+                         <div className="text-sm text-muted-foreground w-full sm:w-1/3 text-center sm:text-left">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <div className="w-full sm:w-1/3">
+                        <div className="w-full sm:w-auto">
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
@@ -611,7 +624,7 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="w-1/3 justify-end gap-2 hidden sm:flex">
+                        <div className="w-full sm:w-1/3 justify-center sm:justify-end gap-2 flex">
                             <Button variant="ghost" size="sm">About</Button>
                             <Button variant="ghost" size="sm">Support</Button>
                             <Button variant="ghost" size="sm">Contact us</Button>
@@ -638,9 +651,16 @@ export default function OrdersPage() {
                         </div>
                     ))}
                 </RadioGroup>
+                {cancelReason === 'other' && (
+                    <Textarea 
+                        placeholder="Please tell us more..." 
+                        value={otherReason}
+                        onChange={(e) => setOtherReason(e.target.value)}
+                    />
+                )}
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setCancelReason("")}>Back</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReasonSubmit} disabled={!cancelReason}>Continue</AlertDialogAction>
+                    <AlertDialogAction onClick={handleReasonSubmit} disabled={!cancelReason || (cancelReason === 'other' && !otherReason.trim())}>Continue</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
