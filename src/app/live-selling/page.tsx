@@ -256,7 +256,7 @@ export default function LiveSellingPage() {
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
-  const [mockFollowingFeed, setMockFollowingFeed] = useState(initialMockFeed);
+  const [mockFollowingFeed, setMockFollowingFeed] = useState<typeof initialMockFeed>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -315,6 +315,7 @@ export default function LiveSellingPage() {
 
   useEffect(() => {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
+    setMockFollowingFeed(initialMockFeed);
   }, []);
 
   const handleCreatePost = (postData: PostData) => {
@@ -415,11 +416,6 @@ export default function LiveSellingPage() {
     };
   }, [searchRef]);
 
-  useEffect(() => {
-    // This logic now runs only on the client after the component mounts
-    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
-  }, []);
-
 
   return (
       <div className="flex min-h-screen bg-background text-foreground">
@@ -444,7 +440,35 @@ export default function LiveSellingPage() {
                         <ShoppingCart className="h-7 w-7 text-destructive" />
                         <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                     </div>
-                    <div className="flex items-center gap-2 flex-1 justify-end" ref={searchRef}>
+                    <div className="sm:hidden flex-1">
+                         {isSearchExpanded && (
+                            <div className="w-full" ref={searchRef}>
+                                <div className={cn(
+                                    "relative flex items-center transition-all duration-300 ease-in-out w-full"
+                                )}>
+                                    <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                                    <Input 
+                                        placeholder="Search posts, streams..." 
+                                        className="bg-card rounded-full w-full pl-10 pr-10"
+                                        onFocus={() => setIsSearchExpanded(true)}
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        autoFocus
+                                    />
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
+                                        onClick={() => setIsSearchExpanded(false)}
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={cn("hidden sm:flex items-center gap-2 flex-1 justify-end", isSearchExpanded && "w-full")} ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
                             isSearchExpanded ? "sm:w-64" : "sm:w-10"
@@ -454,7 +478,7 @@ export default function LiveSellingPage() {
                                 placeholder="Search posts, streams..." 
                                 className={cn(
                                     "bg-card rounded-full transition-all duration-300 ease-in-out",
-                                    isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0"
+                                    isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0 sm:block"
                                 )}
                                 onFocus={() => setIsSearchExpanded(true)}
                                 value={searchTerm}
@@ -470,7 +494,11 @@ export default function LiveSellingPage() {
                                 {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                             </Button>
                         </div>
-                       <div className={cn("items-center gap-2", isSearchExpanded ? "hidden" : "flex", "sm:flex")}>
+                    </div>
+                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden" : "flex")}>
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(true)}>
+                           <Search className="h-5 w-5" />
+                        </Button>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
@@ -596,7 +624,6 @@ export default function LiveSellingPage() {
                             </div>
                         )}
                         </div>
-                    </div>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-2 md:p-4">
@@ -661,11 +688,11 @@ export default function LiveSellingPage() {
 
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {filterButtons.map((filter) => (
-                                <Button key={filter} variant="outline" className="bg-card/50 rounded-full">
+                                <Button key={filter} variant="outline" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
                                     {filter}
                                 </Button>
                                 ))}
-                                <Button variant="ghost" className="bg-card/50 rounded-full">
+                                <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
                                     Filters
                                     <ChevronDown className="ml-2 h-4 w-4" />
                                 </Button>
