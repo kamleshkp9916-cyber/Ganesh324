@@ -367,10 +367,10 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto">
-                         <div className="text-sm text-muted-foreground w-1/3">
+                         <div className="text-sm text-muted-foreground w-1/3 hidden md:block">
                             Showing page {currentPage} of {totalPages}
                         </div>
-                        <div className="w-1/3">
+                        <div className="w-full md:w-1/3">
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
@@ -378,7 +378,7 @@ export default function OrdersPage() {
                                         <ChevronLeft className="h-5 w-5" />
                                         </Button>
                                     </PaginationItem>
-                                    <PaginationItem>
+                                    <PaginationItem className="hidden sm:block">
                                         <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
                                     </PaginationItem>
                                     <PaginationItem>
@@ -389,10 +389,10 @@ export default function OrdersPage() {
                                 </PaginationContent>
                             </Pagination>
                         </div>
-                        <div className="hidden md:flex items-center gap-2 justify-end w-1/3">
-                            <Button variant="ghost" size="sm">About</Button>
-                            <Button variant="ghost" size="sm">Support</Button>
-                            <Button variant="ghost" size="sm">Contact us</Button>
+                        <div className="flex items-center gap-2 justify-end w-1/3">
+                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">About</Button>
+                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Support</Button>
+                            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Contact us</Button>
                         </div>
                     </div>
                 )}
