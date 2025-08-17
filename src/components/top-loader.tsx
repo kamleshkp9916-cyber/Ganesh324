@@ -13,65 +13,52 @@ export function TopLoader() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setProgress(0);
-    setIsVisible(false);
-  }, [pathname, searchParams]);
+    // When the path changes, the new page is loaded, so we complete the progress bar.
+    if (isVisible) {
+      setProgress(100);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        // Reset progress after fade out
+        setTimeout(() => setProgress(0), 500);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, searchParams, isVisible]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    let progressInterval: NodeJS.Timeout;
+    let progressInterval: NodeJS.Timeout | null = null;
 
     const startLoading = () => {
       setIsVisible(true);
-      setProgress(10); 
+      setProgress(10);
       let currentProgress = 10;
       
       progressInterval = setInterval(() => {
-        currentProgress += 5;
+        currentProgress += Math.random() * 10; // More realistic progress
         if (currentProgress > 90) {
-          // Stay at 90% until navigation completes
-        } else {
-          setProgress(currentProgress);
+          currentProgress = 90; // Stall at 90% until page loads
         }
-      }, 200);
+        setProgress(currentProgress);
+      }, 300);
     };
 
-    const stopLoading = () => {
-      clearInterval(progressInterval);
-      setProgress(100);
-      timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(() => setProgress(0), 500);
-      }, 500);
-    };
-
-    // This is a simplified simulation. For a real app, you would
-    // hook into Next.js router events if a library for that becomes available
-    // in the app router, or use a more robust solution.
-    
-    // For now, we simulate loading on any click.
-    const handleMouseDown = () => {
-      startLoading();
-    };
-
-    const handleMouseUp = () => {
-      // Small delay to allow navigation to be captured
-      setTimeout(() => {
-        stopLoading();
-      }, 700);
+    const handleMouseDown = (event: MouseEvent) => {
+        // Start loading on link clicks or button clicks that might navigate
+        const target = event.target as HTMLElement;
+        if (target.closest('a[href]') || target.closest('button')) {
+            startLoading();
+        }
     };
     
-    // We are binding to window to capture all clicks.
     window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      clearTimeout(timer);
-      clearInterval(progressInterval);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [pathname, searchParams]);
+  }, []);
 
 
   return (
