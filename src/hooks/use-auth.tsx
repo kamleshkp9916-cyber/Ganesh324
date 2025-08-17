@@ -76,7 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [enableMockUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   return (
