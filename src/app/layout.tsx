@@ -29,19 +29,19 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <AuthProvider>
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-            >
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <AuthProvider>
                 <React.Suspense fallback={<TopLoader />}>
                     {children}
                 </React.Suspense>
                 <Toaster />
-            </ThemeProvider>
-        </AuthProvider>
+            </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
