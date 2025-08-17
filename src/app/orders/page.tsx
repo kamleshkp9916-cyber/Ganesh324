@@ -483,11 +483,10 @@ export default function OrdersPage() {
                 </div>
                 
                 <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                    <span className="w-[15%]">Order id</span>
-                    <span className="w-[28%]">Product details</span>
-                    <span className="w-[20%]">Address</span>
+                    <span className="w-[33%]">Product details</span>
+                    <span className="w-[25%]">Address</span>
                     <span className="w-[15%]">Date</span>
-                    <span className="w-[10%]">Transaction</span>
+                    <span className="w-[15%]">Transaction</span>
                     <span className="w-[12%] text-center">Status</span>
                 </div>
 
@@ -495,21 +494,15 @@ export default function OrdersPage() {
                     {paginatedOrders.map((order: Order) => (
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
-                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0">
-                                    <div className="font-medium flex items-center gap-1">
-                                        <span className="sm:hidden font-semibold text-foreground">Order: </span> 
-                                        {order.orderId}
-                                    </div>
-                                </div>
-                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
+                                <div className="w-full sm:w-[33%] mb-2 sm:mb-0">
                                      <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                         <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                         <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                     </Link>
                                 </div>
-                                <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                                <div className="w-full sm:w-[25%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
                                 <div className="w-full sm:w-[15%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                <div className="w-full sm:w-[10%] mb-2 sm:mb-0">{order.transaction.amount}</div>
+                                <div className="w-full sm:w-[15%] mb-2 sm:mb-0">{order.transaction.amount}</div>
                                 <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0">
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                 </div>
@@ -524,15 +517,6 @@ export default function OrdersPage() {
                                             <DropdownMenuLabel>Order Details</DropdownMenuLabel>
                                             <DropdownMenuSeparator/>
                                             <div className="p-2 space-y-2 text-sm">
-                                                 <div className="flex items-center justify-between">
-                                                      <p className="font-semibold text-muted-foreground">Order ID</p>
-                                                      <div className="flex items-center gap-1">
-                                                          <span>{order.orderId}</span>
-                                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.orderId)}>
-                                                              <Clipboard className="h-3 w-3" />
-                                                          </Button>
-                                                      </div>
-                                                  </div>
                                                 <div className="flex items-center justify-between">
                                                     <p className="font-semibold text-muted-foreground">User ID</p>
                                                     <div className="flex items-center gap-1">
