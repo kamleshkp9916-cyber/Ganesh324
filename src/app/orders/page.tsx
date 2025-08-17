@@ -498,7 +498,7 @@ export default function OrdersPage() {
                                                 <AvatarImage src={order.user.avatarUrl} />
                                                 <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="truncate">{order.user.name}</span>
+                                            <p className="truncate flex-1">{order.user.name}</p>
                                         </div>
                                         <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
                                             <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
@@ -516,8 +516,8 @@ export default function OrdersPage() {
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <div className="bg-muted/50 p-4 text-sm flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-                                        <div className="sm:w-[12%] space-y-1">
+                                    <div className="bg-muted/50 px-4 pb-4 text-sm flex flex-col sm:flex-row">
+                                        <div className="sm:w-[12%] pr-4 space-y-1">
                                             <p className="font-semibold text-muted-foreground">Order ID</p>
                                             <div className="flex items-center gap-2">
                                                 <p>{order.userId}</p>
@@ -526,18 +526,15 @@ export default function OrdersPage() {
                                                 </Button>
                                             </div>
                                         </div>
-
-                                        <div className="sm:w-[15%] space-y-1">
+                                        <div className="sm:w-[15%] pr-4 space-y-1">
                                             <p className="font-semibold text-muted-foreground">User Details</p>
                                             <p>{order.user.name}</p>
                                             <p>{order.user.email}</p>
                                         </div>
-                                        
-                                        <div className="sm:w-[20%] space-y-1">
-                                            {/* This space is intentionally left for alignment with product column. Can add more details here later if needed. */}
+                                        <div className="sm:w-[20%] pr-4 space-y-1">
+                                            {/* This space is intentionally left for alignment with product column. */}
                                         </div>
-
-                                        <div className="sm:w-[15%] space-y-1">
+                                        <div className="sm:w-[15%] pr-4 space-y-1">
                                             <p className="font-semibold text-muted-foreground">Delivery Address</p>
                                             <p>{order.address.name}, {order.address.phone}</p>
                                             <p>{order.address.village}, {order.address.district}</p>
@@ -564,20 +561,17 @@ export default function OrdersPage() {
                                                 </Dialog>
                                             )}
                                         </div>
-
-                                        <div className="sm:w-[15%] space-y-1">
+                                        <div className="sm:w-[15%] pr-4 space-y-1">
                                             {/* This space is for date time alignment */}
                                         </div>
-
-                                        <div className="sm:w-[10%] text-center space-y-1">
+                                        <div className="sm:w-[10%] pr-4 text-left sm:text-center space-y-1">
                                             <p className="font-semibold text-muted-foreground">Delivery Status</p>
                                             <p>{order.deliveryStatus}</p>
                                         </div>
-
-                                        <div className="sm:w-[13%] text-right space-y-1">
+                                        <div className="sm:w-[13%] pr-4 text-left sm:text-right space-y-1">
                                             <p className="font-semibold text-muted-foreground">Transaction Details</p>
                                             <p>Method: {order.transaction.method}</p>
-                                            <div className="flex items-center gap-1 justify-end">
+                                            <div className="flex items-center gap-1 justify-start sm:justify-end">
                                                 <p>ID: {order.transaction.id}</p>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
                                                     <Clipboard className="h-3 w-3" />
@@ -594,7 +588,6 @@ export default function OrdersPage() {
                                                  </Button>
                                             )}
                                         </div>
-
                                         <div className="sm:w-8"></div>
                                     </div>
                                 </CollapsibleContent>
@@ -703,5 +696,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
