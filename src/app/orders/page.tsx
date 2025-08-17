@@ -517,80 +517,82 @@ export default function OrdersPage() {
                                         </div>
                                     </div>
                                 </CollapsibleTrigger>
-                                <CollapsibleContent>
-                                    <div className="flex flex-col md:flex-row text-sm bg-muted/50 px-4 pb-4">
-                                        <div className="w-full md:w-[12%] pr-4 py-2 space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Order ID</p>
-                                            <div className="flex items-center gap-2">
-                                                <p>{order.userId}</p>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                    <Clipboard className="h-3 w-3" />
-                                                </Button>
+                                <CollapsibleContent asChild>
+                                    <div className="bg-muted/50 pb-4 px-4">
+                                        <div className="flex flex-col md:flex-row text-sm">
+                                            <div className="w-full md:w-[12%] py-2 pr-4 space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Order ID</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p>{order.userId}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
-                                            <p className="font-semibold text-muted-foreground">User Details</p>
-                                            <p>{order.user.name}</p>
-                                            <p>{order.user.email}</p>
-                                        </div>
-                                        <div className="w-full md:w-[20%] pr-4 py-2 space-y-1">
-                                            {/* This space is intentionally left for alignment with product column. */}
-                                        </div>
-                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
-                                            <p className="font-semibold text-muted-foreground">Delivery Address</p>
-                                            <p>{order.address.name}, {order.address.phone}</p>
-                                            <p>{order.address.village}, {order.address.district}</p>
-                                            <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                            {['Pending', 'In Progress'].includes(order.status) && (
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="mt-2">
-                                                            <Edit className="h-3 w-3 mr-2"/>
-                                                            Edit Address
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Edit Delivery Address</DialogTitle>
-                                                        </DialogHeader>
-                                                        <EditAddressForm 
-                                                            currentAddress={order.address}
-                                                            currentPhone={order.address.phone}
-                                                            onSave={(data) => handleAddressSave(order.orderId, data)}
-                                                            onCancel={() => {}}
-                                                        />
-                                                    </DialogContent>
-                                                </Dialog>
-                                            )}
-                                        </div>
-                                        <div className="w-full md:w-[15%] pr-4 py-2 space-y-1">
-                                             <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                            <p>{order.deliveryStatus}</p>
-                                        </div>
-                                        <div className="w-full md:w-[10%] pr-4 text-left md:text-center py-2 space-y-1">
-                                            {/* This space is for status alignment */}
-                                        </div>
-                                        <div className="w-full md:w-[13%] md:text-right py-2 space-y-1 flex flex-col items-start md:items-end">
-                                            <p className="font-semibold text-muted-foreground">Transaction Details</p>
-                                            <p>Method: {order.transaction.method}</p>
-                                            <div className="flex items-center gap-1 justify-start md:justify-end">
-                                                <p>ID: {order.transaction.id}</p>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                    <Clipboard className="h-3 w-3" />
-                                                </Button>
+                                            <div className="w-full md:w-[15%] py-2 pr-4 space-y-1">
+                                                <p className="font-semibold text-muted-foreground">User Details</p>
+                                                <p>{order.user.name}</p>
+                                                <p>{order.user.email}</p>
                                             </div>
-                                            {order.status === 'Cancelled' && (
-                                                <Button variant="destructive" size="sm" className="mt-2" onClick={handleRequestRefund}>
-                                                   Request Refund
-                                                </Button>
-                                            )}
-                                            {order.status === 'On Way' && (
-                                                 <Button variant="destructive" size="sm" className="mt-2" onClick={() => handleCancelOrderClick(order)}>
-                                                    Cancel Order
-                                                 </Button>
-                                            )}
+                                            <div className="w-full md:w-[20%] py-2 pr-4">
+                                                {/* This space is intentionally left for alignment with product column. */}
+                                            </div>
+                                            <div className="w-full md:w-[15%] py-2 pr-4 space-y-1">
+                                                <p className="font-semibold text-muted-foreground">Delivery Address</p>
+                                                <p>{order.address.name}, {order.address.phone}</p>
+                                                <p>{order.address.village}, {order.address.district}</p>
+                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                {['Pending', 'In Progress'].includes(order.status) && (
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="mt-2">
+                                                                <Edit className="h-3 w-3 mr-2"/>
+                                                                Edit Address
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Edit Delivery Address</DialogTitle>
+                                                            </DialogHeader>
+                                                            <EditAddressForm 
+                                                                currentAddress={order.address}
+                                                                currentPhone={order.address.phone}
+                                                                onSave={(data) => handleAddressSave(order.orderId, data)}
+                                                                onCancel={() => {}}
+                                                            />
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
+                                            </div>
+                                            <div className="w-full md:w-[15%] py-2 pr-4">
+                                                {/* This space is for date alignment */}
+                                            </div>
+                                            <div className="w-full md:w-[10%] py-2 pr-4 text-left md:text-center space-y-1">
+                                                 <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                <p>{order.deliveryStatus}</p>
+                                            </div>
+                                            <div className="w-full md:w-[13%] py-2 pr-4 space-y-1 flex flex-col items-start md:items-end">
+                                                <p className="font-semibold text-muted-foreground">Transaction Details</p>
+                                                <p>Method: {order.transaction.method}</p>
+                                                <div className="flex items-center gap-1 justify-start md:justify-end">
+                                                    <p>ID: {order.transaction.id}</p>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                        <Clipboard className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                                {order.status === 'Cancelled' && (
+                                                    <Button variant="destructive" size="sm" className="mt-2" onClick={handleRequestRefund}>
+                                                       Request Refund
+                                                    </Button>
+                                                )}
+                                                {order.status === 'On Way' && (
+                                                     <Button variant="destructive" size="sm" className="mt-2" onClick={() => handleCancelOrderClick(order)}>
+                                                        Cancel Order
+                                                     </Button>
+                                                )}
+                                            </div>
+                                            <div className="w-8 hidden md:block"></div>
                                         </div>
-                                        <div className="w-8"></div>
                                     </div>
                                 </CollapsibleContent>
                             </div>
