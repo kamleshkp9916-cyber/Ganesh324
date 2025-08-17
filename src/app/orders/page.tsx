@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -15,118 +15,148 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSepar
 import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EditAddressForm } from '@/components/edit-address-form';
 
 
 const mockOrders = [
     {
       orderId: "#STREAM5896",
-      user: { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8432",
+      user: { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png", email: "ganesh@example.com" },
       product: { name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
-      address: "Pune, Maharashtra",
+      address: { name: "Ganesh Prajapati", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
       dateTime: "27/07/2024 10:30 PM",
       status: "Ongoing",
-      transaction: "₹12,500.00",
+      transaction: { id: "TRN123456789", amount: "₹12,500.00", method: "Credit Card" },
+      deliveryStatus: "In transit to Delhi",
     },
     {
       orderId: "#STREAM5897",
-      user: { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8433",
+      user: { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png", email: "jane.doe@example.com" },
       product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
-      address: "Mumbai, Maharashtra",
+      address: { name: "Jane Doe", village: "Bandra West", district: "Mumbai", city: "Mumbai", state: "Maharashtra", country: "India", pincode: "400050", phone: "+91 9876543211" },
       dateTime: "26/07/2024 08:15 AM",
       status: "Completed",
-      transaction: "₹4,999.00",
+      transaction: { id: "TRN123456790", amount: "₹4,999.00", method: "UPI" },
+      deliveryStatus: "Delivered",
     },
     {
       orderId: "#STREAM5898",
-      user: { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8434",
+      user: { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png", email: "alex.smith@example.com" },
       product: { name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
-      address: "Bengaluru, Karnataka",
+      address: { name: "Alex Smith", village: "Indiranagar", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560038", phone: "+91 9876543212" },
       dateTime: "25/07/2024 02:00 PM",
       status: "Completed",
-      transaction: "₹6,200.00",
+      transaction: { id: "TRN123456791", amount: "₹6,200.00", method: "Net Banking" },
+      deliveryStatus: "Delivered",
     },
     {
       orderId: "#STREAM5899",
-      user: { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8435",
+      user: { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png", email: "emily.brown@example.com" },
       product: { name: "Smart Watch", imageUrl: "https://placehold.co/60x60.png", hint: "smart watch" },
-      address: "Delhi, India",
+      address: { name: "Emily Brown", village: "Connaught Place", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110001", phone: "+91 9876543213" },
       dateTime: "25/07/2024 11:45 AM",
       status: "Cancelled",
-      transaction: "₹8,750.00",
+      transaction: { id: "TRN123456792", amount: "₹8,750.00", method: "Credit Card" },
+      deliveryStatus: "Order cancelled by user",
     },
     {
       orderId: "#STREAM5900",
-      user: { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8436",
+      user: { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png", email: "chris.wilson@example.com" },
       product: { name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
-      address: "Chennai, Tamil Nadu",
+      address: { name: "Chris Wilson", village: "T. Nagar", district: "Chennai", city: "Chennai", state: "Tamil Nadu", country: "India", pincode: "600017", phone: "+91 9876543214" },
       dateTime: "24/07/2024 06:30 PM",
       status: "Completed",
-      transaction: "₹2,100.00",
+      transaction: { id: "TRN123456793", amount: "₹2,100.00", method: "Cash on Delivery" },
+      deliveryStatus: "Delivered",
     },
      {
       orderId: "#STREAM5904",
-      user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8437",
+      user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
       product: { name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
-      address: "Pune, Maharashtra",
+      address: { name: "Laura Williams", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543215" },
       dateTime: "28/07/2024 01:00 PM",
       status: "In Progress",
-      transaction: "₹3,500.00",
+      transaction: { id: "TRN123456794", amount: "₹3,500.00", method: "UPI" },
+      deliveryStatus: "Processing order",
     },
     {
       orderId: "#STREAM5905",
-      user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8438",
+      user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
       product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
-      address: "Goa, India",
+      address: { name: "Peter Jones", village: "Calangute", district: "North Goa", city: "Goa", state: "Goa", country: "India", pincode: "403516", phone: "+91 9876543216" },
       dateTime: "28/07/2024 02:30 PM",
       status: "Pending",
-      transaction: "₹7,800.00",
+      transaction: { id: "TRN123456795", amount: "₹7,800.00", method: "Pending Confirmation" },
+      deliveryStatus: "Awaiting payment confirmation",
     },
     {
       orderId: "#STREAM5901",
-      user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8439",
+      user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png", email: "sarah.m@example.com" },
       product: { name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
-      address: "Hyderabad, Telangana",
+      address: { name: "Sarah Miller", village: "Banjara Hills", district: "Hyderabad", city: "Hyderabad", state: "Telangana", country: "India", pincode: "500034", phone: "+91 9876543217" },
       dateTime: "23/07/2024 09:00 AM",
       status: "Completed",
-      transaction: "₹1,500.00",
+      transaction: { id: "TRN123456796", amount: "₹1,500.00", method: "Credit Card" },
+      deliveryStatus: "Delivered",
     },
     {
       orderId: "#STREAM5902",
-      user: { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8440",
+      user: { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png", email: "david.g@example.com" },
       product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
-      address: "Kolkata, West Bengal",
+      address: { name: "David Garcia", village: "Park Street", district: "Kolkata", city: "Kolkata", state: "West Bengal", country: "India", pincode: "700016", phone: "+91 9876543218" },
       dateTime: "22/07/2024 07:00 PM",
       status: "Ongoing",
-      transaction: "₹3,200.00",
+      transaction: { id: "TRN123456797", amount: "₹3,200.00", method: "UPI" },
+      deliveryStatus: "Out for delivery",
     },
     {
       orderId: "#STREAM5903",
-      user: { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8441",
+      user: { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png", email: "jessica.r@example.com" },
       product: { name: "Coffee Maker", imageUrl: "https://placehold.co/60x60.png", hint: "coffee maker" },
-      address: "Jaipur, Rajasthan",
+      address: { name: "Jessica Rodriguez", village: "C-Scheme", district: "Jaipur", city: "Jaipur", state: "Rajasthan", country: "India", pincode: "302001", phone: "+91 9876543219" },
       dateTime: "21/07/2024 11:00 AM",
       status: "Cancelled",
-      transaction: "₹4,500.00",
+      transaction: { id: "TRN123456798", amount: "₹4,500.00", method: "Credit Card" },
+      deliveryStatus: "Order cancelled by user",
     },
     {
       orderId: "#STREAM5906",
-      user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8442",
+      user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
       product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
-      address: "Bengaluru, Karnataka",
+      address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
       dateTime: "29/07/2024 11:00 AM",
       status: "Pending",
-      transaction: "₹9,500.00",
+      transaction: { id: "TRN123456799", amount: "₹9,500.00", method: "Pending Confirmation" },
+      deliveryStatus: "Awaiting payment confirmation",
     },
     {
       orderId: "#STREAM5907",
-      user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png" },
+      userId: "USER8443",
+      user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
       product: { name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
-      address: "Delhi, India",
+      address: { name: "Olivia Martinez", village: "Greater Kailash", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110048", phone: "+91 9876543221" },
       dateTime: "29/07/2024 03:20 PM",
       status: "In Progress",
-      transaction: "₹15,000.00",
+      transaction: { id: "TRN123456800", amount: "₹15,000.00", method: "UPI" },
+      deliveryStatus: "Processing order",
     }
 ];
+
+type Order = typeof mockOrders[0];
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -139,27 +169,29 @@ export default function OrdersPage() {
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { toast } = useToast();
+  const [orders, setOrders] = useState(mockOrders);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const filteredOrders = useMemo(() => {
-    let orders = mockOrders;
+    let currentOrders = orders;
     if (statusFilter !== "all") {
-        orders = orders.filter(order => order.status.toLowerCase() === statusFilter);
+        currentOrders = currentOrders.filter(order => order.status.toLowerCase() === statusFilter);
     }
     if (searchTerm) {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
-        orders = orders.filter(order =>
+        currentOrders = currentOrders.filter(order =>
             order.orderId.toLowerCase().includes(lowercasedSearchTerm) ||
             order.user.name.toLowerCase().includes(lowercasedSearchTerm) ||
             order.product.name.toLowerCase().includes(lowercasedSearchTerm) ||
-            order.address.toLowerCase().includes(lowercasedSearchTerm)
+            (order.address.village + ", " + order.address.city).toLowerCase().includes(lowercasedSearchTerm)
         );
     }
-    return orders;
-  }, [statusFilter, searchTerm]);
+    return currentOrders;
+  }, [statusFilter, searchTerm, orders]);
   
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   
@@ -221,6 +253,35 @@ export default function OrdersPage() {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
+  };
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+        title: "Copied!",
+        description: `${text} has been copied to your clipboard.`,
+    });
+  };
+
+  const handleAddressSave = (orderId: string, data: any) => {
+      setOrders(currentOrders => currentOrders.map(o => {
+          if (o.orderId === orderId) {
+              return {
+                  ...o,
+                  address: {
+                      name: data.name,
+                      village: data.village,
+                      district: data.district,
+                      city: data.city,
+                      state: data.state,
+                      country: data.country,
+                      pincode: data.pincode,
+                  },
+                  user: { ...o.user, name: data.name }
+              };
+          }
+          return o;
+      }));
   };
 
   return (
@@ -325,38 +386,110 @@ export default function OrdersPage() {
                     <span className="w-[15%]">Date and Time</span>
                     <span className="w-[10%] text-center">Status</span>
                     <span className="w-[13%] text-right">Transaction</span>
+                    <span className="w-8"></span>
                 </div>
 
                 <div className="space-y-2 mt-2">
-                    {paginatedOrders.map((order, index) => (
-                        <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 border-b hover:bg-muted/50 rounded-lg">
-                            <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
-                                <div className="font-medium text-primary">
-                                    <span className="sm:hidden font-semibold text-foreground">Order: </span>
-                                    {order.orderId}
-                                </div>
-                                <div className="sm:hidden">
-                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                                </div>
+                    {paginatedOrders.map((order: Order) => (
+                        <Collapsible key={order.orderId} asChild>
+                            <div className='border-b hover:bg-muted/50 rounded-lg'>
+                                <CollapsibleTrigger asChild>
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm px-4 py-3 cursor-pointer">
+                                        <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
+                                            <div className="font-medium text-primary">
+                                                <span className="sm:hidden font-semibold text-foreground">Order: </span>
+                                                {order.orderId}
+                                            </div>
+                                            <div className="sm:hidden">
+                                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                            </div>
+                                        </div>
+                                        <div className="sm:w-[15%] flex items-center gap-2 mb-2 sm:mb-0">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={order.user.avatarUrl} />
+                                                <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span>{order.user.name}</span>
+                                        </div>
+                                        <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
+                                            <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                            <span>{order.product.name}</span>
+                                        </div>
+                                        <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address.village}, {order.address.city}</div>
+                                        <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
+                                        <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
+                                            <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                        </div>
+                                        <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span className="sm:hidden font-normal text-foreground">Amount: </span>{order.transaction.amount}</div>
+                                        <div className="sm:w-8 flex justify-end">
+                                            <ChevronDown className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:-rotate-180"/>
+                                        </div>
+                                    </div>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                    <div className="bg-muted/50 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-muted-foreground">User Details</p>
+                                            <p>{order.user.name}</p>
+                                            <p>{order.user.email}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-muted-foreground">User ID: {order.userId}</p>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                    <Clipboard className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-muted-foreground">Delivery Address</p>
+                                            <p>{order.address.name}, {order.address.phone}</p>
+                                            <p>{order.address.village}, {order.address.district}</p>
+                                            <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                            {['Pending', 'Cancelled', 'In Progress'].includes(order.status) && (
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="mt-2">
+                                                            <Edit className="h-3 w-3 mr-2"/>
+                                                            Edit Address
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                        <DialogHeader>
+                                                            <DialogTitle>Edit Delivery Address</DialogTitle>
+                                                        </DialogHeader>
+                                                        <EditAddressForm 
+                                                            currentAddress={order.address}
+                                                            currentPhone={order.address.phone}
+                                                            onSave={(data) => {
+                                                                handleAddressSave(order.orderId, data);
+                                                                // Potentially close dialog here if EditAddressForm doesn't do it
+                                                            }}
+                                                            onCancel={() => {
+                                                                // Close dialog logic
+                                                            }}
+                                                        />
+                                                    </DialogContent>
+                                                </Dialog>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-muted-foreground">Transaction Details</p>
+                                            <p>Amount: {order.transaction.amount}</p>
+                                            <p>Method: {order.transaction.method}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-muted-foreground">ID: {order.transaction.id}</p>
+                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                    <Clipboard className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                            <p>{order.deliveryStatus}</p>
+                                        </div>
+                                    </div>
+                                </CollapsibleContent>
                             </div>
-                            <div className="sm:w-[15%] flex items-center gap-2 mb-2 sm:mb-0">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={order.user.avatarUrl} />
-                                    <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span>{order.user.name}</span>
-                            </div>
-                            <div className="sm:w-[20%] flex items-center gap-3 mb-2 sm:mb-0">
-                                <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                <span>{order.product.name}</span>
-                            </div>
-                            <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">To: </span>{order.address}</div>
-                            <div className="sm:w-[15%] mb-2 sm:mb-0"><span className="sm:hidden font-semibold text-foreground">On: </span>{order.dateTime}</div>
-                            <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
-                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                            </div>
-                            <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span className="sm:hidden font-normal text-foreground">Amount: </span>{order.transaction}</div>
-                        </div>
+                        </Collapsible>
                     ))}
                  {paginatedOrders.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground">
@@ -401,3 +534,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
