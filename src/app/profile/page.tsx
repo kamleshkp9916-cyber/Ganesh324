@@ -140,15 +140,12 @@ export default function ProfilePage() {
   }, [searchTerm]);
 
   useEffect(() => {
+    // This logic now runs only on the client after the component mounts
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
     if (activeUser) {
-        if (!profileData || (userId && profileData.displayName !== userId)) {
-            setProfileData(generateRandomUser(activeUser));
-        } else if (isOwnProfile && user && (!profileData || profileData.email !== user.email)) {
-            setProfileData(generateRandomUser(user));
-        }
+        setProfileData(generateRandomUser(activeUser));
     }
-  }, [user, userId, isOwnProfile, profileData]);
+  }, [user, userId, isOwnProfile]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -364,7 +361,7 @@ export default function ProfilePage() {
 
                     <TabsContent value="recent" className="mt-4">
                         {filteredRecentlyViewed.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {filteredRecentlyViewed.map((item) => (
                                     <Card key={item.id} className="w-full">
                                         <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
@@ -459,5 +456,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

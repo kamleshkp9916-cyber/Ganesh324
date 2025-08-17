@@ -415,6 +415,11 @@ export default function LiveSellingPage() {
     };
   }, [searchRef]);
 
+  useEffect(() => {
+    // This logic now runs only on the client after the component mounts
+    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
+  }, []);
+
 
   return (
       <div className="flex min-h-screen bg-background text-foreground">
@@ -435,21 +440,21 @@ export default function LiveSellingPage() {
             </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                    <div className={cn("hidden sm:flex items-center gap-2", isSearchExpanded && "hidden")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
                         <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                     </div>
-                    <div className="flex items-center gap-2 flex-1 sm:flex-none justify-end" ref={searchRef}>
+                    <div className="flex items-center gap-2 flex-1 justify-end" ref={searchRef}>
                         <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                             isSearchExpanded ? "sm:w-64" : "w-10 sm:w-10"
+                            isSearchExpanded ? "sm:w-64" : "sm:w-10"
                         )}>
-                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? 'block' : 'hidden sm:block')} />
+                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-card pl-10 pr-4 rounded-full transition-all duration-300 ease-in-out",
-                                    isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0 sm:w-10"
+                                    "bg-card rounded-full transition-all duration-300 ease-in-out",
+                                    isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0"
                                 )}
                                 onFocus={() => setIsSearchExpanded(true)}
                                 value={searchTerm}
@@ -459,13 +464,13 @@ export default function LiveSellingPage() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2"
+                                className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
                                 onClick={() => setIsSearchExpanded(p => !p)}
                             >
                                 {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                             </Button>
-                    </div>
-                       <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
+                        </div>
+                       <div className={cn("items-center gap-2", isSearchExpanded ? "hidden" : "flex", "sm:flex")}>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
@@ -916,5 +921,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
