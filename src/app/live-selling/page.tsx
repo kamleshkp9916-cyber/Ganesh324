@@ -495,7 +495,7 @@ export default function LiveSellingPage() {
                             </Button>
                         </div>
                     </div>
-                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden" : "flex")}>
+                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:hidden" : "flex")}>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(true)}>
                            <Search className="h-5 w-5" />
                         </Button>
@@ -629,7 +629,7 @@ export default function LiveSellingPage() {
                 <main className="flex-1 overflow-y-auto p-2 md:p-4">
                     <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                         <div className="flex justify-center mb-6">
-                            <TabsList>
+                            <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="live">Live Shopping</TabsTrigger>
                                 <TabsTrigger value="feeds">Feeds</TabsTrigger>
                             </TabsList>
