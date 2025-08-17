@@ -38,6 +38,8 @@ import {
   File,
   X,
   ShoppingCart,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -74,6 +76,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 
 const liveSellers = [
@@ -267,6 +271,7 @@ export default function LiveSellingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const router = useRouter();
+  const { theme } = useTheme();
 
 
   const handleAuthAction = () => {
@@ -593,6 +598,13 @@ export default function LiveSellingPage() {
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                                            <span>Theme</span>
+                                            <div className="ml-auto">
+                                                <ThemeSwitcher />
+                                            </div>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                         <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
                                         </DropdownMenuItem>
