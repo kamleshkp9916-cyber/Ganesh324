@@ -93,7 +93,7 @@ const mockAchievements = [
 
 export default function ProfilePage({ searchParams }: { searchParams: { userId?: string } }) {
   const router = useRouter();
-  const userId = searchParams.userId;
+  const { userId } = searchParams;
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
@@ -458,5 +458,3 @@ export default function ProfilePage({ searchParams }: { searchParams: { userId?:
     </div>
   );
 }
-
-    
