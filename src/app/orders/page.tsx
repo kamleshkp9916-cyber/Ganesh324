@@ -16,102 +16,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 
-const allOngoingOrders = [
-    {
-      id: '#12548',
-      productName: 'Gaming Headset',
-      productImage: 'https://placehold.co/80x80.png',
-      hint: 'gaming headset',
-      quantity: 1,
-      price: '₹7,999.00',
-      status: 'In Transit',
-    },
-    {
-      id: '#12549',
-      productName: 'Mechanical Keyboard',
-      productImage: 'https://placehold.co/80x80.png',
-      hint: 'mechanical keyboard',
-      quantity: 1,
-      price: '₹12,999.00',
-      status: 'Processing',
-    },
-];
-
-const allCompletedOrders = [
-    {
-      id: '#12540',
-      productName: 'Vintage Camera',
-      productImage: 'https://placehold.co/80x80.png',
-      hint: 'vintage camera',
-      quantity: 1,
-      price: '₹12,500.00',
-      status: 'Delivered',
-    },
-    {
-      id: '#12541',
-      productName: 'Wireless Headphones',
-      productImage: 'https://placehold.co/80x80.png',
-      hint: 'wireless headphones',
-      quantity: 1,
-      price: '₹4,999.00',
-      status: 'Delivered',
-    },
-];
-
-const allCancelledOrders = [
-    {
-      id: '#12535',
-      productName: 'Smart Watch',
-      productImage: 'https://placehold.co/80x80.png',
-      hint: 'smartwatch',
-      quantity: 1,
-      price: '₹8,750.00',
-      status: 'Cancelled',
-    },
-];
-
-const OrderCard = ({ order }: { order: any }) => {
-    const getStatusClass = (status: string) => {
-        switch (status) {
-            case 'In Transit':
-                return 'bg-blue-100 text-blue-800';
-            case 'Processing':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'Delivered':
-                return 'bg-green-100 text-green-800';
-            case 'Cancelled':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-    return (
-        <Card>
-            <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <span className="font-semibold text-sm">Order ID: {order.id}</span>
-                    <Badge className={cn("text-xs font-bold", getStatusClass(order.status))}>{order.status}</Badge>
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                        <Image src={order.productImage} alt={order.productName} width={80} height={80} data-ai-hint={order.hint} />
-                    </div>
-                    <div className="flex-grow">
-                        <h4 className="font-semibold">{order.productName}</h4>
-                        <p className="text-sm text-muted-foreground">Qty: {order.quantity}</p>
-                        <p className="font-bold">{order.price}</p>
-                    </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline" size="sm">View Details</Button>
-                    <Button size="sm">Track Order</Button>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
-
 export default function OrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -119,17 +23,6 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-
-  const allOrders = useMemo(() => [...allOngoingOrders, ...allCompletedOrders, ...allCancelledOrders], []);
-
-  const filteredOrders = useMemo(() => {
-    if (!searchTerm) return allOrders;
-    return allOrders.filter(order => 
-        order.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, allOrders]);
-
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -234,7 +127,6 @@ export default function OrdersPage() {
             <div className="flex-grow">
                 <h3 className="text-2xl font-bold mb-6">Order list</h3>
                 <div className="space-y-4">
-                    {filteredOrders.map(order => <OrderCard key={order.id} order={order} />)}
                 </div>
             </div>
         </main>
