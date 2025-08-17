@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit } from 'lucide-react';
+import { Wallet, PanelLeft, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -42,6 +42,7 @@ import { Textarea } from '@/components/ui/textarea';
 const mockOrders = [
     {
       orderId: "#STREAM5896",
+      productId: "prod-001",
       userId: "USER8432",
       user: { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png", email: "ganesh@example.com" },
       product: { id: "prod-001", name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
@@ -53,6 +54,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5897",
+      productId: "prod-002",
       userId: "USER8433",
       user: { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png", email: "jane.doe@example.com" },
       product: { id: "prod-002", name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
@@ -64,6 +66,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5898",
+      productId: "prod-003",
       userId: "USER8434",
       user: { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png", email: "alex.smith@example.com" },
       product: { id: "prod-003", name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
@@ -75,6 +78,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5899",
+      productId: "prod-004",
       userId: "USER8435",
       user: { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png", email: "emily.brown@example.com" },
       product: { id: "prod-004", name: "Smart Watch", imageUrl: "https://placehold.co/60x60.png", hint: "smart watch" },
@@ -86,6 +90,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5900",
+      productId: "prod-005",
       userId: "USER8436",
       user: { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png", email: "chris.wilson@example.com" },
       product: { id: "prod-005", name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
@@ -97,6 +102,7 @@ const mockOrders = [
     },
      {
       orderId: "#STREAM5904",
+      productId: "prod-006",
       userId: "USER8437",
       user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
       product: { id: "prod-006", name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
@@ -108,6 +114,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5905",
+      productId: "prod-007",
       userId: "USER8438",
       user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
       product: { id: "prod-007", name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
@@ -119,6 +126,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5901",
+      productId: "prod-008",
       userId: "USER8439",
       user: { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png", email: "sarah.m@example.com" },
       product: { id: "prod-008", name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
@@ -130,6 +138,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5902",
+      productId: "prod-009",
       userId: "USER8440",
       user: { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png", email: "david.g@example.com" },
       product: { id: "prod-009", name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
@@ -141,6 +150,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5903",
+      productId: "prod-010",
       userId: "USER8441",
       user: { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png", email: "jessica.r@example.com" },
       product: { id: "prod-010", name: "Coffee Maker", imageUrl: "https://placehold.co/60x60.png", hint: "coffee maker" },
@@ -152,6 +162,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5906",
+      productId: "prod-011",
       userId: "USER8442",
       user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
       product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
@@ -163,6 +174,7 @@ const mockOrders = [
     },
     {
       orderId: "#STREAM5907",
+      productId: "prod-012",
       userId: "USER8443",
       user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
       product: { id: "prod-012", name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
@@ -203,6 +215,7 @@ export default function OrdersPage() {
   const [otherReason, setOtherReason] = useState("");
   const [isOtpOpen, setIsOtpOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [refundedOrders, setRefundedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setIsClient(true);
@@ -366,7 +379,8 @@ export default function OrdersPage() {
     setOrderToCancel(null);
   };
 
-  const handleRequestRefund = () => {
+  const handleRequestRefund = (orderId: string) => {
+    setRefundedOrders(prev => new Set(prev).add(orderId));
     toast({
         title: "Refund Processed",
         description: "Your refund will be credited to your bank account in 1-2 working days."
@@ -394,9 +408,12 @@ export default function OrdersPage() {
                 </Link>
             </nav>
         </aside>
-        <main className="flex-grow p-6 flex flex-col gap-6 overflow-y-auto">
+        <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
             <header className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 md:gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
+                        <ArrowLeft />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
                         <PanelLeft />
                     </Button>
@@ -410,14 +427,14 @@ export default function OrdersPage() {
                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
                                 <Star className="h-6 w-6 fill-current" />
                             </Button>
-                            <span className="text-muted-foreground text-sm md:text-base">/ Overview</span>
+                            <span className="text-muted-foreground text-sm md:text-base hidden sm:inline">/ Overview</span>
                         </div>
                     </div>
                 </div>
                  <div className="flex items-center gap-2" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out",
-                        isSearchExpanded ? "w-64" : "w-10"
+                        isSearchExpanded ? "w-36 sm:w-64" : "w-10"
                     )}>
                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
                         <Input 
@@ -501,7 +518,7 @@ export default function OrdersPage() {
                                             <p className="truncate flex-1">{order.user.name}</p>
                                         </div>
                                         <div className="sm:w-[20%] mb-2 sm:mb-0">
-                                            <Link href={`/product/${order.product.id}`} className="flex items-center gap-3 group/product">
+                                             <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                                 <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                                 <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                             </Link>
@@ -519,79 +536,80 @@ export default function OrdersPage() {
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
                                     <div className="bg-muted/50 pb-4 px-4">
-                                        <div className="flex flex-col md:flex-row text-sm">
-                                            <div className="w-full md:w-[12%] py-2 pr-4 space-y-1">
-                                                <p className="font-semibold text-muted-foreground">Order ID</p>
-                                                <div className="flex items-center gap-2">
-                                                    <p>{order.userId}</p>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                        <Clipboard className="h-3 w-3" />
-                                                    </Button>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 text-sm gap-y-4">
+                                            <div className="col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 pt-4">
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground">User Details</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p>User ID: {order.userId}</p>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                    <p>Email: {order.user.email}</p>
+                                                </div>
+                                                 <div>
+                                                    <p className="font-semibold text-muted-foreground">Delivery Address</p>
+                                                    <p>{order.address.name}, {order.address.phone}</p>
+                                                    <p>{order.address.village}, {order.address.district}</p>
+                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                </div>
+                                                 <div>
+                                                    <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                    <p>{order.deliveryStatus}</p>
                                                 </div>
                                             </div>
-                                            <div className="w-full md:w-[15%] py-2 pr-4 space-y-1">
-                                                <p className="font-semibold text-muted-foreground">User Details</p>
-                                                <p>{order.user.name}</p>
-                                                <p>{order.user.email}</p>
-                                            </div>
-                                            <div className="w-full md:w-[20%] py-2 pr-4">
-                                                {/* This space is intentionally left for alignment with product column. */}
-                                            </div>
-                                            <div className="w-full md:w-[15%] py-2 pr-4 space-y-1">
-                                                <p className="font-semibold text-muted-foreground">Delivery Address</p>
-                                                <p>{order.address.name}, {order.address.phone}</p>
-                                                <p>{order.address.village}, {order.address.district}</p>
-                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                                {['Pending', 'In Progress'].includes(order.status) && (
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm" className="mt-2">
-                                                                <Edit className="h-3 w-3 mr-2"/>
-                                                                Edit Address
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                                            <DialogHeader>
-                                                                <DialogTitle>Edit Delivery Address</DialogTitle>
-                                                            </DialogHeader>
-                                                            <EditAddressForm 
-                                                                currentAddress={order.address}
-                                                                currentPhone={order.address.phone}
-                                                                onSave={(data) => handleAddressSave(order.orderId, data)}
-                                                                onCancel={() => {}}
-                                                            />
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                )}
-                                            </div>
-                                            <div className="w-full md:w-[15%] py-2 pr-4">
-                                                {/* This space is for date alignment */}
-                                            </div>
-                                            <div className="w-full md:w-[10%] py-2 pr-4 text-left md:text-center space-y-1">
-                                                 <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                                <p>{order.deliveryStatus}</p>
-                                            </div>
-                                            <div className="w-full md:w-[13%] py-2 pr-4 space-y-1 flex flex-col items-start md:items-end">
-                                                <p className="font-semibold text-muted-foreground">Transaction Details</p>
-                                                <p>Method: {order.transaction.method}</p>
-                                                <div className="flex items-center gap-1 justify-start md:justify-end">
-                                                    <p>ID: {order.transaction.id}</p>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                        <Clipboard className="h-3 w-3" />
-                                                    </Button>
+
+                                            <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row md:items-start md:justify-between border-t pt-4 mt-2 gap-4">
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground">Transaction Details</p>
+                                                    <p>Method: {order.transaction.method}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <p>ID: {order.transaction.id}</p>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                                {order.status === 'Cancelled' && (
-                                                    <Button variant="destructive" size="sm" className="mt-2" onClick={handleRequestRefund}>
-                                                       Request Refund
-                                                    </Button>
-                                                )}
-                                                {order.status === 'On Way' && (
-                                                     <Button variant="destructive" size="sm" className="mt-2" onClick={() => handleCancelOrderClick(order)}>
-                                                        Cancel Order
-                                                     </Button>
-                                                )}
+                                                <div className="flex items-end gap-2">
+                                                    {['Pending', 'In Progress'].includes(order.status) && (
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="outline" size="sm">
+                                                                    <Edit className="h-3 w-3 mr-2"/>
+                                                                    Edit Address
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Edit Delivery Address</DialogTitle>
+                                                                </DialogHeader>
+                                                                <EditAddressForm 
+                                                                    currentAddress={order.address}
+                                                                    currentPhone={order.address.phone}
+                                                                    onSave={(data) => handleAddressSave(order.orderId, data)}
+                                                                    onCancel={() => {}}
+                                                                />
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                    )}
+                                                    {order.status === 'Cancelled' && (
+                                                        <Button 
+                                                            variant="destructive" 
+                                                            size="sm"
+                                                            onClick={() => handleRequestRefund(order.orderId)}
+                                                            disabled={refundedOrders.has(order.orderId)}
+                                                        >
+                                                           {refundedOrders.has(order.orderId) ? "Refund Processed" : "Request Refund"}
+                                                        </Button>
+                                                    )}
+                                                    {order.status === 'On Way' && (
+                                                         <Button variant="destructive" size="sm" onClick={() => handleCancelOrderClick(order)}>
+                                                            Cancel Order
+                                                         </Button>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="w-8 hidden md:block"></div>
                                         </div>
                                     </div>
                                 </CollapsibleContent>
@@ -700,5 +718,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
