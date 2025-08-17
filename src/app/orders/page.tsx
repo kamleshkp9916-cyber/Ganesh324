@@ -198,7 +198,6 @@ type Order = typeof mockOrders[0];
 export default function OrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -388,32 +387,11 @@ export default function OrdersPage() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
-        <aside className={cn(
-            "hidden md:flex flex-col w-[20%] border-r bg-sidebar p-4 transition-all duration-300",
-            !isSidebarOpen && "w-0 p-0 border-none overflow-hidden"
-        )}>
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-destructive">StreamCart</h2>
-            </div>
-            <nav className="flex flex-col gap-2">
-                <Link href="#" className="flex items-center gap-3 p-3 rounded-md bg-primary/10 text-primary font-semibold">
-                    <Wallet className="h-5 w-5" />
-                    <span>Overview</span>
-                </Link>
-                <Link href="/wallet" className="flex items-center gap-3 p-3 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground">
-                    <Wallet className="h-5 w-5" />
-                    <span>Wallet</span>
-                </Link>
-            </nav>
-        </aside>
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-1 md:gap-3">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="hidden md:inline-flex">
-                        <PanelLeft />
                     </Button>
                     <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
