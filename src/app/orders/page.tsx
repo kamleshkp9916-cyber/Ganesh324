@@ -485,13 +485,12 @@ export default function OrdersPage() {
                 </div>
                 
                 <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                    <span className="w-[12%]">Order id</span>
-                    <span className="w-[15%]">User</span>
-                    <span className="w-[20%]">Product details</span>
-                    <span className="w-[15%]">Address</span>
-                    <span className="w-[15%]">Date and Time</span>
-                    <span className="w-[10%] text-center">Status</span>
-                    <span className="w-[13%] text-right">Transaction</span>
+                    <span className="w-[14%]">Order id</span>
+                    <span className="w-[28%]">Product details</span>
+                    <span className="w-[18%]">Address</span>
+                    <span className="w-[17%]">Date and Time</span>
+                    <span className="w-[12%] text-center">Status</span>
+                    <span className="w-[11%] text-right">Transaction</span>
                     <span className="w-8"></span>
                 </div>
 
@@ -501,7 +500,7 @@ export default function OrdersPage() {
                              <div className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg'>
                                 <CollapsibleTrigger asChild>
                                    <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4 cursor-pointer group">
-                                        <div className="flex justify-between items-center w-full sm:w-[12%] mb-2 sm:mb-0">
+                                        <div className="flex justify-between items-center w-full sm:w-[14%] mb-2 sm:mb-0">
                                             <div className="font-medium text-primary flex-grow truncate">
                                                 <span className="sm:hidden font-semibold text-foreground">Order: </span>
                                                 {order.orderId}
@@ -510,65 +509,55 @@ export default function OrdersPage() {
                                                 <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                             </div>
                                         </div>
-                                        <div className="sm:w-[15%] flex items-center gap-2 mb-2 sm:mb-0">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={order.user.avatarUrl} />
-                                                <AvatarFallback>{order.user.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <p className="truncate flex-1">{order.user.name}</p>
-                                        </div>
-                                        <div className="sm:w-[20%] mb-2 sm:mb-0">
+                                        <div className="sm:w-[28%] mb-2 sm:mb-0">
                                              <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                                 <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                                 <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                             </Link>
                                         </div>
-                                        <div className="sm:w-[15%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                                        <div className="sm:w-[15%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime}</div>
-                                        <div className="sm:w-[10%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
+                                        <div className="sm:w-[18%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                                        <div className="sm:w-[17%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime}</div>
+                                        <div className="sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
                                             <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                         </div>
-                                        <div className="sm:w-[13%] sm:text-right font-semibold w-full"><span>Amount: </span>{order.transaction.amount}</div>
+                                        <div className="sm:w-[11%] sm:text-right font-semibold w-full"><span>Amount: </span>{order.transaction.amount}</div>
                                         <div className="sm:w-8 flex justify-end">
                                             <ChevronDown className="h-5 w-5 transition-transform duration-300 group-data-[state=open]:-rotate-180"/>
                                         </div>
                                     </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent asChild>
-                                    <div className="bg-muted/50 px-4 pb-4 text-sm">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-8 py-4">
-                                            <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">User Details</p>
-                                                <div className="flex items-center gap-1">
+                                    <div className="bg-muted/50 text-sm">
+                                        <div className="px-4 py-4 md:pl-12">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-8">
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">User Details</p>
                                                     <p>User ID: {order.userId}</p>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                        <Clipboard className="h-3 w-3" />
-                                                    </Button>
+                                                    <p>Email: {order.user.email}</p>
                                                 </div>
-                                                <p>Email: {order.user.email}</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                                <p>{order.address.name}, {order.address.phone}</p>
-                                                <p>{order.address.village}, {order.address.district}</p>
-                                                <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
-                                                <p>{order.deliveryStatus}</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                                <p>Method: {order.transaction.method}</p>
-                                                <div className="flex items-center gap-1">
-                                                    <p>ID: {order.transaction.id}</p>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                        <Clipboard className="h-3 w-3" />
-                                                    </Button>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
+                                                    <p>{order.address.name}, {order.address.phone}</p>
+                                                    <p>{order.address.village}, {order.address.district}</p>
+                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
+                                                    <p>{order.deliveryStatus}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
+                                                    <p>Method: {order.transaction.method}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <p>ID: {order.transaction.id}</p>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="border-t mt-4 pt-4 flex justify-end items-center gap-4">
+                                        <div className="border-t mt-4 pt-4 px-4 pb-4 flex justify-end items-center gap-4">
                                             {['Pending', 'In Progress'].includes(order.status) && (
                                                 <Dialog>
                                                     <DialogTrigger asChild>
