@@ -527,13 +527,23 @@ export default function OrdersPage() {
                                             <DropdownMenuLabel>Order Details</DropdownMenuLabel>
                                             <DropdownMenuSeparator/>
                                             <div className="p-2 space-y-2 text-sm">
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground mb-1">User ID</p>
-                                                    <p>{order.userId}</p>
+                                                <div className="flex items-center justify-between">
+                                                    <p className="font-semibold text-muted-foreground">User ID</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <span>{order.userId}</span>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                                    <p>ID: {order.transaction.id}</p>
+                                                    <div className="flex items-center justify-between">
+                                                        <p>ID: {order.transaction.id}</p>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                     <p>Method: {order.transaction.method}</p>
                                                 </div>
                                                 <div>
@@ -544,7 +554,8 @@ export default function OrdersPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-muted-foreground mb-1">Delivery Status</p>
-                                                    <p>{order.deliveryStatus} on {order.dateTime}</p>
+                                                    <p>{order.deliveryStatus}</p>
+                                                    <p className="text-xs text-muted-foreground">({order.dateTime})</p>
                                                 </div>
                                             </div>
                                             <DropdownMenuSeparator/>
@@ -694,3 +705,6 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+
+    
