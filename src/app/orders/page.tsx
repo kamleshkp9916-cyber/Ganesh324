@@ -602,7 +602,7 @@ export default function OrdersPage() {
                 </div>
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                         <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
+                        <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0 hidden md:block">
                             Showing page {currentPage} of {totalPages}
                         </div>
                         <div className="w-full sm:w-auto mx-auto">
@@ -696,3 +696,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
