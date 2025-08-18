@@ -299,13 +299,20 @@ export default function OrdersPage() {
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
-            <header className="flex items-center justify-between">
+             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-1 md:gap-3 flex-1">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
-                       <h1 className="text-xl font-bold">Orders</h1>
+                    <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
+                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
+                            <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors">/ Orders</Link>
+                        </div>
                     </div>
                 </div>
                  <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
@@ -485,3 +492,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
