@@ -416,7 +416,6 @@ export default function LiveSellingPage() {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchExpanded(false);
-        setSearchTerm('');
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -445,69 +444,38 @@ export default function LiveSellingPage() {
             </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
-                    <div className={cn("hidden sm:flex items-center gap-2", isSearchExpanded && "hidden")}>
+                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
-                        <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
-                    </div>
-                    <div className="sm:hidden flex-1">
-                         {isSearchExpanded && (
-                            <div className="w-full" ref={searchRef}>
-                                <div className={cn(
-                                    "relative flex items-center transition-all duration-300 ease-in-out w-full"
-                                )}>
-                                    <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                                    <Input 
-                                        placeholder="Search posts, streams..." 
-                                        className="bg-card rounded-full w-full pl-10 pr-10"
-                                        onFocus={() => setIsSearchExpanded(true)}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        autoFocus
-                                    />
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
-                                        onClick={() => setIsSearchExpanded(false)}
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
+                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
                     </div>
 
-                    <div className={cn("hidden sm:flex items-center gap-2 flex-1 justify-end", isSearchExpanded && "w-full")} ref={searchRef}>
-                        <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                            isSearchExpanded ? "sm:w-64" : "sm:w-10"
+                    <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
+                         <div className={cn(
+                            "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-64",
+                            !isSearchExpanded && "sm:w-10"
                         )}>
-                            <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
-                            <Input 
+                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-card rounded-full transition-all duration-300 ease-in-out",
-                                    isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0 sm:block"
+                                    "bg-card rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                    isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
                                 )}
-                                onFocus={() => setIsSearchExpanded(true)}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setIsSearchExpanded(true)}
                             />
-                            
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-foreground rounded-full bg-card hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
+                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2 right-0 sm:right-auto"
                                 onClick={() => setIsSearchExpanded(p => !p)}
                             >
-                                {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                             </Button>
                         </div>
                     </div>
-                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:hidden" : "flex")}>
-                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(true)}>
-                           <Search className="h-5 w-5" />
-                        </Button>
+
+                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
