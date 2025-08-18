@@ -52,6 +52,54 @@ const mockOrders = [
       deliveryStatus: "In transit to Delhi",
     },
     {
+      orderId: "#STREAM5907",
+      productId: "prod-012",
+      userId: "USER8443",
+      user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
+      product: { id: "prod-012", name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
+      address: { name: "Olivia Martinez", village: "Greater Kailash", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110048", phone: "+91 9876543221" },
+      dateTime: "29/07/2024 03:20 PM",
+      status: "In Progress",
+      transaction: { id: "TRN123456800", amount: "₹15,000.00", method: "UPI" },
+      deliveryStatus: "Processing order",
+    },
+    {
+      orderId: "#STREAM5905",
+      productId: "prod-007",
+      userId: "USER8438",
+      user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
+      product: { id: "prod-007", name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
+      address: { name: "Peter Jones", village: "Calangute", district: "North Goa", city: "Goa", state: "Goa", country: "India", pincode: "403516", phone: "+91 9876543216" },
+      dateTime: "28/07/2024 02:30 PM",
+      status: "Pending",
+      transaction: { id: "TRN123456795", amount: "₹7,800.00", method: "Pending Confirmation" },
+      deliveryStatus: "Awaiting payment confirmation",
+    },
+    {
+      orderId: "#STREAM5906",
+      productId: "prod-011",
+      userId: "USER8442",
+      user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
+      product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
+      address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
+      dateTime: "29/07/2024 11:00 AM",
+      status: "Pending",
+      transaction: { id: "TRN123456799", amount: "₹9,500.00", method: "Pending Confirmation" },
+      deliveryStatus: "Awaiting payment confirmation",
+    },
+     {
+      orderId: "#STREAM5904",
+      productId: "prod-006",
+      userId: "USER8437",
+      user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
+      product: { id: "prod-006", name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
+      address: { name: "Laura Williams", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543215" },
+      dateTime: "28/07/2024 01:00 PM",
+      status: "In Progress",
+      transaction: { id: "TRN123456794", amount: "₹3,500.00", method: "UPI" },
+      deliveryStatus: "Processing order",
+    },
+    {
       orderId: "#STREAM5897",
       productId: "prod-002",
       userId: "USER8433",
@@ -99,30 +147,6 @@ const mockOrders = [
       transaction: { id: "TRN123456793", amount: "₹2,100.00", method: "Cash on Delivery" },
       deliveryStatus: "Delivered",
     },
-     {
-      orderId: "#STREAM5904",
-      productId: "prod-006",
-      userId: "USER8437",
-      user: { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
-      product: { id: "prod-006", name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
-      address: { name: "Laura Williams", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543215" },
-      dateTime: "28/07/2024 01:00 PM",
-      status: "In Progress",
-      transaction: { id: "TRN123456794", amount: "₹3,500.00", method: "UPI" },
-      deliveryStatus: "Processing order",
-    },
-    {
-      orderId: "#STREAM5905",
-      productId: "prod-007",
-      userId: "USER8438",
-      user: { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
-      product: { id: "prod-007", name: "Designer Sunglasses", imageUrl: "https://placehold.co/60x60.png", hint: "sunglasses" },
-      address: { name: "Peter Jones", village: "Calangute", district: "North Goa", city: "Goa", state: "Goa", country: "India", pincode: "403516", phone: "+91 9876543216" },
-      dateTime: "28/07/2024 02:30 PM",
-      status: "Pending",
-      transaction: { id: "TRN123456795", amount: "₹7,800.00", method: "Pending Confirmation" },
-      deliveryStatus: "Awaiting payment confirmation",
-    },
     {
       orderId: "#STREAM5901",
       productId: "prod-008",
@@ -158,30 +182,6 @@ const mockOrders = [
       status: "Cancelled",
       transaction: { id: "TRN123456798", amount: "₹4,500.00", method: "Credit Card" },
       deliveryStatus: "Cancelled by seller",
-    },
-    {
-      orderId: "#STREAM5906",
-      productId: "prod-011",
-      userId: "USER8442",
-      user: { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
-      product: { id: "prod-011", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "keyboard" },
-      address: { name: "Michael Chen", village: "Koramangala", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560095", phone: "+91 9876543220" },
-      dateTime: "29/07/2024 11:00 AM",
-      status: "Pending",
-      transaction: { id: "TRN123456799", amount: "₹9,500.00", method: "Pending Confirmation" },
-      deliveryStatus: "Awaiting payment confirmation",
-    },
-    {
-      orderId: "#STREAM5907",
-      productId: "prod-012",
-      userId: "USER8443",
-      user: { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
-      product: { id: "prod-012", name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
-      address: { name: "Olivia Martinez", village: "Greater Kailash", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110048", phone: "+91 9876543221" },
-      dateTime: "29/07/2024 03:20 PM",
-      status: "In Progress",
-      transaction: { id: "TRN123456800", amount: "₹15,000.00", method: "UPI" },
-      deliveryStatus: "Processing order",
     }
 ];
 
@@ -206,24 +206,27 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
-  const [orders, setOrders] = useState(mockOrders.sort((a, b) => {
-    const priorityA = statusPriority[a.status] || 99;
-    const priorityB = statusPriority[b.status] || 99;
-    if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-    }
-    // If priorities are the same, sort by date descending
-    const dateA = new Date(a.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + a.dateTime.split(' ')[1]);
-    const dateB = new Date(b.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + b.dateTime.split(' ')[1]);
-    return dateB.getTime() - dateA.getTime();
-  }));
+  const [orders, setOrders] = useState(mockOrders);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const sortedOrders = useMemo(() => {
+    return [...orders].sort((a, b) => {
+        const priorityA = statusPriority[a.status] || 99;
+        const priorityB = statusPriority[b.status] || 99;
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        const dateA = new Date(a.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + a.dateTime.split(' ')[1].replace(' ', ''));
+        const dateB = new Date(b.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + b.dateTime.split(' ')[1].replace(' ', ''));
+        return dateB.getTime() - dateA.getTime();
+    });
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
-    let currentOrders = [...orders]; // Create a copy to avoid direct mutation
+    let currentOrders = [...sortedOrders]; // Use the sorted list
     if (statusFilter !== "all") {
         currentOrders = currentOrders.filter(order => order.status.toLowerCase().replace(' ', '-') === statusFilter);
     }
@@ -236,7 +239,7 @@ export default function OrdersPage() {
         );
     }
     return currentOrders;
-  }, [statusFilter, searchTerm, orders]);
+  }, [statusFilter, searchTerm, sortedOrders]);
   
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   
@@ -326,7 +329,7 @@ export default function OrdersPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                             <Link href="/orders" className="text-muted-foreground text-base hover:text-foreground transition-colors hidden sm:inline">
+                             <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
                                 / Orders
                             </Link>
                         </div>
@@ -340,17 +343,7 @@ export default function OrdersPage() {
                         "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
                          isSearchExpanded ? "w-full sm:w-64" : "w-auto"
                     )}>
-                        <Input 
-                            placeholder="Search orders..." 
-                            className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-10 pr-4",
-                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                            )}
-                            onFocus={() => setIsSearchExpanded(true)}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <Button 
+                         <Button 
                             variant="ghost" 
                             size="icon" 
                             className="text-foreground rounded-full hover:bg-accent h-9 w-9"
@@ -358,6 +351,16 @@ export default function OrdersPage() {
                         >
                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                         </Button>
+                        <Input 
+                            placeholder="Search orders..." 
+                            className={cn(
+                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-4 pr-10",
+                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
+                            )}
+                            onFocus={() => setIsSearchExpanded(true)}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                 </div>
             </header>
