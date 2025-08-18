@@ -457,7 +457,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <div className="flex-1 flex flex-col">
-            <header className="p-4 flex items-center justify-start sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
+             <header className="p-4 flex items-center justify-start sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
                 <div className="flex items-center gap-2">
                     <ShoppingCart className="h-7 w-7 text-destructive" />
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
@@ -612,18 +612,17 @@ export default function LiveSellingPage() {
                             </>
                         ) : (
                             <div className="flex items-center gap-2">
-                            <Button asChild variant="outline" size="sm">
-                                <Link href="/">Login</Link>
-                            </Button>
-                            <Button asChild size="sm">
-                                    <Link href="/signup">Create Account</Link>
-                            </Button>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href="/">Login</Link>
+                                </Button>
+                                <Button asChild size="sm">
+                                        <Link href="/signup">Create Account</Link>
+                                </Button>
                             </div>
                         )}
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
             <main className="flex-1 overflow-y-auto p-2 md:p-4">
               <div className="max-w-7xl mx-auto">
