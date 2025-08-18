@@ -70,31 +70,13 @@ export default function DeliveryInformationPage() {
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
-                 <div className="flex items-center gap-1 md:gap-3">
-                    {isMounted && !loading && user && (
-                    <div className="flex items-center gap-3">
-                        <Link href="/live-selling" className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                                 <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                                 <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                            </Avatar>
-                            <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                        </Link>
-                        <div className="flex items-center gap-2">
-                             <Link href="/orders" className="text-muted-foreground text-sm md:text-base hover:text-foreground transition-colors">
-                                / Orders
-                            </Link>
-                            <span className="text-muted-foreground text-sm md:text-base">
-                                / Delivery Information
-                            </span>
-                        </div>
-                    </div>
-                    )}
-                </div>
-                <h1 className="text-xl font-bold sm:hidden">
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-xl font-bold">
                     Delivery Information
                 </h1>
-                <div className="w-10 sm:w-0"></div>
+                <div className="w-10"></div>
             </header>
 
             <main className="flex-grow p-4 md:p-8">
