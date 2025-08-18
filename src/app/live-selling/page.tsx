@@ -250,13 +250,54 @@ const shuffleArray = (array: any[]) => {
     return array;
 };
 
+function LiveSellerSkeleton() {
+    return (
+        <div className="group relative rounded-lg overflow-hidden shadow-lg">
+            <Skeleton className="w-full aspect-[2/3]" />
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div>
+                        <Skeleton className="h-4 w-20 mb-1" />
+                        <Skeleton className="h-3 w-16" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function FeedPostSkeleton() {
+    return (
+        <Card className="overflow-hidden">
+            <div className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-grow space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-1/4" />
+                    </div>
+                </div>
+            </div>
+            <div className="px-4 pb-4 space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="w-full aspect-video rounded-lg" />
+            </div>
+        </Card>
+    );
+}
+
+
 export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+  const [isLoadingSellers, setIsLoadingSellers] = useState(true);
+  const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
   const [mockFollowingFeed, setMockFollowingFeed] = useState<typeof initialMockFeed>([]);
@@ -274,13 +315,24 @@ export default function LiveSellingPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Simulate loading data
+    const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
+    const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
+    const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
+
+    return () => {
+        clearTimeout(offersTimer);
+        clearTimeout(sellersTimer);
+        clearTimeout(feedTimer);
+    };
   }, []);
 
-  const handleAuthAction = () => {
+  const handleAuthAction = (cb?: () => void) => {
     if (!user) {
         setIsAuthDialogOpen(true);
         return false;
     }
+    if (cb) cb();
     return true;
   };
 
@@ -326,14 +378,14 @@ export default function LiveSellingPage() {
   }, []);
 
   const handleReply = (sellerName: string) => {
-    if (!handleAuthAction()) return;
-    setReplyTo(sellerName);
+    handleAuthAction(() => setReplyTo(sellerName));
   };
   
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
-    if (!handleAuthAction()) return;
-    setFollowingList(currentList => currentList.filter(user => user.id !== userId));
+    handleAuthAction(() => {
+        setFollowingList(currentList => currentList.filter(user => user.id !== userId));
+    });
   };
   
   const handleShare = (postId: number) => {
@@ -346,14 +398,15 @@ export default function LiveSellingPage() {
   };
 
   const submitReport = () => {
-    if (!handleAuthAction()) return;
-    console.log("Submitting report for reason:", selectedReportReason);
-    toast({
-        title: "Report Submitted",
-        description: "Thank you for your feedback. We will review this post.",
+    handleAuthAction(() => {
+        console.log("Submitting report for reason:", selectedReportReason);
+        toast({
+            title: "Report Submitted",
+            description: "Thank you for your feedback. We will review this post.",
+        });
+        setIsReportDialogOpen(false);
+        setSelectedReportReason("");
     });
-    setIsReportDialogOpen(false);
-    setSelectedReportReason("");
   };
 
 
@@ -373,13 +426,6 @@ export default function LiveSellingPage() {
     api.on('select', onSelect);
     api.on('reInit', onSelect)
   }, [api, onSelect])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoadingOffers(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -413,48 +459,48 @@ export default function LiveSellingPage() {
             </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-start sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
-                    <div className={cn("flex items-center gap-2")}>
+                    <div className="flex items-center gap-2">
                         <ShoppingCart className="h-7 w-7 text-destructive" />
-                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary", isSearchExpanded ? "hidden sm:block" : "hidden sm:block")}>StreamCart</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                     </div>
 
                     <div className="flex items-center justify-end gap-2 ml-auto">
                          {user && (
-                            <>
-                                <div className="hidden sm:flex items-center gap-2" ref={searchRef}>
-                                    <div className={cn(
-                                        "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-64 lg:w-80"
-                                    )}>
-                                        <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                                        <Input 
-                                            placeholder="Search posts, streams..." 
-                                            className="bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
+                            <div className="hidden sm:flex items-center gap-2" ref={searchRef}>
+                                <div className={cn(
+                                    "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-64 lg:w-80"
+                                )}>
+                                    <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                                    <Input 
+                                        placeholder="Search posts, streams..." 
+                                        className="bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
                                 </div>
+                            </div>
+                         )}
 
-                                <Button variant="ghost" size="icon" className="text-foreground rounded-full hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(p => !p)}>
-                                    <Search className="h-5 w-5" />
-                                </Button>
-
-                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={handleAuthAction}>
-                                    <Plus />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={handleAuthAction}>
-                                    <Bell />
-                                </Button>
-                            </>
+                        {user && (
+                            <Button variant="ghost" size="icon" className="text-foreground rounded-full hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(p => !p)}>
+                                <Search className="h-5 w-5" />
+                            </Button>
                         )}
                         
                         <div className="h-9 flex items-center justify-center">
-                            {!isMounted || loading ? (
+                            {!isMounted || authLoading ? (
                                <Skeleton className="h-9 w-9 rounded-full" />
                             ) : user ? (
+                                <>
+                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                    <Plus />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                    <Bell />
+                                </Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Avatar className="h-9 w-9 cursor-pointer">
+                                        <Avatar className="h-9 w-9 cursor-pointer ml-2">
                                             <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
                                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
                                         </Avatar>
@@ -563,6 +609,7 @@ export default function LiveSellingPage() {
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                                </>
                             ) : (
                                 <div className="flex items-center gap-2">
                                 <Button asChild variant="outline" size="sm">
@@ -583,7 +630,7 @@ export default function LiveSellingPage() {
                         <div className="flex justify-center mb-6">
                             <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                                <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                                <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
                             </TabsList>
                         </div>
 
@@ -650,44 +697,52 @@ export default function LiveSellingPage() {
                                 </Button>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {filteredLiveSellers.map((seller) => (
-                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                        <div className="absolute top-2 left-2 z-10">
-                                            <Badge className="bg-destructive text-destructive-foreground">
-                                                LIVE
-                                            </Badge>
-                                        </div>
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                                <Users className="w-3 h-3 mr-1.5" />
-                                                {seller.viewers}
-                                            </Badge>
-                                        </div>
+                             {isLoadingSellers ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {Array.from({ length: 12 }).map((_, index) => (
+                                        <LiveSellerSkeleton key={index} />
+                                    ))}
+                                </div>
+                             ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {filteredLiveSellers.map((seller) => (
+                                        <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                            <div className="absolute top-2 left-2 z-10">
+                                                <Badge className="bg-destructive text-destructive-foreground">
+                                                    LIVE
+                                                </Badge>
+                                            </div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                                    <Users className="w-3 h-3 mr-1.5" />
+                                                    {seller.viewers}
+                                                </Badge>
+                                            </div>
 
-                                        <Image 
-                                            src={seller.thumbnailUrl} 
-                                            alt={`Live stream from ${seller.name}`} 
-                                            width={300} 
-                                            height={450} 
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={seller.hint}
-                                        />
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-8 w-8 border-2 border-primary">
-                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                            <Image 
+                                                src={seller.thumbnailUrl} 
+                                                alt={`Live stream from ${seller.name}`} 
+                                                width={300} 
+                                                height={450} 
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={seller.hint}
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-8 w-8 border-2 border-primary">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </TabsContent>
 
                         <TabsContent value="feeds" className="w-full">
@@ -721,82 +776,89 @@ export default function LiveSellingPage() {
                              </AlertDialog>
                               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                                 <div className="lg:col-span-2 space-y-4">
-                                  {filteredFeed.map((item) => (
-                                      <Card key={item.id} className="overflow-hidden">
-                                          <div className="p-4">
-                                              <div className="flex items-center gap-3 mb-3">
-                                                  <Avatar className="h-10 w-10">
-                                                      <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                      <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                  </Avatar>
-                                                  <div className="flex-grow">
-                                                      <p className="font-semibold text-destructive">{item.sellerName}</p>
-                                                      <p className="text-xs text-muted-foreground">{item.timestamp}</p>
-                                                  </div>
-                                                  <DropdownMenu>
-                                                      <DropdownMenuTrigger asChild>
-                                                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                              <MoreHorizontal className="w-4 h-4" />
-                                                          </Button>
-                                                      </DropdownMenuTrigger>
-                                                      <DropdownMenuContent align="end">
-                                                          <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                                              <Share2 className="mr-2 h-4 w-4" />
-                                                              <span>Share</span>
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem asChild>
-                                                              <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                  <MessageCircle className="mr-2 h-4 w-4" />
-                                                                  <span>Feedback</span>
-                                                              </a>
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuSeparator />
-                                                          <DropdownMenuSub>
-                                                              <DropdownMenuSubTrigger>
-                                                                  <Flag className="mr-2 h-4 w-4" />
-                                                                  <span>Report</span>
-                                                              </DropdownMenuSubTrigger>
-                                                              <DropdownMenuPortal>
-                                                                  <DropdownMenuSubContent>
-                                                                      <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                      <DropdownMenuSeparator />
-                                                                      {reportReasons.map(reason => (
-                                                                          <DropdownMenuItem key={reason.id} onClick={() => { if(handleAuthAction()) { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}}>
-                                                                              <span>{reason.label}</span>
-                                                                          </DropdownMenuItem>
-                                                                      ))}
-                                                                  </DropdownMenuSubContent>
-                                                              </DropdownMenuPortal>
-                                                          </DropdownMenuSub>
-                                                      </DropdownMenuContent>
-                                                  </DropdownMenu>
-                                              </div>
-                                          </div>
-                                          <div className="px-4 pb-4">
-                                              <div className="flex flex-col items-center gap-4 text-center">
-                                                  <p className="text-sm mb-2">{item.content}</p>
-                                                  {item.productImageUrl &&
-                                                    <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                        <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                  {isLoadingFeed ? (
+                                    <>
+                                        <FeedPostSkeleton />
+                                        <FeedPostSkeleton />
+                                    </>
+                                  ) : (
+                                    filteredFeed.map((item) => (
+                                        <Card key={item.id} className="overflow-hidden">
+                                            <div className="p-4">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                                     </div>
-                                                  }
-                                              </div>
-                                          </div>
-                                          <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                              <div className="flex items-center gap-4">
-                                                  <button className="flex items-center gap-1.5 hover:text-primary" onClick={handleAuthAction}>
-                                                      <Heart className="w-4 h-4" />
-                                                      <span>{item.likes}</span>
-                                                  </button>
-                                                  <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
-                                                      <MessageSquare className="w-4 h-4" />
-                                                      <span>{item.replies}</span>
-                                                  </button>
-                                              </div>
-                                              {item.location && <span className="text-xs">{item.location}</span>}
-                                          </div>
-                                      </Card>
-                                  ))}
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                <span>Share</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Feedback</span>
+                                                                </a>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger>
+                                                                    <Flag className="mr-2 h-4 w-4" />
+                                                                    <span>Report</span>
+                                                                </DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator />
+                                                                        {reportReasons.map(reason => (
+                                                                            <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
+                                                                                <span>{reason.label}</span>
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
+                                            <div className="px-4 pb-4">
+                                                <div className="flex flex-col items-center gap-4 text-center">
+                                                    <p className="text-sm mb-2">{item.content}</p>
+                                                    {item.productImageUrl &&
+                                                        <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                            <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-4">
+                                                    <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleAuthAction()}>
+                                                        <Heart className="w-4 h-4" />
+                                                        <span>{item.likes}</span>
+                                                    </button>
+                                                    <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                        <MessageSquare className="w-4 h-4" />
+                                                        <span>{item.replies}</span>
+                                                    </button>
+                                                </div>
+                                                {item.location && <span className="text-xs">{item.location}</span>}
+                                            </div>
+                                        </Card>
+                                    ))
+                                  )}
                                 </div>
                                 <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
                                     <Card>
@@ -835,7 +897,7 @@ export default function LiveSellingPage() {
                                                             <p className="text-xs text-muted-foreground">{user.handle}</p>
                                                         </div>
                                                     </div>
-                                                    <Button size="sm" variant="outline" onClick={handleAuthAction}>Follow</Button>
+                                                    <Button size="sm" variant="outline" onClick={() => handleAuthAction()}>Follow</Button>
                                                 </div>
                                             ))}
                                         </CardContent>
@@ -893,3 +955,5 @@ export default function LiveSellingPage() {
       </div>
   );
 }
+
+    

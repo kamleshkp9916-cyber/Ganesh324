@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 // Mock data generation
@@ -90,6 +91,38 @@ const mockAchievements = [
     { id: 6, name: 'Deal Hunter', icon: <Search />, description: 'Snagged 10+ flash sale items' },
 ];
 
+function ProductSkeletonGrid() {
+    return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="w-full">
+                    <Skeleton className="aspect-square w-full rounded-t-lg" />
+                    <div className="p-3 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-5 w-1/2" />
+                    </div>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
+function ReviewSkeleton() {
+    return (
+        <Card className="p-4">
+            <div className="flex gap-4">
+                <Skeleton className="w-20 h-20 rounded-md" />
+                <div className="flex-grow space-y-2">
+                    <Skeleton className="h-5 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
+            </div>
+        </Card>
+    );
+}
+
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -104,6 +137,7 @@ export default function ProfilePage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
 
 
   const handleAuthAction = (action: () => void) => {
@@ -143,7 +177,12 @@ export default function ProfilePage() {
     // This logic now runs only on the client after the component mounts
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
     if (activeUser) {
-        setProfileData(generateRandomUser(activeUser));
+        setTimeout(() => {
+            setProfileData(generateRandomUser(activeUser));
+            setIsLoadingContent(false);
+        }, 1500)
+    } else {
+        setIsLoadingContent(false);
     }
   }, [user, userId, isOwnProfile]);
 
@@ -332,100 +371,106 @@ export default function ProfilePage() {
 
                     {!isOwnProfile && (
                         <TabsContent value="products" className="mt-4">
-                             {filteredProducts.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {filteredProducts.map((product) => (
-                                        <Card key={product.id} className="w-full">
-                                            <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                                <Image 
-                                                    src={product.imageUrl}
-                                                    alt={product.name}
-                                                    width={180}
-                                                    height={180}
-                                                    className="object-cover w-full h-full"
-                                                    data-ai-hint={product.hint}
-                                                />
-                                            </div>
-                                            <div className="p-3">
-                                                <h4 className="font-semibold truncate">{product.name}</h4>
-                                                <p className="text-primary font-bold">{product.price}</p>
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-muted-foreground text-center py-8">No products found.</p>
+                            {isLoadingContent ? <ProductSkeletonGrid /> : (
+                                 filteredProducts.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {filteredProducts.map((product) => (
+                                            <Card key={product.id} className="w-full">
+                                                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                                    <Image 
+                                                        src={product.imageUrl}
+                                                        alt={product.name}
+                                                        width={180}
+                                                        height={180}
+                                                        className="object-cover w-full h-full"
+                                                        data-ai-hint={product.hint}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="font-semibold truncate">{product.name}</h4>
+                                                    <p className="text-primary font-bold">{product.price}</p>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No products found.</p>
+                                )
                             )}
                         </TabsContent>
                     )}
 
                     <TabsContent value="recent" className="mt-4">
-                        {filteredRecentlyViewed.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {filteredRecentlyViewed.map((item) => (
-                                    <Card key={item.id} className="w-full">
-                                        <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                            <Image 
-                                                src={item.imageUrl}
-                                                alt={item.name}
-                                                width={180}
-                                                height={180}
-                                                className="object-cover w-full h-full"
-                                                data-ai-hint={item.hint}
-                                            />
-                                        </div>
-                                        <div className="p-3">
-                                            <h4 className="font-semibold truncate">{item.name}</h4>
-                                            <p className="text-primary font-bold">{item.price}</p>
-                                        </div>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No recently viewed items.</p>
+                         {isLoadingContent ? <ProductSkeletonGrid /> : (
+                            filteredRecentlyViewed.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {filteredRecentlyViewed.map((item) => (
+                                        <Card key={item.id} className="w-full">
+                                            <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                                <Image 
+                                                    src={item.imageUrl}
+                                                    alt={item.name}
+                                                    width={180}
+                                                    height={180}
+                                                    className="object-cover w-full h-full"
+                                                    data-ai-hint={item.hint}
+                                                />
+                                            </div>
+                                            <div className="p-3">
+                                                <h4 className="font-semibold truncate">{item.name}</h4>
+                                                <p className="text-primary font-bold">{item.price}</p>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-center py-8">No recently viewed items.</p>
+                            )
                         )}
                     </TabsContent>
 
                     <TabsContent value="reviews" className="mt-4 space-y-4">
-                        {filteredReviews.length > 0 ? (
-                            filteredReviews.map(review => (
-                                <Collapsible key={review.id} asChild>
-                                    <Card>
-                                        <CollapsibleTrigger className="w-full text-left cursor-pointer">
-                                            <div className="p-4 flex gap-4">
-                                                <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
-                                                <div className="flex-grow">
-                                                    <h4 className="font-semibold">{review.productName}</h4>
-                                                    <div className="flex items-center gap-1 mt-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                        ))}
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
-                                                    <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
-                                                </div>
-                                            </div>
-                                        </CollapsibleTrigger>
-                                        <CollapsibleContent>
-                                            <div className="border-t p-4 space-y-3">
-                                                <div>
-                                                    <h5 className="text-sm font-semibold mb-1">Product Information</h5>
-                                                    <p className="text-sm text-muted-foreground">{review.productInfo}</p>
-                                                </div>
-                                                <div>
-                                                    <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
-                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <PaymentIcon method={review.paymentMethod} />
-                                                        <span>{paymentLabel(review.paymentMethod)}</span>
+                        {isLoadingContent ? <div className="space-y-4"><ReviewSkeleton /><ReviewSkeleton /></div> : (
+                            filteredReviews.length > 0 ? (
+                                filteredReviews.map(review => (
+                                    <Collapsible key={review.id} asChild>
+                                        <Card>
+                                            <CollapsibleTrigger className="w-full text-left cursor-pointer">
+                                                <div className="p-4 flex gap-4">
+                                                    <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
+                                                    <div className="flex-grow">
+                                                        <h4 className="font-semibold">{review.productName}</h4>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
+                                                        <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Card>
-                                </Collapsible>
-                            ))
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent>
+                                                <div className="border-t p-4 space-y-3">
+                                                    <div>
+                                                        <h5 className="text-sm font-semibold mb-1">Product Information</h5>
+                                                        <p className="text-sm text-muted-foreground">{review.productInfo}</p>
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
+                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                            <PaymentIcon method={review.paymentMethod} />
+                                                            <span>{paymentLabel(review.paymentMethod)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </CollapsibleContent>
+                                        </Card>
+                                    </Collapsible>
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                            )
                         )}
                     </TabsContent>
                     
@@ -456,3 +501,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

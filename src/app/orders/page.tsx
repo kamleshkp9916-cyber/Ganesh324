@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -19,6 +18,7 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/footer';
 import { format, addDays, parse } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const mockOrders = [
     {
@@ -189,6 +189,29 @@ const statusPriority: { [key: string]: number } = {
     "Cancelled": 5,
 };
 
+function OrderRowSkeleton() {
+    return (
+        <div className='relative border-b last:border-b-0 p-2 sm:p-4'>
+            <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm">
+                <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-5 w-16 md:hidden" />
+                </div>
+                <div className="w-full mb-2 md:mb-0 flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-md" />
+                    <Skeleton className="h-5 w-full" />
+                </div>
+                <div className="w-full mb-2 md:mb-0"><Skeleton className="h-5 w-3/4" /></div>
+                <div className="w-full mb-2 md:mb-0"><Skeleton className="h-5 w-1/2" /></div>
+                <div className="w-full mb-2 md:mb-0 flex md:justify-center"><Skeleton className="h-5 w-20" /></div>
+                <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
@@ -212,7 +235,7 @@ function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -221,20 +244,24 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
-  // Simulate fetching user-specific orders
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
     if (user) {
       // In a real app, you'd fetch orders for the logged-in user.
       // Here, we'll just show the mock orders if it's the mock user.
-      if (user.uid === 'mock-user-id-123') {
-        setOrders(mockOrders);
-      } else {
-        setOrders([]); // No orders for other users
-      }
+       setTimeout(() => {
+         if (user.uid === 'mock-user-id-123') {
+           setOrders(mockOrders);
+         } else {
+           setOrders([]); // No orders for other users
+         }
+         setIsLoading(false);
+       }, 1500); // Simulate network delay
     } else {
+        setIsLoading(false);
         setOrders([]);
     }
   }, [user]);
@@ -288,7 +315,7 @@ export default function OrdersPage() {
     };
   }, [searchRef]);
 
-  if (!isClient || loading) {
+  if (!isClient || authLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -358,6 +385,132 @@ export default function OrdersPage() {
         return { label: 'Est. Delivery', date: "N/A" };
     }
   }
+
+  const renderContent = () => {
+    if (isLoading) {
+        return (
+            <div className="space-y-2 mt-2 flex-grow">
+                {Array.from({ length: 5 }).map((_, index) => <OrderRowSkeleton key={index} />)}
+            </div>
+        );
+    }
+    
+    if (paginatedOrders.length > 0) {
+        return (
+            <div className="space-y-2 mt-2 flex-grow">
+              {paginatedOrders.map((order: Order) => (
+                  <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+                  <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 sm:p-4">
+                          <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                  <span>{order.orderId}</span>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
+                                      <Clipboard className="h-3 w-3" />
+                                  </Button>
+                              </div>
+                              <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize md:hidden">{order.status}</Badge>
+                          </div>
+                          <div className="w-full mb-2 md:mb-0">
+                              <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
+                                  <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                  <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
+                              </Link>
+                          </div>
+                          <div className="w-full truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                          <div className="w-full mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
+                          <div className="w-full mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
+                          <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
+                              <div className="flex justify-center w-full">
+                                  <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                              </div>
+                          </div>
+                      </div>
+                      <div className="absolute bottom-1 right-1 md:top-1/2 md:-translate-y-1/2 md:right-2">
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenuLabel>Order Details</DropdownMenuLabel>
+                                  <DropdownMenuSeparator/>
+                                  <div className="p-2 space-y-2 text-sm">
+                                      <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5 font-semibold text-muted-foreground">
+                                                <CalendarClock className="h-4 w-4" />
+                                                <span>{getDeliveryDateInfo(order).label}</span>
+                                            </div>
+                                            <span>{getDeliveryDateInfo(order).date}</span>
+                                        </div>
+                                      <div className="flex items-center justify-between">
+                                          <p className="font-semibold text-muted-foreground">User ID</p>
+                                          <div className="flex items-center gap-1">
+                                              <span>{order.userId}</span>
+                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                  <Clipboard className="h-3 w-3" />
+                                              </Button>
+                                          </div>
+                                      </div>
+                                      <div>
+                                          <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
+                                          <div className="flex items-center justify-between">
+                                              <p>ID: {order.transaction.id}</p>
+                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                  <Clipboard className="h-3 w-3" />
+                                              </Button>
+                                          </div>
+                                          <p>Method: {order.transaction.method}</p>
+                                      </div>
+                                      <div>
+                                          <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
+                                          <p>{order.address.name}, {order.address.phone}</p>
+                                          <p>{order.address.village}, {order.address.district}</p>
+                                          <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                      </div>
+                                      <div>
+                                          <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                          <p>{order.deliveryStatus}</p>
+                                      </div>
+                                      <div>
+                                          <p className="font-semibold text-muted-foreground">Date & Time</p>
+                                          <p className="text-xs text-muted-foreground">{order.dateTime}</p>
+                                      </div>
+                                  </div>
+                                  <DropdownMenuSeparator/>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
+                      </div>
+                  </div>
+              ))}
+            </div>
+        );
+    }
+
+    if (searchTerm && filteredOrders.length === 0) {
+        return (
+            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+                <Search className="w-16 h-16 text-border" />
+                <h3 className="text-xl font-semibold">No Results Found</h3>
+                <p>There is nothing similar to this. Try searching for something else.</p>
+                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+            </div>
+        );
+    }
+
+    if (orders.length === 0) {
+        return (
+            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+                <EmptyBoxIcon className="w-16 h-16 text-border" />
+                <h3 className="text-xl font-semibold">No Orders Yet</h3>
+                <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
+                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+            </div>
+        );
+    }
+    
+    return null;
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -442,113 +595,9 @@ export default function OrdersPage() {
                   <span className="text-center">Transaction</span>
                   <span className="text-center">Status</span>
               </div>
+              
+              {renderContent()}
 
-              <div className="space-y-2 mt-2 flex-grow">
-                  {paginatedOrders.map((order: Order) => (
-                      <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                      <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 sm:p-4">
-                              <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
-                                  <div className="flex items-center gap-2">
-                                      <span>{order.orderId}</span>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
-                                          <Clipboard className="h-3 w-3" />
-                                      </Button>
-                                  </div>
-                                  <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize md:hidden">{order.status}</Badge>
-                              </div>
-                              <div className="w-full mb-2 md:mb-0">
-                                  <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                      <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                      <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
-                                  </Link>
-                              </div>
-                              <div className="w-full truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                              <div className="w-full mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                              <div className="w-full mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
-                              <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
-                                  <div className="flex justify-center w-full">
-                                      <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                                  </div>
-                              </div>
-                          </div>
-                          <div className="absolute bottom-1 right-1 md:top-1/2 md:-translate-y-1/2 md:right-2">
-                              <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                          <MoreHorizontal className="h-4 w-4" />
-                                      </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
-                                      <DropdownMenuLabel>Order Details</DropdownMenuLabel>
-                                      <DropdownMenuSeparator/>
-                                      <div className="p-2 space-y-2 text-sm">
-                                          <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-1.5 font-semibold text-muted-foreground">
-                                                    <CalendarClock className="h-4 w-4" />
-                                                    <span>{getDeliveryDateInfo(order).label}</span>
-                                                </div>
-                                                <span>{getDeliveryDateInfo(order).date}</span>
-                                            </div>
-                                          <div className="flex items-center justify-between">
-                                              <p className="font-semibold text-muted-foreground">User ID</p>
-                                              <div className="flex items-center gap-1">
-                                                  <span>{order.userId}</span>
-                                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                      <Clipboard className="h-3 w-3" />
-                                                  </Button>
-                                              </div>
-                                          </div>
-                                          <div>
-                                              <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                              <div className="flex items-center justify-between">
-                                                  <p>ID: {order.transaction.id}</p>
-                                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                      <Clipboard className="h-3 w-3" />
-                                                  </Button>
-                                              </div>
-                                              <p>Method: {order.transaction.method}</p>
-                                          </div>
-                                          <div>
-                                              <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                              <p>{order.address.name}, {order.address.phone}</p>
-                                              <p>{order.address.village}, {order.address.district}</p>
-                                              <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                          </div>
-                                          <div>
-                                              <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                              <p>{order.deliveryStatus}</p>
-                                          </div>
-                                          <div>
-                                              <p className="font-semibold text-muted-foreground">Date & Time</p>
-                                              <p className="text-xs text-muted-foreground">{order.dateTime}</p>
-                                          </div>
-                                      </div>
-                                      <DropdownMenuSeparator/>
-                                  </DropdownMenuContent>
-                              </DropdownMenu>
-                          </div>
-                      </div>
-                  ))}
-                {paginatedOrders.length === 0 && user && (
-                    <>
-                        {orders.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                <EmptyBoxIcon className="w-16 h-16 text-border" />
-                                <h3 className="text-xl font-semibold">No Orders Yet</h3>
-                                <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
-                                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                <Search className="w-16 h-16 text-border" />
-                                <h3 className="text-xl font-semibold">No Results Found</h3>
-                                <p>There is nothing similar to this. Try searching for something else.</p>
-                                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-                            </div>
-                        )}
-                    </>
-                )}
-              </div>
               {totalPages > 1 && (
                   <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
                       <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
@@ -586,3 +635,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
