@@ -340,27 +340,26 @@ export default function OrdersPage() {
                 </div>
                  <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                     <div className={cn(
-                        "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                         isSearchExpanded ? "w-full sm:w-64" : "w-auto"
+                        "relative flex items-center transition-all duration-300 ease-in-out",
+                        isSearchExpanded ? "w-full sm:w-64" : "w-auto"
                     )}>
+                        <Input 
+                            placeholder="Search orders..." 
+                            className={cn(
+                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-10 pr-4",
+                                isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
+                            )}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                          <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="text-foreground rounded-full hover:bg-accent h-9 w-9"
+                            className="absolute left-0 text-foreground rounded-full hover:bg-accent h-9 w-9"
                             onClick={() => setIsSearchExpanded(p => !p)}
                         >
                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
                         </Button>
-                        <Input 
-                            placeholder="Search orders..." 
-                            className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-4 pr-10",
-                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
-                            )}
-                            onFocus={() => setIsSearchExpanded(true)}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
                     </div>
                 </div>
             </header>
