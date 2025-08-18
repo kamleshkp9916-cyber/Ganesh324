@@ -85,9 +85,9 @@ export default function DeliveryInformationPage() {
                              <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
                                 / Overview
                             </Link>
-                            <h1 className="text-muted-foreground font-bold text-sm md:text-base hidden sm:block">
+                            <span className="text-muted-foreground text-sm md:text-base hidden sm:block">
                                 / Delivery Information
-                            </h1>
+                            </span>
                         </div>
                     </div>
                     )}
@@ -99,69 +99,71 @@ export default function DeliveryInformationPage() {
             </header>
 
             <main className="flex-grow p-4 md:p-8">
-                 {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <LoadingSpinner />
-                    </div>
-                ) : (
                 <Card className="max-w-4xl mx-auto">
-                    <CardHeader>
-                        <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
-                           <span>Order ID: {orderId}</span>
-                           <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid md:grid-cols-3 gap-8">
-                        <div className="md:col-span-1">
-                            <Card className="overflow-hidden">
-                                <CardContent className="p-4 flex flex-col items-center text-center">
-                                    <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
-                                        <Image
-                                            src={order.product.imageUrl}
-                                            alt={order.product.name}
-                                            width={200}
-                                            height={200}
-                                            className="object-cover w-full h-full"
-                                            data-ai-hint={order.product.hint}
-                                        />
+                     {loading ? (
+                        <div className="flex items-center justify-center h-96">
+                            <LoadingSpinner />
+                        </div>
+                    ) : (
+                        <>
+                            <CardHeader>
+                                <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
+                                <span>Order ID: {orderId}</span>
+                                <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid md:grid-cols-3 gap-8">
+                                <div className="md:col-span-1">
+                                    <Card className="overflow-hidden">
+                                        <CardContent className="p-4 flex flex-col items-center text-center">
+                                            <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
+                                                <Image
+                                                    src={order.product.imageUrl}
+                                                    alt={order.product.name}
+                                                    width={200}
+                                                    height={200}
+                                                    className="object-cover w-full h-full"
+                                                    data-ai-hint={order.product.hint}
+                                                />
+                                            </div>
+                                            <h3 className="font-semibold text-lg">{order.product.name}</h3>
+                                            <p className="text-primary font-bold">{order.product.price}</p>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
+                                    <div className="relative">
+                                        {/* The vertical line */}
+                                        <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
+                                        <ul className="space-y-8">
+                                            {order.timeline.map((item: any, index: number) => (
+                                                <li key={index} className="flex items-start gap-4">
+                                                    <div className={cn(
+                                                        "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
+                                                        item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                                    )}>
+                                                        {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
+                                                    </div>
+                                                    <div className="flex-grow">
+                                                        <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
+                                                            {item.status}
+                                                        </p>
+                                                        {item.date && (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {item.date} {item.time && `- ${item.time}`}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
-                                    <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                    <p className="text-primary font-bold">{order.product.price}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                        <div className="md:col-span-2">
-                             <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
-                             <div className="relative">
-                                {/* The vertical line */}
-                                <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
-                                <ul className="space-y-8">
-                                    {order.timeline.map((item: any, index: number) => (
-                                        <li key={index} className="flex items-start gap-4">
-                                            <div className={cn(
-                                                "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
-                                                item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                                            )}>
-                                                {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
-                                            </div>
-                                            <div className="flex-grow">
-                                                <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
-                                                    {item.status}
-                                                </p>
-                                                {item.date && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {item.date} {item.time && `- ${item.time}`}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                             </div>
-                        </div>
-                    </CardContent>
+                                </div>
+                            </CardContent>
+                        </>
+                    )}
                 </Card>
-                )}
             </main>
         </div>
     );
