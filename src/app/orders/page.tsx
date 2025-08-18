@@ -304,14 +304,14 @@ export default function OrdersPage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                    <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
+                    <div className={cn("items-center gap-3", isSearchExpanded ? "hidden sm:flex" : "flex")}>
                          <Avatar className="h-8 w-8 md:h-10 md:w-10">
                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                            <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors">/ Orders</Link>
+                            <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">/ Orders</Link>
                         </div>
                     </div>
                 </div>
@@ -333,10 +333,22 @@ export default function OrdersPage() {
                          <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 sm:hidden"
-                            onClick={() => setIsSearchExpanded(p => !p)}
+                            className={cn(
+                                "text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 sm:hidden",
+                                isSearchExpanded && "hidden" 
+                            )}
+                            onClick={() => setIsSearchExpanded(true)}
                         >
-                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                            <Search className="h-5 w-5" />
+                        </Button>
+                         <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 sm:hidden"
+                            onClick={() => setIsSearchExpanded(false)}
+                            style={{ display: isSearchExpanded ? 'flex' : 'none' }}
+                        >
+                             <X className="h-5 w-5" />
                         </Button>
                         <Button 
                             variant="ghost" 
@@ -389,7 +401,12 @@ export default function OrdersPage() {
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
                                 <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
-                                    <span>{order.orderId}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span>{order.orderId}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
+                                            <Clipboard className="h-3 w-3" />
+                                        </Button>
+                                    </div>
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize sm:hidden">{order.status}</Badge>
                                 </div>
                                 <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
@@ -499,3 +516,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
