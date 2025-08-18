@@ -322,7 +322,7 @@ export default function OrdersPage() {
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
              <header className="flex items-center justify-between gap-4">
                 <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
-                    <Button variant="ghost" size="icon" className="hidden sm:flex" onClick={() => router.back()}>
+                     <Button variant="ghost" size="icon" className="sm:flex hidden" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
@@ -331,8 +331,8 @@ export default function OrdersPage() {
                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-2">
-                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                             <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                             <h3 className="font-semibold text-sm md:text-lg">{user.displayName}</h3>
+                             <Link href="/orders" className="text-muted-foreground text-base hover:text-foreground transition-colors hidden sm:inline">
                                  / Orders
                              </Link>
                         </div>
@@ -342,26 +342,28 @@ export default function OrdersPage() {
                  <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                        isSearchExpanded ? "sm:w-64" : "sm:w-auto"
+                        isSearchExpanded ? "w-full sm:w-64" : "sm:w-auto"
                     )}>
-                        <Input 
-                            placeholder="Search orders..." 
-                             className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-10 pr-4 h-10",
-                                isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
-                            )}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onFocus={() => setIsSearchExpanded(true)}
-                        />
-                         <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-foreground rounded-full hover:bg-accent h-10 w-10"
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                           {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                        </Button>
+                         <div className="relative w-full">
+                            <Input 
+                                placeholder="Search orders..." 
+                                className={cn(
+                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10",
+                                    isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0"
+                                )}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setIsSearchExpanded(true)}
+                            />
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 absolute top-1/2 right-0 -translate-y-1/2"
+                                onClick={() => setIsSearchExpanded(p => !p)}
+                            >
+                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -423,7 +425,9 @@ export default function OrdersPage() {
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
                                 <div className="w-full sm:w-[13%] mb-2 sm:mb-0 flex sm:justify-center">{order.transaction.amount}</div>
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0 hidden sm:flex sm:justify-center">
-                                    <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                    <div className="flex justify-center w-full">
+                                        <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                    </div>
                                 </div>
                                 <div className="w-full sm:w-auto sm:ml-auto">
                                     <DropdownMenu>
