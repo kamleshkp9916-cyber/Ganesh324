@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, Star, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -311,10 +311,9 @@ export default function OrdersPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                <Star className="h-6 w-6 fill-current" />
-                            </Button>
-                            <span className="text-muted-foreground text-sm md:text-base hidden sm:inline">/ Overview</span>
+                            <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
+                                / Overview
+                            </Link>
                         </div>
                     </div>
                 </div>
