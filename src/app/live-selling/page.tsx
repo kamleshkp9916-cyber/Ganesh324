@@ -412,40 +412,31 @@ export default function LiveSellingPage() {
                 </AlertDialogContent>
             </AlertDialog>
             <div className="flex-1 flex flex-col">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                <header className="p-4 flex items-center justify-start sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
+                    <div className={cn("flex items-center gap-2")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
-                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary hidden sm:block", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
+                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary hidden sm:block")}>StreamCart</h1>
                     </div>
 
-                    <div className="flex items-center justify-center flex-1 min-w-0" ref={searchRef}>
-                         <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out w-full",
-                            isSearchExpanded ? "sm:w-64 lg:w-80" : "w-10"
-                        )}>
-                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? "block" : "hidden sm:block")} />
-                            <Input 
-                                placeholder="Search posts, streams..." 
-                                className={cn(
-                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10",
-                                    isSearchExpanded ? "w-full" : "w-0 p-0 border-transparent"
-                                )}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onFocus={() => setIsSearchExpanded(true)}
-                            />
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute right-0 top-1/2 -translate-y-1/2"
-                                onClick={() => setIsSearchExpanded(p => !p)}
-                            >
-                            {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                            </Button>
+                    <div className="flex items-center justify-end gap-2 ml-auto">
+                        <div className="hidden sm:flex items-center gap-2" ref={searchRef}>
+                            <div className={cn(
+                                "relative flex items-center transition-all duration-300 ease-in-out w-64 lg:w-80"
+                            )}>
+                                 <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                                <Input 
+                                    placeholder="Search posts, streams..." 
+                                    className="bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(p => !p)}>
+                            <Search className="h-5 w-5" />
+                        </Button>
+
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
