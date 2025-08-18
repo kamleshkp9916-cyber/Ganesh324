@@ -347,7 +347,7 @@ export default function OrdersPage() {
             
             <div className="bg-card p-4 rounded-lg border flex flex-col">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-bold">Order list</h3>
+                    <h3 className="text-2xl font-bold">Orders</h3>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -491,3 +491,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
