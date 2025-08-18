@@ -367,162 +367,161 @@ export default function OrdersPage() {
                     </div>
                 </div>
             </header>
-            
-            <div className="bg-card p-4 rounded-lg border flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-bold">Orders</h3>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Filter
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                
-                <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                    <span className="w-[15%]">Order ID</span>
-                    <span className="w-[28%]">Product details</span>
-                    <span className="w-[20%]">Address</span>
-                    <span className="w-[12%]">Date</span>
-                    <span className="w-[13%] flex justify-center">Transaction</span>
-                    <span className="w-[12%] flex justify-center">Status</span>
-                </div>
+            <div className="w-full max-w-7xl mx-auto">
+              <div className="bg-card p-4 rounded-lg border flex flex-col">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-2xl font-bold">Orders</h3>
+                      <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                  <Filter className="h-4 w-4 mr-2" />
+                                  Filter
+                              </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-56" align="end">
+                              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                  <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
+                                  <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                              </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                      </DropdownMenu>
+                  </div>
+                  
+                  <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                      <span className="w-[15%]">Order ID</span>
+                      <span className="w-[28%]">Product details</span>
+                      <span className="w-[20%]">Address</span>
+                      <span className="w-[12%]">Date</span>
+                      <span className="w-[13%] flex justify-center">Transaction</span>
+                      <span className="w-[12%] flex justify-center">Status</span>
+                  </div>
 
-                <div className="space-y-2 mt-2">
-                    {paginatedOrders.map((order: Order) => (
-                        <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                           <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
-                                <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                        <span>{order.orderId}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
-                                            <Clipboard className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                    <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize sm:hidden">{order.status}</Badge>
-                                </div>
-                                <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
-                                     <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                        <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                        <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
-                                    </Link>
-                                </div>
-                                <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                                <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0 flex sm:justify-center">{order.transaction.amount}</div>
-                                <div className="w-full sm:w-[12%] mb-2 sm:mb-0 hidden sm:flex sm:justify-center">
-                                    <div className="flex justify-center w-full">
-                                        <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                                    </div>
-                                </div>
-                                <div className="w-full sm:w-auto sm:ml-auto">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
-                                            <DropdownMenuLabel>Order Details</DropdownMenuLabel>
-                                            <DropdownMenuSeparator/>
-                                            <div className="p-2 space-y-2 text-sm">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="font-semibold text-muted-foreground">User ID</p>
-                                                    <div className="flex items-center gap-1">
-                                                        <span>{order.userId}</span>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                                    <div className="flex items-center justify-between">
-                                                        <p>ID: {order.transaction.id}</p>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                            <Clipboard className="h-3 w-3" />
-                                                        </Button>
-                                                    </div>
-                                                    <p>Method: {order.transaction.method}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                                    <p>{order.address.name}, {order.address.phone}</p>
-                                                    <p>{order.address.village}, {order.address.district}</p>
-                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                                    <p>{order.deliveryStatus}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-muted-foreground">Date & Time</p>
-                                                    <p className="text-xs text-muted-foreground">{order.dateTime}</p>
-                                                </div>
-                                            </div>
-                                            <DropdownMenuSeparator/>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                 {paginatedOrders.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
-                        <p>No orders found.</p>
-                    </div>
-                 )}
-                </div>
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                        <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
-                            Showing page {currentPage} of {totalPages}
-                        </div>
-                        <div className="w-full sm:w-auto mx-auto">
-                            <Pagination>
-                                <PaginationContent>
-                                    <PaginationItem>
-                                        <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                                        <ChevronLeft className="h-5 w-5" />
-                                        </Button>
-                                    </PaginationItem>
-                                    <PaginationItem className="hidden sm:block">
-                                        <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
-                                    </PaginationItem>
-                                    <PaginationItem>
-                                    <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                                        <ChevronRight className="h-5 w-5" />
-                                        </Button>
-                                    </PaginationItem>
-                                </PaginationContent>
-                            </Pagination>
-                        </div>
-                        <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
-                            <Button variant="ghost" size="sm">About</Button>
-                            <Button variant="ghost" size="sm">Support</Button>
-                            <Button variant="ghost" size="sm">Contact us</Button>
-                        </div>
-                    </div>
-                )}
+                  <div className="space-y-2 mt-2">
+                      {paginatedOrders.map((order: Order) => (
+                          <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
+                                  <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
+                                      <div className="flex items-center gap-2">
+                                          <span>{order.orderId}</span>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
+                                              <Clipboard className="h-3 w-3" />
+                                          </Button>
+                                      </div>
+                                      <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize sm:hidden">{order.status}</Badge>
+                                  </div>
+                                  <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
+                                      <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
+                                          <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
+                                          <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
+                                      </Link>
+                                  </div>
+                                  <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                                  <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
+                                  <div className="w-full sm:w-[13%] mb-2 sm:mb-0 flex sm:justify-center">{order.transaction.amount}</div>
+                                  <div className="w-full sm:w-[12%] mb-2 sm:mb-0 hidden sm:flex sm:justify-center">
+                                      <div className="flex justify-center w-full">
+                                          <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
+                                      </div>
+                                  </div>
+                                  <div className="w-full sm:w-auto sm:ml-auto">
+                                      <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                                  <MoreHorizontal className="h-4 w-4" />
+                                              </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
+                                              <DropdownMenuLabel>Order Details</DropdownMenuLabel>
+                                              <DropdownMenuSeparator/>
+                                              <div className="p-2 space-y-2 text-sm">
+                                                  <div className="flex items-center justify-between">
+                                                      <p className="font-semibold text-muted-foreground">User ID</p>
+                                                      <div className="flex items-center gap-1">
+                                                          <span>{order.userId}</span>
+                                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                              <Clipboard className="h-3 w-3" />
+                                                          </Button>
+                                                      </div>
+                                                  </div>
+                                                  <div>
+                                                      <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
+                                                      <div className="flex items-center justify-between">
+                                                          <p>ID: {order.transaction.id}</p>
+                                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                              <Clipboard className="h-3 w-3" />
+                                                          </Button>
+                                                      </div>
+                                                      <p>Method: {order.transaction.method}</p>
+                                                  </div>
+                                                  <div>
+                                                      <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
+                                                      <p>{order.address.name}, {order.address.phone}</p>
+                                                      <p>{order.address.village}, {order.address.district}</p>
+                                                      <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                  </div>
+                                                  <div>
+                                                      <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                      <p>{order.deliveryStatus}</p>
+                                                  </div>
+                                                  <div>
+                                                      <p className="font-semibold text-muted-foreground">Date & Time</p>
+                                                      <p className="text-xs text-muted-foreground">{order.dateTime}</p>
+                                                  </div>
+                                              </div>
+                                              <DropdownMenuSeparator/>
+                                          </DropdownMenuContent>
+                                      </DropdownMenu>
+                                  </div>
+                              </div>
+                          </div>
+                      ))}
+                  {paginatedOrders.length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground">
+                          <p>No orders found.</p>
+                      </div>
+                  )}
+                  </div>
+                  {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
+                          <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
+                              Showing page {currentPage} of {totalPages}
+                          </div>
+                          <div className="w-full sm:w-auto mx-auto">
+                              <Pagination>
+                                  <PaginationContent>
+                                      <PaginationItem>
+                                          <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                          <ChevronLeft className="h-5 w-5" />
+                                          </Button>
+                                      </PaginationItem>
+                                      <PaginationItem className="hidden sm:block">
+                                          <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
+                                      </PaginationItem>
+                                      <PaginationItem>
+                                      <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                          <ChevronRight className="h-5 w-5" />
+                                          </Button>
+                                      </PaginationItem>
+                                  </PaginationContent>
+                              </Pagination>
+                          </div>
+                          <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
+                              <Button variant="ghost" size="sm">About</Button>
+                              <Button variant="ghost" size="sm">Support</Button>
+                              <Button variant="ghost" size="sm">Contact us</Button>
+                          </div>
+                      </div>
+                  )}
+              </div>
             </div>
         </main>
       </div>
     </div>
   );
 }
-
-    
