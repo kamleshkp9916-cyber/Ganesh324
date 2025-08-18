@@ -62,7 +62,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -266,7 +265,6 @@ export default function LiveSellingPage() {
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("live");
-  const createPostFormRef = useRef<HTMLDivElement>(null);
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -327,34 +325,11 @@ export default function LiveSellingPage() {
     setMockFollowingFeed(initialMockFeed);
   }, []);
 
-  const handleCreatePost = (postData: PostData) => {
-    if (!handleAuthAction()) return;
-
-    const newPost = {
-      id: mockFollowingFeed.length + 1,
-      sellerName: user!.displayName || 'You',
-      avatarUrl: user!.photoURL || 'https://placehold.co/40x40.png',
-      timestamp: 'Just now',
-      content: postData.content,
-      productImageUrl: postData.media?.url || undefined,
-      hint: 'new user post',
-      likes: 0,
-      replies: 0,
-      location: postData.location,
-    };
-
-    setMockFollowingFeed([newPost, ...mockFollowingFeed]);
-    toast({
-      title: "Post Created!",
-      description: "Your post has been added to the feed.",
-    });
-  };
-
   const handleReply = (sellerName: string) => {
     if (!handleAuthAction()) return;
     setReplyTo(sellerName);
     // Smooth scroll to the form if it exists
-    createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   
   const handleClearReply = () => {
@@ -452,13 +427,14 @@ export default function LiveSellingPage() {
                     <div className="flex items-center justify-center sm:justify-end gap-2 flex-1" ref={searchRef}>
                          <div className={cn(
                             "relative flex items-center transition-all duration-300 ease-in-out",
-                            isSearchExpanded ? "w-full md:w-64 lg:w-80" : "w-10"
+                            isSearchExpanded ? "w-full sm:w-64 lg:w-80" : "w-10"
                         )}>
+                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? "block" : "hidden")} />
                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10",
-                                    isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 border-transparent"
+                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                    isSearchExpanded ? "w-full" : "w-0 p-0 border-transparent"
                                 )}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -467,8 +443,7 @@ export default function LiveSellingPage() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2"
-                                style={{ right: isSearchExpanded ? '0' : '-10px' }}
+                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute right-0 top-1/2 -translate-y-1/2"
                                 onClick={() => setIsSearchExpanded(p => !p)}
                             >
                             {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
