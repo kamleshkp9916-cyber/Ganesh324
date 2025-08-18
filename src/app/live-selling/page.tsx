@@ -469,12 +469,12 @@ export default function LiveSellingPage() {
                            <Skeleton className="h-9 w-24 rounded-full" />
                         ) : user ? (
                            <>
-                            <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded && "w-full sm:w-64 md:w-80")}>
+                            <div className={cn("relative flex items-center transition-all duration-300 ease-in-out", isSearchExpanded ? "w-full sm:w-64 md:w-80" : "w-auto sm:w-auto")}>
                                 <Input
                                     placeholder="Search posts, streams..."
                                     className={cn(
                                         "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                        isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
+                                        isSearchExpanded ? "w-full opacity-100" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
                                     )}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -483,132 +483,138 @@ export default function LiveSellingPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
+                                    className={cn(
+                                        "text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0",
+                                        isSearchExpanded ? "absolute left-0 top-1/2 -translate-y-1/2" : "relative sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
+                                    )}
                                     onClick={() => setIsSearchExpanded(p => !p)}
                                 >
                                     <Search className="h-5 w-5" />
                                 </Button>
                             </div>
-                            <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
-                                <Plus />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
-                                <Bell />
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Avatar className="h-9 w-9 cursor-pointer ml-2">
-                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                    </Avatar>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-64" align="end" forceMount>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                        </DropdownMenuItem>
-                                         <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>
-                                                <Users className="mr-2 h-4 w-4" />
-                                                <span>Following</span>
-                                                <span className="ml-auto">{followingList.length}</span>
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent className="p-0">
-                                                    <DropdownMenuLabel>
-                                                        <div className="flex items-center justify-between">
-                                                          <span>Following</span>
-                                                          <Badge variant="secondary">{followingList.length}</Badge>
-                                                        </div>
-                                                    </DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                     <ScrollArea className="h-48">
-                                                        <div className="p-1">
-                                                            {followingList.length > 0 ? (
-                                                                followingList.map((followedUser) => (
-                                                                    <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
-                                                                        <Link href={`/profile?userId=${followedUser.id}`} className="flex items-center gap-2 flex-grow">
-                                                                            <Avatar className="h-6 w-6">
-                                                                                <AvatarImage src={followedUser.avatar} />
-                                                                                <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
-                                                                            </Avatar>
-                                                                            <span className="text-xs">{followedUser.name}</span>
-                                                                        </Link>
-                                                                        <Button variant="outline" size="sm" className="h-6 px-2 text-xs ml-2" onClick={(e) => handleUnfollow(e, followedUser.id)}>
-                                                                            Unfollow
-                                                                        </Button>
-                                                                    </DropdownMenuItem>
-                                                                ))
-                                                            ) : (
-                                                                <div className="text-center text-xs text-muted-foreground p-4">
-                                                                    Not following anyone.
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </ScrollArea>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                                            <span>Theme</span>
-                                            <div className="ml-auto">
-                                                <ThemeSwitcher />
+
+                            <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                    <Plus />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                    <Bell />
+                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Avatar className="h-9 w-9 cursor-pointer ml-2">
+                                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                        </Avatar>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-64" align="end" forceMount>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                {user.email}
+                                                </p>
                                             </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/top-seller"><Award className="mr-2 h-4 w-4" /><span>Top Seller</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>
+                                                    <Users className="mr-2 h-4 w-4" />
+                                                    <span>Following</span>
+                                                    <span className="ml-auto">{followingList.length}</span>
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent className="p-0">
+                                                        <DropdownMenuLabel>
+                                                            <div className="flex items-center justify-between">
+                                                            <span>Following</span>
+                                                            <Badge variant="secondary">{followingList.length}</Badge>
+                                                            </div>
+                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuSeparator />
+                                                        <ScrollArea className="h-48">
+                                                            <div className="p-1">
+                                                                {followingList.length > 0 ? (
+                                                                    followingList.map((followedUser) => (
+                                                                        <DropdownMenuItem key={followedUser.id} className="justify-between" onSelect={(e) => e.preventDefault()}>
+                                                                            <Link href={`/profile?userId=${followedUser.id}`} className="flex items-center gap-2 flex-grow">
+                                                                                <Avatar className="h-6 w-6">
+                                                                                    <AvatarImage src={followedUser.avatar} />
+                                                                                    <AvatarFallback>{followedUser.name.charAt(0)}</AvatarFallback>
+                                                                                </Avatar>
+                                                                                <span className="text-xs">{followedUser.name}</span>
+                                                                            </Link>
+                                                                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs ml-2" onClick={(e) => handleUnfollow(e, followedUser.id)}>
+                                                                                Unfollow
+                                                                            </Button>
+                                                                        </DropdownMenuItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="text-center text-xs text-muted-foreground p-4">
+                                                                        Not following anyone.
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </ScrollArea>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                                                <span>Theme</span>
+                                                <div className="ml-auto">
+                                                    <ThemeSwitcher />
+                                                </div>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                            <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={signOut}>
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            <span>Log Out</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                        <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Log Out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                             </>
                         ) : (
-                            <div className="flex items-center gap-2">
+                            <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden")}>
                                 <Button asChild variant="outline" size="sm">
                                     <Link href="/">Login</Link>
                                 </Button>
