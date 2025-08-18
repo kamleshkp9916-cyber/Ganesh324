@@ -79,14 +79,17 @@ export default function DeliveryInformationPage() {
                              <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
                                 / Overview
                             </Link>
+                            <h1 className="text-muted-foreground font-bold text-sm md:text-base hidden sm:block">
+                                / Delivery Information
+                            </h1>
                         </div>
                     </div>
                     )}
                 </div>
-                <h1 className="text-xl font-bold hidden sm:block">
-                  <span className="text-muted-foreground">/</span> Delivery Information
+                <h1 className="text-xl font-bold sm:hidden">
+                    Delivery Information
                 </h1>
-                <div className="w-10"></div>
+                <div className="w-10 sm:w-0"></div>
             </header>
 
             <main className="flex-grow p-4 md:p-8">
