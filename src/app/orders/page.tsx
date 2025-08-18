@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -404,7 +405,7 @@ export default function OrdersPage() {
 
                     <div className="space-y-2 mt-2">
                         {paginatedOrders.map((order: Order) => (
-                            <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+                            <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center text-xs sm:text-sm p-2 sm:p-4">
                                     <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
                                         <div className="flex items-center gap-2">
@@ -429,55 +430,55 @@ export default function OrdersPage() {
                                             <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                         </div>
                                     </div>
-                                    <div className="w-full sm:w-auto sm:ml-auto">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
-                                                <DropdownMenuLabel>Order Details</DropdownMenuLabel>
-                                                <DropdownMenuSeparator/>
-                                                <div className="p-2 space-y-2 text-sm">
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="font-semibold text-muted-foreground">User ID</p>
-                                                        <div className="flex items-center gap-1">
-                                                            <span>{order.userId}</span>
-                                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                                <Clipboard className="h-3 w-3" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                                        <div className="flex items-center justify-between">
-                                                            <p>ID: {order.transaction.id}</p>
-                                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                                <Clipboard className="h-3 w-3" />
-                                                            </Button>
-                                                        </div>
-                                                        <p>Method: {order.transaction.method}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                                        <p>{order.address.name}, {order.address.phone}</p>
-                                                        <p>{order.address.village}, {order.address.district}</p>
-                                                        <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                                        <p>{order.deliveryStatus}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-muted-foreground">Date & Time</p>
-                                                        <p className="text-xs text-muted-foreground">{order.dateTime}</p>
+                                </div>
+                                <div className="absolute top-1 right-1 sm:top-1/2 sm:-translate-y-1/2 sm:right-2">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenuLabel>Order Details</DropdownMenuLabel>
+                                            <DropdownMenuSeparator/>
+                                            <div className="p-2 space-y-2 text-sm">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="font-semibold text-muted-foreground">User ID</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <span>{order.userId}</span>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                                <DropdownMenuSeparator/>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
+                                                    <div className="flex items-center justify-between">
+                                                        <p>ID: {order.transaction.id}</p>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
+                                                            <Clipboard className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                    <p>Method: {order.transaction.method}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
+                                                    <p>{order.address.name}, {order.address.phone}</p>
+                                                    <p>{order.address.village}, {order.address.district}</p>
+                                                    <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground">Delivery Status</p>
+                                                    <p>{order.deliveryStatus}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-muted-foreground">Date & Time</p>
+                                                    <p className="text-xs text-muted-foreground">{order.dateTime}</p>
+                                                </div>
+                                            </div>
+                                            <DropdownMenuSeparator/>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             </div>
                         ))}
@@ -525,5 +526,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
