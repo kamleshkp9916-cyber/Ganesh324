@@ -363,10 +363,10 @@ export default function OrdersPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
           <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden md:flex")}>
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden md:inline-flex">
+              <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:inline-flex">
                   <ArrowLeft className="h-5 w-5" />
               </Button>
-                  <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
+              <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
                   <Avatar className="h-8 w-8 md:h-10 md:w-10">
                       <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
@@ -382,29 +382,27 @@ export default function OrdersPage() {
 
           <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
               <div className={cn(
-                  "relative flex items-center transition-all duration-300 ease-in-out w-full md:w-auto",
-                  isSearchExpanded ? "w-full md:w-64" : "w-10 md:w-auto"
+                  "relative flex items-center transition-all duration-300 ease-in-out w-full",
+                   isSearchExpanded ? "w-full" : "w-10"
               )}>
-                  <div className="relative w-full">
-                      <Input 
-                          placeholder="Search orders..." 
-                          className={cn(
-                              "bg-background rounded-full transition-all duration-300 ease-in-out h-10",
-                              isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0 md:w-auto md:opacity-100"
-                          )}
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          onFocus={() => setIsSearchExpanded(true)}
-                      />
-                      <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-foreground rounded-full hover:bg-accent h-10 w-10 absolute top-1/2 right-0 -translate-y-1/2"
-                          onClick={() => setIsSearchExpanded(p => !p)}
-                      >
-                      {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                      </Button>
-                  </div>
+                  <Input 
+                      placeholder="Search orders..." 
+                      className={cn(
+                          "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
+                          isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
+                      )}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onFocus={() => setIsSearchExpanded(true)}
+                  />
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0"
+                      onClick={() => setIsSearchExpanded(p => !p)}
+                  >
+                  {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                  </Button>
               </div>
           </div>
       </header>
