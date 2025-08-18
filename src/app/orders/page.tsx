@@ -529,14 +529,25 @@ export default function OrdersPage() {
                           </div>
                       </div>
                   ))}
-              {paginatedOrders.length === 0 && user && (
-                  <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                      <EmptyBoxIcon className="w-16 h-16 text-border" />
-                      <h3 className="text-xl font-semibold">No Orders Yet</h3>
-                      <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
-                      <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-                  </div>
-              )}
+                {paginatedOrders.length === 0 && user && (
+                    <>
+                        {orders.length === 0 ? (
+                            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                <EmptyBoxIcon className="w-16 h-16 text-border" />
+                                <h3 className="text-xl font-semibold">No Orders Yet</h3>
+                                <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
+                                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                <Search className="w-16 h-16 text-border" />
+                                <h3 className="text-xl font-semibold">No Results Found</h3>
+                                <p>There is nothing similar to this. Try searching for something else.</p>
+                                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+                            </div>
+                        )}
+                    </>
+                )}
               </div>
               {totalPages > 1 && (
                   <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
