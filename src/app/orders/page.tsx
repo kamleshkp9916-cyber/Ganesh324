@@ -317,10 +317,10 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden p-2 sm:p-0">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-grow md:p-6 flex flex-col gap-6 overflow-y-auto">
-             <header className="flex items-center justify-between gap-4 p-2 sm:p-0">
+        <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto">
+             <header className="flex items-center justify-between gap-4">
                 <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden sm:inline-flex">
                         <ArrowLeft className="h-5 w-5" />
@@ -524,3 +524,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
