@@ -431,7 +431,7 @@ export default function OrdersPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="absolute top-1 right-1 sm:top-1/2 sm:-translate-y-1/2 sm:right-2">
+                                <div className="absolute bottom-1 right-1 sm:top-1/2 sm:-translate-y-1/2 sm:right-2">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
