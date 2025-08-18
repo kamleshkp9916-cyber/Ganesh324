@@ -451,8 +451,8 @@ export default function LiveSellingPage() {
 
                     <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                          <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out w-full",
-                            isSearchExpanded ? "w-full" : "w-10"
+                            "relative flex items-center transition-all duration-300 ease-in-out w-full md:w-auto",
+                            isSearchExpanded ? "w-full md:w-64 lg:w-80" : "w-10"
                         )}>
                             <Input 
                                 placeholder="Search posts, streams..." 
