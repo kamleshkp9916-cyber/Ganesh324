@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 
 // Mock data - in a real app, you'd fetch this based on the orderId
@@ -60,6 +61,11 @@ export default function DeliveryInformationPage() {
     const { user, loading } = useAuth();
     const orderId = decodeURIComponent(params.orderId as string);
     const order = (mockOrderData as any)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback to a default for demo
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -68,7 +74,7 @@ export default function DeliveryInformationPage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                    {!loading && user && (
+                    {isMounted && !loading && user && (
                     <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
                              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
