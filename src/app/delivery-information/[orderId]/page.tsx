@@ -94,8 +94,8 @@ export default function DeliveryInformationPage() {
                                 <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="grid md:grid-cols-3 gap-8">
-                                <div className="md:col-span-1">
+                            <CardContent className="grid lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-1">
                                     <Card className="overflow-hidden">
                                         <CardContent className="p-4 flex flex-col items-center text-center">
                                             <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
@@ -113,7 +113,7 @@ export default function DeliveryInformationPage() {
                                         </CardContent>
                                     </Card>
                                 </div>
-                                <div className="md:col-span-2">
+                                <div className="lg:col-span-2">
                                     <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
                                     <div className="relative">
                                         {/* The vertical line */}

@@ -322,17 +322,17 @@ export default function OrdersPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
           <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden sm:inline-flex">
+              <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden md:inline-flex">
                   <ArrowLeft className="h-5 w-5" />
               </Button>
                   <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
-                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                  <Avatar className="h-8 w-8 md:h-10 md:w-10">
                       <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm sm:text-base whitespace-nowrap">{user.displayName}</h3>
-                          <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                          <h3 className="font-semibold text-sm md:text-base whitespace-nowrap">{user.displayName}</h3>
+                          <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden md:inline">
                               / Orders
                           </Link>
                   </div>
@@ -393,7 +393,7 @@ export default function OrdersPage() {
                   </DropdownMenu>
               </div>
               
-              <div className="hidden sm:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
+              <div className="hidden md:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
                   <span className="w-[15%]">Order ID</span>
                   <span className="w-[28%]">Product details</span>
                   <span className="w-[20%]">Address</span>
@@ -405,32 +405,32 @@ export default function OrdersPage() {
               <div className="space-y-2 mt-2 flex-grow">
                   {paginatedOrders.map((order: Order) => (
                       <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center text-xs sm:text-sm p-2 sm:p-4">
-                              <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
+                      <div className="flex flex-col md:flex-row items-start md:items-center text-xs md:text-sm p-2 md:p-4">
+                              <div className="w-full md:w-[15%] font-medium mb-2 md:mb-0 flex justify-between items-center">
                                   <div className="flex items-center gap-2">
                                       <span>{order.orderId}</span>
                                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
                                           <Clipboard className="h-3 w-3" />
                                       </Button>
                                   </div>
-                                  <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize sm:hidden">{order.status}</Badge>
+                                  <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize md:hidden">{order.status}</Badge>
                               </div>
-                              <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
+                              <div className="w-full md:w-[28%] mb-2 md:mb-0">
                                   <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                       <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                       <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                   </Link>
                               </div>
-                              <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                              <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                              <div className="w-full sm:w-[13%] mb-2 sm:mb-0 flex sm:justify-center">{order.transaction.amount}</div>
-                              <div className="w-full sm:w-[12%] mb-2 sm:mb-0 hidden sm:flex sm:justify-center">
+                              <div className="w-full md:w-[20%] truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                              <div className="w-full md:w-[12%] mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
+                              <div className="w-full md:w-[13%] mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
+                              <div className="w-full md:w-[12%] mb-2 md:mb-0 hidden md:flex md:justify-center">
                                   <div className="flex justify-center w-full">
                                       <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                   </div>
                               </div>
                           </div>
-                          <div className="absolute bottom-1 right-1 sm:top-1/2 sm:-translate-y-1/2 sm:right-2">
+                          <div className="absolute bottom-1 right-1 md:top-1/2 md:-translate-y-1/2 md:right-2">
                               <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
