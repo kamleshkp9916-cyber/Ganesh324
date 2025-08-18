@@ -464,29 +464,30 @@ export default function LiveSellingPage() {
                         <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 ml-auto">
+                    <div className="flex items-center justify-end gap-2 ml-auto" ref={searchRef}>
                          {user && (
-                            <div className="hidden sm:flex items-center gap-2" ref={searchRef}>
-                                <div className={cn(
-                                    "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-64 lg:w-80"
-                                )}>
-                                    <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                                    <Input 
-                                        placeholder="Search posts, streams..." 
-                                        className="bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
+                            <div className={cn("relative flex items-center transition-all duration-300 ease-in-out", isSearchExpanded ? "w-full sm:w-64 md:w-80" : "w-10")}>
+                                <Input
+                                    placeholder="Search posts, streams..."
+                                    className={cn(
+                                        "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
+                                        isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setIsSearchExpanded(true)}
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0"
+                                    onClick={() => setIsSearchExpanded(p => !p)}
+                                >
+                                {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                                </Button>
                             </div>
                          )}
 
-                        {user && (
-                            <Button variant="ghost" size="icon" className="text-foreground rounded-full hover:bg-accent sm:hidden" onClick={() => setIsSearchExpanded(p => !p)}>
-                                <Search className="h-5 w-5" />
-                            </Button>
-                        )}
-                        
                         <div className="h-9 flex items-center justify-center">
                             {!isMounted || authLoading ? (
                                <Skeleton className="h-9 w-9 rounded-full" />
@@ -596,7 +597,7 @@ export default function LiveSellingPage() {
                                             <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem asChild>
-                                            <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term & Conditions</span></Link>
+                                            <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem asChild>
                                             <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
@@ -622,6 +623,7 @@ export default function LiveSellingPage() {
                             )}
                             </div>
                         </div>
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-2 md:p-4">
@@ -955,5 +957,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
