@@ -12,6 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { Footer } from '@/components/footer';
 
 
 // Mock data - in a real app, you'd fetch this based on the orderId
@@ -146,6 +147,7 @@ export default function DeliveryInformationPage() {
                     )}
                 </Card>
             </main>
+            <Footer />
         </div>
     );
 }
