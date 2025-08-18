@@ -326,11 +326,14 @@ export default function OrdersPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                             <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                             <Link href="/orders" className="text-muted-foreground text-base hover:text-foreground transition-colors hidden sm:inline">
                                 / Orders
                             </Link>
                         </div>
                     </div>
+                    <h1 className={cn("text-xl font-bold", !isSearchExpanded ? "block sm:hidden" : "hidden")}>
+                        Orders
+                    </h1>
                 </div>
                  <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                     <div className={cn(
