@@ -317,21 +317,21 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden p-2 sm:p-0">
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto">
-             <header className="flex items-center justify-between gap-4">
+        <main className="flex-grow md:p-6 flex flex-col gap-6 overflow-y-auto">
+             <header className="flex items-center justify-between gap-4 p-2 sm:p-0">
                 <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden sm:inline-flex">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
-                        <Avatar className={cn("h-8 w-8 md:h-10 md:w-10", isSearchExpanded && "hidden")}>
+                     <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className={cn("flex items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
-                             <h3 className="font-semibold text-sm md:text-base whitespace-nowrap">{user.displayName}</h3>
+                        <div className="flex items-center gap-2">
+                             <h3 className="font-semibold text-sm sm:text-base whitespace-nowrap">{user.displayName}</h3>
                              <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
                                  / Orders
                              </Link>
@@ -524,5 +524,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
