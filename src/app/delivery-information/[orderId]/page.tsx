@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, Star } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -60,14 +60,6 @@ export default function DeliveryInformationPage() {
     const orderId = decodeURIComponent(params.orderId as string);
     const order = (mockOrderData as any)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback to a default for demo
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner />
-            </div>
-        )
-    }
-
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
@@ -75,7 +67,7 @@ export default function DeliveryInformationPage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                    {user && (
+                    {!loading && user && (
                     <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
                              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
@@ -94,6 +86,11 @@ export default function DeliveryInformationPage() {
             </header>
 
             <main className="flex-grow p-4 md:p-8">
+                 {loading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <LoadingSpinner />
+                    </div>
+                ) : (
                 <Card className="max-w-4xl mx-auto">
                     <CardHeader>
                         <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
@@ -151,9 +148,8 @@ export default function DeliveryInformationPage() {
                         </div>
                     </CardContent>
                 </Card>
+                )}
             </main>
         </div>
     );
 }
-
-    
