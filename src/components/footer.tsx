@@ -74,23 +74,24 @@ export function Footer() {
           
           <div>
             <h3 className="text-lg font-semibold text-foreground mb-4">Get Our App</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-                Download our mobile app for the best live shopping experience.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-                <Button variant="outline" className="w-full sm:w-auto justify-center">
-                    <AppleIcon className="mr-2 h-5 w-5" />
-                    <div>
-                        <div className="text-xs">Download on the</div>
-                        <div className="text-sm font-semibold">App Store</div>
-                    </div>
+            <div className="flex flex-col space-y-3">
+                <Button asChild variant="outline" className="justify-start h-12">
+                    <Link href="#">
+                        <AppleIcon className="mr-3 h-6 w-6" />
+                        <div className="text-left">
+                            <div className="text-xs text-muted-foreground">Download on the</div>
+                            <div className="text-base font-semibold">App Store</div>
+                        </div>
+                    </Link>
                 </Button>
-                <Button variant="outline" className="w-full sm:w-auto justify-center">
-                    <GooglePlayIcon className="mr-2 h-5 w-5" />
-                     <div>
-                        <div className="text-xs">GET IT ON</div>
-                        <div className="text-sm font-semibold">Google Play</div>
-                    </div>
+                <Button asChild variant="outline" className="justify-start h-12">
+                    <Link href="#">
+                        <GooglePlayIcon className="mr-3 h-6 w-6" />
+                        <div className="text-left">
+                            <div className="text-xs text-muted-foreground">GET IT ON</div>
+                            <div className="text-base font-semibold">Google Play</div>
+                        </div>
+                    </Link>
                 </Button>
             </div>
           </div>
