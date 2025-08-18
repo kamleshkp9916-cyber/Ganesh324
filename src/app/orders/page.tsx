@@ -32,6 +32,7 @@ const mockOrders = [
       status: "On Way",
       transaction: { id: "TRN123456789", amount: "₹12,500.00", method: "Credit Card" },
       deliveryStatus: "In transit to Delhi",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5907",
@@ -44,6 +45,7 @@ const mockOrders = [
       status: "In Progress",
       transaction: { id: "TRN123456800", amount: "₹15,000.00", method: "UPI" },
       deliveryStatus: "Processing order",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5905",
@@ -56,6 +58,7 @@ const mockOrders = [
       status: "Pending",
       transaction: { id: "TRN123456795", amount: "₹7,800.00", method: "Pending Confirmation" },
       deliveryStatus: "Awaiting payment confirmation",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5906",
@@ -68,6 +71,7 @@ const mockOrders = [
       status: "Pending",
       transaction: { id: "TRN123456799", amount: "₹9,500.00", method: "Pending Confirmation" },
       deliveryStatus: "Awaiting payment confirmation",
+      deliveryDate: null
     },
      {
       orderId: "#STREAM5904",
@@ -80,6 +84,7 @@ const mockOrders = [
       status: "In Progress",
       transaction: { id: "TRN123456794", amount: "₹3,500.00", method: "UPI" },
       deliveryStatus: "Processing order",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5897",
@@ -92,6 +97,7 @@ const mockOrders = [
       status: "Completed",
       transaction: { id: "TRN123456790", amount: "₹4,999.00", method: "UPI" },
       deliveryStatus: "Delivered",
+      deliveryDate: "27/07/2024 11:30 AM"
     },
     {
       orderId: "#STREAM5898",
@@ -104,6 +110,7 @@ const mockOrders = [
       status: "Completed",
       transaction: { id: "TRN123456791", amount: "₹6,200.00", method: "Net Banking" },
       deliveryStatus: "Delivered",
+      deliveryDate: "26/07/2024 01:00 PM"
     },
     {
       orderId: "#STREAM5899",
@@ -116,6 +123,7 @@ const mockOrders = [
       status: "Cancelled",
       transaction: { id: "TRN123456792", amount: "₹8,750.00", method: "Credit Card" },
       deliveryStatus: "Cancelled by user",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5900",
@@ -128,6 +136,7 @@ const mockOrders = [
       status: "Completed",
       transaction: { id: "TRN123456793", amount: "₹2,100.00", method: "Cash on Delivery" },
       deliveryStatus: "Delivered",
+      deliveryDate: "25/07/2024 07:00 PM"
     },
     {
       orderId: "#STREAM5901",
@@ -140,6 +149,7 @@ const mockOrders = [
       status: "Completed",
       transaction: { id: "TRN123456796", amount: "₹1,500.00", method: "Credit Card" },
       deliveryStatus: "Delivered",
+      deliveryDate: "24/07/2024 10:00 AM"
     },
     {
       orderId: "#STREAM5902",
@@ -152,6 +162,7 @@ const mockOrders = [
       status: "On Way",
       transaction: { id: "TRN123456797", amount: "₹3,200.00", method: "UPI" },
       deliveryStatus: "Out for delivery",
+      deliveryDate: null
     },
     {
       orderId: "#STREAM5903",
@@ -164,6 +175,7 @@ const mockOrders = [
       status: "Cancelled",
       transaction: { id: "TRN123456798", amount: "₹4,500.00", method: "Credit Card" },
       deliveryStatus: "Cancelled by seller",
+      deliveryDate: null
     }
 ];
 
@@ -330,30 +342,37 @@ export default function OrdersPage() {
       router.push(`/delivery-information/${encodedOrderId}`);
   }
   
-  const getEstimatedDelivery = (order: Order) => {
+  const getDeliveryDateInfo = (order: Order) => {
      try {
+        if (order.status === 'Completed' && order.deliveryDate) {
+            const parsedDate = parse(order.deliveryDate, 'dd/MM/yyyy hh:mm a', new Date());
+            return { label: 'Delivered on', date: format(parsedDate, 'dd MMM yyyy')};
+        }
+        if (order.status === 'Cancelled' || order.status === 'Pending') {
+            return { label: 'Delivery Status', date: "N/A" };
+        }
         const parsedDate = parse(order.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
-        const deliveryDate = addDays(parsedDate, 5);
-        return format(deliveryDate, 'dd MMM');
+        const deliveryDate = addDays(parsedDate, 6);
+        return { label: 'Est. Delivery', date: format(deliveryDate, 'dd MMM yyyy') };
     } catch {
-        return "N/A";
+        return { label: 'Est. Delivery', date: "N/A" };
     }
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
-          <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
+          <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden md:flex")}>
               <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden md:inline-flex">
                   <ArrowLeft className="h-5 w-5" />
               </Button>
-                  <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                  <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
                   <Avatar className="h-8 w-8 md:h-10 md:w-10">
                       <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-sm md:text-base whitespace-nowrap">{user.displayName}</h3>
+                          <h3 className="font-semibold text-xs md:text-base whitespace-nowrap">{user.displayName}</h3>
                           <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden md:inline">
                               / Orders
                           </Link>
@@ -363,15 +382,15 @@ export default function OrdersPage() {
 
           <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
               <div className={cn(
-                  "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                  isSearchExpanded ? "w-full sm:w-64" : "sm:w-auto"
+                  "relative flex items-center transition-all duration-300 ease-in-out w-full md:w-auto",
+                  isSearchExpanded ? "w-full md:w-64" : "md:w-auto"
               )}>
                       <div className="relative w-full">
                       <Input 
                           placeholder="Search orders..." 
                           className={cn(
                               "bg-background rounded-full transition-all duration-300 ease-in-out h-10",
-                              isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0"
+                              isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0 md:opacity-100 md:w-auto"
                           )}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
@@ -390,7 +409,7 @@ export default function OrdersPage() {
           </div>
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto">
-          <div className="bg-card p-2 sm:p-4 rounded-lg border flex flex-col h-full">
+          <div className="bg-card p-2 md:p-4 rounded-lg border flex flex-col h-full">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-bold">Orders</h3>
                    {orders.length > 0 && (
@@ -417,20 +436,20 @@ export default function OrdersPage() {
                    )}
               </div>
               
-              <div className="hidden md:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                  <span className="w-[15%]">Order ID</span>
-                  <span className="w-[28%]">Product details</span>
-                  <span className="w-[20%]">Address</span>
-                  <span className="w-[12%]">Date</span>
-                  <span className="w-[13%] flex justify-center">Transaction</span>
-                  <span className="w-[12%] flex justify-center">Status</span>
+              <div className="hidden md:grid grid-cols-[15%_28%_20%_12%_13%_12%] items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                  <span>Order ID</span>
+                  <span>Product details</span>
+                  <span>Address</span>
+                  <span>Date</span>
+                  <span className="text-center">Transaction</span>
+                  <span className="text-center">Status</span>
               </div>
 
               <div className="space-y-2 mt-2 flex-grow">
                   {paginatedOrders.map((order: Order) => (
                       <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                      <div className="flex flex-col md:flex-row items-start md:items-center text-xs md:text-sm p-2 md:p-4">
-                              <div className="w-full md:w-[15%] font-medium mb-2 md:mb-0 flex justify-between items-center">
+                      <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 md:p-4">
+                              <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
                                   <div className="flex items-center gap-2">
                                       <span>{order.orderId}</span>
                                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
@@ -439,16 +458,16 @@ export default function OrdersPage() {
                                   </div>
                                   <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize md:hidden">{order.status}</Badge>
                               </div>
-                              <div className="w-full md:w-[28%] mb-2 md:mb-0">
+                              <div className="w-full mb-2 md:mb-0">
                                   <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                       <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
                                       <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
                                   </Link>
                               </div>
-                              <div className="w-full md:w-[20%] truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                              <div className="w-full md:w-[12%] mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                              <div className="w-full md:w-[13%] mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
-                              <div className="w-full md:w-[12%] mb-2 md:mb-0 hidden md:flex md:justify-center">
+                              <div className="w-full truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
+                              <div className="w-full mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
+                              <div className="w-full mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
+                              <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
                                   <div className="flex justify-center w-full">
                                       <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                   </div>
@@ -468,9 +487,9 @@ export default function OrdersPage() {
                                           <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-1.5 font-semibold text-muted-foreground">
                                                     <CalendarClock className="h-4 w-4" />
-                                                    <span>Est. Delivery</span>
+                                                    <span>{getDeliveryDateInfo(order).label}</span>
                                                 </div>
-                                                <span>{getEstimatedDelivery(order)}</span>
+                                                <span>{getDeliveryDateInfo(order).date}</span>
                                             </div>
                                           <div className="flex items-center justify-between">
                                               <p className="font-semibold text-muted-foreground">User ID</p>

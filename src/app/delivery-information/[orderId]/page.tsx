@@ -42,6 +42,15 @@ const mockOrderData = {
             { status: "Out for Delivery", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
             { status: "Product delivered successfully", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
         ]
+    },
+    "#STREAM5899": {
+        product: { name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch" },
+        status: "Cancelled",
+        orderDate: "Jul 25, 2024",
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 25, 2024", time: "11:45 AM", completed: true },
+            { status: "Cancelled by user", date: "Jul 25, 2024", time: "12:00 PM", completed: true },
+        ]
     }
 };
 
@@ -51,11 +60,11 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
     if (status.toLowerCase().includes("shipped") || status.toLowerCase().includes("transit")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered") || status.toLowerCase().includes('cancelled')) return <Home className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
 
-type Order = typeof mockOrderData['#STREAM5896'];
+type Order = (typeof mockOrderData)['#STREAM5896'];
 
 export default function DeliveryInformationPage() {
     const router = useRouter();
@@ -135,7 +144,7 @@ export default function DeliveryInformationPage() {
                 <div className="w-10"></div>
             </header>
 
-            <main className="flex-grow p-4 md:p-8">
+            <main className="flex-grow p-4 lg:p-8">
                 <Card className="max-w-4xl mx-auto">
                      {!isMounted ? (
                         <div className="flex items-center justify-center h-96">
@@ -167,7 +176,7 @@ export default function DeliveryInformationPage() {
                                             <p className="text-primary font-bold">{order.product.price}</p>
                                         </CardContent>
                                     </Card>
-                                     {estimatedDeliveryDate && (
+                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Completed' && (
                                         <Card>
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <CalendarDays className="h-8 w-8 text-primary" />
