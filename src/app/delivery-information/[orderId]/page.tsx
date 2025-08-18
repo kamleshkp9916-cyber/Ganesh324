@@ -71,9 +71,12 @@ export default function DeliveryInformationPage() {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
                  <div className="flex items-center gap-1 md:gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="sm:hidden">
+                        <ArrowLeft />
+                    </Button>
                     {isMounted && !loading && user && (
                     <div className="flex items-center gap-3">
-                        <Link href="/live-selling" className="flex items-center gap-3">
+                        <Link href="/live-selling" className="hidden sm:flex items-center gap-3">
                             <Avatar className="h-8 w-8 md:h-10 md:w-10">
                                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                                  <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
