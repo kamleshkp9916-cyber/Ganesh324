@@ -100,7 +100,7 @@ export default function DeliveryInformationPage() {
 
             <main className="flex-grow p-4 md:p-8">
                 <Card className="max-w-4xl mx-auto">
-                     {loading ? (
+                     {!isMounted || loading ? (
                         <div className="flex items-center justify-center h-96">
                             <LoadingSpinner />
                         </div>
@@ -167,4 +167,5 @@ export default function DeliveryInformationPage() {
             </main>
         </div>
     );
-}
+
+    
