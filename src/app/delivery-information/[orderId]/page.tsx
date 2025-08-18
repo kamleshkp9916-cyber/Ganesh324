@@ -83,9 +83,6 @@ export default function DeliveryInformationPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                <Star className="h-6 w-6 fill-current" />
-                            </Button>
                         </div>
                     </div>
                     )}
