@@ -82,7 +82,7 @@ export default function DeliveryInformationPage() {
                         </Link>
                         <div className="flex items-center gap-2">
                              <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
-                                / Overview
+                                / Orders
                             </Link>
                             <span className="text-muted-foreground text-sm md:text-base hidden sm:block">
                                 / Delivery Information
