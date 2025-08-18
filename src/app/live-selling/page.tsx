@@ -464,7 +464,7 @@ export default function LiveSellingPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-2 ml-auto" ref={searchRef}>
-                    <div className="h-9 flex items-center justify-center">
+                     <div className="h-9 flex items-center justify-center">
                         {!isMounted || authLoading ? (
                            <Skeleton className="h-9 w-24 rounded-full" />
                         ) : user ? (
@@ -625,10 +625,16 @@ export default function LiveSellingPage() {
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     <div className="flex justify-center mb-6">
-                        <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
-                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
-                        </TabsList>
+                        {!isMounted ? (
+                            <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full sm:w-[200px]">
+                                <Skeleton className="h-8 w-full" />
+                            </div>
+                        ) : (
+                            <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+                                <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                                <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
+                            </TabsList>
+                        )}
                     </div>
 
                     <TabsContent value="live">
@@ -952,5 +958,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
