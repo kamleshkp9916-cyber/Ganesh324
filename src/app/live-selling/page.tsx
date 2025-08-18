@@ -492,7 +492,7 @@ export default function LiveSellingPage() {
                 </div>
 
                 <div className="flex-1 flex justify-center" ref={searchRef}>
-                    <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded ? "sm:w-64 md:w-80" : "w-10 sm:w-64 md:w-80")}>
+                    <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded ? "w-full" : "w-10 sm:w-64 md:w-80")}>
                          <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 sm:flex items-center pointer-events-none", isSearchExpanded ? 'flex' : 'hidden sm:flex')}>
                              <Search className="h-5 w-5 text-muted-foreground" />
                         </div>
@@ -998,7 +998,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
-
-    
