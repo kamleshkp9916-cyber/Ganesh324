@@ -511,8 +511,8 @@ export default function LiveSellingPage() {
                             <Bell />
                         </Button>
                         
-                        {loading ? (
-                            <Skeleton className="h-9 w-9 rounded-full" />
+                        {loading && !user ? (
+                           <Skeleton className="h-9 w-9 rounded-full" />
                         ) : user ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
