@@ -328,14 +328,8 @@ export default function LiveSellingPage() {
   const handleReply = (sellerName: string) => {
     if (!handleAuthAction()) return;
     setReplyTo(sellerName);
-    // Smooth scroll to the form if it exists
-    // createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
   
-  const handleClearReply = () => {
-    setReplyTo(null);
-  };
-
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     if (!handleAuthAction()) return;
@@ -418,22 +412,22 @@ export default function LiveSellingPage() {
                 </AlertDialogContent>
             </AlertDialog>
             <div className="flex-1 flex flex-col">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
                     <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
-                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
+                        <h1 className={cn("text-2xl font-bold tracking-tight text-primary hidden sm:block", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
                     </div>
 
-                    <div className="flex items-center justify-center sm:justify-end gap-2 flex-1" ref={searchRef}>
+                    <div className="flex items-center justify-center flex-1 min-w-0" ref={searchRef}>
                          <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out",
-                            isSearchExpanded ? "w-full sm:w-64 lg:w-80" : "w-10"
+                            "relative flex items-center transition-all duration-300 ease-in-out w-full",
+                            isSearchExpanded ? "sm:w-64 lg:w-80" : "w-10"
                         )}>
-                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? "block" : "hidden")} />
+                             <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded ? "block" : "hidden sm:block")} />
                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10",
                                     isSearchExpanded ? "w-full" : "w-0 p-0 border-transparent"
                                 )}
                                 value={searchTerm}
@@ -451,15 +445,15 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
 
-                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden md:flex" : "flex")}>
-                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
+                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={handleAuthAction}>
                             <Bell />
                         </Button>
                         
-                        <div className="h-9 w-9 flex items-center justify-center">
+                        <div className="h-9 flex items-center justify-center">
                             {!isMounted || loading ? (
                                <Skeleton className="h-9 w-9 rounded-full" />
                             ) : user ? (
@@ -904,5 +898,3 @@ export default function LiveSellingPage() {
       </div>
   );
 }
-
-    
