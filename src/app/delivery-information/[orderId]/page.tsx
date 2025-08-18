@@ -3,11 +3,14 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/use-auth.tsx';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
 
 // Mock data - in a real app, you'd fetch this based on the orderId
 const mockOrderData = {
@@ -53,16 +56,44 @@ const getStatusIcon = (status: string) => {
 export default function DeliveryInformationPage() {
     const router = useRouter();
     const params = useParams();
+    const { user, loading } = useAuth();
     const orderId = decodeURIComponent(params.orderId as string);
     const order = (mockOrderData as any)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback to a default for demo
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <header className="p-4 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-6 w-6" />
-                </Button>
-                <h1 className="text-xl font-bold">Delivery Information</h1>
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+                 <div className="flex items-center gap-1 md:gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft />
+                    </Button>
+                    {user && (
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                <Star className="h-6 w-6 fill-current" />
+                            </Button>
+                        </div>
+                    </div>
+                    )}
+                </div>
+                <h1 className="text-xl font-bold hidden sm:block">
+                  <span className="text-muted-foreground">/</span> Delivery Information
+                </h1>
+                <div className="w-10"></div>
             </header>
 
             <main className="flex-grow p-4 md:p-8">
@@ -128,3 +159,4 @@ export default function DeliveryInformationPage() {
     );
 }
 
+    
