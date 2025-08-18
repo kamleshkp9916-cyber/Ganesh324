@@ -463,30 +463,29 @@ export default function LiveSellingPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 sm:flex-none sm:w-auto flex justify-end sm:justify-center" ref={searchRef}>
-                    <div className={cn("relative flex items-center transition-all duration-300 ease-in-out", isSearchExpanded ? "w-full sm:w-64 md:w-80" : "w-10 sm:w-64 md:w-80")}>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="sm:hidden text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 z-10"
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                            <Search className="h-5 w-5" />
-                        </Button>
-                        <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 hidden sm:flex items-center")}>
+                <div className="flex-1 flex justify-center sm:justify-center" ref={searchRef}>
+                    <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded ? "sm:w-64 md:w-80" : "w-10 sm:w-64 md:w-80")}>
+                         <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 sm:flex items-center pointer-events-none", isSearchExpanded ? 'flex' : 'hidden')}>
                              <Search className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <Input
                             placeholder="Search posts, streams..."
                             className={cn(
                                 "bg-background rounded-full transition-all duration-300 ease-in-out h-10",
-                                "pl-10 pr-4",
-                                isSearchExpanded ? "w-full opacity-100" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
+                                isSearchExpanded ? "w-full opacity-100 pl-10 pr-4" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100 sm:pl-10 sm:pr-4"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onFocus={() => setIsSearchExpanded(true)}
                         />
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            className="sm:hidden text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 z-10"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            {isSearchExpanded ? <X className="h-5 w-5"/> : <Search className="h-5 w-5" />}
+                        </Button>
                     </div>
                 </div>
 
