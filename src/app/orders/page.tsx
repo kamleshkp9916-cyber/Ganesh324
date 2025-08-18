@@ -317,19 +317,16 @@ export default function OrdersPage() {
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
-             <header className="flex items-center justify-between">
+            <header className="flex items-center justify-between">
                 <div className="flex items-center gap-1 md:gap-3 flex-1">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft />
-                    </Button>
-                    <div className={cn("items-center gap-3", isSearchExpanded ? "hidden sm:flex" : "flex")}>
+                     <div className={cn("flex items-center gap-3", isSearchExpanded && "hidden sm:flex")}>
                          <Avatar className="h-8 w-8 md:h-10 md:w-10">
                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                            <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                             <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
                                 / Orders
                             </Link>
                         </div>
@@ -392,8 +389,8 @@ export default function OrdersPage() {
                     <span className="w-[28%]">Product details</span>
                     <span className="w-[20%]">Address</span>
                     <span className="w-[12%]">Date</span>
-                    <span className="w-[13%]">Transaction</span>
-                    <span className="w-[12%]">Status</span>
+                    <span className="w-[13%] flex justify-center">Transaction</span>
+                    <span className="w-[12%] flex justify-center">Status</span>
                 </div>
 
                 <div className="space-y-2 mt-2">
@@ -417,8 +414,8 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0">{order.transaction.amount}</div>
-                                <div className="w-full sm:w-[12%] text-left mb-2 sm:mb-0 hidden sm:block">
+                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0 flex sm:justify-center">{order.transaction.amount}</div>
+                                <div className="w-full sm:w-[12%] mb-2 sm:mb-0 hidden sm:flex sm:justify-center">
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                 </div>
                                 <div className="w-full sm:w-auto sm:ml-auto">
