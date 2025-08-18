@@ -300,40 +300,31 @@ export default function OrdersPage() {
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
             <header className="flex items-center justify-between">
-                <div className="flex items-center gap-1 md:gap-3">
+                <div className="flex items-center gap-1 md:gap-3 flex-1">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                            <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
-                                / Orders
-                            </Link>
-                        </div>
+                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                       <h1 className="text-xl font-bold">Orders</h1>
                     </div>
                 </div>
-                 <div className="flex items-center gap-2" ref={searchRef}>
+                 <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                     <div className={cn(
-                        "relative flex items-center transition-all duration-300 ease-in-out",
-                        isSearchExpanded ? "w-36 sm:w-64" : "w-10"
+                        "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
+                        isSearchExpanded ? "sm:w-64" : "sm:w-10"
                     )}>
-                        <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
+                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
                         <Input 
                             placeholder="Search orders..." 
-                            className={cn(
+                             className={cn(
                                 "bg-background rounded-full transition-all duration-300 ease-in-out",
-                                isSearchExpanded ? "opacity-100 w-full pl-10 pr-4" : "opacity-0 w-0 pl-0 pr-0"
+                                isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0 sm:block"
                             )}
                             onFocus={() => setIsSearchExpanded(true)}
-                             value={searchTerm}
+                            value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <Button 
+                         <Button 
                             variant="ghost" 
                             size="icon" 
                             className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
@@ -383,7 +374,10 @@ export default function OrdersPage() {
                     {paginatedOrders.map((order: Order) => (
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                            <div className="flex flex-col sm:flex-row items-start sm:items-center text-sm p-4">
-                                <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0">{order.orderId}</div>
+                                <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
+                                    <span>{order.orderId}</span>
+                                    <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize sm:hidden">{order.status}</Badge>
+                                </div>
                                 <div className="w-full sm:w-[28%] mb-2 sm:mb-0">
                                      <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
                                         <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
@@ -393,7 +387,7 @@ export default function OrdersPage() {
                                 <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
                                 <div className="w-full sm:w-[13%] mb-2 sm:mb-0">{order.transaction.amount}</div>
-                                <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0">
+                                <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                 </div>
                                 <div className="w-full sm:w-auto sm:ml-auto">
@@ -491,5 +485,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
