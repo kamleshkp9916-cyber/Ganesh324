@@ -464,34 +464,31 @@ export default function LiveSellingPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-2 ml-auto" ref={searchRef}>
-                    {user && (
-                        <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded && "w-full sm:w-64 md:w-80")}>
-                            <Input
-                                placeholder="Search posts, streams..."
-                                className={cn(
-                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                    isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
-                                )}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onFocus={() => setIsSearchExpanded(true)}
-                            />
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
-                                onClick={() => setIsSearchExpanded(p => !p)}
-                            >
-                                <Search className="h-5 w-5" />
-                            </Button>
-                        </div>
-                    )}
-
                     <div className="h-9 flex items-center justify-center">
                         {!isMounted || authLoading ? (
-                           <Skeleton className="h-9 w-9 rounded-full" />
+                           <Skeleton className="h-9 w-24 rounded-full" />
                         ) : user ? (
-                            <>
+                           <>
+                            <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded && "w-full sm:w-64 md:w-80")}>
+                                <Input
+                                    placeholder="Search posts, streams..."
+                                    className={cn(
+                                        "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                        isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setIsSearchExpanded(true)}
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2"
+                                    onClick={() => setIsSearchExpanded(p => !p)}
+                                >
+                                    <Search className="h-5 w-5" />
+                                </Button>
+                            </div>
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Plus />
                             </Button>
@@ -956,3 +953,4 @@ export default function LiveSellingPage() {
   );
 }
 
+    
