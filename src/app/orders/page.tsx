@@ -5,7 +5,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -17,28 +17,8 @@ import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { EditAddressForm } from '@/components/edit-address-form';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSeparator,
-    InputOTPSlot,
-} from "@/components/ui/input-otp"
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Footer } from '@/components/footer';
+import { format, addDays, parse } from 'date-fns';
 
 const mockOrders = [
     {
@@ -197,6 +177,27 @@ const statusPriority: { [key: string]: number } = {
     "Cancelled": 5,
 };
 
+function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+        >
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+    );
+}
+
 export default function OrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -208,11 +209,23 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
-  const [orders, setOrders] = useState(mockOrders);
+  // Simulate fetching user-specific orders
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (user) {
+      // In a real app, you'd fetch orders for the logged-in user.
+      // Here, we'll just show the mock orders if it's the mock user.
+      if (user.uid === 'mock-user-id-123') {
+        setOrders(mockOrders);
+      } else {
+        setOrders([]); // No orders for other users
+      }
+    } else {
+        setOrders([]);
+    }
+  }, [user]);
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
@@ -228,7 +241,7 @@ export default function OrdersPage() {
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    let currentOrders = [...sortedOrders]; // Use the sorted list
+    let currentOrders = [...sortedOrders];
     if (statusFilter !== "all") {
         currentOrders = currentOrders.filter(order => order.status.toLowerCase().replace(' ', '-') === statusFilter);
     }
@@ -262,7 +275,6 @@ export default function OrdersPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchRef]);
-
 
   if (!isClient || loading) {
     return (
@@ -316,6 +328,16 @@ export default function OrdersPage() {
   const handleRowClick = (orderId: string) => {
       const encodedOrderId = encodeURIComponent(orderId);
       router.push(`/delivery-information/${encodedOrderId}`);
+  }
+  
+  const getEstimatedDelivery = (order: Order) => {
+     try {
+        const parsedDate = parse(order.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
+        const deliveryDate = addDays(parsedDate, 5);
+        return format(deliveryDate, 'dd MMM');
+    } catch {
+        return "N/A";
+    }
   }
 
   return (
@@ -371,26 +393,28 @@ export default function OrdersPage() {
           <div className="bg-card p-2 sm:p-4 rounded-lg border flex flex-col h-full">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-bold">Orders</h3>
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm">
-                              <Filter className="h-4 w-4 mr-2" />
-                              Filter
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56" align="end">
-                          <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                              <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
-                              <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                          </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
+                   {orders.length > 0 && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    <Filter className="h-4 w-4 mr-2" />
+                                    Filter
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end">
+                                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                    <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                   )}
               </div>
               
               <div className="hidden md:flex items-center text-sm text-muted-foreground px-4 py-2 border-b">
@@ -442,6 +466,13 @@ export default function OrdersPage() {
                                       <DropdownMenuSeparator/>
                                       <div className="p-2 space-y-2 text-sm">
                                           <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5 font-semibold text-muted-foreground">
+                                                    <CalendarClock className="h-4 w-4" />
+                                                    <span>Est. Delivery</span>
+                                                </div>
+                                                <span>{getEstimatedDelivery(order)}</span>
+                                            </div>
+                                          <div className="flex items-center justify-between">
                                               <p className="font-semibold text-muted-foreground">User ID</p>
                                               <div className="flex items-center gap-1">
                                                   <span>{order.userId}</span>
@@ -481,9 +512,12 @@ export default function OrdersPage() {
                           </div>
                       </div>
                   ))}
-              {paginatedOrders.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                      <p>No orders found.</p>
+              {paginatedOrders.length === 0 && user && (
+                  <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                      <EmptyBoxIcon className="w-16 h-16 text-border" />
+                      <h3 className="text-xl font-semibold">No Orders Yet</h3>
+                      <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
+                      <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
                   </div>
               )}
               </div>

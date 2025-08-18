@@ -3,23 +3,23 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Footer } from '@/components/footer';
-
+import { useToast } from "@/hooks/use-toast";
+import { format, addDays, parse } from 'date-fns';
 
 // Mock data - in a real app, you'd fetch this based on the orderId
 const mockOrderData = {
     "#STREAM5896": {
         product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
         status: "On Way",
+        orderDate: "Jul 27, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
             { status: "Your order is being packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
@@ -33,6 +33,7 @@ const mockOrderData = {
     "#STREAM5897": {
         product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
         status: "Completed",
+        orderDate: "Jul 26, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
             { status: "Your order is being packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
@@ -42,7 +43,6 @@ const mockOrderData = {
             { status: "Product delivered successfully", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
         ]
     }
-    // Add more mock orders as needed
 };
 
 const getStatusIcon = (status: string) => {
@@ -55,18 +55,73 @@ const getStatusIcon = (status: string) => {
     return <Circle className="h-5 w-5" />;
 };
 
+type Order = typeof mockOrderData['#STREAM5896'];
 
 export default function DeliveryInformationPage() {
     const router = useRouter();
     const params = useParams();
     const { user, loading } = useAuth();
-    const orderId = decodeURIComponent(params.orderId as string);
-    const order = (mockOrderData as any)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback to a default for demo
+    const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
+
+    const orderId = decodeURIComponent(params.orderId as string);
+    const order = (mockOrderData as Record<string, Order>)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback for demo
+    
+    const estimatedDeliveryDate = useMemo(() => {
+        if (!order || !order.orderDate) return null;
+        try {
+            const parsedDate = parse(order.orderDate, 'MMM dd, yyyy', new Date());
+            const deliveryDate = addDays(parsedDate, 6);
+            return format(deliveryDate, 'E, MMM dd, yyyy');
+        } catch (error) {
+            console.error("Error parsing date:", error);
+            return null;
+        }
+    }, [order]);
+
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    useEffect(() => {
+        if (!isMounted) return;
+
+        toast({
+            title: "Order Successful!",
+            description: `Your order ${orderId} has been placed.`,
+        });
+
+        order.timeline.forEach((item, index) => {
+            if(item.completed) {
+                setTimeout(() => {
+                    toast({
+                        title: item.status,
+                        description: `Update for order ${orderId}`,
+                    })
+                }, (index + 1) * 2000);
+            }
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMounted]);
+
+     if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        )
+    }
+    
+    if (!user) {
+        return (
+             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+                 <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
+                 <p className="text-muted-foreground mb-6">Please log in to view delivery information.</p>
+                 <Button onClick={() => router.push('/')}>Go to Login</Button>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -82,7 +137,7 @@ export default function DeliveryInformationPage() {
 
             <main className="flex-grow p-4 md:p-8">
                 <Card className="max-w-4xl mx-auto">
-                     {!isMounted || loading ? (
+                     {!isMounted ? (
                         <div className="flex items-center justify-center h-96">
                             <LoadingSpinner />
                         </div>
@@ -95,7 +150,7 @@ export default function DeliveryInformationPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="grid lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-1">
+                                <div className="lg:col-span-1 space-y-4">
                                     <Card className="overflow-hidden">
                                         <CardContent className="p-4 flex flex-col items-center text-center">
                                             <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
@@ -112,11 +167,21 @@ export default function DeliveryInformationPage() {
                                             <p className="text-primary font-bold">{order.product.price}</p>
                                         </CardContent>
                                     </Card>
+                                     {estimatedDeliveryDate && (
+                                        <Card>
+                                            <CardContent className="p-4 flex items-center gap-4">
+                                                <CalendarDays className="h-8 w-8 text-primary" />
+                                                <div>
+                                                    <p className="font-semibold">Estimated Delivery</p>
+                                                    <p className="text-sm text-muted-foreground">{estimatedDeliveryDate}</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                 </div>
                                 <div className="lg:col-span-2">
                                     <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
                                     <div className="relative">
-                                        {/* The vertical line */}
                                         <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
                                         <ul className="space-y-8">
                                             {order.timeline.map((item: any, index: number) => (
