@@ -444,21 +444,21 @@ export default function LiveSellingPage() {
             </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
+                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
                         <h1 className={cn("text-2xl font-bold tracking-tight text-primary", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
+                    <div className="flex items-center justify-center sm:justify-end gap-2 flex-1" ref={searchRef}>
                          <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out w-full md:w-auto",
+                            "relative flex items-center transition-all duration-300 ease-in-out",
                             isSearchExpanded ? "w-full md:w-64 lg:w-80" : "w-10"
                         )}>
                             <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
-                                    isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
+                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10",
+                                    isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 border-transparent"
                                 )}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -467,7 +467,8 @@ export default function LiveSellingPage() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2 right-0"
+                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2"
+                                style={{ right: isSearchExpanded ? '0' : '-10px' }}
                                 onClick={() => setIsSearchExpanded(p => !p)}
                             >
                             {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
@@ -613,6 +614,7 @@ export default function LiveSellingPage() {
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-2 md:p-4">
+                  <div className="max-w-7xl mx-auto">
                     <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                         <div className="flex justify-center mb-6">
                             <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
@@ -724,7 +726,7 @@ export default function LiveSellingPage() {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="feeds" className={cn("w-full", user && activeTab === 'feeds' && "pb-28")}>
+                        <TabsContent value="feeds" className="w-full">
                              <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -832,7 +834,7 @@ export default function LiveSellingPage() {
                                       </Card>
                                   ))}
                                 </div>
-                                <div className="lg:col-span-1 space-y-4 lg:sticky top-20">
+                                <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -920,17 +922,12 @@ export default function LiveSellingPage() {
                               </div>
                         </TabsContent>
                     </Tabs>
+                    </div>
                 </main>
                 <Footer />
             </div>
-            {user && activeTab === 'feeds' && (
-                <CreatePostForm
-                    ref={createPostFormRef}
-                    replyTo={replyTo}
-                    onClearReply={handleClearReply}
-                    onCreatePost={handleCreatePost}
-                />
-            )}
       </div>
   );
 }
+
+    
