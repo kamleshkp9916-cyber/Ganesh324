@@ -444,21 +444,21 @@ export default function LiveSellingPage() {
             </AlertDialog>
             <div className="flex-1 flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b">
-                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
                         <ShoppingCart className="h-7 w-7 text-destructive" />
                         <h1 className={cn("text-2xl font-bold tracking-tight text-primary", isSearchExpanded && "hidden lg:block")}>StreamCart</h1>
                     </div>
 
                     <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                          <div className={cn(
-                            "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-64",
-                            !isSearchExpanded && "sm:w-10"
+                            "relative flex items-center transition-all duration-300 ease-in-out w-full",
+                            isSearchExpanded ? "w-full" : "w-10"
                         )}>
-                             <Input 
+                            <Input 
                                 placeholder="Search posts, streams..." 
                                 className={cn(
-                                    "bg-card rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                    isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
+                                    "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
+                                    isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
                                 )}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -467,7 +467,7 @@ export default function LiveSellingPage() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2 right-0 sm:right-auto"
+                                className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 absolute top-1/2 -translate-y-1/2 right-0"
                                 onClick={() => setIsSearchExpanded(p => !p)}
                             >
                             {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
@@ -475,7 +475,7 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
 
-                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden sm:flex" : "flex")}>
+                     <div className={cn("items-center gap-2", isSearchExpanded ? "hidden md:flex" : "flex")}>
                         <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent" onClick={handleAuthAction}>
                             <Plus />
                         </Button>
