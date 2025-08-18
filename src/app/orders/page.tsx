@@ -325,15 +325,17 @@ export default function OrdersPage() {
                     <Button variant="ghost" size="icon" className="hidden sm:flex" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-center gap-2">
-                         <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                         <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
-                             / Orders
-                         </Link>
+                    <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                        <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                            <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center gap-2">
+                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
+                             <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                                 / Orders
+                             </Link>
+                        </div>
                     </div>
                 </div>
 
