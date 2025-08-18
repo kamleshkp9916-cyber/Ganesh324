@@ -383,14 +383,14 @@ export default function OrdersPage() {
           <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
               <div className={cn(
                   "relative flex items-center transition-all duration-300 ease-in-out w-full md:w-auto",
-                  isSearchExpanded ? "w-full md:w-64" : "md:w-auto"
+                  isSearchExpanded ? "w-full md:w-64" : "w-10 md:w-auto"
               )}>
-                      <div className="relative w-full">
+                  <div className="relative w-full">
                       <Input 
                           placeholder="Search orders..." 
                           className={cn(
                               "bg-background rounded-full transition-all duration-300 ease-in-out h-10",
-                              isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0 md:opacity-100 md:w-auto"
+                              isSearchExpanded ? "w-full pl-4 pr-10" : "w-0 pl-0 pr-0 opacity-0 md:w-auto md:opacity-100"
                           )}
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
@@ -448,7 +448,7 @@ export default function OrdersPage() {
               <div className="space-y-2 mt-2 flex-grow">
                   {paginatedOrders.map((order: Order) => (
                       <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                      <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 md:p-4">
+                      <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 sm:p-4">
                               <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
                                   <div className="flex items-center gap-2">
                                       <span>{order.orderId}</span>
