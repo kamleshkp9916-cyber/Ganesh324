@@ -77,6 +77,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { CreatePostForm, PostData } from '@/components/create-post-form';
 
 
 const liveSellers = [
@@ -312,6 +313,7 @@ export default function LiveSellingPage() {
   const router = useRouter();
   const { theme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
+  const createPostFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -326,6 +328,27 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
     };
   }, []);
+  
+  const handleCreatePost = (data: PostData) => {
+    if (!user) return;
+    const newPost = {
+        id: mockFollowingFeed.length + 1,
+        sellerName: user.displayName || 'You',
+        avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
+        timestamp: 'just now',
+        content: data.content,
+        productImageUrl: data.media?.url || null,
+        hint: 'user uploaded content',
+        likes: 0,
+        replies: 0,
+        location: data.location || null,
+    };
+    setMockFollowingFeed([newPost, ...mockFollowingFeed]);
+    toast({
+        title: "Post Created!",
+        description: "Your post has been successfully shared.",
+    });
+  };
 
   const handleAuthAction = (cb?: () => void) => {
     if (!user) {
@@ -378,7 +401,12 @@ export default function LiveSellingPage() {
   }, []);
 
   const handleReply = (sellerName: string) => {
-    handleAuthAction(() => setReplyTo(sellerName));
+    handleAuthAction(() => {
+      setReplyTo(sellerName);
+      if (createPostFormRef.current) {
+        createPostFormRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   };
   
   const handleUnfollow = (e: React.MouseEvent, userId: string) => {
@@ -463,7 +491,7 @@ export default function LiveSellingPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-center" ref={searchRef}>
+                <div className="flex-1 flex justify-center sm:justify-center" ref={searchRef}>
                     <div className={cn("relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto", isSearchExpanded ? "sm:w-64 md:w-80" : "w-10 sm:w-64 md:w-80")}>
                          <div className={cn("absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 sm:flex items-center pointer-events-none", isSearchExpanded ? 'flex' : 'hidden')}>
                              <Search className="h-5 w-5 text-muted-foreground" />
@@ -953,6 +981,14 @@ export default function LiveSellingPage() {
                                 </Card>
                             </div>
                           </div>
+                           {user && (
+                                <CreatePostForm
+                                ref={createPostFormRef}
+                                replyTo={replyTo}
+                                onClearReply={() => setReplyTo(null)}
+                                onCreatePost={handleCreatePost}
+                                />
+                            )}
                     </TabsContent>
                 </Tabs>
                 </div>
@@ -962,3 +998,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
