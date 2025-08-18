@@ -317,7 +317,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden p-2 sm:p-0">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <div className="flex-1 flex overflow-hidden">
         <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto">
              <header className="flex items-center justify-between gap-4">
@@ -404,7 +404,7 @@ export default function OrdersPage() {
                 <div className="space-y-2 mt-2">
                     {paginatedOrders.map((order: Order) => (
                         <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center text-xs sm:text-sm p-4">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center text-xs sm:text-sm p-2 sm:p-4">
                                 <div className="w-full sm:w-[15%] font-medium mb-2 sm:mb-0 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <span>{order.orderId}</span>
