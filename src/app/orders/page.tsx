@@ -318,14 +318,13 @@ export default function OrdersPage() {
                  <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
                     <div className={cn(
                         "relative flex items-center transition-all duration-300 ease-in-out w-full sm:w-auto",
-                        isSearchExpanded ? "sm:w-64" : "sm:w-10"
+                         isSearchExpanded ? "w-full sm:w-64" : "w-auto sm:w-10"
                     )}>
-                         <Search className={cn("h-5 w-5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2", isSearchExpanded && "block")} />
                         <Input 
                             placeholder="Search orders..." 
-                             className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out",
-                                isSearchExpanded ? "opacity-100 w-full pl-10 pr-10" : "opacity-0 w-0 pl-0 pr-0 sm:block"
+                            className={cn(
+                                "bg-background rounded-full transition-all duration-300 ease-in-out pl-10 pr-4",
+                                isSearchExpanded ? "opacity-100 w-full" : "opacity-0 w-0"
                             )}
                             onFocus={() => setIsSearchExpanded(true)}
                             value={searchTerm}
@@ -334,10 +333,18 @@ export default function OrdersPage() {
                          <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9"
+                            className="text-foreground rounded-full hover:bg-accent absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 sm:hidden"
                             onClick={() => setIsSearchExpanded(p => !p)}
                         >
                             {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full hover:bg-accent h-9 w-9 hidden sm:flex"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            <Search className="h-5 w-5" />
                         </Button>
                     </div>
                 </div>
@@ -492,5 +499,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
