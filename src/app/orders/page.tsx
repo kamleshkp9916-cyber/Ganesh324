@@ -187,6 +187,14 @@ const mockOrders = [
 
 type Order = typeof mockOrders[0];
 
+const statusPriority: { [key: string]: number } = {
+    "On Way": 1,
+    "Pending": 2,
+    "In Progress": 3,
+    "Completed": 4,
+    "Cancelled": 5,
+};
+
 export default function OrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -198,14 +206,18 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const { toast } = useToast();
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState(mockOrders.sort((a, b) => {
+    const priorityA = statusPriority[a.status] || 99;
+    const priorityB = statusPriority[b.status] || 99;
+    return priorityA - priorityB;
+  }));
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const filteredOrders = useMemo(() => {
-    let currentOrders = orders;
+    let currentOrders = [...orders]; // Create a copy to avoid direct mutation
     if (statusFilter !== "all") {
         currentOrders = currentOrders.filter(order => order.status.toLowerCase().replace(' ', '-') === statusFilter);
     }
@@ -311,7 +323,9 @@ export default function OrdersPage() {
                         </Avatar>
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
-                            <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">/ Orders</Link>
+                            <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden sm:inline">
+                                / Orders
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -372,7 +386,7 @@ export default function OrdersPage() {
                     <span className="w-[28%]">Product details</span>
                     <span className="w-[20%]">Address</span>
                     <span className="w-[12%]">Date</span>
-                    <span className="w-[13%]">Transaction</span>
+                    <span className="w-[13%] text-center">Transaction</span>
                     <span className="w-[12%] text-center">Status</span>
                 </div>
 
@@ -397,7 +411,7 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0">{order.transaction.amount}</div>
+                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0 sm:text-center">{order.transaction.amount}</div>
                                 <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                 </div>
@@ -496,3 +510,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
