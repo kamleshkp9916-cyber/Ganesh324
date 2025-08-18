@@ -185,14 +185,6 @@ const mockOrders = [
     }
 ];
 
-const cancellationReasons = [
-    { id: "mistake", label: "Ordered by mistake" },
-    { id: "not_required", label: "Item not required anymore" },
-    { id: "better_price", label: "Found a better price elsewhere" },
-    { id: "delivery_long", label: "Delivery is taking too long" },
-    { id: "other", label: "Other" },
-];
-
 type Order = typeof mockOrders[0];
 
 export default function OrdersPage() {
@@ -207,13 +199,6 @@ export default function OrdersPage() {
   const itemsPerPage = 10;
   const { toast } = useToast();
   const [orders, setOrders] = useState(mockOrders);
-  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
-  const [isCancelReasonOpen, setIsCancelReasonOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [otherReason, setOtherReason] = useState("");
-  const [isOtpOpen, setIsOtpOpen] = useState(false);
-  const [otpValue, setOtpValue] = useState("");
-  const [refundedOrders, setRefundedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setIsClient(true);
@@ -305,85 +290,6 @@ export default function OrdersPage() {
     });
   };
 
-  const handleAddressSave = (orderId: string, data: any) => {
-      setOrders(currentOrders => currentOrders.map(o => {
-          if (o.orderId === orderId) {
-              return {
-                  ...o,
-                  address: {
-                      ...o.address, // keep original phone
-                      name: data.name,
-                      village: data.village,
-                      district: data.district,
-                      city: data.city,
-                      state: data.state,
-                      country: data.country,
-                      pincode: data.pincode,
-                      phone: data.phone,
-                  },
-                  user: { ...o.user, name: data.name }
-              };
-          }
-          return o;
-      }));
-  };
-
-  const handleCancelOrderClick = (order: Order) => {
-    setOrderToCancel(order);
-    setIsCancelReasonOpen(true);
-  };
-
-  const handleReasonSubmit = () => {
-    if (!cancelReason) {
-        toast({ title: "Please select a reason", variant: "destructive" });
-        return;
-    }
-    if (cancelReason === "other" && !otherReason.trim()) {
-        toast({ title: "Please provide a reason", variant: "destructive" });
-        return;
-    }
-    setIsCancelReasonOpen(false);
-    setIsOtpOpen(true);
-  };
-
-  const handleOtpSubmit = (otp: string) => {
-    if (otp === '123456' && orderToCancel) {
-        setOrders(currentOrders => currentOrders.map(o => {
-            if (o.orderId === orderToCancel.orderId) {
-                return {
-                    ...o,
-                    status: "Cancelled",
-                    deliveryStatus: "Cancelled by user"
-                };
-            }
-            return o;
-        }));
-        toast({
-            title: "Order Cancelled",
-            description: `${orderToCancel.orderId} has been cancelled.`,
-        });
-    } else {
-        toast({
-            title: "Invalid OTP",
-            description: "The OTP you entered is incorrect. Please try again.",
-            variant: "destructive",
-        });
-    }
-    setIsOtpOpen(false);
-    setOtpValue("");
-    setCancelReason("");
-    setOtherReason("");
-    setOrderToCancel(null);
-  };
-
-  const handleRequestRefund = (orderId: string) => {
-    setRefundedOrders(prev => new Set(prev).add(orderId));
-    toast({
-        title: "Refund Processed",
-        description: "Your refund will be credited to your bank account in 1-2 working days."
-    });
-  }
-  
   const handleRowClick = (orderId: string) => {
       const encodedOrderId = encodeURIComponent(orderId);
       router.push(`/delivery-information/${encodedOrderId}`);
@@ -537,44 +443,6 @@ export default function OrdersPage() {
                                                 </div>
                                             </div>
                                             <DropdownMenuSeparator/>
-                                            <div className="p-2 flex justify-end gap-2">
-                                                 {['Pending', 'In Progress'].includes(order.status) && (
-                                                    <Dialog onOpenChange={(open) => !open && document.body.style.removeProperty('pointer-events')}>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); document.body.style.setProperty('pointer-events', 'none') }}>
-                                                                <Edit className="h-3 w-3 mr-2"/>
-                                                                Edit
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                                            <DialogHeader>
-                                                                <DialogTitle>Edit Delivery Address</DialogTitle>
-                                                            </DialogHeader>
-                                                            <EditAddressForm 
-                                                                currentAddress={order.address}
-                                                                currentPhone={order.address.phone}
-                                                                onSave={(data) => handleAddressSave(order.orderId, data)}
-                                                                onCancel={() => {}}
-                                                            />
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                )}
-                                                {order.status === 'Cancelled' && (
-                                                    <Button 
-                                                        variant="destructive" 
-                                                        size="sm"
-                                                        onClick={(e) => { e.stopPropagation(); handleRequestRefund(order.orderId); }}
-                                                        disabled={refundedOrders.has(order.orderId)}
-                                                    >
-                                                    {refundedOrders.has(order.orderId) ? "Refund Processed" : "Request Refund"}
-                                                    </Button>
-                                                )}
-                                                {order.status === 'On Way' && (
-                                                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); handleCancelOrderClick(order);}}>
-                                                        Cancel Order
-                                                    </Button>
-                                                )}
-                                            </div>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
@@ -621,66 +489,6 @@ export default function OrdersPage() {
             </div>
         </main>
       </div>
-
-       <AlertDialog open={isCancelReasonOpen} onOpenChange={setIsCancelReasonOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Reason for Cancellation</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Please select a reason for cancelling your order. This helps us improve our service.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <RadioGroup value={cancelReason} onValueChange={setCancelReason} className="grid gap-4 my-4">
-                    {cancellationReasons.map((reason) => (
-                        <div key={reason.id} className="flex items-center space-x-2">
-                             <RadioGroupItem value={reason.id} id={reason.id} />
-                             <Label htmlFor={reason.id}>{reason.label}</Label>
-                        </div>
-                    ))}
-                </RadioGroup>
-                {cancelReason === 'other' && (
-                    <Textarea 
-                        placeholder="Please tell us more..." 
-                        value={otherReason}
-                        onChange={(e) => setOtherReason(e.target.value)}
-                    />
-                )}
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setCancelReason("")}>Back</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReasonSubmit} disabled={!cancelReason || (cancelReason === 'other' && !otherReason.trim())}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
-        <Dialog open={isOtpOpen} onOpenChange={setIsOtpOpen}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Enter OTP</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col items-center gap-4">
-                    <p className="text-muted-foreground">
-                        An OTP has been sent to your registered mobile number to confirm cancellation.
-                    </p>
-                    <InputOTP maxLength={6} value={otpValue} onChange={(value) => setOtpValue(value)}>
-                        <InputOTPGroup>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                        </InputOTPGroup>
-                        <InputOTPSeparator />
-                        <InputOTPGroup>
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                    </InputOTP>
-                    <Button onClick={() => handleOtpSubmit(otpValue)} disabled={otpValue.length < 6}>
-                        Verify & Cancel
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
     </div>
   );
 }
-
