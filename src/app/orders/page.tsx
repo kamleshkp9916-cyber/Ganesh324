@@ -209,7 +209,13 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState(mockOrders.sort((a, b) => {
     const priorityA = statusPriority[a.status] || 99;
     const priorityB = statusPriority[b.status] || 99;
-    return priorityA - priorityB;
+    if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+    }
+    // If priorities are the same, sort by date descending
+    const dateA = new Date(a.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + a.dateTime.split(' ')[1]);
+    const dateB = new Date(b.dateTime.split(' ')[0].split('/').reverse().join('-') + 'T' + b.dateTime.split(' ')[1]);
+    return dateB.getTime() - dateA.getTime();
   }));
 
   useEffect(() => {
@@ -386,8 +392,8 @@ export default function OrdersPage() {
                     <span className="w-[28%]">Product details</span>
                     <span className="w-[20%]">Address</span>
                     <span className="w-[12%]">Date</span>
-                    <span className="w-[13%] text-center">Transaction</span>
-                    <span className="w-[12%] text-center">Status</span>
+                    <span className="w-[13%]">Transaction</span>
+                    <span className="w-[12%]">Status</span>
                 </div>
 
                 <div className="space-y-2 mt-2">
@@ -411,8 +417,8 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="w-full sm:w-[20%] truncate mb-2 sm:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
                                 <div className="w-full sm:w-[12%] mb-2 sm:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0 sm:text-center">{order.transaction.amount}</div>
-                                <div className="w-full sm:w-[12%] text-left sm:text-center mb-2 sm:mb-0 hidden sm:block">
+                                <div className="w-full sm:w-[13%] mb-2 sm:mb-0">{order.transaction.amount}</div>
+                                <div className="w-full sm:w-[12%] text-left mb-2 sm:mb-0 hidden sm:block">
                                     <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                                 </div>
                                 <div className="w-full sm:w-auto sm:ml-auto">
