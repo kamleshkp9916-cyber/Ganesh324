@@ -322,16 +322,13 @@ export default function OrdersPage() {
         <main className="flex-grow p-2 md:p-6 flex flex-col gap-6 overflow-y-auto">
              <header className="flex items-center justify-between gap-4">
                 <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden sm:flex")}>
-                     <Button variant="ghost" size="icon" className="sm:flex hidden" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                         <Avatar className="h-8 w-8 md:h-10 md:w-10">
                             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                             <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex items-center gap-2">
-                             <h3 className="font-semibold text-sm md:text-lg">{user.displayName}</h3>
+                             <h3 className="font-semibold text-sm md:text-lg whitespace-nowrap">{user.displayName}</h3>
                              <Link href="/orders" className="text-muted-foreground text-base hover:text-foreground transition-colors hidden sm:inline">
                                  / Orders
                              </Link>
@@ -524,3 +521,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
