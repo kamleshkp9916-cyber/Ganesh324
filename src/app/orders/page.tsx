@@ -312,7 +312,7 @@ export default function OrdersPage() {
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-base md:text-lg">{user.displayName}</h3>
                             <Link href="/orders" className="text-muted-foreground text-sm md:text-base hidden sm:inline hover:text-foreground transition-colors">
-                                / Order
+                                / Orders
                             </Link>
                         </div>
                     </div>
