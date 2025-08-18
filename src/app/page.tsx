@@ -31,7 +31,7 @@ export default function Home() {
           </Link>
       </div>
 
-      <div className="flex flex-col items-center justify-center p-6 lg:p-12" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.1), transparent 70%)' }}>
+      <div className="flex flex-col items-center justify-center p-6 pt-24 lg:p-12" style={{ background: 'radial-gradient(ellipse at top, hsl(var(--primary) / 0.1), transparent 70%)' }}>
         <div className="mx-auto w-full max-w-[380px] space-y-8">
           <div className="grid gap-4 text-center">
             <div className="flex justify-center">
