@@ -39,6 +39,7 @@ import {
   ShoppingCart,
   Moon,
   Sun,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -288,7 +289,6 @@ function FeedPostSkeleton() {
     );
 }
 
-
 export default function LiveSellingPage() {
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
@@ -298,7 +298,7 @@ export default function LiveSellingPage() {
   const { user, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
-  const [mockFollowingFeed, setMockFollowingFeed] = useState<(typeof initialMockFeed)>([]);
+  const [mockFeed, setMockFeed] = useState<(typeof initialMockFeed)>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -310,13 +310,19 @@ export default function LiveSellingPage() {
   const { theme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
     // Simulate loading data
     const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
-    const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
+    const feedTimer = setTimeout(() => {
+        setIsLoadingFeed(false)
+        setMockFeed(initialMockFeed);
+    }, 2500);
 
     return () => {
         clearTimeout(offersTimer);
@@ -324,11 +330,11 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
     };
   }, []);
-  
+
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
     const newPost = {
-        id: mockFollowingFeed.length + 1,
+        id: mockFeed.length + 1,
         sellerName: user.displayName || 'You',
         avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
         timestamp: 'just now',
@@ -339,7 +345,7 @@ export default function LiveSellingPage() {
         replies: 0,
         location: data.location || null,
     };
-    setMockFollowingFeed([newPost, ...mockFollowingFeed]);
+    setMockFeed([newPost, ...mockFeed]);
     toast({
         title: "Post Created!",
         description: "Your post has been successfully shared.",
@@ -359,11 +365,37 @@ export default function LiveSellingPage() {
     return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
   }, []);
 
+  const filteredLiveSellers = useMemo(() => {
+    if (!searchTerm) return liveSellers;
+    return liveSellers.filter(seller => 
+        seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const filteredFeed = useMemo(() => {
+    if (!searchTerm) return mockFeed;
+    return mockFeed.filter(item => 
+        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, mockFeed]);
 
   useEffect(() => {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
-    setMockFollowingFeed(initialMockFeed);
   }, []);
+  
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef]);
 
   const handleReply = (sellerName: string) => {
     handleAuthAction(() => {
@@ -439,12 +471,31 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
-                <div className="flex items-center gap-2">
+                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                     <ShoppingCart className="h-7 w-7 text-destructive" />
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex-1 flex justify-center sm:px-8" ref={searchRef}>
+                    <div className="relative w-full max-w-md">
+                        <Input
+                            placeholder="Search content..."
+                            className={cn(
+                                "bg-muted rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                "sm:block",
+                                isSearchExpanded ? "w-full" : "w-10 sm:w-full"
+                            )}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={() => setIsSearchExpanded(true)}
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                           <Search className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                     {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
@@ -583,18 +634,19 @@ export default function LiveSellingPage() {
             <main className="flex-1 overflow-y-auto p-2 md:p-4">
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
-                    <div className="flex justify-center mb-6">
-                        {(!isMounted) ? (
-                            <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full sm:w-[200px]">
-                                <Skeleton className="h-8 w-full" />
+                    {(!isMounted) ? (
+                            <div className="flex justify-center mb-6">
+                                <Skeleton className="h-10 w-[200px] rounded-md" />
                             </div>
                         ) : (
-                            <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
-                                <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                                <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
-                            </TabsList>
-                        )}
-                    </div>
+                            <div className="flex justify-center mb-6">
+                                <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+                                    <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                                    <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
+                                </TabsList>
+                            </div>
+                    )}
+                    
 
                     <TabsContent value="live">
                         <div className="mb-6">
@@ -665,9 +717,9 @@ export default function LiveSellingPage() {
                                     <LiveSellerSkeleton key={index} />
                                 ))}
                             </div>
-                         ) : (
+                         ) : filteredLiveSellers.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {liveSellers.map((seller) => (
+                                {filteredLiveSellers.map((seller) => (
                                     <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
@@ -703,6 +755,11 @@ export default function LiveSellingPage() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        ) : (
+                             <div className="text-center py-12 text-muted-foreground">
+                                <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
+                                <p>Try searching for something else.</p>
                             </div>
                         )}
                     </TabsContent>
@@ -743,8 +800,8 @@ export default function LiveSellingPage() {
                                     <FeedPostSkeleton />
                                     <FeedPostSkeleton />
                                 </>
-                              ) : (
-                                mockFollowingFeed.map((item) => (
+                              ) : filteredFeed.length > 0 ? (
+                                filteredFeed.map((item) => (
                                     <Card key={item.id} className="overflow-hidden">
                                         <div className="p-4">
                                             <div className="flex items-center gap-3 mb-3">
@@ -820,6 +877,11 @@ export default function LiveSellingPage() {
                                         </div>
                                     </Card>
                                 ))
+                              ) : (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
+                                    <p>Try searching for something else in the feed.</p>
+                                </div>
                               )}
                             </div>
                             <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
