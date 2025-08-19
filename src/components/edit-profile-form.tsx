@@ -29,17 +29,6 @@ const profileFormSchema = z.object({
   phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
 });
 
-const addressFormSchema = z.object({
-  name: z.string().min(1, { message: "Name is required." }),
-  village: z.string().min(1, { message: "Village/Area is required." }),
-  district: z.string().min(1, { message: "District is required." }),
-  city: z.string().min(1, { message: "City is required." }),
-  country: z.string().min(1, { message: "Country is required." }),
-  state: z.string().min(1, { message: "State is required." }),
-  pincode: z.string().regex(/^\d{6}$/, { message: "Please enter a valid 6-digit pin code." }),
-  phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
-});
-
 interface EditProfileFormProps {
   currentUser: {
     displayName: string;
@@ -70,7 +59,7 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
   });
 
   const handleProfileSave = (values: z.infer<typeof profileFormSchema>) => {
-    onSave({...values});
+    onSave({...values, address});
   };
 
   const handleAddressSave = (data: any) => {
@@ -83,7 +72,7 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
         country: data.country,
         pincode: data.pincode,
     });
-    onSave({ ...profileForm.getValues(), phone: data.phone, address: data })
+    onSave({ ...profileForm.getValues(), phone: `+91 ${data.phone}`, address: data })
   }
 
   return (
@@ -216,5 +205,3 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
     </Tabs>
   );
 }
-
-    

@@ -48,8 +48,9 @@ const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Austr
 const generateRandomUser = (currentUser: any) => {
   const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const displayName = currentUser.displayName || `${firstName} ${lastName}`;
   return {
-    displayName: currentUser.displayName || `${firstName} ${lastName}`,
+    displayName: displayName,
     email: currentUser.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
     photoURL: currentUser.photoURL || `https://placehold.co/128x128.png?text=${firstName.charAt(0)}${lastName.charAt(0)}`,
     bio: bios[Math.floor(Math.random() * bios.length)],
@@ -58,7 +59,16 @@ const generateRandomUser = (currentUser: any) => {
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 20000),
     likes: Math.floor(Math.random() * 100000),
-    topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> }
+    topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> },
+    address: {
+        name: displayName,
+        village: "Koregaon Park",
+        district: "Pune",
+        city: "Pune",
+        state: "Maharashtra",
+        country: "India",
+        pincode: "411001",
+    }
   };
 };
 
@@ -101,6 +111,7 @@ export default function ProfilePage() {
               bio: data.bio,
               location: data.location,
               phone: `+91 ${data.phone}`,
+              address: data.address || profileData.address,
           });
       }
       setProfileEditDialogOpen(false);
@@ -185,5 +196,3 @@ export default function ProfilePage() {
     </Dialog>
   );
 }
-
-    
