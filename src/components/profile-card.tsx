@@ -344,7 +344,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 <div className="w-full max-w-4xl mx-auto">
                     <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
                         <ScrollArea className="w-full whitespace-nowrap">
-                             <TabsList className={cn("grid w-full", !isOwnProfile ? "grid-cols-1" : "grid-cols-3")}>
+                             <TabsList>
                                 {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
                                 {isOwnProfile && <TabsTrigger value="recent">Recently Viewed</TabsTrigger>}
                                 {isOwnProfile && <TabsTrigger value="reviews">My Reviews</TabsTrigger>}
