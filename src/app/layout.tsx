@@ -12,8 +12,8 @@ import React from 'react';
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: 'StreamCart Login',
-  description: 'Login to your StreamCart account',
+  title: 'StreamCart',
+  description: 'Your one-stop shop for live shopping. Discover, engage, and buy in real-time.',
 };
 
 export default function RootLayout({
