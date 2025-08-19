@@ -203,12 +203,12 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div 
-            className="p-6 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
+            className="p-4 sm:p-6 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
         >
             <div className={cn("absolute inset-0 bg-primary/10")} />
             
             <div className="relative z-10">
-                <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-lg">
                     <AvatarImage src={profileImage || user?.photoURL || `https://placehold.co/128x128.png?text=${user?.displayName?.charAt(0)}`} alt={user?.displayName || ""} />
                     <AvatarFallback className="text-4xl">{user?.displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -235,25 +235,25 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             </div>
             
             <div className="text-center relative z-10 text-foreground">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-3xl font-bold">{profileData.displayName}</h2>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
                     {profileData.topAchievement && (
-                        <Badge variant="secondary" className="text-sm">
+                        <Badge variant="secondary" className="text-xs sm:text-sm">
                             {React.cloneElement(profileData.topAchievement.icon, { className: "w-4 h-4 mr-1.5" })}
                             {profileData.topAchievement.name}
                         </Badge>
                     )}
                 </div>
-                {isOwnProfile && <p className="text-muted-foreground">{profileData.email}</p>}
+                {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
             </div>
-            <div className="flex gap-8 pt-4 relative z-10 text-foreground">
+            <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 relative z-10 text-foreground">
                 <div className="text-center">
-                    <p className="text-2xl font-bold">{profileData.following}</p>
-                    <p className="text-sm text-muted-foreground">Following</p>
+                    <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                 </div>
                 <div className="text-center">
-                    <p className="text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                    <p className="text-sm text-muted-foreground">Followers</p>
+                    <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
                 </div>
             </div>
         </div>
@@ -262,7 +262,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             <CardContent className="p-0 space-y-6">
                 <div>
                     <h3 className="text-lg font-semibold mb-2">About Me</h3>
-                    <p className="text-muted-foreground italic">"{profileData.bio}"</p>
+                    <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
                 </div>
 
                 <Separator />
@@ -271,17 +271,17 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                     <>
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                             <div className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-muted-foreground" />
-                                <span>{profileData.email}</span>
+                                <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                <span className="truncate">{profileData.email}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <Phone className="w-5 h-5 text-muted-foreground" />
+                                <Phone className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                                 <span>{profileData.phone}</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <MapPin className="w-5 h-5 text-muted-foreground" />
+                                <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                                 <span>{profileData.location}</span>
                             </div>
                         </div>
@@ -341,10 +341,10 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 )}
 
 
-                <div className="w-full max-w-4xl mx-auto">
+                <div className="w-full max-w-full mx-auto">
                     <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
                         <ScrollArea className="w-full whitespace-nowrap">
-                             <TabsList>
+                             <TabsList className="inline-flex">
                                 {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
                                 {isOwnProfile && <TabsTrigger value="recent">Recently Viewed</TabsTrigger>}
                                 {isOwnProfile && <TabsTrigger value="reviews">My Reviews</TabsTrigger>}
@@ -356,7 +356,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                             <TabsContent value="products" className="mt-4">
                                 {isLoadingContent ? <ProductSkeletonGrid /> : (
                                      filteredProducts.length > 0 ? (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                             {filteredProducts.map((product) => (
                                                 <Card key={product.id} className="w-full">
                                                     <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
@@ -370,7 +370,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                         />
                                                     </div>
                                                     <div className="p-3">
-                                                        <h4 className="font-semibold truncate">{product.name}</h4>
+                                                        <h4 className="font-semibold truncate text-sm">{product.name}</h4>
                                                         <p className="text-primary font-bold">{product.price}</p>
                                                     </div>
                                                 </Card>

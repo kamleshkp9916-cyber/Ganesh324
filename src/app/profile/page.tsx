@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Edit } from 'lucide-react';
+import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Edit, MoreHorizontal } from 'lucide-react';
 import React,
 { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -31,6 +31,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { EditProfileForm } from '@/components/edit-profile-form';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 
 // Mock data generation
@@ -58,7 +64,6 @@ const generateRandomUser = (currentUser: any) => {
     phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`,
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 20000),
-    likes: Math.floor(Math.random() * 100000),
     topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> },
     addresses: [
       {
@@ -182,29 +187,33 @@ export default function ProfilePage() {
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className={cn("text-xl font-bold")}>{profileData.displayName}</h1>
+                <h1 className={cn("text-xl font-bold truncate")}>{profileData.displayName}</h1>
                 
-                {isOwnProfile ? (
-                     <DialogTrigger asChild>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
-                            <Edit className="h-5 w-5" />
+                            <MoreHorizontal className="h-6 w-6" />
                         </Button>
-                    </DialogTrigger>
-                ): (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-6 w-6" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                         {isOwnProfile && (
+                             <DropdownMenuItem onSelect={() => setProfileEditDialogOpen(true)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit Profile</span>
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            <span>Share Profile</span>
+                        </DropdownMenuItem>
+                        {!isOwnProfile && (
                             <DropdownMenuItem>
                                 <Flag className="mr-2 h-4 w-4" />
                                 <span>Report User</span>
                             </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </header>
 
             <main className="flex-grow">
@@ -225,7 +234,7 @@ export default function ProfilePage() {
             <Footer />
         </div>
 
-        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col p-0">
+        <DialogContent className="max-w-lg w-[95vw] h-auto max-h-[85vh] flex flex-col p-0 rounded-lg">
             <DialogHeader className="p-6 pb-4">
                 <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
