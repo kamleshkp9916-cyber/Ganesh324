@@ -301,7 +301,7 @@ export default function LiveSellingPage() {
   const { user, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
-  const [mockFollowingFeed, setMockFollowingFeed] = useState<typeof initialMockFeed>([]);
+  const [mockFollowingFeed, setMockFollowingFeed] = useState<(typeof initialMockFeed)>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -499,9 +499,9 @@ export default function LiveSellingPage() {
                         <Input
                             placeholder="Search posts, streams..."
                             className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10 sm:pr-4",
-                                "sm:w-64 md:w-80",
-                                isSearchExpanded ? "w-full" : "w-10 sm:w-full"
+                                "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10",
+                                "sm:w-full",
+                                isSearchExpanded ? "w-full pr-10" : "w-0 p-0 sm:pr-4"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -653,12 +653,12 @@ export default function LiveSellingPage() {
                     )}
                 </div>
             </header>
-
+            
             <main className="flex-1 overflow-y-auto p-2 md:p-4">
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     <div className="flex justify-center mb-6">
-                        {!isMounted ? (
+                        {(!isMounted) ? (
                             <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full sm:w-[200px]">
                                 <Skeleton className="h-8 w-full" />
                             </div>
@@ -999,3 +999,4 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
