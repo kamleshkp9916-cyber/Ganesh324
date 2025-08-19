@@ -491,26 +491,26 @@ export default function LiveSellingPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-center sm:justify-start" ref={searchRef}>
+                <div className="flex-1 flex justify-start sm:justify-center" ref={searchRef}>
                     <div className="relative flex items-center w-full max-w-md">
-                         <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 flex items-center pointer-events-none">
-                             <Search className="h-5 w-5 text-muted-foreground" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <Input
                             placeholder="Search posts, streams..."
                             className={cn(
                                 "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
                                 "sm:w-64 md:w-80",
-                                isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0 sm:w-full sm:opacity-100"
+                                isSearchExpanded ? "w-full" : "w-10 sm:w-full"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onFocus={() => setIsSearchExpanded(true)}
                         />
-                         <Button
+                        <Button
                             variant="ghost"
                             size="icon"
-                            className="sm:hidden text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 z-10 -ml-10"
+                            className="sm:hidden text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 z-10 absolute right-0 top-1/2 -translate-y-1/2"
                             onClick={() => setIsSearchExpanded(p => !p)}
                         >
                             {isSearchExpanded ? <X className="h-5 w-5"/> : <Search className="h-5 w-5" />}
