@@ -471,22 +471,21 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
-                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                <div className="flex items-center gap-2">
                     <ShoppingCart className="h-7 w-7 text-destructive" />
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-center" ref={searchRef}>
-                    <div className="relative w-full max-w-md flex items-center">
+                <div className="flex items-center gap-2">
+                     <div className="relative flex items-center" ref={searchRef}>
                         <Input
-                            placeholder="Search content..."
+                            placeholder="Search..."
                             className={cn(
                                 "bg-muted rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
+                                isSearchExpanded ? "w-48 sm:w-64" : "w-0 opacity-0"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            onFocus={() => setIsSearchExpanded(true)}
                         />
                          <Button 
                             variant="ghost" 
@@ -497,9 +496,6 @@ export default function LiveSellingPage() {
                             <Search className="h-5 w-5" />
                         </Button>
                     </div>
-                </div>
-
-                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
                     {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
@@ -512,7 +508,7 @@ export default function LiveSellingPage() {
                             </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Avatar className="h-9 w-9 cursor-pointer ml-2">
+                                    <Avatar className="h-9 w-9 cursor-pointer">
                                         <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
                                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
                                     </Avatar>
@@ -991,4 +987,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
