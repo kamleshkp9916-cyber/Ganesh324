@@ -491,7 +491,7 @@ export default function LiveSellingPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-start sm:justify-center" ref={searchRef}>
+                <div className="flex-1 flex justify-center" ref={searchRef}>
                     <div className="relative flex items-center w-full max-w-md">
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 flex items-center pointer-events-none">
                             <Search className="h-5 w-5 text-muted-foreground" />
@@ -499,7 +499,7 @@ export default function LiveSellingPage() {
                         <Input
                             placeholder="Search posts, streams..."
                             className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
+                                "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-10 sm:pr-4",
                                 "sm:w-64 md:w-80",
                                 isSearchExpanded ? "w-full" : "w-10 sm:w-full"
                             )}
@@ -519,7 +519,7 @@ export default function LiveSellingPage() {
                 </div>
 
                 <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
-                    {!isMounted || authLoading ? (
+                    {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <>
