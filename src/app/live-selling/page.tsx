@@ -10,7 +10,6 @@ import {
   Star,
   Zap,
   ChevronDown,
-  Search,
   Bell,
   Plus,
   Settings,
@@ -291,8 +290,6 @@ function FeedPostSkeleton() {
 
 
 export default function LiveSellingPage() {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
   const [isLoadingOffers, setIsLoadingOffers] = useState(true);
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
@@ -308,7 +305,6 @@ export default function LiveSellingPage() {
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("live");
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const router = useRouter();
   const { theme } = useTheme();
@@ -358,37 +354,6 @@ export default function LiveSellingPage() {
     if (cb) cb();
     return true;
   };
-
-  const filteredLiveSellers = useMemo(() => {
-    if (!searchTerm) return liveSellers;
-    return liveSellers.filter(seller =>
-      seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      seller.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
-
-  const filteredFeed = useMemo(() => {
-    if (!searchTerm) return mockFollowingFeed;
-    return mockFollowingFeed.filter(item =>
-        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, mockFollowingFeed]);
-  
-  const filteredTrendingTopics = useMemo(() => {
-    if (!searchTerm) return trendingTopics;
-    return trendingTopics.filter(topic =>
-        topic.topic.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
-
-  const filteredSuggestedUsers = useMemo(() => {
-    if (!searchTerm) return suggestedUsers;
-    return suggestedUsers.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.handle.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, suggestedUsers]);
 
   const topLiveStreams = useMemo(() => {
     return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
@@ -455,18 +420,6 @@ export default function LiveSellingPage() {
     api.on('reInit', onSelect)
   }, [api, onSelect]);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchRef]);
-
   return (
     <div className="flex min-h-screen bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -486,39 +439,12 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-20 border-b gap-4">
-                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                <div className="flex items-center gap-2">
                     <ShoppingCart className="h-7 w-7 text-destructive" />
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-center" ref={searchRef}>
-                    <div className="relative flex items-center w-full max-w-md">
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <Input
-                            placeholder="Search posts, streams..."
-                            className={cn(
-                                "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-10",
-                                "sm:w-full",
-                                isSearchExpanded ? "w-full pr-10" : "w-0 p-0 sm:pr-4"
-                            )}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onFocus={() => setIsSearchExpanded(true)}
-                        />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="sm:hidden text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0 z-10 absolute right-0 top-1/2 -translate-y-1/2"
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                            {isSearchExpanded ? <X className="h-5 w-5"/> : <Search className="h-5 w-5" />}
-                        </Button>
-                    </div>
-                </div>
-
-                <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden sm:flex")}>
+                <div className="flex items-center gap-2">
                     {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
@@ -741,7 +667,7 @@ export default function LiveSellingPage() {
                             </div>
                          ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {filteredLiveSellers.map((seller) => (
+                                {liveSellers.map((seller) => (
                                     <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
@@ -818,7 +744,7 @@ export default function LiveSellingPage() {
                                     <FeedPostSkeleton />
                                 </>
                               ) : (
-                                filteredFeed.map((item) => (
+                                mockFollowingFeed.map((item) => (
                                     <Card key={item.id} className="overflow-hidden">
                                         <div className="p-4">
                                             <div className="flex items-center gap-3 mb-3">
@@ -905,7 +831,7 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        {filteredTrendingTopics.map(topic => (
+                                        {trendingTopics.map(topic => (
                                             <div key={topic.id} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
@@ -921,7 +847,7 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {filteredSuggestedUsers.map(user => (
+                                        {suggestedUsers.map(user => (
                                             <div key={user.id} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10">
