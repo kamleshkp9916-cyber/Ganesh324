@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -21,6 +21,8 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { CreditCard, Wallet } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const mockProducts = [
     { id: 1, name: 'Vintage Camera', price: '₹12,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'vintage film camera' },
@@ -96,15 +98,16 @@ const paymentLabel = (method: {type: string, provider?: string}) => {
     return `Paid with ${method.provider}`;
 }
 
-export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean }) {
+export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpdate }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void }) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [address, setAddress] = useState(profileData.address);
-  const [phone, setPhone] = useState(profileData.phone);
+  const [addresses, setAddresses] = useState(profileData.addresses);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingAddress, setEditingAddress] = useState(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -146,24 +149,34 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
   };
   
   const handleAddressSave = (data: any) => {
-    setAddress({
-        name: data.name,
-        village: data.village,
-        district: data.district,
-        city: data.city,
-        state: data.state,
-        country: data.country,
-        pincode: data.pincode,
-    });
-    setPhone(data.phone);
+    const newAddresses = [...addresses];
+    if (editingAddress) {
+        const index = newAddresses.findIndex(addr => addr.id === (editingAddress as any).id);
+        newAddresses[index] = { ...data, id: (editingAddress as any).id };
+    } else {
+        newAddresses.push({ ...data, id: Date.now() });
+    }
+    setAddresses(newAddresses);
+    onAddressesUpdate(newAddresses);
     setIsAddressDialogOpen(false);
+    setEditingAddress(null);
+    toast({ title: 'Address saved successfully!' });
+  };
+
+  const handleDeleteAddress = (addressId: number) => {
+    const newAddresses = addresses.filter((addr: any) => addr.id !== addressId);
+    setAddresses(newAddresses);
+    onAddressesUpdate(newAddresses);
+    toast({ title: 'Address removed.' });
+  };
+
+  const openAddressDialog = (address: any = null) => {
+    setEditingAddress(address);
+    setIsAddressDialogOpen(true);
   }
 
-  const formattedAddress = `${address.name}\n${address.village}, ${address.district}\n${address.city}, ${address.state}, ${address.country} - ${address.pincode}`;
-
-
   return (
-    <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+    <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div 
             className="p-6 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
         >
@@ -206,7 +219,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
                         </Badge>
                     )}
                 </div>
-                <p className="text-muted-foreground">{profileData.email}</p>
+                {isOwnProfile && <p className="text-muted-foreground">{profileData.email}</p>}
             </div>
             <div className="flex gap-8 pt-4 relative z-10 text-foreground">
                 <div className="text-center">
@@ -216,10 +229,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
                 <div className="text-center">
                     <p className="text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
                     <p className="text-sm text-muted-foreground">Followers</p>
-                </div>
-                <div className="text-center">
-                    <p className="text-2xl font-bold">{(profileData.likes / 1000).toFixed(1)}k</p>
-                    <p className="text-sm text-muted-foreground">Likes</p>
                 </div>
             </div>
         </div>
@@ -233,54 +242,88 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
 
                 <Separator />
                 
-                <div>
-                    <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                        <div className="flex items-center gap-3">
-                            <Mail className="w-5 h-5 text-muted-foreground" />
-                            <span>{profileData.email}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Phone className="w-5 h-5 text-muted-foreground" />
-                            <span>{phone}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <MapPin className="w-5 h-5 text-muted-foreground" />
-                            <span>{profileData.location}</span>
+                {isOwnProfile && (
+                    <>
+                    <div>
+                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div className="flex items-center gap-3">
+                                <Mail className="w-5 h-5 text-muted-foreground" />
+                                <span>{profileData.email}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Phone className="w-5 h-5 text-muted-foreground" />
+                                <span>{profileData.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <MapPin className="w-5 h-5 text-muted-foreground" />
+                                <span>{profileData.location}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <Separator />
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold">Delivery Addresses</h3>
+                            <Button variant="outline" size="sm" onClick={() => openAddressDialog()}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add New
+                            </Button>
+                        </div>
+                        <div className="space-y-4">
+                            {addresses.map((address: any) => (
+                                <Card key={address.id} className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="text-sm text-muted-foreground">
+                                            <p className="font-semibold text-foreground">{address.name}</p>
+                                            <p>{address.village}, {address.district}</p>
+                                            <p>{address.city}, {address.state} - {address.pincode}</p>
+                                            <p>Phone: {address.phone}</p>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will permanently delete this address.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                            Delete
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                    <Separator />
+                    </>
+                )}
 
-                <Separator />
-
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold">Delivery Address</h3>
-                         {isOwnProfile && (
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <Edit className="h-5 w-5" />
-                                    <span className="sr-only">Edit Address</span>
-                                </Button>
-                            </DialogTrigger>
-                        )}
-                    </div>
-                
-                    <div className="flex items-start gap-3">
-                        <Truck className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />
-                        <span className="text-muted-foreground whitespace-pre-line">{formattedAddress}</span>
-                    </div>
-                </div>
-                 <Separator />
 
                 <div className="w-full max-w-4xl mx-auto">
                     <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
                         <ScrollArea className="w-full whitespace-nowrap">
-                             <TabsList className={cn("grid w-full", !isOwnProfile ? "grid-cols-4" : "grid-cols-3")}>
+                             <TabsList className={cn("grid w-full", !isOwnProfile ? "grid-cols-1" : "grid-cols-3")}>
                                 {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
-                                <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
-                                <TabsTrigger value="reviews">My Reviews</TabsTrigger>
-                                <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                                {isOwnProfile && <TabsTrigger value="recent">Recently Viewed</TabsTrigger>}
+                                {isOwnProfile && <TabsTrigger value="reviews">My Reviews</TabsTrigger>}
+                                {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
                             </TabsList>
                         </ScrollArea>
 
@@ -408,11 +451,10 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
         </div>
         <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
             <DialogHeader>
-                <DialogTitle>Edit Delivery Address</DialogTitle>
+                <DialogTitle>{editingAddress ? 'Edit' : 'Add New'} Delivery Address</DialogTitle>
             </DialogHeader>
             <EditAddressForm 
-                currentAddress={address} 
-                currentPhone={phone}
+                currentAddress={editingAddress}
                 onSave={handleAddressSave} 
                 onCancel={() => setIsAddressDialogOpen(false)}
             />

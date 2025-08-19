@@ -60,7 +60,9 @@ const generateRandomUser = (currentUser: any) => {
     followers: Math.floor(Math.random() * 20000),
     likes: Math.floor(Math.random() * 100000),
     topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> },
-    address: {
+    addresses: [
+      {
+        id: 1,
         name: displayName,
         village: "Koregaon Park",
         district: "Pune",
@@ -68,7 +70,20 @@ const generateRandomUser = (currentUser: any) => {
         state: "Maharashtra",
         country: "India",
         pincode: "411001",
-    }
+        phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`
+      },
+       {
+        id: 2,
+        name: displayName,
+        village: "Bandra West",
+        district: "Mumbai",
+        city: "Mumbai",
+        state: "Maharashtra",
+        country: "India",
+        pincode: "400050",
+        phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`
+      }
+    ]
   };
 };
 
@@ -111,11 +126,21 @@ export default function ProfilePage() {
               bio: data.bio,
               location: data.location,
               phone: `+91 ${data.phone}`,
-              address: data.address || profileData.address,
+              addresses: data.addresses || profileData.addresses,
           });
       }
       setProfileEditDialogOpen(false);
   };
+
+  const handleAddressesUpdate = (newAddresses: any) => {
+    if(profileData){
+      setProfileData({
+        ...profileData,
+        addresses: newAddresses,
+      })
+    }
+  }
+
 
   if (loading || !profileData) {
       return (
@@ -159,11 +184,27 @@ export default function ProfilePage() {
                 </Button>
                 <h1 className={cn("text-xl font-bold")}>{profileData.displayName}</h1>
                 
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-6 w-6" />
-                    </Button>
-                </DialogTrigger>
+                {isOwnProfile ? (
+                     <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Edit className="h-5 w-5" />
+                        </Button>
+                    </DialogTrigger>
+                ): (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-6 w-6" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                                <Flag className="mr-2 h-4 w-4" />
+                                <span>Report User</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </header>
 
             <main className="flex-grow">
@@ -171,6 +212,7 @@ export default function ProfilePage() {
                     onEdit={() => setProfileEditDialogOpen(true)} 
                     profileData={profileData} 
                     isOwnProfile={isOwnProfile}
+                    onAddressesUpdate={handleAddressesUpdate}
                 />
             </main>
             
