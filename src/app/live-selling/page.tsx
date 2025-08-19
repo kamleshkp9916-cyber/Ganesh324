@@ -476,22 +476,26 @@ export default function LiveSellingPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex justify-center sm:px-8" ref={searchRef}>
-                    <div className="relative w-full max-w-md">
+                <div className="flex-1 flex justify-center" ref={searchRef}>
+                    <div className="relative w-full max-w-md flex items-center">
                         <Input
                             placeholder="Search content..."
                             className={cn(
                                 "bg-muted rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                "sm:block",
-                                isSearchExpanded ? "w-full" : "w-10 sm:w-full"
+                                isSearchExpanded ? "w-full opacity-100" : "w-0 opacity-0"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onFocus={() => setIsSearchExpanded(true)}
                         />
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                           <Search className="h-5 w-5 text-muted-foreground" />
-                        </div>
+                         <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0"
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                            <Search className="h-5 w-5" />
+                        </Button>
                     </div>
                 </div>
 
