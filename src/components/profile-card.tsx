@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2 } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -23,6 +23,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { CreditCard, Wallet } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { getRecentlyViewed, addRecentlyViewed, addToWishlist, getWishlist, Product } from '@/lib/product-history';
 
 const mockProducts = [
     { id: 1, name: 'Vintage Camera', price: '₹12,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'vintage film camera' },
@@ -32,7 +33,8 @@ const mockProducts = [
     { id: 5, name: 'Leather Backpack', price: '₹6,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'brown leather backpack' },
 ];
 
-const recentlyViewedItems = [
+// This is now a "seeder" for demonstration purposes
+const initialRecentlyViewedItems = [
     { id: 6, name: 'Noise Cancelling Headphones', price: '₹14,999', imageUrl: 'https://placehold.co/300x300.png', hint: 'sleek black headphones' },
     { id: 7, name: 'Minimalist Wall Clock', price: '₹1,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'modern wall clock' },
     { id: 8, name: 'Running Shoes', price: '₹5,600', imageUrl: 'https://placehold.co/300x300.png', hint: 'colorful running shoes' },
@@ -108,12 +110,26 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAddress, setEditingAddress] = useState(null);
+  const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
+  const [wishlist, setWishlist] = useState<number[]>([]);
 
+  // Seed recently viewed items for demo purposes
   useEffect(() => {
+    const items = getRecentlyViewed();
+    if (items.length === 0) {
+      initialRecentlyViewedItems.forEach(item => addRecentlyViewed(item));
+    }
+  }, []);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    setRecentlyViewedItems(getRecentlyViewed());
+    setWishlist(getWishlist().map(p => p.id));
     setTimeout(() => {
         setIsLoadingContent(false);
     }, 1000)
-  }, [])
+  }, []);
+
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return mockProducts;
@@ -127,7 +143,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     return recentlyViewedItems.filter(item =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, recentlyViewedItems]);
 
   const filteredReviews = useMemo(() => {
     if (!searchTerm) return mockReviews;
@@ -168,6 +184,15 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     setAddresses(newAddresses);
     onAddressesUpdate(newAddresses);
     toast({ title: 'Address removed.' });
+  };
+
+  const handleWishlistToggle = (product: Product) => {
+    addToWishlist(product);
+    setWishlist(getWishlist().map(p => p.id));
+    toast({
+        title: "Added to Wishlist!",
+        description: `${product.name} has been added to your wishlist.`
+    });
   };
 
   const openAddressDialog = (address: any = null) => {
@@ -363,26 +388,40 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 filteredRecentlyViewed.length > 0 ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                         {filteredRecentlyViewed.map((item) => (
-                                            <Card key={item.id} className="w-full">
-                                                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                            <Card key={item.id} className="w-full group overflow-hidden">
+                                                <div className="relative aspect-square bg-muted rounded-t-lg">
                                                     <Image 
                                                         src={item.imageUrl}
                                                         alt={item.name}
-                                                        width={180}
-                                                        height={180}
-                                                        className="object-cover w-full h-full"
+                                                        layout="fill"
+                                                        className="object-cover"
                                                         data-ai-hint={item.hint}
                                                     />
+                                                     <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className={cn("absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                                                          wishlist.includes(item.id) && "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                        )}
+                                                        onClick={() => handleWishlistToggle(item)}
+                                                        disabled={wishlist.includes(item.id)}
+                                                    >
+                                                        <Heart className="h-4 w-4" />
+                                                    </Button>
                                                 </div>
                                                 <div className="p-3">
-                                                    <h4 className="font-semibold truncate">{item.name}</h4>
+                                                    <h4 className="font-semibold truncate text-sm">{item.name}</h4>
                                                     <p className="text-primary font-bold">{item.price}</p>
                                                 </div>
                                             </Card>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-muted-foreground text-center py-8">No recently viewed items.</p>
+                                     <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+                                        <Eye className="w-16 h-16 text-border" />
+                                        <h3 className="text-xl font-semibold">No Recently Viewed Items</h3>
+                                        <p>Items you view will show up here for 24 hours.</p>
+                                    </div>
                                 )
                             )}
                         </TabsContent>
@@ -462,5 +501,3 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     </Dialog>
   );
 }
-
-    
