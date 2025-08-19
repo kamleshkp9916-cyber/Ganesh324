@@ -296,10 +296,6 @@ export default function ProfilePage() {
 
                  <div className="flex gap-4 mt-4 text-center">
                    <div>
-                       <p className="font-bold text-lg">{profileData.following}</p>
-                       <p className="text-sm text-muted-foreground">Following</p>
-                   </div>
-                   <div>
                        <p className="font-bold text-lg">{(profileData.followers / 1000).toFixed(1)}k</p>
                        <p className="text-sm text-muted-foreground">Followers</p>
                    </div>
