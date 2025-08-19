@@ -1,6 +1,7 @@
 
 "use client";
 
+import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -419,5 +420,3 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile }: { onEdit?: ()
     </Dialog>
   );
 }
-
-    
