@@ -27,12 +27,8 @@ const sellerFormSchema = z.object({
   lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
-  password: z.string().min(8, "Password must be at least 8 characters.")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
-    .regex(/[0-9]/, "Password must contain at least one number.")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character."),
-  confirmPassword: z.string(),
+  password: z.string().optional(),
+  confirmPassword: z.string().optional(),
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   passportPhoto: z.any().refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
     (file) => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file?.type),
@@ -44,9 +40,26 @@ const sellerFormSchema = z.object({
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => {
+    if (data.password || data.confirmPassword) {
+        return data.password === data.confirmPassword;
+    }
+    return true;
+}, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
+}).refine((data) => {
+    if (!data.email.includes('@')) { // A simple check to see if it's a new user
+         return !!data.password && z.string().min(8, "Password must be at least 8 characters.")
+            .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+            .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+            .regex(/[0-9]/, "Password must contain at least one number.")
+            .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character.").safeParse(data.password).success;
+    }
+    return true;
+}, {
+    message: "Password must be at least 8 characters and contain uppercase, lowercase, number, and special characters.",
+    path: ["password"],
 });
 
 export default function SellerRegisterPage() {
@@ -148,7 +161,7 @@ export default function SellerRegisterPage() {
         }, 1500);
     }
 
-    if (!isMounted) {
+    if (!isMounted || authLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
