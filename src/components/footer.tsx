@@ -44,6 +44,7 @@ export function Footer() {
                 <li><Link href="/privacy-and-security" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
                 <li><Link href="/terms-and-conditions" className="text-muted-foreground hover:text-primary">Terms & Conditions</Link></li>
                 <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+                <li><Link href="/seller/register" className="text-muted-foreground hover:text-primary">Become a Seller</Link></li>
             </ul>
           </div>
           

@@ -520,9 +520,7 @@ export default function LiveSellingPage() {
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <>
-                            <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
-                                <Plus />
-                            </Button>
+                            
                             {!isSeller && (
                                 <Button asChild variant="outline" size="sm" className="hidden sm:flex">
                                     <Link href="/seller/register">Become Seller</Link>
@@ -561,11 +559,7 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                         <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
                                         </DropdownMenuItem>
-                                        {isSeller && (
-                                            <DropdownMenuItem asChild>
-                                                <Link href="/seller/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /><span>Seller Dashboard</span></Link>
-                                            </DropdownMenuItem>
-                                        )}
+                                        
                                         <DropdownMenuItem asChild>
                                         <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
                                         </DropdownMenuItem>
