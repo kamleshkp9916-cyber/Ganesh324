@@ -40,7 +40,6 @@ const sellerFormSchema = z.object({
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
-  isNewCustomer: z.boolean().default(false),
 }).refine((data) => {
     if (data.password || data.confirmPassword) {
         return data.password === data.confirmPassword;
@@ -49,19 +48,6 @@ const sellerFormSchema = z.object({
 }, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
-}).refine((data) => {
-    // If user is not logged in, password is required
-    if (!data.email.includes('@')) { // A simple check to see if it's a new user
-         return !!data.password && z.string().min(8, "Password must be at least 8 characters.")
-            .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
-            .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
-            .regex(/[0-9]/, "Password must contain at least one number.")
-            .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character.").safeParse(data.password).success;
-    }
-    return true;
-}, {
-    message: "Password must be at least 8 characters and contain uppercase, lowercase, number, and special characters.",
-    path: ["password"],
 });
 
 export default function SellerRegisterPage() {
@@ -90,7 +76,6 @@ export default function SellerRegisterPage() {
             phone: "+91 ",
             password: "",
             confirmPassword: "",
-            isNewCustomer: false,
         },
     });
 
@@ -98,17 +83,6 @@ export default function SellerRegisterPage() {
         setIsMounted(true);
     }, []);
     
-     useEffect(() => {
-        if (user) {
-            form.setValue('firstName', user.displayName?.split(' ')[0] || '');
-            form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
-            form.setValue('email', user.email || '');
-            // This user is already a customer, so they can switch roles
-            form.setValue('isNewCustomer', true);
-        }
-    }, [user, form]);
-
-
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -194,7 +168,7 @@ export default function SellerRegisterPage() {
                             <FormItem>
                                 <FormLabel>First Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="John" {...field} disabled={!!user} />
+                                    <Input placeholder="John" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -207,7 +181,7 @@ export default function SellerRegisterPage() {
                             <FormItem>
                                 <FormLabel>Last Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Doe" {...field} disabled={!!user} />
+                                    <Input placeholder="Doe" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -220,7 +194,7 @@ export default function SellerRegisterPage() {
                            <FormItem>
                                 <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="name@example.com" {...field} disabled={!!user} />
+                                    <Input placeholder="name@example.com" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -459,3 +433,5 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
+
+    
