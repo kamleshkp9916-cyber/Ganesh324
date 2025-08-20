@@ -25,12 +25,6 @@ export default function SignupPage() {
             Login Now
           </Link>
         </div>
-        <div className="text-center text-sm">
-            Want to sell on StreamCart?{" "}
-            <Link href="/seller/register" className="underline font-semibold text-primary">
-              Become a Seller
-            </Link>
-        </div>
       </div>
     </div>
   );
