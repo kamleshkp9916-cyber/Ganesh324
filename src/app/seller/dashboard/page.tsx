@@ -8,7 +8,9 @@ import {
   CreditCard,
   DollarSign,
   Menu,
+  Package,
   Package2,
+  Repeat,
   Search,
   Users,
 } from "lucide-react"
@@ -108,6 +110,7 @@ export default function SellerDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -116,6 +119,7 @@ export default function SellerDashboard() {
         if (!sellerDetailsRaw) {
             router.push('/seller/register');
         } else {
+            setIsSeller(true);
             const sellerDetails = JSON.parse(sellerDetailsRaw);
             // "Complete" the verification on first visit to dashboard
             if (sellerDetails.verificationStatus === 'pending') {
@@ -126,7 +130,12 @@ export default function SellerDashboard() {
     }
   }, [router]);
 
-  if (!isMounted || loading) {
+  const handleSwitchView = () => {
+    sessionStorage.removeItem('isSellerLogin');
+    router.push('/live-selling');
+  };
+
+  if (!isMounted || loading || (isMounted && !isSeller)) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -146,17 +155,17 @@ export default function SellerDashboard() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link
-            href="#"
+            href="/seller/dashboard"
             className="flex items-center gap-2 text-lg font-semibold md:text-base"
           >
             <Package2 className="h-6 w-6" />
             <span className="sr-only">StreamCart Seller</span>
           </Link>
           <Link
-            href="#"
+            href="/seller/dashboard"
             className="text-foreground transition-colors hover:text-foreground"
           >
             Dashboard
@@ -168,7 +177,7 @@ export default function SellerDashboard() {
             Orders
           </Link>
           <Link
-            href="#"
+            href="/seller/products"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Products
@@ -194,13 +203,13 @@ export default function SellerDashboard() {
           <SheetContent side="left">
             <nav className="grid gap-6 text-lg font-medium">
               <Link
-                href="#"
+                href="/seller/dashboard"
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 <Package2 className="h-6 w-6" />
                 <span className="sr-only">StreamCart</span>
               </Link>
-              <Link href="#" className="hover:text-foreground">
+              <Link href="/seller/dashboard" className="hover:text-foreground">
                 Dashboard
               </Link>
               <Link
@@ -210,7 +219,7 @@ export default function SellerDashboard() {
                 Orders
               </Link>
               <Link
-                href="#"
+                href="/seller/products"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
@@ -225,7 +234,10 @@ export default function SellerDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
+          <Button variant="outline" size="sm" className="ml-auto">
+            Go Live
+          </Button>
+          <form className="flex-1 sm:flex-initial">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -255,8 +267,14 @@ export default function SellerDashboard() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/setting')}>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => router.push('/setting')}>
+                <CircleUser className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSwitchView}>
+                <Repeat className="mr-2 h-4 w-4" />
+                <span>Switch to Customer View</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
