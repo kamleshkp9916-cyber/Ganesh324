@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -52,6 +52,30 @@ export function OtpForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+  const [isResendDisabled, setIsResendDisabled] = useState(true);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else {
+      setIsResendDisabled(false);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResendOtp = async () => {
+    setIsResendDisabled(true);
+    setCountdown(30);
+    // Here you would add the logic to actually resend the OTP
+    console.log("Simulating OTP resend...");
+    await new Promise(resolve => setTimeout(resolve, 500));
+    toast({
+        title: "OTP Resent",
+        description: "A new OTP has been sent to your device.",
+    });
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,37 +116,52 @@ export function OtpForm() {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
-        <FormField
-          control={form.control}
-          name="otp"
-          render={({ field }) => (
-            <FormItem className="flex flex-col items-center">
-              <FormControl>
-                <InputOTP maxLength={6} {...field} disabled={isLoading} >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="grid gap-6">
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+            <FormField
+            control={form.control}
+            name="otp"
+            render={({ field }) => (
+                <FormItem className="flex flex-col items-center">
+                <FormControl>
+                    <InputOTP maxLength={6} {...field} disabled={isLoading} >
+                    <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                    </InputOTP>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
 
-        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
-            {isLoading ? "Verifying..." : "Proceed"}
-        </Button>
-      </form>
-    </Form>
+            <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+                {isLoading ? "Verifying..." : "Proceed"}
+            </Button>
+        </form>
+        </Form>
+         <div className="text-center text-sm">
+            <Button
+                variant="link"
+                onClick={handleResendOtp}
+                disabled={isResendDisabled}
+                className="p-0 h-auto"
+            >
+                Resend OTP
+            </Button>
+            {isResendDisabled && (
+                <span className="text-muted-foreground ml-2">(in {countdown}s)</span>
+            )}
+        </div>
+    </div>
   )
 }

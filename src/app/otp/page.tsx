@@ -20,11 +20,15 @@ export default function OtpPage({ searchParams }: { searchParams: { identifier?:
             <div className="flex justify-center">
                 <Logo className="h-16 w-16" />
             </div>
+            <h1 className="text-3xl font-bold">Verify Your Account</h1>
             <p className="text-balance text-muted-foreground px-4">
-                OTP Sent on your Phone Number and Email Id - <span className="font-semibold text-foreground">{identifier}</span>
+                Enter the 6-digit code sent to <span className="font-semibold text-foreground">{identifier}</span>
             </p>
         </div>
         <OtpForm />
+         <div className="text-center text-sm text-muted-foreground">
+            Didn&apos;t receive the code? You can request a new one.
+        </div>
       </div>
     </div>
   );
