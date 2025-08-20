@@ -32,7 +32,7 @@ const formSchema = z.object({
   }, {
     message: "Please enter a valid email or a 10-digit phone number.",
   }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  password: z.string().min(1, { message: "Password is required." }),
   rememberMe: z.boolean().default(false).optional(),
 });
 
@@ -118,7 +118,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email / Phone</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com or 1234567890" {...field} disabled={isLoading}/>
+                <Input placeholder="name@example.com or 1234567890" {...field} disabled={isLoading} className="bg-background"/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,7 +131,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading}/>
+                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} className="bg-background"/>
               </FormControl>
               <FormMessage />
             </FormItem>
