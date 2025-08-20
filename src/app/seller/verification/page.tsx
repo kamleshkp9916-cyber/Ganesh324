@@ -14,7 +14,7 @@ export default function SellerVerificationPage() {
              <div className="absolute top-4 left-4">
                 <Button variant="ghost" onClick={() => router.push('/live-selling')} className="flex items-center gap-2">
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Home
+                    Back to Live Shopping
                 </Button>
             </div>
              <Alert className="max-w-lg">
