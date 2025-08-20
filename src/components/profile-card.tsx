@@ -260,12 +260,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
         <div className="p-4 sm:p-6">
             <CardContent className="p-0 space-y-6">
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">About Me</h3>
-                    <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
-                </div>
-
-                <Separator />
                 
                 {isOwnProfile && (
                     <>
@@ -339,6 +333,13 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                     <Separator />
                     </>
                 )}
+                
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                    <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
+                </div>
+
+                <Separator />
 
 
                 <div className="w-full max-w-full mx-auto">
