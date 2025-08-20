@@ -11,7 +11,6 @@ import {
   Package2,
   Search,
   Users,
-  Repeat,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -256,10 +255,6 @@ export default function SellerDashboard() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/live-selling')}>
-                <Repeat className="mr-2 h-4 w-4" />
-                Switch to Customer View
-              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => router.push('/setting')}>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
