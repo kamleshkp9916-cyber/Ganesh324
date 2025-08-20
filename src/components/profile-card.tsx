@@ -203,7 +203,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div 
-            className="p-4 sm:p-6 flex flex-col items-center gap-4 relative bg-cover bg-center bg-primary/10"
+            className="p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-4 relative bg-cover bg-center bg-primary/10"
         >
             <div className={cn("absolute inset-0 bg-primary/10")} />
             
@@ -247,14 +247,18 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
             </div>
             <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 relative z-10 text-foreground">
-                <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                </div>
-                <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                </div>
+                {profileData.role === 'customer' && (
+                    <div className="text-center">
+                        <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                    </div>
+                )}
+                {profileData.role === 'seller' && (
+                    <div className="text-center">
+                        <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                    </div>
+                )}
             </div>
         </div>
 
@@ -331,7 +335,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </div>
                     </div>
                     <Separator />
-                    <div>
+                     <div>
                         <h3 className="text-lg font-semibold mb-2">About Me</h3>
                         <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
                     </div>

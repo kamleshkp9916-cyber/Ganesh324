@@ -51,7 +51,7 @@ const bios = [
 ];
 const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Australia", "Paris, France"];
 
-const generateRandomUser = (currentUser: any) => {
+const generateRandomUser = (currentUser: any, role: 'customer' | 'seller') => {
   const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
   const displayName = currentUser.displayName || `${firstName} ${lastName}`;
@@ -65,6 +65,7 @@ const generateRandomUser = (currentUser: any) => {
     following: Math.floor(Math.random() * 500),
     followers: Math.floor(Math.random() * 20000),
     topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> },
+    role: role,
     addresses: [
       {
         id: 1,
@@ -108,9 +109,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // This logic now runs only on the client after the component mounts
+    const role = isOwnProfile ? 'customer' : 'seller';
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
     if (activeUser) {
-        setProfileData(generateRandomUser(activeUser));
+        setProfileData(generateRandomUser(activeUser, role));
     }
   }, [user, userId, isOwnProfile]);
 
