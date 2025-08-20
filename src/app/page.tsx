@@ -28,7 +28,7 @@ export default function Home() {
         <LoginForm />
         <div className="mt-4 space-y-2 text-center text-sm">
           <div>
-              Don&apos;t have an account?{" "}
+              Don't have an account?{" "}
               <Link href="/signup" className="font-semibold text-primary underline">
               Sign up
               </Link>
