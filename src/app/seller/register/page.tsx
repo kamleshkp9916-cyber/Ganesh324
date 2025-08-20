@@ -75,7 +75,6 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [showVerificationPage, setShowVerificationPage] = useState(false);
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -97,17 +96,7 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined' && user) {
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const sellerDetails = JSON.parse(sellerDetailsRaw);
-                // Check if the logged-in user is the one who registered as a seller
-                if (sellerDetails.email === user.email) {
-                    setShowVerificationPage(true);
-                }
-            }
-        }
-    }, [user]);
+    }, []);
     
      useEffect(() => {
         if (user) {
@@ -175,10 +164,6 @@ export default function SellerRegisterPage() {
                 <LoadingSpinner />
             </div>
         );
-    }
-    
-    if (showVerificationPage) {
-        return <SellerVerificationPage />;
     }
 
   return (
