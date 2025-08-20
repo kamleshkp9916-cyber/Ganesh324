@@ -150,8 +150,18 @@ export function OtpForm({ identifier }: { identifier?: string }) {
             title: "Success!",
             description: "Your OTP has been verified.",
         });
-        // Using window.location.href to ensure a full page load that correctly initializes the auth state.
-        window.location.href = "/live-selling";
+
+        // Check if user is a seller and redirect accordingly
+        const sellerDetails = localStorage.getItem('sellerDetails');
+        if (sellerDetails) {
+            // For a more robust check, you might verify the email in sellerDetails
+            // against the logged-in user's email.
+            // For this mock, simply checking for existence is enough.
+            window.location.href = "/seller/dashboard";
+        } else {
+             window.location.href = "/live-selling";
+        }
+
       } else {
          toast({
             title: "Error",
