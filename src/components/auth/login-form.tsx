@@ -87,10 +87,17 @@ export function LoginForm() {
     sessionStorage.setItem('mockUserSessionActive', 'true');
 
     // Differentiate between seller and customer login for testing
-    if (values.identifier === 'ganesh@example.com') {
-        sessionStorage.setItem('isSellerLogin', 'true');
+    // Check if the logging in user is the registered seller
+    const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+    if (sellerDetailsRaw) {
+        const sellerDetails = JSON.parse(sellerDetailsRaw);
+        if (sellerDetails.email === values.identifier) {
+            sessionStorage.setItem('isSellerLogin', 'true');
+        } else {
+            sessionStorage.removeItem('isSellerLogin');
+        }
     } else {
-        sessionStorage.removeItem('isSellerLogin');
+         sessionStorage.removeItem('isSellerLogin');
     }
 
     toast({
