@@ -43,11 +43,19 @@ export default function Home() {
             </p>
           </div>
           <LoginForm />
-          <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-semibold text-primary underline">
-              Sign up
-            </Link>
+          <div className="mt-4 space-y-2 text-center text-sm">
+            <div>
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="font-semibold text-primary underline">
+                Sign up
+                </Link>
+            </div>
+            <div>
+                Want to sell on StreamCart?{" "}
+                <Link href="/seller/register" className="font-semibold text-primary underline">
+                Become a Seller
+                </Link>
+            </div>
           </div>
         </div>
       </div>
