@@ -60,7 +60,7 @@ export default function SettingPage() {
             setSellerDetails(details);
             const initialAccount: BankAccount = {
                 id: 'initial-account',
-                accountHolderName: details.name,
+                accountHolderName: details.name || `${details.firstName} ${details.lastName}`,
                 accountNumber: details.accountNumber,
                 ifsc: details.ifsc,
             };
@@ -87,13 +87,15 @@ export default function SettingPage() {
   };
   
   const handleWithdrawal = async (values: z.infer<typeof withdrawalSchema>) => {
-    withdrawalForm.formState.isSubmitting = true;
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    withdrawalForm.formState.isSubmitting = false;
-
-    toast({ title: "Withdrawal Initiated", description: `₹${values.amount} is on its way to your account.` });
-    setIsWithdrawOpen(false);
-    withdrawalForm.reset();
+    const { setValue, formState, ...rest } = withdrawalForm;
+    try {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        toast({ title: "Withdrawal Initiated", description: `₹${values.amount} is on its way to your account.` });
+        setIsWithdrawOpen(false);
+        withdrawalForm.reset();
+    } catch (error) {
+        toast({ variant: 'destructive', title: "Error", description: "Withdrawal failed." });
+    }
   }
 
   if (loading || !isMounted) {
@@ -115,7 +117,8 @@ export default function SettingPage() {
   }
 
   const maskNumber = (num: string, keep: number) => {
-    return '•'.repeat(num.length - keep) + num.slice(-keep);
+    if (!num) return '';
+    return '•'.repeat(Math.max(0, num.length - keep)) + num.slice(-keep);
   }
 
   return (
@@ -307,7 +310,7 @@ export default function SettingPage() {
                                <div>
                                     <p className="text-sm font-medium">{account.accountHolderName}</p>
                                     <p className="text-sm text-muted-foreground font-mono">
-                                        Account: •••••{account.accountNumber.slice(-4)}
+                                        Account: •••••{maskNumber(account.accountNumber, 4)}
                                     </p>
                                </div>
                             </div>
@@ -316,6 +319,9 @@ export default function SettingPage() {
                             </Button>
                         </div>
                     ))}
+                     {bankAccounts.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">No bank accounts added yet.</p>
+                     )}
                 </CardContent>
             </Card>
         </div>
