@@ -40,6 +40,7 @@ import {
   Moon,
   Sun,
   Search,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -526,6 +527,9 @@ export default function LiveSellingPage() {
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                        </DropdownMenuItem>
+                                         <DropdownMenuItem asChild>
+                                            <Link href="/seller/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /><span>Seller Dashboard</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                         <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
