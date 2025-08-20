@@ -72,38 +72,43 @@ const salesData = [
   { name: "Jun", sales: 5500 },
 ]
 
-const recentSales = [
-  {
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    amount: "+$1,999.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Jackson Lee",
-    email: "jackson.lee@email.com",
-    amount: "+$39.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    amount: "+$299.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "William Kim",
-    email: "will@email.com",
-    amount: "+$99.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    amount: "+$39.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-]
+const recentTransactions = [
+    {
+        orderId: "#ORD5896",
+        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
+        status: "Fulfilled",
+        total: "₹12,500.00",
+        type: "Listed Product"
+    },
+    {
+        orderId: "#ORD5897",
+        customer: { name: "Jane Doe", email: "jane.d@example.com" },
+        status: "Fulfilled",
+        total: "₹4,999.00",
+        type: "Live Stream"
+    },
+    {
+        orderId: "#ORD5902",
+        customer: { name: "David Garcia", email: "david.g@example.com" },
+        status: "Processing",
+        total: "₹3,200.00",
+        type: "Live Stream"
+    },
+     {
+        orderId: "#ORD5905",
+        customer: { name: "Peter Jones", email: "peter.j@example.com" },
+        status: "Pending",
+        total: "₹7,800.00",
+        type: "Listed Product"
+    },
+    {
+        orderId: "#ORD5903",
+        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
+        status: "Cancelled",
+        total: "₹4,500.00",
+        type: "Listed Product"
+    }
+];
 
 export default function SellerDashboard() {
   const { user, loading } = useAuth();
@@ -349,29 +354,39 @@ export default function SellerDashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>
-                You made 265 sales this month.
-              </CardDescription>
+           <Card>
+            <CardHeader className="flex items-center gap-4">
+              <CardTitle>Recent Transactions</CardTitle>
+              <Button asChild size="sm" variant="outline" className="ml-auto gap-1">
+                <Link href="/seller/orders">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </CardHeader>
-            <CardContent className="grid gap-8">
-               {recentSales.map((sale, index) => (
-                <div key={index} className="flex items-center gap-4">
-                    <Avatar className="hidden h-9 w-9 sm:flex">
-                    <AvatarImage src={sale.avatar} alt="Avatar" />
-                    <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-1">
-                    <p className="text-sm font-medium leading-none">{sale.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {sale.email}
-                    </p>
-                    </div>
-                    <div className="ml-auto font-medium">{sale.amount}</div>
-                </div>
-              ))}
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentTransactions.map((transaction, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="font-medium">{transaction.customer.name}</div>
+                        <div className="hidden text-sm text-muted-foreground md:inline">
+                          <Badge variant={transaction.type === 'Live Stream' ? "destructive" : "secondary"} className="mr-2">{transaction.type}</Badge>
+                          <Badge variant={transaction.status === 'Fulfilled' ? "success" : transaction.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{transaction.status}</Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{transaction.total}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>
@@ -379,5 +394,3 @@ export default function SellerDashboard() {
     </div>
   )
 }
-
-    
