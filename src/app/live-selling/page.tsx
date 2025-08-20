@@ -549,13 +549,6 @@ export default function LiveSellingPage() {
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                                            <span>Theme</span>
-                                            <div className="ml-auto">
-                                                <ThemeSwitcher />
-                                            </div>
-                                        </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                         <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
                                         </DropdownMenuItem>
