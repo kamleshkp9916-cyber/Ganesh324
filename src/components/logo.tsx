@@ -21,6 +21,7 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
             .stream-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--destructive)); }
             .cart-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--destructive)); }
             .brush-stroke { fill: #000; }
+            .dark .brush-stroke { fill: #fff; }
             .cart-icon { fill: hsl(var(--destructive)); }
           `}
         </style>
