@@ -264,7 +264,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 {isOwnProfile && (
                     <>
                     <div>
-                        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                        <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                             <div className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -331,15 +331,23 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </div>
                     </div>
                     <Separator />
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                        <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
+                    </div>
+                    <Separator />
                     </>
                 )}
                 
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">About Me</h3>
-                    <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
-                </div>
-
-                <Separator />
+                {!isOwnProfile && (
+                    <>
+                        <div>
+                            <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                            <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
+                        </div>
+                        <Separator />
+                    </>
+                )}
 
 
                 <div className="w-full max-w-full mx-auto">
