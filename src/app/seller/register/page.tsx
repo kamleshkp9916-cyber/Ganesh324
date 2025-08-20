@@ -7,7 +7,7 @@ import * as z from "zod"
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Upload, X, RefreshCw } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -267,6 +267,13 @@ export default function SellerRegisterPage() {
                 />
                  <Collapsible open={isAadharEntered}>
                     <CollapsibleContent className="space-y-4 pt-2">
+                        <Alert>
+                           <CheckCircle2 className="h-4 w-4" />
+                           <AlertTitle>OTP Sent!</AlertTitle>
+                           <AlertDescription>
+                               An OTP has been sent to your Aadhar-linked mobile number.
+                           </AlertDescription>
+                        </Alert>
                          <FormItem>
                             <FormLabel>Aadhar OTP Verification</FormLabel>
                             <div className="flex items-center gap-4">
