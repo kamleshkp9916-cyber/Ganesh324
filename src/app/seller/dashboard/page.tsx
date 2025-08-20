@@ -166,7 +166,7 @@ export default function SellerDashboard() {
             Dashboard
           </Link>
           <Link
-            href="/orders"
+            href="/seller/orders"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Orders
@@ -208,7 +208,7 @@ export default function SellerDashboard() {
                 Dashboard
               </Link>
               <Link
-                href="/orders"
+                href="/seller/orders"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Orders
@@ -379,3 +379,5 @@ export default function SellerDashboard() {
     </div>
   )
 }
+
+    
