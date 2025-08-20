@@ -109,7 +109,13 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (typeof window !== 'undefined') {
+        const sellerDetails = localStorage.getItem('sellerDetails');
+        if (!sellerDetails) {
+            router.push('/seller/register');
+        }
+    }
+  }, [router]);
 
   if (!isMounted || loading) {
     return (
