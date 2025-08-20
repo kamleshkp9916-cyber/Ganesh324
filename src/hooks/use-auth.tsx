@@ -4,6 +4,7 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { usePathname, useRouter } from 'next/navigation';
 
 const mockUser: User = {
   uid: 'mock-user-id-123',
@@ -38,11 +39,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
   
-  // To use real Firebase authentication, set enableMockUser to false
   const enableMockUser = true;
 
   useEffect(() => {
@@ -55,29 +57,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     };
 
-    // Firebase auth listener
     const unsubscribe = onAuthStateChanged(auth, updateUserState);
-
-    // Initial check in case the component mounts after the initial auth state change
     updateUserState(auth.currentUser);
 
-    // Listener for session storage changes (e.g., logout from another tab)
-    // This helps sync state across tabs.
     const handleStorageChange = (event: StorageEvent) => {
        if (event.key === 'mockUserSessionActive' || event.key === null) {
           updateUserState(auth.currentUser); 
        }
     };
-
     window.addEventListener('storage', handleStorageChange);
 
-    // Cleanup subscription on unmount
     return () => {
       unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!loading && user) {
+        const sellerDetails = localStorage.getItem('sellerDetails');
+        const isSeller = !!sellerDetails;
+        const isSellerPage = pathname.startsWith('/seller');
+        
+        if (isSeller && !isSellerPage) {
+            router.replace('/seller/dashboard');
+        }
+    }
+  }, [user, loading, pathname, router]);
 
 
   return (
@@ -86,6 +92,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return (
+      <AuthProviderInternal>
+        {children}
+      </AuthProviderInternal>
+  );
+}
+
 
 export const useAuth = () => {
   return useContext(AuthContext);
