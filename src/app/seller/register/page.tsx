@@ -40,6 +40,7 @@ const sellerFormSchema = z.object({
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
+  isNewCustomer: z.boolean().default(false),
 }).refine((data) => {
     if (data.password || data.confirmPassword) {
         return data.password === data.confirmPassword;
@@ -74,6 +75,7 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [showVerificationPage, setShowVerificationPage] = useState(false);
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -88,19 +90,32 @@ export default function SellerRegisterPage() {
             email: "",
             phone: "+91 ",
             password: "",
-            confirmPassword: ""
+            confirmPassword: "",
+            isNewCustomer: false,
         },
     });
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        if (typeof window !== 'undefined' && user) {
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const sellerDetails = JSON.parse(sellerDetailsRaw);
+                // Check if the logged-in user is the one who registered as a seller
+                if (sellerDetails.email === user.email) {
+                    setShowVerificationPage(true);
+                }
+            }
+        }
+    }, [user]);
     
      useEffect(() => {
         if (user) {
             form.setValue('firstName', user.displayName?.split(' ')[0] || '');
             form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
             form.setValue('email', user.email || '');
+            // This user is already a customer, so they can switch roles
+            form.setValue('isNewCustomer', true);
         }
     }, [user, form]);
 
@@ -160,6 +175,10 @@ export default function SellerRegisterPage() {
                 <LoadingSpinner />
             </div>
         );
+    }
+    
+    if (showVerificationPage) {
+        return <SellerVerificationPage />;
     }
 
   return (

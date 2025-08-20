@@ -50,7 +50,17 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const updateUserState = (firebaseUser: User | null) => {
       if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
-        setUser(mockUser);
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if (sellerDetailsRaw) {
+             const sellerDetails = JSON.parse(sellerDetailsRaw);
+             setUser({
+                ...mockUser,
+                displayName: sellerDetails.name,
+                email: sellerDetails.email,
+             });
+        } else {
+             setUser(mockUser);
+        }
       } else {
         setUser(firebaseUser);
       }
@@ -61,7 +71,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
     updateUserState(auth.currentUser);
 
     const handleStorageChange = (event: StorageEvent) => {
-       if (event.key === 'mockUserSessionActive' || event.key === null) {
+       if (event.key === 'mockUserSessionActive' || event.key === null || event.key === 'sellerDetails') {
           updateUserState(auth.currentUser); 
        }
     };
@@ -72,20 +82,6 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
-
-  useEffect(() => {
-    if (!loading && user) {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        const isSellerRegistered = !!sellerDetails;
-        const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
-        const isSellerPage = pathname.startsWith('/seller');
-        
-        if (isSellerRegistered && isSellerLogin && !isSellerPage) {
-            router.replace('/seller/dashboard');
-        }
-    }
-  }, [user, loading, pathname, router]);
-
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

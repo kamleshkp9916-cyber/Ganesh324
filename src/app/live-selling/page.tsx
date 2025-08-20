@@ -41,6 +41,7 @@ import {
   Sun,
   Search,
   LayoutDashboard,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -314,7 +315,9 @@ export default function LiveSellingPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
   const [isSeller, setIsSeller] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
@@ -325,13 +328,6 @@ export default function LiveSellingPage() {
         setIsLoadingFeed(false)
         setMockFeed(initialMockFeed);
     }, 2500);
-    
-    if (typeof window !== 'undefined') {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        if (sellerDetails) {
-            setIsSeller(true);
-        }
-    }
 
     return () => {
         clearTimeout(offersTimer);
@@ -342,14 +338,17 @@ export default function LiveSellingPage() {
   
   useEffect(() => {
       if (typeof window !== 'undefined') {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        if (sellerDetails) {
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if (sellerDetailsRaw) {
+            const sellerDetails = JSON.parse(sellerDetailsRaw);
             setIsSeller(true);
+            setIsCustomer(sellerDetails.isNewCustomer === true);
         } else {
             setIsSeller(false);
+            setIsCustomer(true); // Anyone not a seller is a customer
         }
       }
-  }, [user]);
+  }, [user, isMounted]);
 
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
@@ -371,6 +370,22 @@ export default function LiveSellingPage() {
         description: "Your post has been successfully shared.",
     });
   };
+  
+  const handleBecomeCustomer = () => {
+     if (typeof window !== 'undefined') {
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if(sellerDetailsRaw) {
+            const sellerDetails = JSON.parse(sellerDetailsRaw);
+            sellerDetails.isNewCustomer = true;
+            localStorage.setItem('sellerDetails', JSON.stringify(sellerDetails));
+            setIsCustomer(true);
+            toast({
+                title: "Customer Profile Activated!",
+                description: "You can now switch between seller and customer views.",
+            });
+        }
+     }
+  }
 
   const handleAuthAction = (cb?: () => void) => {
     if (!user) {
@@ -547,6 +562,18 @@ export default function LiveSellingPage() {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
+                                        {isSeller && isCustomer && (
+                                            <DropdownMenuItem onSelect={() => router.push('/seller/dashboard')}>
+                                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                <span>Switch to Seller View</span>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {isSeller && !isCustomer && (
+                                            <DropdownMenuItem onSelect={handleBecomeCustomer}>
+                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                <span>Become a Customer</span>
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
