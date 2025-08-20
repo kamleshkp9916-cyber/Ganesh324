@@ -536,11 +536,6 @@ export default function LiveSellingPage() {
                     ) : user ? (
                         <>
                             
-                            {!isSeller && (
-                                <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                                    <Link href="/seller/register">Become Seller</Link>
-                                </Button>
-                            )}
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Bell />
                             </Button>
