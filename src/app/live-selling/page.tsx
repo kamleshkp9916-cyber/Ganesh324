@@ -504,6 +504,9 @@ export default function LiveSellingPage() {
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Plus />
                             </Button>
+                            <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+                                <Link href="/seller/dashboard">Become Seller</Link>
+                            </Button>
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Bell />
                             </Button>
@@ -527,9 +530,6 @@ export default function LiveSellingPage() {
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                        </DropdownMenuItem>
-                                         <DropdownMenuItem asChild>
-                                            <Link href="/seller/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /><span>Seller Dashboard</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                         <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
