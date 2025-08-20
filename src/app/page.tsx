@@ -49,6 +49,12 @@ export default function Home() {
               Sign up
             </Link>
           </div>
+           <div className="text-center text-sm">
+            Want to sell on StreamCart?{" "}
+            <Link href="/seller/register" className="font-semibold text-primary underline">
+              Become a Seller
+            </Link>
+          </div>
         </div>
       </div>
       

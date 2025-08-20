@@ -314,6 +314,7 @@ export default function LiveSellingPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -324,6 +325,13 @@ export default function LiveSellingPage() {
         setIsLoadingFeed(false)
         setMockFeed(initialMockFeed);
     }, 2500);
+    
+    if (typeof window !== 'undefined') {
+        const sellerDetails = localStorage.getItem('sellerDetails');
+        if (sellerDetails) {
+            setIsSeller(true);
+        }
+    }
 
     return () => {
         clearTimeout(offersTimer);
@@ -504,9 +512,11 @@ export default function LiveSellingPage() {
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Plus />
                             </Button>
-                            <Button asChild variant="outline" size="sm" className="hidden sm:flex">
-                                <Link href="/seller/register">Become Seller</Link>
-                            </Button>
+                            {!isSeller && (
+                                <Button asChild variant="outline" size="sm" className="hidden sm:flex">
+                                    <Link href="/seller/register">Become Seller</Link>
+                                </Button>
+                            )}
                             <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
                                 <Bell />
                             </Button>
@@ -540,6 +550,11 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                         <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
                                         </DropdownMenuItem>
+                                        {isSeller && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/seller/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /><span>Seller Dashboard</span></Link>
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuItem asChild>
                                         <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
                                         </DropdownMenuItem>

@@ -23,6 +23,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const sellerFormSchema = z.object({
+  firstName: z.string().min(1, { message: "First name is required." }),
+  lastName: z.string().min(1, { message: "Last name is required." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
+  password: z.string().min(8, "Password must be at least 8 characters.")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+    .regex(/[0-9]/, "Password must contain at least one number.")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character."),
+  confirmPassword: z.string(),
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   passportPhoto: z.any().refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
     (file) => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file?.type),
@@ -34,6 +44,9 @@ const sellerFormSchema = z.object({
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
 });
 
 export default function SellerRegisterPage() {
@@ -49,13 +62,6 @@ export default function SellerRegisterPage() {
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
     const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
-    useEffect(() => {
-        setIsMounted(true);
-        if (typeof window !== 'undefined' && localStorage.getItem('sellerDetails')) {
-            setShowVerificationMessage(true);
-        }
-    }, []);
-
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
         defaultValues: {
@@ -63,9 +69,33 @@ export default function SellerRegisterPage() {
             aadhar: "",
             pan: "",
             accountNumber: "",
-            ifsc: ""
+            ifsc: "",
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "+91 ",
+            password: "",
+            confirmPassword: ""
         },
     });
+
+    useEffect(() => {
+        setIsMounted(true);
+        if (typeof window !== 'undefined' && localStorage.getItem('sellerDetails')) {
+            setShowVerificationMessage(true);
+        }
+    }, []);
+    
+     useEffect(() => {
+        if (user) {
+            form.setValue('firstName', user.displayName?.split(' ')[0] || '');
+            form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
+            form.setValue('email', user.email || '');
+            // You might need to format the phone number if it comes from Firebase Auth
+            // form.setValue('phone', user.phoneNumber || '+91 ');
+        }
+    }, [user, form]);
+
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -100,15 +130,17 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         console.log("Seller registration details:", values);
         
+        // In a real app, you would sign up the user here if they don't exist
+        
         setTimeout(() => {
             if (typeof window !== 'undefined') {
                  const sellerData = {
                     ...values,
                     passportPhoto: values.passportPhoto.name, // Storing only name for mock
-                    email: user?.email,
-                    phone: user?.phoneNumber,
-                    name: user?.displayName
+                    name: `${values.firstName} ${values.lastName}`
                 };
+                delete (sellerData as any).password;
+                delete (sellerData as any).confirmPassword;
                 localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
             }
             setShowVerificationMessage(true);
@@ -116,7 +148,7 @@ export default function SellerRegisterPage() {
         }, 1500);
     }
 
-    if (!isMounted || authLoading) {
+    if (!isMounted) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -137,16 +169,6 @@ export default function SellerRegisterPage() {
             </div>
         )
     }
-    
-    if (!user) {
-        return (
-             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-                 <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-                 <p className="text-muted-foreground mb-6">Please log in to register as a seller.</p>
-                 <Button onClick={() => router.push('/')}>Go to Login</Button>
-            </div>
-        );
-    }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -156,7 +178,7 @@ export default function SellerRegisterPage() {
             Back
           </Button>
         </div>
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl my-8">
         <CardHeader>
           <CardTitle className="text-2xl">Become a Seller</CardTitle>
           <CardDescription>
@@ -169,19 +191,102 @@ export default function SellerRegisterPage() {
                 
                 <h3 className="text-lg font-medium pt-4 border-t">Personal Details</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                            <Input value={user.displayName || ""} disabled />
-                        </FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                            <Input value={user.email || ""} disabled />
-                        </FormControl>
-                    </FormItem>
+                     <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>First Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="John" {...field} disabled={!!user} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Last Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Doe" {...field} disabled={!!user} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                           <FormItem>
+                                <FormLabel>Email Address</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="name@example.com" {...field} disabled={!!user} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                    <Input 
+                                        placeholder="+91 98765 43210" 
+                                        {...field}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+                                            if (!value.startsWith('+91 ')) {
+                                                value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                            }
+                                            if (value.length > 14) {
+                                                value = value.substring(0, 14);
+                                            }
+                                            field.onChange(value);
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
+                {!user && (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Create Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                     </div>
+                )}
 
 
                 <h3 className="text-lg font-medium pt-4 border-t">Business Details</h3>
