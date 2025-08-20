@@ -121,7 +121,8 @@ export default function SellerRegisterPage() {
                  const sellerData = {
                     ...values,
                     passportPhoto: values.passportPhoto.name, // Storing only name for mock
-                    name: `${values.firstName} ${values.lastName}`
+                    name: `${values.firstName} ${values.lastName}`,
+                    verificationStatus: 'pending'
                 };
                 delete (sellerData as any).password;
                 delete (sellerData as any).confirmPassword;
@@ -433,5 +434,3 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
-
-    

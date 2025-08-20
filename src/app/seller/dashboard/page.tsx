@@ -113,9 +113,16 @@ export default function SellerDashboard() {
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== 'undefined') {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        if (!sellerDetails) {
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if (!sellerDetailsRaw) {
             router.push('/seller/register');
+        } else {
+            const sellerDetails = JSON.parse(sellerDetailsRaw);
+            // "Complete" the verification on first visit to dashboard
+            if (sellerDetails.verificationStatus === 'pending') {
+                sellerDetails.verificationStatus = 'verified';
+                localStorage.setItem('sellerDetails', JSON.stringify(sellerDetails));
+            }
         }
     }
   }, [router]);

@@ -5,9 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function SellerVerificationPage() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const sellerDetails = JSON.parse(sellerDetailsRaw);
+                if (sellerDetails.verificationStatus !== 'pending') {
+                    router.replace('/seller/dashboard');
+                    return; // Stop further execution
+                }
+            }
+        }
+        setIsLoading(false);
+    }, [router]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
