@@ -212,7 +212,7 @@ export function OtpForm({ identifier }: { identifier?: string }) {
             />
 
             <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
-                {isLoading ? "Verifying..." : "Proceed"}
+                {isLoading ? "Proceeding..." : "Proceed"}
             </Button>
         </form>
         </Form>
@@ -228,7 +228,7 @@ export function OtpForm({ identifier }: { identifier?: string }) {
             {isResendDisabled && countdown > 0 ? (
                 <span className="text-muted-foreground ml-2">(in {countdown}s)</span>
             ) : resendAttempts < MAX_ATTEMPTS ? (
-                 <span className="text-muted-foreground ml-2">({MAX_ATTEMPTS - resendAttempts} attempts left)</span>
+                 <span className="text-muted-foreground ml-2">({MAX_ATTEMPTS - resendAttempts} left)</span>
             ) : null}
         </div>
     </div>
