@@ -12,6 +12,7 @@ import {
   Search,
   Users,
 } from "lucide-react"
+import { useEffect, useState } from "react";
 
 import {
   Avatar,
@@ -104,8 +105,13 @@ const recentSales = [
 export default function SellerDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || loading) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
