@@ -4,51 +4,127 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock, XCircle, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
+type VerificationStatus = 'loading' | 'pending' | 'rejected' | 'needs-resubmission' | 'verified' | 'no-details';
+
 export default function SellerVerificationPage() {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
+    const [status, setStatus] = useState<VerificationStatus>('loading');
+    const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+    const [resubmissionReason, setResubmissionReason] = useState<string | null>(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const sellerDetailsRaw = localStorage.getItem('sellerDetails');
             if (sellerDetailsRaw) {
                 const sellerDetails = JSON.parse(sellerDetailsRaw);
-                if (sellerDetails.verificationStatus !== 'pending') {
+                const currentStatus = sellerDetails.verificationStatus;
+                
+                if (currentStatus === 'verified') {
                     router.replace('/seller/dashboard');
-                    return; // Stop further execution
+                    setStatus('verified');
+                    return;
                 }
+                
+                setStatus(currentStatus);
+                if (currentStatus === 'rejected') {
+                    setRejectionReason(sellerDetails.rejectionReason || "No specific reason provided.");
+                }
+                 if (currentStatus === 'needs-resubmission') {
+                    setResubmissionReason(sellerDetails.resubmissionReason || "Please review your details carefully.");
+                }
+            } else {
+                setStatus('no-details');
             }
         }
-        setIsLoading(false);
     }, [router]);
 
-    if (isLoading) {
+    if (status === 'loading' || status === 'verified') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
             </div>
         );
     }
+    
+    if (status === 'no-details') {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+                <p>No seller details found. Redirecting...</p>
+                {/* Redirecting effect */}
+                {useEffect(() => {
+                    const timer = setTimeout(() => router.replace('/seller/register'), 2000);
+                    return () => clearTimeout(timer);
+                }, [router])}
+            </div>
+        )
+    }
+
+    const renderContent = () => {
+        switch (status) {
+            case 'pending':
+                return (
+                    <Alert className="max-w-lg">
+                        <Clock className="h-4 w-4" />
+                        <AlertTitle className="text-xl font-bold">Verification in Progress</AlertTitle>
+                        <AlertDescription>
+                            Thank you for submitting your details. Your information is currently under review. This process may take up to 24 hours. We will notify you upon completion.
+                        </AlertDescription>
+                    </Alert>
+                );
+            case 'rejected':
+                return (
+                    <Alert variant="destructive" className="max-w-lg">
+                        <XCircle className="h-4 w-4" />
+                        <AlertTitle className="text-xl font-bold">Application Rejected</AlertTitle>
+                        <AlertDescription>
+                            We're sorry, but your application to become a seller has been rejected. 
+                            <br />
+                            <strong>Reason:</strong> {rejectionReason}
+                            <br />
+                            Please contact support if you have any questions.
+                        </AlertDescription>
+                    </Alert>
+                );
+            case 'needs-resubmission':
+                return (
+                    <Alert variant="destructive" className="max-w-lg">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle className="text-xl font-bold">Action Required</AlertTitle>
+                        <AlertDescription>
+                           There was an issue with your submission. Please go back to the registration page to correct your details.
+                           <br />
+                           <strong>Reason:</strong> {resubmissionReason}
+                        </AlertDescription>
+                    </Alert>
+                );
+            default:
+                return null;
+        }
+    }
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
              <div className="absolute top-4 left-4">
-                <Button variant="ghost" onClick={() => router.push('/live-selling')} className="flex items-center gap-2">
+                <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                         if (status === 'needs-resubmission') {
+                            router.push('/seller/register');
+                         } else {
+                            router.push('/live-selling');
+                         }
+                    }} 
+                    className="flex items-center gap-2"
+                >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Live Shopping
+                    {status === 'needs-resubmission' ? 'Back to Form' : 'Back to Live Shopping'}
                 </Button>
             </div>
-             <Alert className="max-w-lg">
-                <AlertTitle className="text-xl font-bold">Verification in Progress</AlertTitle>
-                <AlertDescription>
-                    Thank you for submitting your details. Your information is currently under review. This process may take up to 24 hours. We will notify you upon completion.
-                </AlertDescription>
-            </Alert>
-            <Button onClick={() => router.push('/live-selling')} className="mt-6">Explore Live Shopping</Button>
+            {renderContent()}
         </div>
     )
 }

@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Upload, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, RefreshCw, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,8 @@ const sellerFormSchema = z.object({
     path: ["confirmPassword"],
 });
 
+type SellerDetails = z.infer<typeof sellerFormSchema> & { verificationStatus: string; rejectionReason?: string; resubmissionReason?: string };
+
 export default function SellerRegisterPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -61,6 +63,8 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [sellerDetails, setSellerDetails] = useState<SellerDetails | null>(null);
+    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -81,7 +85,32 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        if (typeof window !== 'undefined') {
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const details = JSON.parse(sellerDetailsRaw);
+                setSellerDetails(details);
+                
+                if (details.verificationStatus === 'verified') {
+                    setPageStatus('redirecting');
+                    router.replace('/seller/dashboard');
+                } else if (details.verificationStatus === 'pending') {
+                    setPageStatus('redirecting');
+                    router.replace('/seller/verification');
+                } else if (details.verificationStatus === 'rejected') {
+                    setPageStatus('rejected');
+                } else if (details.verificationStatus === 'needs-resubmission') {
+                    form.reset(details);
+                    if(details.aadhar?.length === 12) setIsAadharEntered(true);
+                    setPageStatus('form');
+                } else {
+                     setPageStatus('form');
+                }
+            } else {
+                 setPageStatus('form');
+            }
+        }
+    }, [router, form]);
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -133,12 +162,35 @@ export default function SellerRegisterPage() {
         }, 1500);
     }
 
-    if (!isMounted || authLoading) {
+    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
             </div>
         );
+    }
+
+    if (pageStatus === 'rejected') {
+        return (
+             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+                 <div className="absolute top-4 left-4">
+                    <Button variant="ghost" onClick={() => router.push('/live-selling')} className="flex items-center gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Live Shopping
+                    </Button>
+                </div>
+                 <Alert variant="destructive" className="max-w-lg">
+                    <XCircle className="h-4 w-4" />
+                    <AlertTitle className="text-xl font-bold">Application Rejected</AlertTitle>
+                    <AlertDescription>
+                       We're sorry, but your application to become a seller has been rejected. 
+                       {sellerDetails?.rejectionReason && `Reason: ${sellerDetails.rejectionReason}`}
+                       <br/>
+                       Please contact support for more information.
+                    </AlertDescription>
+                </Alert>
+             </div>
+        )
     }
 
   return (
@@ -157,6 +209,16 @@ export default function SellerRegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+            {sellerDetails?.verificationStatus === 'needs-resubmission' && (
+                 <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Action Required</AlertTitle>
+                    <AlertDescription>
+                      There was an issue with your previous submission. Please review your details and re-submit.
+                      {sellerDetails?.resubmissionReason && <p className="mt-2"><strong>Reason:</strong> {sellerDetails.resubmissionReason}</p>}
+                    </AlertDescription>
+                </Alert>
+            )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 
