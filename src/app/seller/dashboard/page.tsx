@@ -59,6 +59,7 @@ import {
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
+import { useAuthActions } from "@/lib/auth";
 
 const salesData = [
   { name: "Jan", sales: 4000 },
@@ -104,6 +105,7 @@ const recentSales = [
 
 export default function SellerDashboard() {
   const { user, loading } = useAuth();
+  const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -239,7 +241,7 @@ export default function SellerDashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
