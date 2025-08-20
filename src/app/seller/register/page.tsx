@@ -94,11 +94,14 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined') {
-            const sellerDetails = localStorage.getItem('sellerDetails');
-            // If the user is already a seller, show the verification page.
-            if (sellerDetails && user?.email === JSON.parse(sellerDetails).email) {
-                setShowVerificationMessage(true);
+        if (typeof window !== 'undefined' && user) {
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const sellerDetails = JSON.parse(sellerDetailsRaw);
+                // If the logged-in user is the one who registered, show the verification page.
+                if (user.email === sellerDetails.email) {
+                    setShowVerificationMessage(true);
+                }
             }
         }
     }, [user]);
