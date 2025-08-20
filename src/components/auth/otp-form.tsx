@@ -52,7 +52,7 @@ export function OtpForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(60);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function OtpForm() {
 
   const handleResendOtp = async () => {
     setIsResendDisabled(true);
-    setCountdown(30);
+    setCountdown(60);
     // Here you would add the logic to actually resend the OTP
     console.log("Simulating OTP resend...");
     await new Promise(resolve => setTimeout(resolve, 500));
