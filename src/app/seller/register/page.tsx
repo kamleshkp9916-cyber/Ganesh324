@@ -2,12 +2,12 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,12 +15,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import Image from 'next/image';
+import SignatureCanvas from 'react-signature-canvas';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 const sellerFormSchema = z.object({
+  businessName: z.string().min(2, "Business name must be at least 2 characters."),
+  passportPhoto: z.any().refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
+    (file) => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file?.type),
+    "Only .jpg, .jpeg, .png and .webp formats are supported."
+  ),
+  signature: z.string().min(1, "Signature is required."),
   aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits."),
   pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format."),
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
-  ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format.")
+  ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
+  aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
 });
 
 export default function SellerRegisterPage() {
@@ -29,21 +42,24 @@ export default function SellerRegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const sigPadRef = useRef<SignatureCanvas>(null);
+    const [isAadharEntered, setIsAadharEntered] = useState(false);
+    const [isOtpVerified, setIsOtpVerified] = useState(false);
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
         if (typeof window !== 'undefined' && localStorage.getItem('sellerDetails')) {
-            toast({
-                title: "Already Registered",
-                description: "You are already registered as a seller. Redirecting to dashboard.",
-            });
-            router.push('/seller/dashboard');
+            setShowVerificationMessage(true);
         }
-    }, [router, toast]);
+    }, []);
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
         defaultValues: {
+            businessName: "",
             aadhar: "",
             pan: "",
             accountNumber: "",
@@ -51,20 +67,51 @@ export default function SellerRegisterPage() {
         },
     });
 
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            form.setValue('passportPhoto', file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+    
+    const clearSignature = () => {
+        sigPadRef.current?.clear();
+        form.setValue('signature', '');
+    };
+
+    const handleAadharChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, '');
+         if (value.length <= 12) {
+            form.setValue('aadhar', value);
+            setIsAadharEntered(value.length === 12);
+        }
+    }
+    
+    const handleOtpVerify = async () => {
+        setIsVerifyingOtp(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsOtpVerified(true);
+        setIsVerifyingOtp(false);
+        toast({ title: "Aadhar Verified Successfully!" });
+    }
+
     function onSubmit(values: z.infer<typeof sellerFormSchema>) {
         setIsLoading(true);
         console.log("Seller registration details:", values);
         
-        // Simulate API call
         setTimeout(() => {
             if (typeof window !== 'undefined') {
-                localStorage.setItem('sellerDetails', JSON.stringify(values));
+                 const sellerData = {
+                    ...values,
+                    passportPhoto: values.passportPhoto.name, // Storing only name for mock
+                    email: user?.email,
+                    phone: user?.phoneNumber,
+                    name: user?.displayName
+                };
+                localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
             }
-            toast({
-                title: "Registration Successful!",
-                description: "You can now access the seller dashboard.",
-            });
-            router.push('/seller/dashboard');
+            setShowVerificationMessage(true);
             setIsLoading(false);
         }, 1500);
     }
@@ -75,6 +122,20 @@ export default function SellerRegisterPage() {
                 <LoadingSpinner />
             </div>
         );
+    }
+
+    if(showVerificationMessage) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+                 <Alert className="max-w-lg">
+                    <AlertTitle className="text-xl font-bold">Verification in Progress</AlertTitle>
+                    <AlertDescription>
+                        Thank you for submitting your details. Your information is currently under review. This process may take up to 24 hours. We will notify you upon completion.
+                    </AlertDescription>
+                </Alert>
+                <Button onClick={() => router.push('/live-selling')} className="mt-6">Back to Home</Button>
+            </div>
+        )
     }
     
     if (!user) {
@@ -95,16 +156,102 @@ export default function SellerRegisterPage() {
             Back
           </Button>
         </div>
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl">Become a Seller</CardTitle>
           <CardDescription>
-            Please provide your identification and bank details to start selling.
+            Please provide your business, identification and bank details to start selling.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                
+                <h3 className="text-lg font-medium pt-4 border-t">Personal Details</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                            <Input value={user.displayName || ""} disabled />
+                        </FormControl>
+                    </FormItem>
+                    <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                            <Input value={user.email || ""} disabled />
+                        </FormControl>
+                    </FormItem>
+                </div>
+
+
+                <h3 className="text-lg font-medium pt-4 border-t">Business Details</h3>
+                <FormField
+                    control={form.control}
+                    name="businessName"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Business Name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="e.g., Acme Corp" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="passportPhoto"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Passport-size Photo</FormLabel>
+                             <FormControl>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted">
+                                        {photoPreview ? (
+                                            <Image src={photoPreview} alt="Preview" width={96} height={96} className="object-cover rounded-md" />
+                                        ) : (
+                                            <Upload className="h-8 w-8 text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    <Button type="button" variant="outline" onClick={() => document.getElementById('photo-upload')?.click()}>
+                                        Upload Image
+                                    </Button>
+                                    <Input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="signature"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Online Signature</FormLabel>
+                            <FormControl>
+                                <div className="relative rounded-lg border border-input">
+                                    <SignatureCanvas 
+                                        ref={sigPadRef}
+                                        penColor='black'
+                                        canvasProps={{className: 'w-full h-32 rounded-md'}} 
+                                        onEnd={() => field.onChange(sigPadRef.current?.toDataURL() || '')}
+                                    />
+                                </div>
+                            </FormControl>
+                            <div className="flex justify-end">
+                                <Button type="button" variant="ghost" size="sm" onClick={clearSignature}>
+                                    <RefreshCw className="h-4 w-4 mr-2"/>
+                                    Clear
+                                </Button>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <h3 className="text-lg font-medium pt-4 border-t">Identification Details</h3>
                 <FormField
                     control={form.control}
                     name="aadhar"
@@ -112,12 +259,44 @@ export default function SellerRegisterPage() {
                         <FormItem>
                         <FormLabel>Aadhar Card Number</FormLabel>
                         <FormControl>
-                            <Input placeholder="XXXX XXXX XXXX" {...field} />
+                            <Input placeholder="XXXX XXXX XXXX" {...field} onChange={handleAadharChange} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
                 />
+                 <Collapsible open={isAadharEntered}>
+                    <CollapsibleContent className="space-y-4 pt-2">
+                         <FormItem>
+                            <FormLabel>Aadhar OTP Verification</FormLabel>
+                            <div className="flex items-center gap-4">
+                               <FormControl>
+                                    <Controller
+                                        control={form.control}
+                                        name="aadharOtp"
+                                        render={({ field }) => (
+                                            <InputOTP maxLength={6} {...field} disabled={isVerifyingOtp || isOtpVerified}>
+                                                <InputOTPGroup>
+                                                    <InputOTPSlot index={0} />
+                                                    <InputOTPSlot index={1} />
+                                                    <InputOTPSlot index={2} />
+                                                    <InputOTPSlot index={3} />
+                                                    <InputOTPSlot index={4} />
+                                                    <InputOTPSlot index={5} />
+                                                </InputOTPGroup>
+                                            </InputOTP>
+                                        )}
+                                    />
+                                </FormControl>
+                                <Button type="button" onClick={handleOtpVerify} disabled={isVerifyingOtp || isOtpVerified}>
+                                    {isVerifyingOtp && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {isOtpVerified ? "Verified" : "Verify"}
+                                </Button>
+                            </div>
+                            <FormMessage {...form.getFieldState('aadharOtp')} />
+                        </FormItem>
+                    </CollapsibleContent>
+                </Collapsible>
                 <FormField
                     control={form.control}
                     name="pan"
@@ -159,8 +338,8 @@ export default function SellerRegisterPage() {
                     )}
                 />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Create Account'}
+              <Button type="submit" className="w-full" disabled={isLoading || !isOtpVerified}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
               </Button>
             </form>
           </Form>
