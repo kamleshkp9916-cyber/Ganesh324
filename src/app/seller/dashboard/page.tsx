@@ -13,8 +13,9 @@ import {
   Repeat,
   Search,
   Users,
+  ListFilter,
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import {
   Avatar,
@@ -27,6 +28,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -37,6 +39,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -77,38 +80,46 @@ const recentTransactions = [
         orderId: "#ORD5896",
         customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
         status: "Fulfilled",
-        total: "₹12,500.00",
-        type: "Listed Product"
+        total: 12500.00,
+        type: "Listed Product",
+        date: new Date(),
     },
     {
         orderId: "#ORD5897",
         customer: { name: "Jane Doe", email: "jane.d@example.com" },
         status: "Fulfilled",
-        total: "₹4,999.00",
-        type: "Live Stream"
+        total: 4999.00,
+        type: "Live Stream",
+        date: new Date(new Date().setDate(new Date().getDate() - 1)),
     },
     {
         orderId: "#ORD5902",
         customer: { name: "David Garcia", email: "david.g@example.com" },
         status: "Processing",
-        total: "₹3,200.00",
-        type: "Live Stream"
+        total: 3200.00,
+        type: "Live Stream",
+        date: new Date(new Date().setDate(new Date().getDate() - 3)),
     },
      {
         orderId: "#ORD5905",
         customer: { name: "Peter Jones", email: "peter.j@example.com" },
         status: "Pending",
-        total: "₹7,800.00",
-        type: "Listed Product"
+        total: 7800.00,
+        type: "Listed Product",
+        date: new Date(new Date().setDate(new Date().getDate() - 5)),
     },
     {
         orderId: "#ORD5903",
         customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
         status: "Cancelled",
-        total: "₹4,500.00",
-        type: "Listed Product"
+        total: 4500.00,
+        type: "Listed Product",
+        date: new Date(new Date().setDate(new Date().getDate() - 10)),
     }
 ];
+
+type FilterType = "all" | "stream" | "product";
+type DateFilterType = "month" | "week" | "today";
 
 export default function SellerDashboard() {
   const { user, loading } = useAuth();
@@ -116,6 +127,8 @@ export default function SellerDashboard() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<FilterType>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilterType>("month");
 
   useEffect(() => {
     setIsMounted(true);
@@ -134,6 +147,35 @@ export default function SellerDashboard() {
         }
     }
   }, [router]);
+  
+  const filteredTransactions = useMemo(() => {
+    let items = recentTransactions.filter(t => t.status !== 'Cancelled');
+    
+    // Type filter
+    if (typeFilter === 'stream') {
+        items = items.filter(t => t.type === 'Live Stream');
+    } else if (typeFilter === 'product') {
+        items = items.filter(t => t.type === 'Listed Product');
+    }
+
+    // Date filter
+    const now = new Date();
+    if (dateFilter === 'today') {
+        items = items.filter(t => t.date.toDateString() === now.toDateString());
+    } else if (dateFilter === 'week') {
+        const lastWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        items = items.filter(t => t.date > lastWeek);
+    } else if (dateFilter === 'month') {
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        items = items.filter(t => t.date > lastMonth);
+    }
+
+    return items;
+  }, [typeFilter, dateFilter]);
+  
+  const totalRevenue = useMemo(() => {
+    return filteredTransactions.reduce((acc, curr) => acc + curr.total, 0);
+  }, [filteredTransactions]);
 
   if (!isMounted || loading || (isMounted && !isSeller)) {
     return (
@@ -355,14 +397,43 @@ export default function SellerDashboard() {
             </CardContent>
           </Card>
            <Card>
-            <CardHeader className="flex items-center gap-4">
-              <CardTitle>Recent Transactions</CardTitle>
-              <Button asChild size="sm" variant="outline" className="ml-auto gap-1">
-                <Link href="/seller/orders">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1">
+                <CardTitle>Recent Transactions</CardTitle>
+                <CardDescription>An overview of your most recent sales.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-1">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <span className="capitalize">{typeFilter}</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={() => setTypeFilter('all')}>All</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setTypeFilter('stream')}>Live Stream</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setTypeFilter('product')}>Listed Product</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                       <Button variant="outline" size="sm" className="h-8 gap-1">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <span className="capitalize">{dateFilter === 'month' ? 'This Month' : dateFilter === 'week' ? 'This Week' : 'Today'}</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={() => setDateFilter('month')}>This Month</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setDateFilter('week')}>This Week</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setDateFilter('today')}>Today</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -373,7 +444,7 @@ export default function SellerDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentTransactions.map((transaction, index) => (
+                  {filteredTransactions.length > 0 ? filteredTransactions.map((transaction, index) => (
                     <TableRow key={index}>
                       <TableCell>
                         <div className="font-medium">{transaction.customer.name}</div>
@@ -382,12 +453,22 @@ export default function SellerDashboard() {
                           <Badge variant={transaction.status === 'Fulfilled' ? "success" : transaction.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{transaction.status}</Badge>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">{transaction.total}</TableCell>
+                      <TableCell className="text-right">{'₹' + transaction.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                     <TableRow>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                            No transactions found for the selected filters.
+                        </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
+            <CardFooter className="flex justify-between items-center bg-muted/50 p-4 rounded-b-lg">
+                <div className="font-semibold">Total Revenue</div>
+                <div className="font-bold text-lg text-primary">{'₹' + totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </CardFooter>
           </Card>
         </div>
       </main>
