@@ -339,6 +339,17 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
     };
   }, []);
+  
+  useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const sellerDetails = localStorage.getItem('sellerDetails');
+        if (sellerDetails) {
+            setIsSeller(true);
+        } else {
+            setIsSeller(false);
+        }
+      }
+  }, [user]);
 
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
