@@ -76,10 +76,11 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && user) {
         const sellerDetails = localStorage.getItem('sellerDetails');
-        const isSeller = !!sellerDetails;
+        const isSellerRegistered = !!sellerDetails;
+        const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
         const isSellerPage = pathname.startsWith('/seller');
         
-        if (isSeller && !isSellerPage) {
+        if (isSellerRegistered && isSellerLogin && !isSellerPage) {
             router.replace('/seller/dashboard');
         }
     }

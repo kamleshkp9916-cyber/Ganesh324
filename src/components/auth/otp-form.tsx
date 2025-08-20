@@ -153,10 +153,9 @@ export function OtpForm({ identifier }: { identifier?: string }) {
 
         // Check if user is a seller and redirect accordingly
         const sellerDetails = localStorage.getItem('sellerDetails');
-        if (sellerDetails) {
-            // For a more robust check, you might verify the email in sellerDetails
-            // against the logged-in user's email.
-            // For this mock, simply checking for existence is enough.
+        const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
+
+        if (sellerDetails && isSellerLogin) {
             window.location.href = "/seller/dashboard";
         } else {
              window.location.href = "/live-selling";

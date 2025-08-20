@@ -86,6 +86,13 @@ export function LoginForm() {
     // This is key for the mock user flow
     sessionStorage.setItem('mockUserSessionActive', 'true');
 
+    // Differentiate between seller and customer login for testing
+    if (values.identifier === 'ganesh@example.com') {
+        sessionStorage.setItem('isSellerLogin', 'true');
+    } else {
+        sessionStorage.removeItem('isSellerLogin');
+    }
+
     toast({
         title: "Verification Required",
         description: "An OTP has been sent to your device.",
