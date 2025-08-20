@@ -84,13 +84,14 @@ export function useAuthActions() {
             
             // This is key for the mock user flow
             sessionStorage.removeItem('mockUserSessionActive');
+            sessionStorage.removeItem('isSellerLogin');
             
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
             });
             
-            window.location.reload();
+            router.push('/');
 
         } catch (error) {
             console.error("Error signing out: ", error);
