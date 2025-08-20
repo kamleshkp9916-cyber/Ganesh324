@@ -13,8 +13,7 @@ export function Footer() {
           
           <div className="lg:col-span-1">
              <div className="flex items-center gap-2 mb-4">
-                <Logo className="h-10 w-10"/>
-                <h2 className="text-2xl font-bold text-foreground">StreamCart</h2>
+                <Logo />
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Your one-stop shop for live shopping. Discover, engage, and buy in real-time.

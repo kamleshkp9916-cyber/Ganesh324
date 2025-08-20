@@ -7,13 +7,8 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
     <svg 
       viewBox="0 0 200 100" 
       xmlns="http://www.w3.org/2000/svg" 
-      className={cn("w-16 h-auto", props.className)} 
+      className={cn("w-auto h-12", props.className)} 
       {...props}
-      style={{
-        width: 'auto',
-        height: '64px',
-        ...props.style
-      }}
     >
       <defs>
         <style>
