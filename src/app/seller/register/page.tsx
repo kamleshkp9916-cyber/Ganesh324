@@ -5,11 +5,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Upload, X, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, RefreshCw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -17,9 +16,10 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 
 const sellerFormSchema = z.object({
@@ -49,6 +49,7 @@ const sellerFormSchema = z.object({
     message: "Passwords don't match",
     path: ["confirmPassword"],
 }).refine((data) => {
+    // If user is not logged in, password is required
     if (!data.email.includes('@')) { // A simple check to see if it's a new user
          return !!data.password && z.string().min(8, "Password must be at least 8 characters.")
             .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
@@ -73,7 +74,6 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -94,25 +94,13 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined' && user) {
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const sellerDetails = JSON.parse(sellerDetailsRaw);
-                // If the logged-in user is the one who registered, show the verification page.
-                if (user.email === sellerDetails.email) {
-                    setShowVerificationMessage(true);
-                }
-            }
-        }
-    }, [user]);
+    }, []);
     
      useEffect(() => {
         if (user) {
             form.setValue('firstName', user.displayName?.split(' ')[0] || '');
             form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
             form.setValue('email', user.email || '');
-            // You might need to format the phone number if it comes from Firebase Auth
-            // form.setValue('phone', user.phoneNumber || '+91 ');
         }
     }, [user, form]);
 
@@ -150,8 +138,6 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         console.log("Seller registration details:", values);
         
-        // In a real app, you would sign up the user here if they don't exist
-        
         setTimeout(() => {
             if (typeof window !== 'undefined') {
                  const sellerData = {
@@ -163,7 +149,7 @@ export default function SellerRegisterPage() {
                 delete (sellerData as any).confirmPassword;
                 localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
             }
-            setShowVerificationMessage(true);
+            router.push('/seller/verification');
             setIsLoading(false);
         }, 1500);
     }
@@ -174,20 +160,6 @@ export default function SellerRegisterPage() {
                 <LoadingSpinner />
             </div>
         );
-    }
-
-    if(showVerificationMessage) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                 <Alert className="max-w-lg">
-                    <AlertTitle className="text-xl font-bold">Verification in Progress</AlertTitle>
-                    <AlertDescription>
-                        Thank you for submitting your details. Your information is currently under review. This process may take up to 24 hours. We will notify you upon completion.
-                    </AlertDescription>
-                </Alert>
-                <Button onClick={() => router.push('/live-selling')} className="mt-6">Back to Home</Button>
-            </div>
-        )
     }
 
   return (
