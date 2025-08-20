@@ -130,11 +130,6 @@ export default function SellerDashboard() {
     }
   }, [router]);
 
-  const handleSwitchView = () => {
-    sessionStorage.removeItem('isSellerLogin');
-    router.push('/live-selling');
-  };
-
   if (!isMounted || loading || (isMounted && !isSeller)) {
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -270,10 +265,6 @@ export default function SellerDashboard() {
               <DropdownMenuItem onSelect={() => router.push('/setting')}>
                 <CircleUser className="mr-2 h-4 w-4" />
                 <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleSwitchView}>
-                <Repeat className="mr-2 h-4 w-4" />
-                <span>Switch to Customer View</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
