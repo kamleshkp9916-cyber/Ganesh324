@@ -22,10 +22,10 @@ export default function OtpPage({ searchParams }: { searchParams: { identifier?:
             </div>
             <h1 className="text-3xl font-bold">Verify Your Account</h1>
             <p className="text-balance text-muted-foreground px-4">
-                Enter the 6-digit code sent to <span className="font-semibold text-foreground">{identifier}</span>
+                Enter the 6-digit code sent to <span className="font-semibold text-foreground">{identifier || 'your device'}</span>
             </p>
         </div>
-        <OtpForm />
+        <OtpForm identifier={identifier} />
          <div className="text-center text-sm text-muted-foreground">
             Didn&apos;t receive the code? You can request a new one.
         </div>

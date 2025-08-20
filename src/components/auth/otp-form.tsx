@@ -22,12 +22,16 @@ import {
   InputOTPSeparator,
 } from "@/components/ui/input-otp"
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
   otp: z.string().min(6, {
     message: "Your one-time password must be 6 characters.",
   }),
 })
+
+const MAX_ATTEMPTS = 3;
+const BLOCK_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // This is a mock server-side verification function.
 // In a real app, you'd call your backend API here.
@@ -48,27 +52,76 @@ async function verifyOtpOnServer(otp: string): Promise<{ success: boolean }> {
 }
 
 
-export function OtpForm() {
+export function OtpForm({ identifier }: { identifier?: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+
+  const getStorageKey = (key: string) => identifier ? `${key}_${identifier}` : null;
+
+  useEffect(() => {
+    const attemptsKey = getStorageKey('otp_attempts');
+    const blockUntilKey = getStorageKey('otp_block_until');
+
+    if (!attemptsKey || !blockUntilKey) return;
+    
+    const now = Date.now();
+    const blockUntil = parseInt(localStorage.getItem(blockUntilKey) || '0', 10);
+
+    if (blockUntil > now) {
+        setIsBlocked(true);
+        return;
+    } else {
+        localStorage.removeItem(blockUntilKey);
+        localStorage.removeItem(attemptsKey);
+    }
+    
+    const attempts = parseInt(localStorage.getItem(attemptsKey) || '0', 10);
+    setResendAttempts(attempts);
+    
+    if (attempts >= MAX_ATTEMPTS) {
+        setIsBlocked(true);
+    }
+  }, [identifier]);
+  
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (countdown > 0) {
+    if (countdown > 0 && !isBlocked) {
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     } else {
       setIsResendDisabled(false);
     }
     return () => clearTimeout(timer);
-  }, [countdown]);
+  }, [countdown, isBlocked]);
 
   const handleResendOtp = async () => {
+    const attemptsKey = getStorageKey('otp_attempts');
+    const blockUntilKey = getStorageKey('otp_block_until');
+    if (!attemptsKey || !blockUntilKey || isBlocked) return;
+
+    const currentAttempts = resendAttempts + 1;
+    setResendAttempts(currentAttempts);
+    localStorage.setItem(attemptsKey, currentAttempts.toString());
+    
+    if (currentAttempts >= MAX_ATTEMPTS) {
+        const blockUntil = Date.now() + BLOCK_DURATION_MS;
+        localStorage.setItem(blockUntilKey, blockUntil.toString());
+        setIsBlocked(true);
+        toast({
+            title: "Too Many Attempts",
+            description: "You have exceeded the maximum number of OTP requests. Please try again after 24 hours.",
+            variant: "destructive",
+        });
+        return;
+    }
+    
     setIsResendDisabled(true);
     setCountdown(60);
-    // Here you would add the logic to actually resend the OTP
     console.log("Simulating OTP resend...");
     await new Promise(resolve => setTimeout(resolve, 500));
     toast({
@@ -90,6 +143,9 @@ export function OtpForm() {
       const { success } = await verifyOtpOnServer(values.otp);
 
       if (success) {
+        const attemptsKey = getStorageKey('otp_attempts');
+        if (attemptsKey) localStorage.removeItem(attemptsKey);
+        
         toast({
             title: "Success!",
             description: "Your OTP has been verified.",
@@ -113,6 +169,17 @@ export function OtpForm() {
     } finally {
         setIsLoading(false);
     }
+  }
+
+  if (isBlocked) {
+    return (
+        <Alert variant="destructive">
+            <AlertTitle>Account Locked</AlertTitle>
+            <AlertDescription>
+                You have made too many OTP requests. For your security, this feature has been locked. Please try again after 24 hours.
+            </AlertDescription>
+        </Alert>
+    );
   }
 
   return (
@@ -153,14 +220,16 @@ export function OtpForm() {
             <Button
                 variant="link"
                 onClick={handleResendOtp}
-                disabled={isResendDisabled}
+                disabled={isResendDisabled || resendAttempts >= MAX_ATTEMPTS}
                 className="p-0 h-auto"
             >
                 Resend OTP
             </Button>
-            {isResendDisabled && (
+            {isResendDisabled && countdown > 0 ? (
                 <span className="text-muted-foreground ml-2">(in {countdown}s)</span>
-            )}
+            ) : resendAttempts < MAX_ATTEMPTS ? (
+                 <span className="text-muted-foreground ml-2">({MAX_ATTEMPTS - resendAttempts} attempts left)</span>
+            ) : null}
         </div>
     </div>
   )
