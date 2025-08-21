@@ -32,6 +32,7 @@ const formSchema = z.object({
 
 const MAX_ATTEMPTS = 3;
 const BLOCK_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ADMIN_EMAIL = "samael.prajapati@example.com";
 
 // This is a mock server-side verification function.
 // In a real app, you'd call your backend API here.
@@ -151,7 +152,11 @@ export function OtpForm({ identifier }: { identifier?: string }) {
             description: "Your OTP has been verified.",
         });
 
-        // Check if user is a seller and redirect accordingly
+        if (identifier === ADMIN_EMAIL) {
+            window.location.href = "/admin/dashboard";
+            return;
+        }
+
         const sellerDetails = localStorage.getItem('sellerDetails');
         const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
 
