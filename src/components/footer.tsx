@@ -1,11 +1,14 @@
 
-import { Facebook, Twitter, Linkedin, Mail, MapPin, Phone, Instagram, ShoppingCart } from 'lucide-react';
+"use client";
+
+import { Facebook, Twitter, Linkedin, Mail, MapPin, Phone, Instagram } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from './logo';
-import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
+import { useAuth } from '@/hooks/use-auth.tsx';
 
 export function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="bg-card text-card-foreground border-t">
       <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -30,8 +33,12 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
                 <li><Link href="/live-selling" className="text-muted-foreground hover:text-primary">Live Shopping</Link></li>
-                <li><Link href="/orders" className="text-muted-foreground hover:text-primary">My Orders</Link></li>
-                <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
+                {user && (
+                    <>
+                        <li><Link href="/orders" className="text-muted-foreground hover:text-primary">My Orders</Link></li>
+                        <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
+                    </>
+                )}
                 <li><Link href="/help" className="text-muted-foreground hover:text-primary">Help & Support</Link></li>
             </ul>
           </div>
