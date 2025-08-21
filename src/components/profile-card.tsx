@@ -24,6 +24,8 @@ import { CreditCard, Wallet } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { getRecentlyViewed, addRecentlyViewed, addToWishlist, getWishlist, Product } from '@/lib/product-history';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Label } from './ui/label';
 
 const mockProducts = [
     { id: 1, name: 'Vintage Camera', price: '₹12,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'vintage film camera' },
@@ -107,6 +109,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [addresses, setAddresses] = useState(profileData.addresses);
+  const [defaultAddressId, setDefaultAddressId] = useState(addresses[0]?.id || null);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAddress, setEditingAddress] = useState(null);
@@ -160,7 +163,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readDataURL(file);
     }
   };
   
@@ -170,7 +173,12 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         const index = newAddresses.findIndex(addr => addr.id === (editingAddress as any).id);
         newAddresses[index] = { ...data, id: (editingAddress as any).id };
     } else {
-        newAddresses.push({ ...data, id: Date.now() });
+        const newAddress = { ...data, id: Date.now() };
+        newAddresses.push(newAddress);
+        // If it's the first address, make it default
+        if (newAddresses.length === 1) {
+            setDefaultAddressId(newAddress.id);
+        }
     }
     setAddresses(newAddresses);
     onAddressesUpdate(newAddresses);
@@ -183,6 +191,10 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     const newAddresses = addresses.filter((addr: any) => addr.id !== addressId);
     setAddresses(newAddresses);
     onAddressesUpdate(newAddresses);
+    // If the deleted address was the default, set the new default to the first one if it exists
+    if (defaultAddressId === addressId) {
+        setDefaultAddressId(newAddresses[0]?.id || null);
+    }
     toast({ title: 'Address removed.' });
   };
 
@@ -293,46 +305,49 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 Add New
                             </Button>
                         </div>
-                        <div className="space-y-4">
+                        <RadioGroup value={String(defaultAddressId)} onValueChange={(val) => setDefaultAddressId(Number(val))} className="space-y-2">
                             {addresses.map((address: any) => (
-                                <Card key={address.id} className="p-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="text-sm text-muted-foreground">
-                                            <p className="font-semibold text-foreground">{address.name}</p>
-                                            <p>{address.village}, {address.district}</p>
-                                            <p>{address.city}, {address.state} - {address.pincode}</p>
-                                            <p>Phone: {address.phone}</p>
+                                <div key={address.id} className="flex items-center gap-2 p-2 rounded-lg border has-[:checked]:bg-muted/50">
+                                    <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
+                                    <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer">
+                                        <div className="flex justify-between items-start">
+                                            <div className="text-sm text-muted-foreground">
+                                                <p className="font-semibold text-foreground">{address.name}</p>
+                                                <p>{address.village}, {address.district}</p>
+                                                <p>{address.city}, {address.state} - {address.pincode}</p>
+                                                <p>Phone: {address.phone}</p>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-1">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This action cannot be undone. This will permanently delete this address.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                            Delete
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
+                                    </Label>
+                                    <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete this address.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
-                                </Card>
+                                </div>
                             ))}
-                        </div>
+                        </RadioGroup>
                     </div>
                     <Separator />
                      <div>

@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -25,8 +25,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 
 
 const getStatusIcon = (status: string) => {
@@ -38,9 +43,17 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
-    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt')) return <XCircle className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('returned')) return <XCircle className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
+
+const cancellationReasons = [
+    "Changed my mind",
+    "Found a better deal elsewhere",
+    "Ordered by mistake",
+    "Delivery time is too long",
+    "Other"
+];
 
 
 export default function DeliveryInformationPage() {
@@ -54,13 +67,21 @@ export default function DeliveryInformationPage() {
     
     // Local state for the order to allow modifications (like cancellation)
     const [order, setOrder] = useState<Order | null>(null);
+    const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
+    const [cancelStep, setCancelStep] = useState("reason");
+    const [cancelReason, setCancelReason] = useState("");
+    const [cancelFeedback, setCancelFeedback] = useState("");
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [otp, setOtp] = useState('');
+
 
     useEffect(() => {
         setIsMounted(true);
         if (orderId && allOrderData[orderId]) {
             setOrder(allOrderData[orderId]);
         } else {
-            setOrder(allOrderData["#STREAM5896"]); // Fallback for demo
+            // Fallback for demo if orderId is invalid
+            setOrder(allOrderData["#STREAM5896"]);
         }
     }, [orderId]);
     
@@ -79,27 +100,7 @@ export default function DeliveryInformationPage() {
 
     useEffect(() => {
         if (!isMounted || !orderId || !order) return;
-
-        // Only show toasts if the component has mounted and we have an order
-        // This toast can be annoying, so let's comment it out for now.
-        // toast({
-        //     title: "Order Successful!",
-        //     description: `Your order ${orderId} has been placed.`,
-        // });
-
-        // This simulates real-time updates.
-        // order.timeline.forEach((item, index) => {
-        //     if(item.completed) {
-        //         setTimeout(() => {
-        //             toast({
-        //                 title: item.status.split(':')[0],
-        //                 description: `Update for order ${orderId}`,
-        //             })
-        //         }, (index + 1) * 2000);
-        //     }
-        // });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMounted]);
+    }, [isMounted, orderId, order]);
 
      if (!isMounted || loading) {
         return (
@@ -110,13 +111,8 @@ export default function DeliveryInformationPage() {
     }
     
     if (!user) {
-        return (
-             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-                 <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-                 <p className="text-muted-foreground mb-6">Please log in to view delivery information.</p>
-                 <Button onClick={() => router.push('/')}>Go to Login</Button>
-            </div>
-        );
+        router.push('/');
+        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
     }
     
     if (!order) {
@@ -133,18 +129,38 @@ export default function DeliveryInformationPage() {
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     const currentStatus = order.timeline[currentStatusIndex]?.status.split(':')[0].trim() || 'Unknown';
 
-    const handleCancelOrder = () => {
+    const handleConfirmCancellation = async (otpValue: string) => {
+        if (otpValue !== '123456') {
+            toast({
+                title: "Invalid OTP",
+                description: "The OTP you entered is incorrect. Please try again.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsVerifyingOtp(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const newTimeline = [
             ...order.timeline,
             { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'hh:mm a'), completed: true }
         ];
         // In a real app, you would also update the backend here.
         setOrder({ ...order, timeline: newTimeline });
+        
         toast({
             title: "Order Cancelled",
             description: `Order ${orderId} has been cancelled.`,
             variant: "destructive"
         });
+
+        setIsVerifyingOtp(false);
+        setIsCancelFlowOpen(false);
+        setCancelStep("reason");
+        setCancelReason("");
+        setCancelFeedback("");
+        setOtp("");
     };
     
     const handleAddressSave = (data: any) => {
@@ -162,8 +178,8 @@ export default function DeliveryInformationPage() {
     }
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
-    const showEditAddressButton = currentStatus === 'Pending';
-    const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery');
+    const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
+    const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery') || currentStatus === 'Returned';
 
 
     return (
@@ -204,7 +220,7 @@ export default function DeliveryInformationPage() {
                                     <p className="text-primary font-bold">{order.product.price}</p>
                                 </CardContent>
                             </Card>
-                                {estimatedDeliveryDate && currentStatus !== 'Cancelled' && currentStatus !== 'Delivered' && currentStatus !== 'Undelivered' && (
+                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned'].includes(currentStatus) && (
                                 <Card>
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
@@ -266,23 +282,90 @@ export default function DeliveryInformationPage() {
                                 </Dialog>
                             )}
                             {showCancelButton && (
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive"><XCircle className="mr-2 h-4 w-4" /> Cancel Order</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will permanently cancel your order.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Go Back</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleCancelOrder}>Continue</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive"><XCircle className="mr-2 h-4 w-4" /> Cancel Order</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently cancel your order.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => setIsCancelFlowOpen(true)}>Continue</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+
+                                    <DialogContent className="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle>Cancel Order</DialogTitle>
+                                            <DialogDescription>
+                                                Please complete the following steps to cancel your order.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <Tabs value={cancelStep} onValueChange={setCancelStep} className="w-full">
+                                            <TabsList className="grid w-full grid-cols-3">
+                                                <TabsTrigger value="reason" disabled={cancelStep !== 'reason'}>Reason</TabsTrigger>
+                                                <TabsTrigger value="feedback" disabled={!cancelReason}>Feedback</TabsTrigger>
+                                                <TabsTrigger value="confirm" disabled={!cancelReason}>Confirm</TabsTrigger>
+                                            </TabsList>
+                                            <TabsContent value="reason" className="py-4">
+                                                <RadioGroup value={cancelReason} onValueChange={setCancelReason}>
+                                                    <div className="space-y-2">
+                                                        {cancellationReasons.map(reason => (
+                                                            <div key={reason} className="flex items-center space-x-2">
+                                                                <RadioGroupItem value={reason} id={reason} />
+                                                                <Label htmlFor={reason}>{reason}</Label>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </RadioGroup>
+                                                <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full">Next</Button>
+                                            </TabsContent>
+                                            <TabsContent value="feedback" className="py-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="feedback">Feedback (Optional)</Label>
+                                                    <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." />
+                                                </div>
+                                                <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
+                                            </TabsContent>
+                                            <TabsContent value="confirm" className="py-4">
+                                                <div className="flex flex-col items-center gap-4 text-center">
+                                                    <ShieldCheck className="h-12 w-12 text-primary" />
+                                                    <p>An OTP has been sent to your registered mobile number for verification.</p>
+                                                    <InputOTP
+                                                        maxLength={6}
+                                                        value={otp}
+                                                        onChange={(value) => {
+                                                            setOtp(value);
+                                                            if (value.length === 6) {
+                                                                handleConfirmCancellation(value);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <InputOTPGroup>
+                                                            <InputOTPSlot index={0} />
+                                                            <InputOTPSlot index={1} />
+                                                            <InputOTPSlot index={2} />
+                                                        </InputOTPGroup>
+                                                        <InputOTPSeparator />
+                                                        <InputOTPGroup>
+                                                            <InputOTPSlot index={3} />
+                                                            <InputOTPSlot index={4} />
+                                                            <InputOTPSlot index={5} />
+                                                        </InputOTPGroup>
+                                                    </InputOTP>
+                                                    {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                                </div>
+                                            </TabsContent>
+                                        </Tabs>
+                                    </DialogContent>
+                                </Dialog>
                             )}
                              {showRefundButton && (
                                 <Button onClick={handleRefundRequest}>
@@ -296,4 +379,5 @@ export default function DeliveryInformationPage() {
             <Footer />
         </div>
     );
-}
+
+    

@@ -89,7 +89,7 @@ const fullMockOrders = Object.entries(allOrderData).map(([orderId, orderDetails]
         dateTime: dateTime,
         status: status,
         transaction: { id: `TRN${orderId.slice(-4)}`, amount: orderDetails.product.price, method: "Credit Card" },
-        deliveryStatus: status, // Simplified for this view
+        deliveryStatus: getStatusFromTimeline(orderDetails.timeline),
         deliveryDate: status === "Delivered" ? orderDetails.timeline[orderDetails.timeline.length - 1].date : null,
     };
 });
@@ -99,12 +99,15 @@ type Order = (typeof fullMockOrders)[0];
 
 const statusPriority: { [key: string]: number } = {
     "Pending": 1,
-    "Shipped": 2,
-    "In Transit": 3,
-    "Out for Delivery": 4,
-    "Delivered": 5,
-    "Failed Delivery Attempt": 6,
-    "Cancelled by user": 7,
+    "Order Confirmed": 2,
+    "Packed": 3,
+    "Shipped": 4,
+    "In Transit": 5,
+    "Out for Delivery": 6,
+    "Delivered": 7,
+    "Failed Delivery Attempt": 8,
+    "Returned": 9,
+    "Cancelled by user": 10,
 };
 
 function OrderRowSkeleton() {
@@ -244,13 +247,8 @@ export default function OrdersPage() {
   }
 
   if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your orders.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
+     router.push('/');
+     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
   }
 
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
@@ -264,6 +262,7 @@ export default function OrdersPage() {
         case 'Cancelled by user':
         case 'Undelivered':
         case 'Failed Delivery Attempt':
+        case 'Returned':
             return 'destructive';
         case 'Pending':
             return 'info';
@@ -294,10 +293,10 @@ export default function OrdersPage() {
   const getDeliveryDateInfo = (order: Order) => {
      try {
         if (order.status === 'Delivered' && order.deliveryDate) {
-            const parsedDate = parse(order.deliveryDate, 'dd/MM/yyyy hh:mm a', new Date());
+            const parsedDate = parse(order.deliveryDate, 'MMM dd, yyyy', new Date());
             return { label: 'Delivered on', date: format(parsedDate, 'dd MMM yyyy')};
         }
-        if (order.status === 'Cancelled' || order.status === 'Pending') {
+        if (['Cancelled by user', 'Pending', 'Returned'].includes(order.status)) {
             return { label: 'Delivery Status', date: "N/A" };
         }
         const parsedDate = parse(order.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
@@ -504,6 +503,7 @@ export default function OrdersPage() {
                                     <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>
                             </DropdownMenuContent>
@@ -561,4 +561,3 @@ export default function OrdersPage() {
 }
 
     
-
