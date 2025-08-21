@@ -1,4 +1,5 @@
 
+
 export const allOrderData = {
     "#STREAM5896": {
         product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
@@ -57,7 +58,7 @@ export const allOrderData = {
             { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
             { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
             { status: "Failed Delivery Attempt: The courier attempted delivery but was unsuccessful. Address not found.", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-            { status: "Returned: The recipient has initiated a return of the package.", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
+            { status: "Return Initiated: The recipient has initiated a return of the package.", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
         ]
     },
     "#STREAM5905": {

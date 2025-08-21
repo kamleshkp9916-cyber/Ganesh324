@@ -4,7 +4,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,7 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
-    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('returned')) return <XCircle className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
 
@@ -54,6 +54,15 @@ const cancellationReasons = [
     "Found a better deal elsewhere",
     "Ordered by mistake",
     "Delivery time is too long",
+    "Other"
+];
+
+const returnReasons = [
+    "Item was defective or damaged",
+    "Received the wrong item",
+    "The item doesn't match the description or photos",
+    "The item doesn't fit properly",
+    "No longer need the item",
     "Other"
 ];
 
@@ -67,7 +76,6 @@ export default function DeliveryInformationPage() {
 
     const orderId = decodeURIComponent(params.orderId as string) as OrderId;
     
-    // We get the order directly but use a force-rerender state for local updates
     const [_, setForceRerender] = useState(0);
     const order = allOrderData[orderId] || allOrderData["#STREAM5896"];
 
@@ -78,6 +86,13 @@ export default function DeliveryInformationPage() {
     const [cancelFeedback, setCancelFeedback] = useState("");
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
     const [otp, setOtp] = useState('');
+    
+    const [isReturnFlowOpen, setIsReturnFlowOpen] = useState(false);
+    const [returnStep, setReturnStep] = useState("reason");
+    const [returnReason, setReturnReason] = useState("");
+    const [returnFeedback, setReturnFeedback] = useState("");
+    const [returnOtp, setReturnOtp] = useState('');
+    const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
 
 
     useEffect(() => {
@@ -139,7 +154,6 @@ export default function DeliveryInformationPage() {
         try {
             await updateOrderStatus(orderId, 'Cancelled by user');
             
-            // Force a re-render to show the updated timeline
             setForceRerender(val => val + 1);
             
             toast({
@@ -164,6 +178,44 @@ export default function DeliveryInformationPage() {
         }
     };
     
+     const handleConfirmReturn = async (otpValue: string) => {
+        if (otpValue !== '654321') {
+            toast({
+                title: "Invalid OTP",
+                description: "The OTP you entered is incorrect. Please try again.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsVerifyingReturnOtp(true);
+        try {
+            await updateOrderStatus(orderId, 'Return Initiated: The recipient has initiated a return of the package.');
+            
+            setForceRerender(val => val + 1);
+            
+            toast({
+                title: "Return Initiated",
+                description: `A return has been initiated for order ${orderId}.`,
+            });
+
+            setIsReturnFlowOpen(false);
+            setReturnStep("reason");
+            setReturnReason("");
+            setReturnFeedback("");
+            setReturnOtp("");
+        } catch (error) {
+            console.error("Failed to initiate return:", error);
+             toast({
+                title: "Return Failed",
+                description: "There was an error initiating your return. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsVerifyingReturnOtp(false);
+        }
+    };
+
     const handleAddressSave = (data: any) => {
         toast({
             title: "Address Updated",
@@ -180,6 +232,7 @@ export default function DeliveryInformationPage() {
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
+    const showReturnButton = currentStatus === 'Delivered';
     const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery') || currentStatus === 'Returned';
 
 
@@ -221,7 +274,7 @@ export default function DeliveryInformationPage() {
                                     <p className="text-primary font-bold">{order.product.price}</p>
                                 </CardContent>
                             </Card>
-                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned'].includes(currentStatus) && (
+                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated'].includes(currentStatus) && (
                                 <Card>
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
@@ -267,7 +320,7 @@ export default function DeliveryInformationPage() {
                             </div>
                         </div>
                     </CardContent>
-                    {(showCancelButton || showEditAddressButton || showRefundButton) && (
+                    {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton) && (
                         <CardFooter className="flex flex-wrap justify-end gap-2 border-t pt-6">
                             {showEditAddressButton && (
                                 <Dialog>
@@ -362,6 +415,89 @@ export default function DeliveryInformationPage() {
                                                         </InputOTPGroup>
                                                     </InputOTP>
                                                     {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                                </div>
+                                            </TabsContent>
+                                        </Tabs>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                             {showReturnButton && (
+                                <Dialog open={isReturnFlowOpen} onOpenChange={setIsReturnFlowOpen}>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                             <Button variant="outline"><RotateCcw className="mr-2 h-4 w-4" /> Return Product</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Return this product?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                   This will start the return process for this item. Are you sure you want to continue?
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => setIsReturnFlowOpen(true)}>Continue</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+
+                                    <DialogContent className="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle>Return Product</DialogTitle>
+                                            <DialogDescription>
+                                                Please complete the following steps to return your product.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <Tabs value={returnStep} onValueChange={setReturnStep} className="w-full">
+                                            <TabsList className="grid w-full grid-cols-3">
+                                                <TabsTrigger value="reason" disabled={returnStep !== 'reason'}>Reason</TabsTrigger>
+                                                <TabsTrigger value="feedback" disabled={!returnReason}>Feedback</TabsTrigger>
+                                                <TabsTrigger value="confirm" disabled={!returnReason}>Confirm</TabsTrigger>
+                                            </TabsList>
+                                            <TabsContent value="reason" className="py-4">
+                                                <RadioGroup value={returnReason} onValueChange={setReturnReason}>
+                                                    <div className="space-y-2">
+                                                        {returnReasons.map(reason => (
+                                                            <div key={reason} className="flex items-center space-x-2">
+                                                                <RadioGroupItem value={reason} id={`return-${reason}`} />
+                                                                <Label htmlFor={`return-${reason}`}>{reason}</Label>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </RadioGroup>
+                                                <Button onClick={() => setReturnStep('feedback')} disabled={!returnReason} className="mt-4 w-full">Next</Button>
+                                            </TabsContent>
+                                            <TabsContent value="feedback" className="py-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="return-feedback">Feedback (Optional)</Label>
+                                                    <Textarea id="return-feedback" value={returnFeedback} onChange={(e) => setReturnFeedback(e.target.value)} placeholder="Tell us more..." />
+                                                </div>
+                                                <Button onClick={() => setReturnStep('confirm')} className="mt-4 w-full">Next</Button>
+                                            </TabsContent>
+                                            <TabsContent value="confirm" className="py-4">
+                                                <div className="flex flex-col items-center gap-4 text-center">
+                                                    <ShieldCheck className="h-12 w-12 text-primary" />
+                                                    <p>An OTP has been sent for verification to confirm your return request.</p>
+                                                    <InputOTP
+                                                        maxLength={6}
+                                                        value={returnOtp}
+                                                        onChange={(value) => {
+                                                            setReturnOtp(value);
+                                                            if (value.length === 6) {
+                                                                handleConfirmReturn(value);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <InputOTPGroup>
+                                                            <InputOTPSlot index={0} />
+                                                            <InputOTPSlot index={1} />
+                                                            <InputOTPSlot index={2} />
+                                                            <InputOTPSlot index={3} />
+                                                            <InputOTPSlot index={4} />
+                                                            <InputOTPSlot index={5} />
+                                                        </InputOTPGroup>
+                                                    </InputOTP>
+                                                    {isVerifyingReturnOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
                                                 </div>
                                             </TabsContent>
                                         </Tabs>
