@@ -50,8 +50,10 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const updateUserState = (firebaseUser: User | null) => {
       if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
+        const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
         const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (sellerDetailsRaw) {
+
+        if (isSellerLogin && sellerDetailsRaw) {
              const sellerDetails = JSON.parse(sellerDetailsRaw);
              setUser({
                 ...mockUser,
@@ -59,6 +61,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
                 email: sellerDetails.email,
              });
         } else {
+             // Default to admin/customer mock user
              setUser(mockUser);
         }
       } else {
@@ -71,7 +74,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
     updateUserState(auth.currentUser);
 
     const handleStorageChange = (event: StorageEvent) => {
-       if (event.key === 'mockUserSessionActive' || event.key === null || event.key === 'sellerDetails') {
+       if (event.key === 'mockUserSessionActive' || event.key === 'sellerDetails' || event.key === 'isSellerLogin' || event.key === null) {
           updateUserState(auth.currentUser); 
        }
     };

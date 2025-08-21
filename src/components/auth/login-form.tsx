@@ -36,6 +36,8 @@ const formSchema = z.object({
   rememberMe: z.boolean().default(false).optional(),
 });
 
+const ADMIN_EMAIL = "samael.prajapati@example.com";
+
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
       <svg
@@ -86,19 +88,22 @@ export function LoginForm() {
     // This is key for the mock user flow
     sessionStorage.setItem('mockUserSessionActive', 'true');
 
-    // Differentiate between seller and customer login for testing
-    // Check if the logging in user is the registered seller
-    const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-    if (sellerDetailsRaw) {
-        const sellerDetails = JSON.parse(sellerDetailsRaw);
-        if (sellerDetails.email === values.identifier) {
-            sessionStorage.setItem('isSellerLogin', 'true');
-        } else {
-            sessionStorage.removeItem('isSellerLogin');
-        }
+    if (values.identifier === ADMIN_EMAIL) {
+        sessionStorage.removeItem('isSellerLogin');
     } else {
-         sessionStorage.removeItem('isSellerLogin');
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if (sellerDetailsRaw) {
+            const sellerDetails = JSON.parse(sellerDetailsRaw);
+            if (sellerDetails.email === values.identifier) {
+                sessionStorage.setItem('isSellerLogin', 'true');
+            } else {
+                sessionStorage.removeItem('isSellerLogin');
+            }
+        } else {
+             sessionStorage.removeItem('isSellerLogin');
+        }
     }
+
 
     toast({
         title: "Verification Required",
