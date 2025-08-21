@@ -76,7 +76,7 @@ export default function DeliveryInformationPage() {
 
     const orderId = decodeURIComponent(params.orderId as string) as OrderId;
     
-    const [_, setForceRerender] = useState(0);
+    const [forceRerender, setForceRerender] = useState(0);
     const order = allOrderData[orderId] || allOrderData["#STREAM5896"];
 
 
@@ -232,7 +232,7 @@ export default function DeliveryInformationPage() {
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
-    const showReturnButton = currentStatus === 'Delivered';
+    const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false;
     const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery') || currentStatus === 'Returned';
 
 

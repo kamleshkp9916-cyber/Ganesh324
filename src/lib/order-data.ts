@@ -4,6 +4,7 @@ export const allOrderData = {
     "#STREAM5896": {
         product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
         orderDate: "Jul 27, 2024",
+        isReturnable: true,
         timeline: [
             { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
             { status: "Packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
@@ -16,6 +17,7 @@ export const allOrderData = {
     "#STREAM5897": {
         product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
         orderDate: "Jul 26, 2024",
+        isReturnable: true,
         timeline: [
             { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
             { status: "Packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
@@ -27,6 +29,7 @@ export const allOrderData = {
      "#STREAM5898": {
         product: { name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
         orderDate: "Jul 25, 2024",
+        isReturnable: false, // Admin has disabled returns for this item
         timeline: [
             { status: "Order Confirmed", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
             { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 26, 2024", time: "01:00 PM", completed: true },
@@ -58,7 +61,7 @@ export const allOrderData = {
             { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
             { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
             { status: "Failed Delivery Attempt: The courier attempted delivery but was unsuccessful. Address not found.", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-            { status: "Return Initiated: The recipient has initiated a return of the package.", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
+            { status: "Returned", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
         ]
     },
     "#STREAM5905": {
@@ -85,7 +88,8 @@ export const allOrderData = {
 
 export type OrderData = typeof allOrderData;
 export type OrderId = keyof OrderData;
-export type Order = OrderData[OrderId];
+// Add isReturnable to the Order type definition
+export type Order = OrderData[OrderId] & { isReturnable?: boolean };
 
 export function getStatusFromTimeline(timeline: Order['timeline']): string {
     const lastCompletedStep = [...timeline].reverse().find(step => step.completed);
