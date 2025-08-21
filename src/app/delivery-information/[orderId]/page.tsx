@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -69,10 +69,33 @@ const mockOrderData = {
             { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
             { status: "Undelivered - Address not found", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
         ]
+    },
+    "#STREAM5905": {
+        product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/150x150.png", hint: "sunglasses", price: "₹7,800.00" },
+        status: "Pending",
+        orderDate: "Jul 28, 2024",
+        timeline: [
+            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: false },
+            { status: "Order Confirmed", date: null, time: null, completed: false },
+            { status: "Shipped", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
+        ]
+    },
+    "#STREAM5906": {
+        product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "keyboard", price: "₹9,500.00" },
+        status: "Pending",
+        orderDate: "Jul 29, 2024",
+        timeline: [
+            { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: false },
+            { status: "Order Confirmed", date: null, time: null, completed: false },
+            { status: "Shipped", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
+        ]
     }
 };
 
 const getStatusIcon = (status: string) => {
+    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
     if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
     if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
     if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
