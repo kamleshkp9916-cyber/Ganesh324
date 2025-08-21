@@ -2,18 +2,13 @@
 "use client"
 
 import {
-  Activity,
-  ArrowUpRight,
   CircleUser,
-  CreditCard,
-  DollarSign,
   Menu,
-  Package,
-  Package2,
-  Users,
+  ShieldCheck,
   Search,
-  Users2,
-  ShieldCheck
+  MoreHorizontal,
+  PlusCircle,
+  File,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -30,6 +25,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -57,15 +53,20 @@ import { useAuthActions } from "@/lib/auth";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
-const recentSignups = [
-    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2 days ago" },
-    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2 days ago" },
-    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "3 days ago" },
-    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "5 days ago" },
-    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "1 week ago" },
-]
+const allUsers = [
+    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2023-07-15" },
+    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2023-07-15" },
+    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "2023-07-14" },
+    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "2023-07-12" },
+    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "2023-07-10" },
+    { name: "Sarah Miller", email: "sarah.m@example.com", role: "Customer", date: "2023-07-09" },
+    { name: "David Garcia", email: "david.g@example.com", role: "Customer", date: "2023-07-09" },
+    { name: "Laura Williams", email: "laura.w@example.com", role: "Seller", date: "2023-07-08" },
+    { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07" },
+    { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05" },
+];
 
-export default function AdminDashboard() {
+export default function AdminUsersPage() {
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
@@ -83,7 +84,6 @@ export default function AdminDashboard() {
     )
   }
 
-  // Check if the user is logged in AND is the designated admin.
   if (!user || user.email !== ADMIN_EMAIL) {
     return (
          <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
@@ -107,13 +107,13 @@ export default function AdminDashboard() {
           </Link>
           <Link
             href="/admin/dashboard"
-            className="text-foreground transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Dashboard
           </Link>
           <Link
             href="/admin/users"
-            className="text-muted-foreground transition-colors hover:text-foreground"
+            className="text-foreground transition-colors hover:text-foreground"
           >
             Users
           </Link>
@@ -156,12 +156,12 @@ export default function AdminDashboard() {
                 <ShieldCheck className="h-6 w-6" />
                 <span className="">Admin Panel</span>
               </Link>
-              <Link href="/admin/dashboard" className="hover:text-foreground">
+              <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">
                 Dashboard
               </Link>
               <Link
                 href="/admin/users"
-                className="text-muted-foreground hover:text-foreground"
+                className="hover:text-foreground"
               >
                 Users
               </Link>
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search..."
+                placeholder="Search users..."
                 className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
               />
             </div>
@@ -219,97 +219,74 @@ export default function AdminDashboard() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$1,245,231.89</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
-              <Users2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+432</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4 md:gap-8">
-           <Card>
+        <Card>
             <CardHeader>
-              <CardTitle>Recent Signups</CardTitle>
-              <CardDescription>
-                A list of the most recent users who have joined the platform.
-              </CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Users</CardTitle>
+                        <CardDescription>Manage all users on the platform.</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="h-8 gap-1">
+                            <File className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
+                        </Button>
+                         <Button size="sm" className="h-8 gap-1">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add User</span>
+                        </Button>
+                    </div>
+                </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentSignups.map((signup, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="font-medium">{signup.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {signup.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                         <Badge variant={signup.role === 'Seller' ? 'secondary' : 'outline'}>
-                            {signup.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{signup.date}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>User</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead className="hidden md:table-cell">Signup Date</TableHead>
+                            <TableHead><span className="sr-only">Actions</span></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {allUsers.map((u, index) => (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <div className="font-medium">{u.name}</div>
+                                    <div className="text-sm text-muted-foreground">{u.email}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={u.role === 'Seller' ? 'secondary' : 'outline'}>{u.role}</Badge>
+                                </TableCell>
+                                 <TableCell className="hidden md:table-cell">{new Date(u.date).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                     <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </CardContent>
-          </Card>
-        </div>
+            <CardFooter>
+                <div className="text-xs text-muted-foreground">
+                    Showing <strong>1-10</strong> of <strong>{allUsers.length}</strong> users
+                </div>
+            </CardFooter>
+        </Card>
       </main>
     </div>
   )
