@@ -25,6 +25,7 @@ import { MapPin, LocateFixed } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { DialogClose } from "./ui/dialog";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
@@ -69,6 +70,7 @@ export function EditAddressForm({ currentAddress, onSave, onCancel }: EditAddres
   
   const handleSave = (values: z.infer<typeof formSchema>) => {
     onSave(values);
+    document.getElementById('edit-address-close')?.click();
   };
 
 
@@ -239,7 +241,9 @@ export function EditAddressForm({ currentAddress, onSave, onCancel }: EditAddres
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost" onClick={onCancel} id="edit-address-close">Cancel</Button>
+              </DialogClose>
               <Button type="submit">Save Details</Button>
             </div>
           </div>

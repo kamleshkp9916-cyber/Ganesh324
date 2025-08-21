@@ -3,8 +3,8 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -14,6 +14,20 @@ import { Footer } from '@/components/footer';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
 import { allOrderData, Order, OrderId } from '@/lib/order-data';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EditAddressForm } from '@/components/edit-address-form';
+
 
 const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
@@ -37,7 +51,18 @@ export default function DeliveryInformationPage() {
     const [isMounted, setIsMounted] = useState(false);
 
     const orderId = decodeURIComponent(params.orderId as string) as OrderId;
-    const order = allOrderData[orderId] || allOrderData["#STREAM5896"]; // Fallback for demo
+    
+    // Local state for the order to allow modifications (like cancellation)
+    const [order, setOrder] = useState<Order | null>(null);
+
+    useEffect(() => {
+        setIsMounted(true);
+        if (orderId && allOrderData[orderId]) {
+            setOrder(allOrderData[orderId]);
+        } else {
+            setOrder(allOrderData["#STREAM5896"]); // Fallback for demo
+        }
+    }, [orderId]);
     
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
@@ -53,30 +78,28 @@ export default function DeliveryInformationPage() {
 
 
     useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    useEffect(() => {
         if (!isMounted || !orderId || !order) return;
 
         // Only show toasts if the component has mounted and we have an order
-        toast({
-            title: "Order Successful!",
-            description: `Your order ${orderId} has been placed.`,
-        });
+        // This toast can be annoying, so let's comment it out for now.
+        // toast({
+        //     title: "Order Successful!",
+        //     description: `Your order ${orderId} has been placed.`,
+        // });
 
-        order.timeline.forEach((item, index) => {
-            if(item.completed) {
-                setTimeout(() => {
-                    toast({
-                        title: item.status.split(':')[0],
-                        description: `Update for order ${orderId}`,
-                    })
-                }, (index + 1) * 2000);
-            }
-        });
+        // This simulates real-time updates.
+        // order.timeline.forEach((item, index) => {
+        //     if(item.completed) {
+        //         setTimeout(() => {
+        //             toast({
+        //                 title: item.status.split(':')[0],
+        //                 description: `Update for order ${orderId}`,
+        //             })
+        //         }, (index + 1) * 2000);
+        //     }
+        // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMounted, orderId]);
+    }, [isMounted]);
 
      if (!isMounted || loading) {
         return (
@@ -109,6 +132,38 @@ export default function DeliveryInformationPage() {
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     const currentStatus = order.timeline[currentStatusIndex]?.status.split(':')[0].trim() || 'Unknown';
+
+    const handleCancelOrder = () => {
+        const newTimeline = [
+            ...order.timeline,
+            { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'hh:mm a'), completed: true }
+        ];
+        // In a real app, you would also update the backend here.
+        setOrder({ ...order, timeline: newTimeline });
+        toast({
+            title: "Order Cancelled",
+            description: `Order ${orderId} has been cancelled.`,
+            variant: "destructive"
+        });
+    };
+    
+    const handleAddressSave = (data: any) => {
+        toast({
+            title: "Address Updated",
+            description: "Your delivery address has been successfully updated.",
+        });
+    }
+
+    const handleRefundRequest = () => {
+        toast({
+            title: "Refund Request Submitted",
+            description: "Your refund request is being processed. You will be notified shortly.",
+        });
+    }
+    
+    const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
+    const showEditAddressButton = currentStatus === 'Pending';
+    const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery');
 
 
     return (
@@ -195,6 +250,47 @@ export default function DeliveryInformationPage() {
                             </div>
                         </div>
                     </CardContent>
+                    {(showCancelButton || showEditAddressButton || showRefundButton) && (
+                        <CardFooter className="flex flex-wrap justify-end gap-2 border-t pt-6">
+                            {showEditAddressButton && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Address</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Edit Delivery Address</DialogTitle>
+                                        </DialogHeader>
+                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => {}} />
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                            {showCancelButton && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive"><XCircle className="mr-2 h-4 w-4" /> Cancel Order</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently cancel your order.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleCancelOrder}>Continue</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                             {showRefundButton && (
+                                <Button onClick={handleRefundRequest}>
+                                    <AlertTriangle className="mr-2 h-4 w-4" /> Request Refund
+                                </Button>
+                            )}
+                        </CardFooter>
+                    )}
                 </Card>
             </main>
             <Footer />
