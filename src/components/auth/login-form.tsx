@@ -7,7 +7,7 @@ import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -77,6 +77,14 @@ export function LoginForm() {
     resolver: zodResolver(formSchema),
     defaultValues: { identifier: "", password: "", rememberMe: false },
   });
+  
+  useEffect(() => {
+    // This ensures that if a user skips login, then comes back,
+    // we don't accidentally keep them in a "logged-in" mock state.
+    if (typeof window !== 'undefined' && !sessionStorage.getItem('mockUserSessionActive')) {
+      sessionStorage.removeItem('isSellerLogin');
+    }
+  }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
