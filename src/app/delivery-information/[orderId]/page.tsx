@@ -137,8 +137,9 @@ export default function DeliveryInformationPage() {
     }, []);
 
     useEffect(() => {
-        if (!isMounted) return;
+        if (!isMounted || !orderId) return;
 
+        // Only show toasts if the component has mounted and we have an order
         toast({
             title: "Order Successful!",
             description: `Your order ${orderId} has been placed.`,
@@ -155,9 +156,9 @@ export default function DeliveryInformationPage() {
             }
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMounted]);
+    }, [isMounted, orderId]);
 
-     if (loading) {
+     if (!isMounted || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -192,87 +193,80 @@ export default function DeliveryInformationPage() {
 
             <main className="flex-grow p-4 lg:p-8">
                 <Card className="max-w-4xl mx-auto">
-                     {!isMounted ? (
-                        <div className="flex items-center justify-center h-96">
-                            <LoadingSpinner />
-                        </div>
-                    ) : (
-                        <>
-                            <CardHeader>
-                                <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
-                                <span>Order ID: {orderId}</span>
-                                <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-1 space-y-4">
-                                    <Card className="overflow-hidden">
-                                        <CardContent className="p-4 flex flex-col items-center text-center">
-                                            <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
-                                                <Image
-                                                    src={order.product.imageUrl}
-                                                    alt={order.product.name}
-                                                    width={200}
-                                                    height={200}
-                                                    className="object-cover w-full h-full"
-                                                    data-ai-hint={order.product.hint}
-                                                />
-                                            </div>
-                                            <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                            <p className="text-primary font-bold">{order.product.price}</p>
-                                        </CardContent>
-                                    </Card>
-                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
-                                        <Card>
-                                            <CardContent className="p-4 flex items-center gap-4">
-                                                <CalendarDays className="h-8 w-8 text-primary" />
-                                                <div>
-                                                    <p className="font-semibold">Estimated Delivery</p>
-                                                    <p className="text-sm text-muted-foreground">{estimatedDeliveryDate}</p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                </div>
-                                <div className="lg:col-span-2">
-                                    <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
-                                        <ul className="space-y-8">
-                                            {order.timeline.map((item: any, index: number) => (
-                                                <li key={index} className="flex items-start gap-4">
-                                                    <div className={cn(
-                                                        "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
-                                                        item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                                                    )}>
-                                                        {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
-                                                    </div>
-                                                    <div className="flex-grow">
-                                                        <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
-                                                            {item.status.split(':')[0]}
-                                                        </p>
-                                                        {index === currentStatusIndex && item.status.includes(':') && (
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {item.status.split(':')[1]}
-                                                            </p>
-                                                        )}
-                                                        {item.date && (
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {item.date} {item.time && `- ${item.time}`}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
+                     <CardHeader>
+                        <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
+                        <span>Order ID: {orderId}</span>
+                        <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1 space-y-4">
+                            <Card className="overflow-hidden">
+                                <CardContent className="p-4 flex flex-col items-center text-center">
+                                    <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
+                                        <Image
+                                            src={order.product.imageUrl}
+                                            alt={order.product.name}
+                                            width={200}
+                                            height={200}
+                                            className="object-cover w-full h-full"
+                                            data-ai-hint={order.product.hint}
+                                        />
                                     </div>
-                                </div>
-                            </CardContent>
-                        </>
-                    )}
+                                    <h3 className="font-semibold text-lg">{order.product.name}</h3>
+                                    <p className="text-primary font-bold">{order.product.price}</p>
+                                </CardContent>
+                            </Card>
+                                {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
+                                <Card>
+                                    <CardContent className="p-4 flex items-center gap-4">
+                                        <CalendarDays className="h-8 w-8 text-primary" />
+                                        <div>
+                                            <p className="font-semibold">Estimated Delivery</p>
+                                            <p className="text-sm text-muted-foreground">{estimatedDeliveryDate}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                        <div className="lg:col-span-2">
+                            <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
+                            <div className="relative">
+                                <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
+                                <ul className="space-y-8">
+                                    {order.timeline.map((item: any, index: number) => (
+                                        <li key={index} className="flex items-start gap-4">
+                                            <div className={cn(
+                                                "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
+                                                item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                            )}>
+                                                {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
+                                            </div>
+                                            <div className="flex-grow">
+                                                <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
+                                                    {item.status.split(':')[0]}
+                                                </p>
+                                                {index === currentStatusIndex && item.status.includes(':') && (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {item.status.split(':')[1]}
+                                                    </p>
+                                                )}
+                                                {item.date && (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {item.date} {item.time && `- ${item.time}`}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </CardContent>
                 </Card>
             </main>
             <Footer />
         </div>
     );
-}
+
+    
