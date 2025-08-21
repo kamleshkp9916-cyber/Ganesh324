@@ -31,7 +31,7 @@ const mockOrders = [
       dateTime: "27/07/2024 10:30 PM",
       status: "In Transit",
       transaction: { id: "TRN123456789", amount: "₹12,500.00", method: "Credit Card" },
-      deliveryStatus: "In transit to Delhi",
+      deliveryStatus: "In Transit",
       deliveryDate: null
     },
     {
@@ -187,7 +187,7 @@ const mockOrders = [
       dateTime: "24/07/2024 10:00 AM",
       status: "Undelivered",
       transaction: { id: "TRN123456805", amount: "₹5,500.00", method: "Net Banking" },
-      deliveryStatus: "Address not found",
+      deliveryStatus: "Undelivered - Address not found",
       deliveryDate: null
     }
 ];
@@ -653,3 +653,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
