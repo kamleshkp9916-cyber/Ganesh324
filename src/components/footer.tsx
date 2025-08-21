@@ -5,9 +5,16 @@ import { Facebook, Twitter, Linkedin, Mail, MapPin, Phone, Instagram } from 'luc
 import Link from 'next/link';
 import { Logo } from './logo';
 import { useAuth } from '@/hooks/use-auth.tsx';
+import React, { useState, useEffect } from 'react';
 
 export function Footer() {
   const { user } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
 
   return (
     <footer className="bg-card text-card-foreground border-t">
@@ -33,7 +40,7 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
                 <li><Link href="/live-selling" className="text-muted-foreground hover:text-primary">Live Shopping</Link></li>
-                {user && (
+                {isMounted && user && (
                     <>
                         <li><Link href="/orders" className="text-muted-foreground hover:text-primary">My Orders</Link></li>
                         <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
