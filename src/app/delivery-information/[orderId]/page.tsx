@@ -150,7 +150,6 @@ export default function DeliveryInformationPage() {
         toast({
             title: "Order Cancelled",
             description: `Order ${orderId} has been cancelled.`,
-            variant: "destructive"
         });
 
         setIsVerifyingOtp(false);
@@ -378,5 +377,3 @@ export default function DeliveryInformationPage() {
         </div>
     );
 }
-
-    

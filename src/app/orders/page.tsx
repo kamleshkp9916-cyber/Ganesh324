@@ -54,7 +54,7 @@ const userOrderMapping = {
     "#STREAM5910": "USER8450"
 };
 
-const fullMockOrders = Object.entries(allOrderData).map(([orderId, orderDetails]) => {
+const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orderDetails]) => {
     // @ts-ignore
     const userId = userOrderMapping[orderId];
     // @ts-ignore
@@ -94,7 +94,7 @@ const fullMockOrders = Object.entries(allOrderData).map(([orderId, orderDetails]
     };
 });
 
-type Order = (typeof fullMockOrders)[0];
+type Order = ReturnType<typeof getFullMockOrders>[0];
 
 
 const statusPriority: { [key: string]: number } = {
@@ -173,7 +173,7 @@ export default function OrdersPage() {
     if (user) {
        setTimeout(() => {
          if (user.uid === 'mock-user-id-123') {
-           setOrders(fullMockOrders);
+           setOrders(getFullMockOrders());
          } else {
            setOrders([]);
          }
@@ -184,6 +184,13 @@ export default function OrdersPage() {
         setOrders([]);
     }
   }, [user]);
+
+  // Re-fetch and sort orders on mount and when navigating back to the page
+  useEffect(() => {
+    if(isClient) {
+        setOrders(getFullMockOrders());
+    }
+  }, [isClient]);
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
@@ -559,5 +566,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
