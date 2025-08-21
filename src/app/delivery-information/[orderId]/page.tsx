@@ -13,7 +13,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Footer } from '@/components/footer';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
-import { allOrderData, Order, OrderId } from '@/lib/order-data';
+import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,8 +65,11 @@ export default function DeliveryInformationPage() {
 
     const orderId = decodeURIComponent(params.orderId as string) as OrderId;
     
-    // Local state for the order to allow modifications (like cancellation)
-    const [order, setOrder] = useState<Order | null>(null);
+    // We get the order directly but use a force-rerender state for local updates
+    const [_, setForceRerender] = useState(0);
+    const order = allOrderData[orderId] || allOrderData["#STREAM5896"];
+
+
     const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
     const [cancelStep, setCancelStep] = useState("reason");
     const [cancelReason, setCancelReason] = useState("");
@@ -77,13 +80,7 @@ export default function DeliveryInformationPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (orderId && allOrderData[orderId]) {
-            setOrder(allOrderData[orderId]);
-        } else {
-            // Fallback for demo if orderId is invalid
-            setOrder(allOrderData["#STREAM5896"]);
-        }
-    }, [orderId]);
+    }, []);
     
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
@@ -98,11 +95,7 @@ export default function DeliveryInformationPage() {
     }, [order]);
 
 
-    useEffect(() => {
-        if (!isMounted || !orderId || !order) return;
-    }, [isMounted, orderId, order]);
-
-     if (!isMounted || loading) {
+    if (!isMounted || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -125,9 +118,10 @@ export default function DeliveryInformationPage() {
         );
     }
 
+    const currentStatus = getStatusFromTimeline(order.timeline);
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
-    const currentStatus = order.timeline[currentStatusIndex]?.status.split(':')[0].trim() || 'Unknown';
+
 
     const handleConfirmCancellation = async (otpValue: string) => {
         if (otpValue !== '123456') {
@@ -142,12 +136,16 @@ export default function DeliveryInformationPage() {
         setIsVerifyingOtp(true);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const newTimeline = [
-            ...order.timeline,
-            { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'hh:mm a'), completed: true }
-        ];
-        // In a real app, you would also update the backend here.
-        setOrder({ ...order, timeline: newTimeline });
+        // This is where we update the central data source
+        allOrderData[orderId].timeline.push({ 
+            status: 'Cancelled by user', 
+            date: format(new Date(), 'MMM dd, yyyy'), 
+            time: format(new Date(), 'hh:mm a'), 
+            completed: true 
+        });
+
+        // Force a re-render to show the updated timeline
+        setForceRerender(val => val + 1);
         
         toast({
             title: "Order Cancelled",
@@ -379,5 +377,6 @@ export default function DeliveryInformationPage() {
             <Footer />
         </div>
     );
+}
 
     
