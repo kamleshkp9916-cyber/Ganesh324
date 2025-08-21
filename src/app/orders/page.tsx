@@ -29,7 +29,7 @@ const mockOrders = [
       product: { id: "prod-001", name: "Vintage Camera", imageUrl: "https://placehold.co/60x60.png", hint: "vintage camera" },
       address: { name: "Ganesh Prajapati", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
       dateTime: "27/07/2024 10:30 PM",
-      status: "On Way",
+      status: "In Transit",
       transaction: { id: "TRN123456789", amount: "₹12,500.00", method: "Credit Card" },
       deliveryStatus: "In transit to Delhi",
       deliveryDate: null
@@ -42,9 +42,9 @@ const mockOrders = [
       product: { id: "prod-012", name: "Portable Projector", imageUrl: "https://placehold.co/60x60.png", hint: "projector" },
       address: { name: "Olivia Martinez", village: "Greater Kailash", district: "New Delhi", city: "Delhi", state: "Delhi", country: "India", pincode: "110048", phone: "+91 9876543221" },
       dateTime: "29/07/2024 03:20 PM",
-      status: "In Progress",
+      status: "Shipped",
       transaction: { id: "TRN123456800", amount: "₹15,000.00", method: "UPI" },
-      deliveryStatus: "Processing order",
+      deliveryStatus: "Shipped from Mumbai",
       deliveryDate: null
     },
     {
@@ -81,7 +81,7 @@ const mockOrders = [
       product: { id: "prod-006", name: "Gaming Mouse", imageUrl: "https://placehold.co/60x60.png", hint: "gaming mouse" },
       address: { name: "Laura Williams", village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543215" },
       dateTime: "28/07/2024 01:00 PM",
-      status: "In Progress",
+      status: "Shipped",
       transaction: { id: "TRN123456794", amount: "₹3,500.00", method: "UPI" },
       deliveryStatus: "Processing order",
       deliveryDate: null
@@ -94,7 +94,7 @@ const mockOrders = [
       product: { id: "prod-002", name: "Wireless Headphones", imageUrl: "https://placehold.co/60x60.png", hint: "headphones" },
       address: { name: "Jane Doe", village: "Bandra West", district: "Mumbai", city: "Mumbai", state: "Maharashtra", country: "India", pincode: "400050", phone: "+91 9876543211" },
       dateTime: "26/07/2024 08:15 AM",
-      status: "Completed",
+      status: "Delivered",
       transaction: { id: "TRN123456790", amount: "₹4,999.00", method: "UPI" },
       deliveryStatus: "Delivered",
       deliveryDate: "27/07/2024 11:30 AM"
@@ -159,7 +159,7 @@ const mockOrders = [
       product: { id: "prod-009", name: "Bluetooth Speaker", imageUrl: "https://placehold.co/60x60.png", hint: "bluetooth speaker" },
       address: { name: "David Garcia", village: "Park Street", district: "Kolkata", city: "Kolkata", state: "West Bengal", country: "India", pincode: "700016", phone: "+91 9876543218" },
       dateTime: "22/07/2024 07:00 PM",
-      status: "On Way",
+      status: "Out for Delivery",
       transaction: { id: "TRN123456797", amount: "₹3,200.00", method: "UPI" },
       deliveryStatus: "Out for delivery",
       deliveryDate: null
@@ -176,17 +176,33 @@ const mockOrders = [
       transaction: { id: "TRN123456798", amount: "₹4,500.00", method: "Credit Card" },
       deliveryStatus: "Cancelled by seller",
       deliveryDate: null
+    },
+    {
+      orderId: "#STREAM5910",
+      productId: "prod-015",
+      userId: "USER8450",
+      user: { name: "Kevin Scott", avatarUrl: "https://placehold.co/40x40.png", email: "kevin.s@example.com" },
+      product: { id: "prod-015", name: "Gaming Keyboard", imageUrl: "https://placehold.co/60x60.png", hint: "gaming keyboard" },
+      address: { name: "Kevin Scott", village: "MG Road", district: "Gurgaon", city: "Gurgaon", state: "Haryana", country: "India", pincode: "122002", phone: "+91 9876543225" },
+      dateTime: "24/07/2024 10:00 AM",
+      status: "Undelivered",
+      transaction: { id: "TRN123456805", amount: "₹5,500.00", method: "Net Banking" },
+      deliveryStatus: "Address not found",
+      deliveryDate: null
     }
 ];
 
 type Order = typeof mockOrders[0];
 
 const statusPriority: { [key: string]: number } = {
-    "On Way": 1,
-    "Pending": 2,
-    "In Progress": 3,
-    "Completed": 4,
-    "Cancelled": 5,
+    "Pending": 1,
+    "Shipped": 2,
+    "In Transit": 3,
+    "Out for Delivery": 4,
+    "Delivered": 5,
+    "Completed": 6,
+    "Undelivered": 7,
+    "Cancelled": 8,
 };
 
 function OrderRowSkeleton() {
@@ -335,16 +351,18 @@ export default function OrdersPage() {
 
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
+        case 'Delivered':
         case 'Completed':
             return 'success';
-        case 'On Way':
+        case 'Shipped':
+        case 'In Transit':
+        case 'Out for Delivery':
             return 'warning';
         case 'Cancelled':
+        case 'Undelivered':
             return 'destructive';
         case 'Pending':
             return 'info';
-        case 'In Progress':
-            return 'purple';
         default:
             return 'outline';
     }
@@ -576,11 +594,14 @@ export default function OrdersPage() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
                                     <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="on-way">On Way</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="in-progress">In Progress</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="undelivered">Undelivered</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>

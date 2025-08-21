@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -18,38 +18,56 @@ import { format, addDays, parse } from 'date-fns';
 const mockOrderData = {
     "#STREAM5896": {
         product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
-        status: "On Way",
+        status: "In Transit",
         orderDate: "Jul 27, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
-            { status: "Your order is being packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
-            { status: "Product is ready to dispatch", date: "Jul 28, 2024", time: "01:00 PM", completed: true },
-            { status: "Product Shipped from Pune", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
-            { status: "In transit to Delhi", date: "Jul 29, 2024", time: "Current status", completed: false },
+            { status: "Packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
+            { status: "Shipped", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
+            { status: "In Transit", date: "Jul 29, 2024", time: "Current status", completed: false },
             { status: "Out for Delivery", date: null, time: null, completed: false },
-            { status: "Product delivered successfully", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
         ]
     },
     "#STREAM5897": {
         product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
-        status: "Completed",
+        status: "Delivered",
         orderDate: "Jul 26, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
-            { status: "Your order is being packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
-            { status: "Product is ready to dispatch", date: "Jul 26, 2024", time: "02:00 PM", completed: true },
-            { status: "Product Shipped from Mumbai", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
+            { status: "Packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
+            { status: "Shipped", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
             { status: "Out for Delivery", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
-            { status: "Product delivered successfully", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
+            { status: "Delivered", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
+        ]
+    },
+     "#STREAM5898": {
+        product: { name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
+        status: "Completed",
+        orderDate: "Jul 25, 2024",
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
+            { status: "Delivered", date: "Jul 26, 2024", time: "01:00 PM", completed: true },
         ]
     },
     "#STREAM5899": {
-        product: { name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch" },
+        product: { name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch", price: "₹8,750.00" },
         status: "Cancelled",
         orderDate: "Jul 25, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 25, 2024", time: "11:45 AM", completed: true },
             { status: "Cancelled by user", date: "Jul 25, 2024", time: "12:00 PM", completed: true },
+        ]
+    },
+    "#STREAM5910": {
+        product: { name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
+        status: "Undelivered",
+        orderDate: "Jul 24, 2024",
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 24, 2024", time: "10:00 AM", completed: true },
+            { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
+            { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
+            { status: "Undelivered - Address not found", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
         ]
     }
 };
@@ -58,9 +76,11 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
     if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
     if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("shipped") || status.toLowerCase().includes("transit")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("delivered") || status.toLowerCase().includes('cancelled')) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered") || status.toLowerCase().includes('completed')) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered')) return <XCircle className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
 
@@ -176,7 +196,7 @@ export default function DeliveryInformationPage() {
                                             <p className="text-primary font-bold">{order.product.price}</p>
                                         </CardContent>
                                     </Card>
-                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Completed' && (
+                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Completed' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
                                         <Card>
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <CalendarDays className="h-8 w-8 text-primary" />
