@@ -13,97 +13,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Footer } from '@/components/footer';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
-
-// Mock data - in a real app, you'd fetch this based on the orderId
-const mockOrderData = {
-    "#STREAM5896": {
-        product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
-        status: "In Transit",
-        orderDate: "Jul 27, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
-            { status: "Packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
-            { status: "Shipped", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
-            { status: "In Transit: The package is on its way to the recipient.", date: "Jul 29, 2024", time: "Current status", completed: true },
-            { status: "Out for Delivery", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    },
-    "#STREAM5897": {
-        product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
-        status: "Delivered",
-        orderDate: "Jul 26, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
-            { status: "Packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
-            { status: "Shipped", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
-            { status: "Out for Delivery", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
-        ]
-    },
-     "#STREAM5898": {
-        product: { name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
-        status: "Delivered",
-        orderDate: "Jul 25, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 26, 2024", time: "01:00 PM", completed: true },
-        ]
-    },
-    "#STREAM5899": {
-        product: { name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch", price: "₹8,750.00" },
-        status: "Cancelled",
-        orderDate: "Jul 25, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 25, 2024", time: "11:45 AM", completed: true },
-            { status: "Cancelled by user", date: "Jul 25, 2024", time: "12:00 PM", completed: true },
-        ]
-    },
-    "#STREAM5902": {
-        product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/150x150.png", hint: "bluetooth speaker", price: "₹3,200.00" },
-        status: "Out for Delivery",
-        orderDate: "Jul 22, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 22, 2024", time: "07:00 PM", completed: true },
-            { status: "Shipped", date: "Jul 23, 2024", time: "10:00 AM", completed: true },
-            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: "Jul 23, 2024", time: "01:00 PM", completed: true },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    },
-    "#STREAM5910": {
-        product: { name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
-        status: "Undelivered",
-        orderDate: "Jul 24, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 24, 2024", time: "10:00 AM", completed: true },
-            { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
-            { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
-            { status: "Failed Delivery Attempt: The courier attempted delivery but was unsuccessful. Address not found.", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-        ]
-    },
-    "#STREAM5905": {
-        product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/150x150.png", hint: "sunglasses", price: "₹7,800.00" },
-        status: "Pending",
-        orderDate: "Jul 28, 2024",
-        timeline: [
-            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
-            { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    },
-    "#STREAM5906": {
-        product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "keyboard", price: "₹9,500.00" },
-        status: "Pending",
-        orderDate: "Jul 29, 2024",
-        timeline: [
-            { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: true },
-            { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    }
-};
+import { allOrderData, Order, OrderId } from '@/lib/order-data';
 
 const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
@@ -118,7 +28,6 @@ const getStatusIcon = (status: string) => {
     return <Circle className="h-5 w-5" />;
 };
 
-type Order = (typeof mockOrderData)['#STREAM5896'];
 
 export default function DeliveryInformationPage() {
     const router = useRouter();
@@ -127,8 +36,8 @@ export default function DeliveryInformationPage() {
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
 
-    const orderId = decodeURIComponent(params.orderId as string);
-    const order = (mockOrderData as Record<string, Order>)[orderId] || (mockOrderData as any)["#STREAM5896"]; // Fallback for demo
+    const orderId = decodeURIComponent(params.orderId as string) as OrderId;
+    const order = allOrderData[orderId] || allOrderData["#STREAM5896"]; // Fallback for demo
     
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
@@ -148,7 +57,7 @@ export default function DeliveryInformationPage() {
     }, []);
 
     useEffect(() => {
-        if (!isMounted || !orderId) return;
+        if (!isMounted || !orderId || !order) return;
 
         // Only show toasts if the component has mounted and we have an order
         toast({
@@ -186,9 +95,21 @@ export default function DeliveryInformationPage() {
             </div>
         );
     }
+    
+    if (!order) {
+        return (
+             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+                 <h2 className="text-2xl font-semibold mb-4">Order Not Found</h2>
+                 <p className="text-muted-foreground mb-6">The requested order could not be found.</p>
+                 <Button onClick={() => router.push('/orders')}>Back to Orders</Button>
+            </div>
+        );
+    }
 
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
+    const currentStatus = order.timeline[currentStatusIndex]?.status.split(':')[0].trim() || 'Unknown';
+
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -207,7 +128,7 @@ export default function DeliveryInformationPage() {
                      <CardHeader>
                         <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                         <span>Order ID: {orderId}</span>
-                        <span className="text-sm font-medium text-muted-foreground">Status: {order.status}</span>
+                        <span className="text-sm font-medium text-muted-foreground">Status: {currentStatus}</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="grid lg:grid-cols-3 gap-8">
@@ -228,7 +149,7 @@ export default function DeliveryInformationPage() {
                                     <p className="text-primary font-bold">{order.product.price}</p>
                                 </CardContent>
                             </Card>
-                                {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
+                                {estimatedDeliveryDate && currentStatus !== 'Cancelled' && currentStatus !== 'Delivered' && currentStatus !== 'Undelivered' && (
                                 <Card>
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
@@ -245,7 +166,7 @@ export default function DeliveryInformationPage() {
                             <div className="relative">
                                 <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
                                 <ul className="space-y-8">
-                                    {order.timeline.map((item: any, index: number) => (
+                                    {order.timeline.map((item, index: number) => (
                                         <li key={index} className="flex items-start gap-4">
                                             <div className={cn(
                                                 "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
@@ -280,5 +201,3 @@ export default function DeliveryInformationPage() {
         </div>
     );
 }
-
-    
