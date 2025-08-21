@@ -107,7 +107,7 @@ const mockOrders = [
       product: { id: "prod-003", name: "Leather Backpack", imageUrl: "https://placehold.co/60x60.png", hint: "leather backpack" },
       address: { name: "Alex Smith", village: "Indiranagar", district: "Bengaluru", city: "Bengaluru", state: "Karnataka", country: "India", pincode: "560038", phone: "+91 9876543212" },
       dateTime: "25/07/2024 02:00 PM",
-      status: "Completed",
+      status: "Delivered",
       transaction: { id: "TRN123456791", amount: "₹6,200.00", method: "Net Banking" },
       deliveryStatus: "Delivered",
       deliveryDate: "26/07/2024 01:00 PM"
@@ -133,7 +133,7 @@ const mockOrders = [
       product: { id: "prod-005", name: "Handcrafted Vase", imageUrl: "https://placehold.co/60x60.png", hint: "ceramic vase" },
       address: { name: "Chris Wilson", village: "T. Nagar", district: "Chennai", city: "Chennai", state: "Tamil Nadu", country: "India", pincode: "600017", phone: "+91 9876543214" },
       dateTime: "24/07/2024 06:30 PM",
-      status: "Completed",
+      status: "Delivered",
       transaction: { id: "TRN123456793", amount: "₹2,100.00", method: "Cash on Delivery" },
       deliveryStatus: "Delivered",
       deliveryDate: "25/07/2024 07:00 PM"
@@ -146,7 +146,7 @@ const mockOrders = [
       product: { id: "prod-008", name: "Yoga Mat", imageUrl: "https://placehold.co/60x60.png", hint: "yoga mat" },
       address: { name: "Sarah Miller", village: "Banjara Hills", district: "Hyderabad", city: "Hyderabad", state: "Telangana", country: "India", pincode: "500034", phone: "+91 9876543217" },
       dateTime: "23/07/2024 09:00 AM",
-      status: "Completed",
+      status: "Delivered",
       transaction: { id: "TRN123456796", amount: "₹1,500.00", method: "Credit Card" },
       deliveryStatus: "Delivered",
       deliveryDate: "24/07/2024 10:00 AM"
@@ -200,9 +200,8 @@ const statusPriority: { [key: string]: number } = {
     "In Transit": 3,
     "Out for Delivery": 4,
     "Delivered": 5,
-    "Completed": 6,
-    "Undelivered": 7,
-    "Cancelled": 8,
+    "Undelivered": 6,
+    "Cancelled": 7,
 };
 
 function OrderRowSkeleton() {
@@ -352,7 +351,6 @@ export default function OrdersPage() {
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
         case 'Delivered':
-        case 'Completed':
             return 'success';
         case 'Shipped':
         case 'In Transit':
@@ -389,7 +387,7 @@ export default function OrdersPage() {
   
   const getDeliveryDateInfo = (order: Order) => {
      try {
-        if (order.status === 'Completed' && order.deliveryDate) {
+        if (order.status === 'Delivered' && order.deliveryDate) {
             const parsedDate = parse(order.deliveryDate, 'dd/MM/yyyy hh:mm a', new Date());
             return { label: 'Delivered on', date: format(parsedDate, 'dd MMM yyyy')};
         }
@@ -599,7 +597,6 @@ export default function OrdersPage() {
                                     <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="completed">Completed</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="undelivered">Undelivered</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="cancelled">Cancelled</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>

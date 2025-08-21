@@ -43,7 +43,7 @@ const mockOrderData = {
     },
      "#STREAM5898": {
         product: { name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
-        status: "Completed",
+        status: "Delivered",
         orderDate: "Jul 25, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
@@ -79,7 +79,7 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
     if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("delivered") || status.toLowerCase().includes('completed')) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
     if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered')) return <XCircle className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
@@ -196,7 +196,7 @@ export default function DeliveryInformationPage() {
                                             <p className="text-primary font-bold">{order.product.price}</p>
                                         </CardContent>
                                     </Card>
-                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Completed' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
+                                     {estimatedDeliveryDate && order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Undelivered' && (
                                         <Card>
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <CalendarDays className="h-8 w-8 text-primary" />
