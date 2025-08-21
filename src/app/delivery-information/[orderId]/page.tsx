@@ -23,10 +23,10 @@ const mockOrderData = {
         timeline: [
             { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
             { status: "Packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
-            { status: "Shipped: The package has left the sender's location.", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
-            { status: "In Transit: The package is on its way to the recipient.", date: "Jul 29, 2024", time: "Current status", completed: false },
-            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: null, time: null, completed: false },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: null, time: null, completed: false },
+            { status: "Shipped", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
+            { status: "In Transit: The package is on its way to the recipient.", date: "Jul 29, 2024", time: "Current status", completed: true },
+            { status: "Out for Delivery", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
         ]
     },
     "#STREAM5897": {
@@ -36,8 +36,8 @@ const mockOrderData = {
         timeline: [
             { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
             { status: "Packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
-            { status: "Shipped: The package has left the sender's location.", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
-            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
+            { status: "Shipped", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
+            { status: "Out for Delivery", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
             { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
         ]
     },
@@ -65,8 +65,8 @@ const mockOrderData = {
         orderDate: "Jul 24, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 24, 2024", time: "10:00 AM", completed: true },
-            { status: "Shipped: The package has left the sender's location.", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
-            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
+            { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
+            { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
             { status: "Failed Delivery Attempt: The courier attempted delivery but was unsuccessful. Address not found.", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
         ]
     },
@@ -75,10 +75,10 @@ const mockOrderData = {
         status: "Pending",
         orderDate: "Jul 28, 2024",
         timeline: [
-            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: false },
+            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
             { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped: The package has left the sender's location.", date: null, time: null, completed: false },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: null, time: null, completed: false },
+            { status: "Shipped", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
         ]
     },
     "#STREAM5906": {
@@ -86,10 +86,10 @@ const mockOrderData = {
         status: "Pending",
         orderDate: "Jul 29, 2024",
         timeline: [
-            { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: false },
+            { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: true },
             { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped: The package has left the sender's location.", date: null, time: null, completed: false },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: null, time: null, completed: false },
+            { status: "Shipped", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
         ]
     }
 };
@@ -175,6 +175,9 @@ export default function DeliveryInformationPage() {
         );
     }
 
+    const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
+    const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
+
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
@@ -248,9 +251,11 @@ export default function DeliveryInformationPage() {
                                                         <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
                                                             {item.status.split(':')[0]}
                                                         </p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {item.status.split(':')[1]}
-                                                        </p>
+                                                        {index === currentStatusIndex && item.status.includes(':') && (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {item.status.split(':')[1]}
+                                                            </p>
+                                                        )}
                                                         {item.date && (
                                                             <p className="text-sm text-muted-foreground">
                                                                 {item.date} {item.time && `- ${item.time}`}
