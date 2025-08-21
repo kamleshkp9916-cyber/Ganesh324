@@ -59,6 +59,17 @@ const mockOrderData = {
             { status: "Cancelled by user", date: "Jul 25, 2024", time: "12:00 PM", completed: true },
         ]
     },
+    "#STREAM5902": {
+        product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/150x150.png", hint: "bluetooth speaker", price: "₹3,200.00" },
+        status: "Out for Delivery",
+        orderDate: "Jul 22, 2024",
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 22, 2024", time: "07:00 PM", completed: true },
+            { status: "Shipped", date: "Jul 23, 2024", time: "10:00 AM", completed: true },
+            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: "Jul 23, 2024", time: "01:00 PM", completed: true },
+            { status: "Delivered", date: null, time: null, completed: false },
+        ]
+    },
     "#STREAM5910": {
         product: { name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
         status: "Undelivered",
@@ -268,5 +279,6 @@ export default function DeliveryInformationPage() {
             <Footer />
         </div>
     );
+}
 
     
