@@ -55,6 +55,8 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 
+const ADMIN_EMAIL = "samael.prajapati@example.com";
+
 const recentSignups = [
     { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2 days ago" },
     { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2 days ago" },
@@ -81,9 +83,8 @@ export default function AdminDashboard() {
     )
   }
 
-  // A real app would have role-based access control.
-  // For now, we just check if the user is logged in.
-  if (!user) {
+  // Check if the user is logged in AND is the designated admin.
+  if (!user || user.email !== ADMIN_EMAIL) {
     return (
          <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
              <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
