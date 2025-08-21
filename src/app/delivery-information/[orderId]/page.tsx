@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter, useParams } from 'next/navigation';
@@ -14,6 +15,7 @@ import { Footer } from '@/components/footer';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
 import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
+import { updateOrderStatus } from '@/ai/flows/chat-flow';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -105,7 +107,7 @@ export default function DeliveryInformationPage() {
     
     if (!user) {
         router.push('/');
-        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
+        return null;
     }
     
     if (!order) {
@@ -134,30 +136,32 @@ export default function DeliveryInformationPage() {
         }
 
         setIsVerifyingOtp(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // This is where we update the central data source
-        allOrderData[orderId].timeline.push({ 
-            status: 'Cancelled by user', 
-            date: format(new Date(), 'MMM dd, yyyy'), 
-            time: format(new Date(), 'hh:mm a'), 
-            completed: true 
-        });
+        try {
+            await updateOrderStatus(orderId, 'Cancelled by user');
+            
+            // Force a re-render to show the updated timeline
+            setForceRerender(val => val + 1);
+            
+            toast({
+                title: "Order Cancelled",
+                description: `Order ${orderId} has been cancelled.`,
+            });
 
-        // Force a re-render to show the updated timeline
-        setForceRerender(val => val + 1);
-        
-        toast({
-            title: "Order Cancelled",
-            description: `Order ${orderId} has been cancelled.`,
-        });
-
-        setIsVerifyingOtp(false);
-        setIsCancelFlowOpen(false);
-        setCancelStep("reason");
-        setCancelReason("");
-        setCancelFeedback("");
-        setOtp("");
+            setIsCancelFlowOpen(false);
+            setCancelStep("reason");
+            setCancelReason("");
+            setCancelFeedback("");
+            setOtp("");
+        } catch (error) {
+            console.error("Failed to cancel order:", error);
+             toast({
+                title: "Cancellation Failed",
+                description: "There was an error cancelling your order. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsVerifyingOtp(false);
+        }
     };
     
     const handleAddressSave = (data: any) => {

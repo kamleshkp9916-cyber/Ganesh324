@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A mock chat backend using Genkit flows.
@@ -9,6 +10,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { allOrderData, OrderId } from '@/lib/order-data';
+import { format } from 'date-fns';
 
 const MessageSchema = z.object({
   id: z.number(),
@@ -37,6 +40,11 @@ const SendMessageInputSchema = z.object({
 
 const SendMessageOutputSchema = z.array(MessageSchema);
 export type SendMessageOutput = z.infer<typeof SendMessageOutputSchema>;
+
+const UpdateOrderStatusInputSchema = z.object({
+    orderId: z.string(),
+    status: z.string(),
+});
 
 // Mock database
 const mockChatDatabase: Record<string, Message[]> = {
@@ -89,6 +97,29 @@ const sendMessageFlow = ai.defineFlow(
   }
 );
 
+const updateOrderStatusFlow = ai.defineFlow(
+    {
+        name: 'updateOrderStatusFlow',
+        inputSchema: UpdateOrderStatusInputSchema,
+        outputSchema: z.void(),
+    },
+    async ({ orderId, status }) => {
+        const order = allOrderData[orderId as OrderId];
+        if (order) {
+            order.timeline.push({
+                status: status,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'hh:mm a'),
+                completed: true
+            });
+            console.log(`Updated status for order ${orderId} to ${status}`);
+        } else {
+            console.error(`Order with ID ${orderId} not found.`);
+            throw new Error(`Order not found`);
+        }
+    }
+);
+
 
 export async function getMessages(userId: string): Promise<GetMessagesOutput> {
     return getMessagesFlow({ userId });
@@ -96,4 +127,8 @@ export async function getMessages(userId: string): Promise<GetMessagesOutput> {
 
 export async function sendMessage(userId: string, message: { text?: string; image?: string }): Promise<SendMessageOutput> {
     return sendMessageFlow({ userId, message });
+}
+
+export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
+    return updateOrderStatusFlow({ orderId, status });
 }
