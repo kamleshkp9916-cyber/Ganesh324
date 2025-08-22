@@ -20,6 +20,7 @@ const initialQuickReplies = [
     "Where is my order?",
     "Problem with my item",
     "Payment issue",
+    "Can I change my delivery address?",
 ];
 
 const LoadingMessage = () => (
@@ -44,14 +45,19 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
-    const [messages, setMessages] = useState<{ id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean }[]>([
-        { id: 1, sender: 'bot', content: "Hi there! How can I help you today?" },
-        { id: 2, sender: 'bot', content: <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, hideAvatar: true },
-    ]);
+    const [messages, setMessages] = useState<{ id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean }[]>([]);
     const [timer, setTimer] = useState(INITIAL_TIMER);
     const [isExecutiveConnecting, setIsExecutiveConnecting] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const retryRef = useRef(false); // To track if we are on the second timer attempt
+
+     useEffect(() => {
+        // Initialize with default messages
+        setMessages([
+             { id: 1, sender: 'bot', content: "Hi there! How can I help you today?" },
+             { id: 2, sender: 'bot', content: <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, hideAvatar: true },
+        ]);
+    }, []);
 
     const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
         setMessages(prev => [...prev, { id: prev.length + 1, sender, content, hideAvatar }]);
@@ -59,20 +65,33 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
 
     const handleQuickReply = (reply: string) => {
         addMessage('user', reply);
-        if (reply === "Talk to a support executive") {
-            handleTalkToExecutive();
-        } else if (reply === "Where is my order?") {
-            setTimeout(() => {
-                const lastStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Order details being processed.";
-                addMessage('bot', `Your order is currently at: ${lastStatus}`);
-                addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
-            }, 800);
-        } else {
-            // Simulate a bot response
-            setTimeout(() => {
-                addMessage('bot', `I see you have an issue with: "${reply}". Could you please provide more details?`);
-            }, 500);
-        }
+
+        setTimeout(() => {
+            switch (reply) {
+                case "Talk to a support executive":
+                    handleTalkToExecutive();
+                    break;
+                case "Where is my order?":
+                    const lastStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Order details being processed.";
+                    addMessage('bot', `Your order is currently at: ${lastStatus}`);
+                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    break;
+                case "Problem with my item":
+                    addMessage('bot', "I'm sorry to hear that. Could you please describe the problem with your item?");
+                    break;
+                case "Payment issue":
+                    addMessage('bot', "I understand you're having a payment issue. For security, let's connect you with a support executive to resolve this.");
+                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    break;
+                 case "Can I change my delivery address?":
+                    addMessage('bot', "For security reasons, the delivery address cannot be changed after an order is confirmed. You would need to cancel this order and place a new one with the correct address.");
+                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    break;
+                default:
+                    addMessage('bot', `I see you have an issue with: "${reply}". Could you please provide more details?`);
+                    break;
+            }
+        }, 800);
     };
     
     const handleSendMessage = (e: React.FormEvent) => {
