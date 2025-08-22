@@ -34,6 +34,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
+import { HelpChat } from './help-chat';
 
 
 const getStatusIcon = (status: string) => {
@@ -159,6 +160,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const { user, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
+    const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
     
     // This state is used to force a re-render after an update
     const [forceRerender, setForceRerender] = useState(0);
@@ -345,11 +347,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     };
 
     const handleHelp = () => {
-        toast({
-            title: "Need help?",
-            description: "Contact our support team for assistance with your order.",
-        });
-    }
+        setIsHelpChatOpen(true);
+    };
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
@@ -648,6 +647,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     )}
                 </Card>
             </main>
+            {isHelpChatOpen && <HelpChat onClose={() => setIsHelpChatOpen(false)} />}
         </div>
     );
 }
