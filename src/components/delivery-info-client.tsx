@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -647,8 +646,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     )}
                 </Card>
             </main>
-            {isHelpChatOpen && <HelpChat onClose={() => setIsHelpChatOpen(false)} />}
+            {isHelpChatOpen && <HelpChat order={order} onClose={() => setIsHelpChatOpen(false)} />}
         </div>
     );
 }
-

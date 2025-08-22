@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
+import { Order, getStatusFromTimeline } from '@/lib/order-data';
 
 type ChatStep = 'initial' | 'waiting' | 'connected' | 'chatting';
 const INITIAL_TIMER = 30; // 30 seconds
@@ -39,7 +40,7 @@ const QuickReplyButtons = ({ onSelect }: { onSelect: (reply: string) => void }) 
 );
 
 
-export function HelpChat({ onClose }: { onClose: () => void }) {
+export function HelpChat({ order, onClose }: { order: Order, onClose: () => void }) {
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
@@ -60,6 +61,12 @@ export function HelpChat({ onClose }: { onClose: () => void }) {
         addMessage('user', reply);
         if (reply === "Talk to a support executive") {
             handleTalkToExecutive();
+        } else if (reply === "Where is my order?") {
+            setTimeout(() => {
+                const lastStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Order details being processed.";
+                addMessage('bot', `Your order is currently at: ${lastStatus}`);
+                addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+            }, 800);
         } else {
             // Simulate a bot response
             setTimeout(() => {
