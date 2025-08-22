@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -198,6 +199,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const currentStatus = getStatusFromTimeline(order.timeline);
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
+    const productId = `prod_${orderId.slice(-3)}`
 
 
     const handleConfirmCancellation = async (otpValue: string) => {
@@ -327,22 +329,24 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     </CardHeader>
                     <CardContent className="grid lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 space-y-4">
-                            <Card className="overflow-hidden">
-                                <CardContent className="p-4 flex flex-col items-center text-center">
-                                    <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
-                                        <Image
-                                            src={order.product.imageUrl}
-                                            alt={order.product.name}
-                                            width={200}
-                                            height={200}
-                                            className="object-cover w-full h-full"
-                                            data-ai-hint={order.product.hint}
-                                        />
-                                    </div>
-                                    <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                    <p className="text-primary font-bold">{order.product.price}</p>
-                                </CardContent>
-                            </Card>
+                            <Link href={`/product/${productId}`} className="block hover:opacity-90 transition-opacity">
+                                <Card className="overflow-hidden">
+                                    <CardContent className="p-4 flex flex-col items-center text-center">
+                                        <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
+                                            <Image
+                                                src={order.product.imageUrl}
+                                                alt={order.product.name}
+                                                width={200}
+                                                height={200}
+                                                className="object-cover w-full h-full"
+                                                data-ai-hint={order.product.hint}
+                                            />
+                                        </div>
+                                        <h3 className="font-semibold text-lg">{order.product.name}</h3>
+                                        <p className="text-primary font-bold">{order.product.price}</p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                                 {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated', 'Return package picked up'].includes(currentStatus) && (
                                 <Card>
                                     <CardContent className="p-4 flex items-center gap-4">
@@ -593,5 +597,3 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
-
-    
