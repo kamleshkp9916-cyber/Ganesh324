@@ -11,13 +11,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-export const HelpChatInputSchema = z.object({
+const HelpChatInputSchema = z.object({
   message: z.string().describe('The user\'s message or query.'),
   orderStatus: z.string().describe('The current status of the order (e.g., "Delivered", "In Transit").'),
 });
 export type HelpChatInput = z.infer<typeof HelpChatInputSchema>;
 
-export const HelpChatOutputSchema = z.object({
+const HelpChatOutputSchema = z.object({
   response: z.string().describe('The chatbot\'s response to the user\'s message.'),
   quickReplies: z.array(z.string()).describe('A list of suggested quick replies for the user.'),
 });
