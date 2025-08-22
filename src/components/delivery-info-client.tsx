@@ -466,7 +466,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         </div>
                     </CardContent>
                     {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton || showReviewButton) && (
-                        <CardFooter className="flex flex-col items-end gap-2 border-t pt-6">
+                        <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t pt-6">
                              {showReviewButton && (
                                  <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                                     <DialogTrigger asChild>
