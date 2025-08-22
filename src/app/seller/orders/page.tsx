@@ -14,6 +14,7 @@ import {
   Truck,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,13 +41,14 @@ import {
   PaginationItem,
 } from "@/components/ui/pagination"
 import { Separator } from "@/components/ui/separator"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 
 const mockSellerOrders = [
     {
         orderId: "#ORD5896",
+        productId: "prod_1",
         customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
         product: { name: "Vintage Camera" },
         date: "July 27, 2024",
@@ -56,6 +58,7 @@ const mockSellerOrders = [
     },
     {
         orderId: "#ORD5897",
+        productId: "prod_2",
         customer: { name: "Jane Doe", email: "jane.d@example.com" },
         product: { name: "Wireless Headphones" },
         date: "July 26, 2024",
@@ -65,6 +68,7 @@ const mockSellerOrders = [
     },
     {
         orderId: "#ORD5902",
+        productId: "prod_3",
         customer: { name: "David Garcia", email: "david.g@example.com" },
         product: { name: "Bluetooth Speaker" },
         date: "July 22, 2024",
@@ -74,6 +78,7 @@ const mockSellerOrders = [
     },
      {
         orderId: "#ORD5905",
+        productId: "prod_4",
         customer: { name: "Peter Jones", email: "peter.j@example.com" },
         product: { name: "Designer Sunglasses" },
         date: "July 28, 2024",
@@ -83,6 +88,7 @@ const mockSellerOrders = [
     },
     {
         orderId: "#ORD5903",
+        productId: "prod_5",
         customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
         product: { name: "Coffee Maker" },
         date: "July 21, 2024",
@@ -162,10 +168,14 @@ export default function SellerOrdersPage() {
             <CardContent>
                 <div className="divide-y divide-border">
                 {mockSellerOrders.map((order) => (
-                    <div key={order.orderId} className="grid grid-cols-2 md:grid-cols-5 items-start gap-4 py-4">
+                    <div key={order.orderId} className="grid grid-cols-2 md:grid-cols-6 items-start gap-4 py-4">
                         <div className="font-medium col-span-2 md:col-span-1">
                             <p>{order.orderId}</p>
                             <p className="text-xs text-muted-foreground">{order.date}</p>
+                        </div>
+                        <div className="col-span-2 md:col-span-2">
+                           <Link href={`/product/${order.productId}`} className="font-medium hover:underline">{order.product.name}</Link>
+                           <p className="text-xs text-muted-foreground">Sold to: {order.customer.name}</p>
                         </div>
                         <div className="col-span-2 md:col-span-1">
                              <p className="font-medium">{order.customer.name}</p>

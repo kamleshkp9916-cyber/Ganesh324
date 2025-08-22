@@ -56,9 +56,10 @@ import {
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { ProductForm, Product } from "@/components/seller/product-form"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 const initialProducts: Product[] = [
     {
@@ -249,21 +250,27 @@ export default function SellerProductsPage() {
                         {products.map(product => (
                         <TableRow key={product.id}>
                             <TableCell className="hidden sm:table-cell">
-                            {product.image?.preview ? (
-                                <Image
-                                    alt={product.name}
-                                    className="aspect-square rounded-md object-cover"
-                                    height="64"
-                                    src={product.image.preview}
-                                    width="64"
-                                />
-                            ) : (
-                                <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                            )}
+                             <Link href={`/product/${product.id}`}>
+                                {product.image?.preview ? (
+                                    <Image
+                                        alt={product.name}
+                                        className="aspect-square rounded-md object-cover"
+                                        height="64"
+                                        src={product.image.preview}
+                                        width="64"
+                                    />
+                                ) : (
+                                    <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                    </div>
+                                )}
+                              </Link>
                             </TableCell>
-                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell className="font-medium">
+                                <Link href={`/product/${product.id}`} className="hover:underline">
+                                    {product.name}
+                                </Link>
+                            </TableCell>
                             <TableCell>
                             <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
                             </TableCell>

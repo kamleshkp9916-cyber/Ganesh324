@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { getWishlist, removeFromWishlist, Product } from '@/lib/product-history';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 function EmptyWishlist() {
     const router = useRouter();
@@ -38,7 +39,9 @@ export default function WishlistPage() {
     }
   }, [user]);
 
-  const handleRemoveFromWishlist = (productId: number) => {
+  const handleRemoveFromWishlist = (e: React.MouseEvent, productId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     removeFromWishlist(productId);
     setWishlistItems(getWishlist());
     toast({
@@ -82,29 +85,31 @@ export default function WishlistPage() {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {wishlistItems.map((product) => (
-                        <Card key={product.id} className="w-full group overflow-hidden">
-                             <div className="relative aspect-square bg-muted rounded-t-lg">
-                                <Image 
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    layout="fill"
-                                    className="object-cover"
-                                    data-ai-hint={product.hint}
-                                />
-                                <Button
-                                    size="icon"
-                                    variant="destructive"
-                                    className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => handleRemoveFromWishlist(product.id)}
-                                >
-                                    <Heart className="h-4 w-4 fill-current" />
-                                </Button>
-                            </div>
-                            <div className="p-3">
-                                <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                <p className="text-primary font-bold">{product.price}</p>
-                            </div>
-                        </Card>
+                         <Link href={`/product/${product.id}`} key={product.id} className="group block">
+                            <Card className="w-full overflow-hidden h-full flex flex-col">
+                                <div className="relative aspect-square bg-muted">
+                                    <Image 
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        layout="fill"
+                                        className="object-cover"
+                                        data-ai-hint={product.hint}
+                                    />
+                                    <Button
+                                        size="icon"
+                                        variant="destructive"
+                                        className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                        onClick={(e) => handleRemoveFromWishlist(e, product.id)}
+                                    >
+                                        <Heart className="h-4 w-4 fill-current" />
+                                    </Button>
+                                </div>
+                                <div className="p-3 flex-grow flex flex-col">
+                                    <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                    <p className="text-primary font-bold mt-1">{product.price}</p>
+                                </div>
+                            </Card>
+                        </Link>
                     ))}
                 </div>
             )}
