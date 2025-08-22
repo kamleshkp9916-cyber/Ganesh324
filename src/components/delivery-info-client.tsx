@@ -1,16 +1,17 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
 import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
@@ -69,12 +70,25 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, on
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSubmit = () => {
         setIsSubmitting(true);
         // Simulate API call
         setTimeout(() => {
-            onReviewSubmit({ rating, text: reviewText, productName: order.product.name });
+            onReviewSubmit({ rating, text: reviewText, productName: order.product.name, image: imagePreview });
             setIsSubmitting(false);
             closeDialog();
         }, 1000);
@@ -105,6 +119,26 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, on
                     onChange={(e) => setReviewText(e.target.value)}
                     rows={5}
                 />
+                 <div>
+                    <input type="file" ref={imageInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
+                    <Button variant="outline" onClick={() => imageInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Image
+                    </Button>
+                </div>
+                 {imagePreview && (
+                    <div className="relative w-32 h-32">
+                        <Image src={imagePreview} alt="Review preview" layout="fill" className="rounded-md object-cover" />
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                            onClick={() => setImagePreview(null)}
+                        >
+                            <XCircle className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
             <DialogFooter>
                  <DialogClose asChild>
@@ -125,14 +159,18 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const { user, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
+    
+    // This state is used to force a re-render after an update
     const [forceRerender, setForceRerender] = useState(0);
 
     const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
     
     const order = useMemo(() => {
-        // eslint-disable-next-line no-unused-expressions
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         forceRerender; 
         return allOrderData[orderId] || null;
+    // We listen to forceRerender to trigger this useMemo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orderId, forceRerender]);
 
 
@@ -613,3 +651,4 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
