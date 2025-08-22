@@ -53,6 +53,17 @@ export const allOrderData = {
             { status: "Delivered", date: null, time: null, completed: false },
         ]
     },
+    "#STREAM5907": {
+        product: { name: "Espresso Machine", imageUrl: "https://placehold.co/150x150.png", hint: "espresso machine", price: "₹18,500.00" },
+        orderDate: "Jul 20, 2024",
+        isReturnable: true,
+        timeline: [
+            { status: "Delivered", date: "Jul 22, 2024", time: "03:00 PM", completed: true },
+            { status: "Return Initiated: The recipient has initiated a return of the package.", date: "Jul 23, 2024", time: "10:00 AM", completed: true },
+            { status: "Return package picked up: The delivery partner has collected the return package.", date: "Jul 24, 2024", time: "01:00 PM", completed: true },
+            { status: "Returned", date: "Jul 25, 2024", time: "11:00 AM", completed: true },
+        ]
+    },
     "#STREAM5910": {
         product: { name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
         orderDate: "Jul 24, 2024",

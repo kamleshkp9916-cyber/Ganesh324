@@ -106,8 +106,10 @@ const statusPriority: { [key: string]: number } = {
     "Out for Delivery": 6,
     "Delivered": 7,
     "Failed Delivery Attempt": 8,
-    "Returned": 9,
-    "Cancelled by user": 10,
+    "Return Initiated": 9,
+    "Return package picked up": 10,
+    "Returned": 11,
+    "Cancelled by user": 12,
 };
 
 function OrderRowSkeleton() {
@@ -270,7 +272,10 @@ export default function OrdersPage() {
         case 'Undelivered':
         case 'Failed Delivery Attempt':
         case 'Returned':
+        case 'Return package picked up':
             return 'destructive';
+        case 'Return Initiated':
+            return 'purple';
         case 'Pending':
             return 'info';
         default:

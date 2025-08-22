@@ -274,7 +274,7 @@ export default function DeliveryInformationPage() {
                                     <p className="text-primary font-bold">{order.product.price}</p>
                                 </CardContent>
                             </Card>
-                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated'].includes(currentStatus) && (
+                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated', 'Return package picked up'].includes(currentStatus) && (
                                 <Card>
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
