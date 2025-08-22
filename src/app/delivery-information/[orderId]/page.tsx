@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -66,9 +66,8 @@ const returnReasons = [
 ];
 
 
-export default function DeliveryInformationPage() {
+export default function DeliveryInformationPage({ params }: { params: { orderId: string } }) {
     const router = useRouter();
-    const params = useParams();
     const { user, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
@@ -80,6 +79,8 @@ export default function DeliveryInformationPage() {
 
     // Use useMemo to get the order data directly. It will re-evaluate when forceRerender changes.
     const order = useMemo(() => {
+        // eslint-disable-next-line no-unused-expressions
+        forceRerender; // Depend on forceRerender
         return allOrderData[orderId] || null;
     }, [orderId, forceRerender]);
 
