@@ -4,23 +4,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { X, MessageSquare, Clock, UserCheck, Send } from 'lucide-react';
+import { X, MessageSquare, Clock, UserCheck, Send, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
-import { Order, getStatusFromTimeline } from '@/lib/order-data';
+import { Order } from '@/lib/order-data';
 
 type ChatStep = 'initial' | 'waiting' | 'connected' | 'chatting';
-const INITIAL_TIMER = 30; // 30 seconds
-const SECOND_TIMER = 15; // 15 seconds
+type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
+type ConversationState = {
+    message: string;
+    quickReplies: string[];
+}
+
+const INITIAL_TIMER = 30;
+const SECOND_TIMER = 15;
 
 const initialQuickReplies = [
     "Where is my order?",
     "Problem with my item",
     "Payment issue",
     "Can I change my delivery address?",
+    "Talk to a support executive",
 ];
 
 const LoadingMessage = () => (
@@ -30,13 +37,18 @@ const LoadingMessage = () => (
     </div>
 );
 
-const QuickReplyButtons = ({ onSelect }: { onSelect: (reply: string) => void }) => (
+const QuickReplyButtons = ({ replies, onSelect, onBack, showBack }: { replies: string[], onSelect: (reply: string) => void, onBack?: () => void, showBack?: boolean }) => (
     <div className="w-full flex flex-wrap gap-2 justify-start mt-2">
-        {[...initialQuickReplies, "Talk to a support executive"].map(reply => (
+        {replies.map(reply => (
             <Button key={reply} size="sm" variant="outline" onClick={() => onSelect(reply)}>
                 {reply}
             </Button>
         ))}
+        {showBack && (
+            <Button size="sm" variant="ghost" onClick={onBack}>
+                <ArrowLeft className="mr-2 h-4 w-4"/> Go Back
+            </Button>
+        )}
     </div>
 );
 
@@ -45,51 +57,99 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
-    const [messages, setMessages] = useState<{ id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean }[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [conversationHistory, setConversationHistory] = useState<ConversationState[]>([]);
+    const [currentQuickReplies, setCurrentQuickReplies] = useState(initialQuickReplies);
+    const [interactions, setInteractions] = useState(0);
+
     const [timer, setTimer] = useState(INITIAL_TIMER);
     const [isExecutiveConnecting, setIsExecutiveConnecting] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const retryRef = useRef(false); // To track if we are on the second timer attempt
+    const retryRef = useRef(false);
 
      useEffect(() => {
-        // Initialize with default messages
+        const initialState = {
+            message: "Hi there! How can I help you today?",
+            quickReplies: initialQuickReplies
+        };
         setMessages([
-             { id: 1, sender: 'bot', content: "Hi there! How can I help you today?" },
-             { id: 2, sender: 'bot', content: <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, hideAvatar: true },
+             { id: 1, sender: 'bot', content: initialState.message },
+             { id: 2, sender: 'bot', content: <QuickReplyButtons replies={initialState.quickReplies} onSelect={handleQuickReply} />, hideAvatar: true },
         ]);
+        setConversationHistory([initialState]);
     }, []);
 
     const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
         setMessages(prev => [...prev, { id: prev.length + 1, sender, content, hideAvatar }]);
     };
+    
+    const showQuickReplies = (message: string, replies: string[]) => {
+        const newState: ConversationState = { message, quickReplies: replies };
+        setConversationHistory(prev => [...prev, newState]);
+        setCurrentQuickReplies(replies);
+        
+        addMessage('bot', message, false);
+        addMessage('bot', <QuickReplyButtons replies={replies} onSelect={handleQuickReply} onBack={handleBack} showBack={conversationHistory.length > 1} />, true);
+    }
+    
+    const handleBack = () => {
+        const history = [...conversationHistory];
+        history.pop(); // Remove current state
+        const prevState = history[history.length - 1];
+
+        if (prevState) {
+            setConversationHistory(history);
+            setCurrentQuickReplies(prevState.quickReplies);
+            addMessage('system', 'Going back to previous options...');
+            addMessage('bot', prevState.message, false);
+            addMessage('bot', <QuickReplyButtons replies={prevState.quickReplies} onSelect={handleQuickReply} onBack={handleBack} showBack={history.length > 1}/>, true);
+        }
+    }
 
     const handleQuickReply = (reply: string) => {
+        setMessages(prev => prev.slice(0, -1)); // Remove the old buttons
         addMessage('user', reply);
+        setInteractions(prev => prev + 1);
 
+        const remainingReplies = currentQuickReplies.filter(r => r !== reply);
+        
+        let responseMessage = "";
+        let nextReplies = remainingReplies;
+        
         setTimeout(() => {
             switch (reply) {
                 case "Talk to a support executive":
                     handleTalkToExecutive();
-                    break;
+                    return; // Exit here as handleTalkToExecutive manages its own flow
                 case "Where is my order?":
                     const lastStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Order details being processed.";
-                    addMessage('bot', `Your order is currently at: ${lastStatus}`);
-                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    responseMessage = `Your order is currently at: ${lastStatus}. Is there anything else I can help with?`;
                     break;
                 case "Problem with my item":
-                    addMessage('bot', "I'm sorry to hear that. Could you please describe the problem with your item?");
+                    responseMessage = "I'm sorry to hear that. Could you please describe the problem with your item?";
+                    nextReplies = []; // Expect user input
                     break;
                 case "Payment issue":
-                    addMessage('bot', "I understand you're having a payment issue. For security, let's connect you with a support executive to resolve this.");
-                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    responseMessage = "I understand you're having a payment issue. For security, let's connect you with a support executive to resolve this.";
+                    nextReplies = ["Talk to a support executive"];
                     break;
                  case "Can I change my delivery address?":
-                    addMessage('bot', "For security reasons, the delivery address cannot be changed after an order is confirmed. You would need to cancel this order and place a new one with the correct address.");
-                    addMessage('bot', <QuickReplyButtons onSelect={(r) => handleQuickReply(r)} />, true);
+                    responseMessage = "For security reasons, the delivery address cannot be changed after an order is confirmed. You would need to cancel this order and place a new one with the correct address. Can I help with anything else?";
                     break;
                 default:
-                    addMessage('bot', `I see you have an issue with: "${reply}". Could you please provide more details?`);
+                    responseMessage = `I see you have an issue with: "${reply}". Could you please provide more details?`;
+                    nextReplies = []; // Expect user input
                     break;
+            }
+
+            if (interactions >= 1 && !nextReplies.includes("Talk to a support executive")) {
+                 nextReplies.push("Talk to a support executive");
+            }
+            
+            if (nextReplies.length > 0) {
+                 showQuickReplies(responseMessage, nextReplies);
+            } else {
+                 addMessage('bot', responseMessage);
             }
         }, 800);
     };
@@ -100,15 +160,17 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
 
         addMessage('user', inputValue);
         setInputValue('');
+        setInteractions(prev => prev + 1);
 
         setTimeout(() => {
-            addMessage('bot', "Thanks for the information. Here are some options that might help:");
-            addMessage('bot', <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, true);
+            const nextReplies = initialQuickReplies.filter(r => r !== 'Problem with my item');
+            showQuickReplies("Thanks for the information. Here are some other options that might help:", nextReplies);
         }, 800);
     }
 
     const handleTalkToExecutive = () => {
         setStep('waiting');
+        setMessages(prev => prev.filter(m => m.sender !== 'bot' || typeof m.content !== 'object')); // Clean up buttons
         addMessage('system', `Please wait while we connect you to an executive. Estimated wait time: ${INITIAL_TIMER} seconds.`);
         startTimer(INITIAL_TIMER);
     };
@@ -126,12 +188,10 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
             if (timerRef.current) clearInterval(timerRef.current);
             
             if (!retryRef.current) {
-                // First timer expired
                 retryRef.current = true;
                 addMessage('system', `We are experiencing high traffic. Please wait a little longer. New wait time: ${SECOND_TIMER} seconds.`);
                 startTimer(SECOND_TIMER);
             } else {
-                // Second timer expired, simulate connection
                 setStep('connected');
                 setIsExecutiveConnecting(true);
                 setTimeout(() => {
@@ -142,12 +202,13 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
         }
     }, [timer, step]);
     
-    // Cleanup timer on unmount
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         }
     }, []);
+
+    const canType = step === 'initial' || step === 'connected';
 
     return (
         <div className="fixed bottom-4 right-4 z-50">
@@ -194,27 +255,27 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
                     )}
                 </CardContent>
                 <CardFooter className="p-2 border-t">
-                    {step === 'initial' || step === 'connected' ? (
-                        <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
-                             <Input 
-                                placeholder="Type your message..."
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                autoComplete="off"
-                                disabled={step !== 'initial' && step !== 'connected'}
-                             />
-                             <Button type="submit" size="icon" disabled={!inputValue.trim()}>
-                                <Send className="w-4 h-4" />
-                             </Button>
-                        </form>
-                    ) : step === 'waiting' ? (
+                    {step === 'waiting' ? (
                         <div className="w-full text-center text-sm text-muted-foreground p-2">
                            <div className="flex items-center justify-center gap-2">
                              <Clock className="w-4 h-4 animate-spin" />
                              <span>Connecting... {timer}s</span>
                            </div>
                         </div>
-                    ) : null}
+                    ) : (
+                         <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
+                             <Input 
+                                placeholder="Type your message..."
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                autoComplete="off"
+                                disabled={!canType}
+                             />
+                             <Button type="submit" size="icon" disabled={!inputValue.trim() || !canType}>
+                                <Send className="w-4 h-4" />
+                             </Button>
+                        </form>
+                    )}
                 </CardFooter>
             </Card>
         </div>
