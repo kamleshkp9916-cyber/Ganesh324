@@ -106,12 +106,37 @@ const updateOrderStatusFlow = ai.defineFlow(
     async ({ orderId, status }) => {
         const order = allOrderData[orderId as OrderId];
         if (order) {
-            order.timeline.push({
-                status: status,
-                date: format(new Date(), 'MMM dd, yyyy'),
-                time: format(new Date(), 'hh:mm a'),
-                completed: true
-            });
+            // If the order is being returned, add the full return sequence.
+            if (status === 'Return Initiated') {
+                 // Remove any non-completed steps from the timeline before adding the return sequence
+                order.timeline = order.timeline.filter(step => step.completed);
+                order.timeline.push({
+                    status: "Return Initiated: The recipient has initiated a return of the package.",
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'hh:mm a'),
+                    completed: true
+                });
+                 order.timeline.push({
+                    status: "Return package picked up",
+                    date: null,
+                    time: null,
+                    completed: false
+                });
+                order.timeline.push({
+                    status: "Returned",
+                    date: null,
+                    time: null,
+                    completed: false
+                });
+            } else {
+                 // For other status updates like cancellation, just add a single step.
+                order.timeline.push({
+                    status: status,
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'hh:mm a'),
+                    completed: true
+                });
+            }
             console.log(`Updated status for order ${orderId} to ${status}`);
         } else {
             console.error(`Order with ID ${orderId} not found.`);

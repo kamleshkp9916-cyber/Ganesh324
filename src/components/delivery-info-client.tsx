@@ -195,7 +195,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
 
         setIsVerifyingReturnOtp(true);
         try {
-            await updateOrderStatus(orderId, 'Return Initiated: The recipient has initiated a return of the package.');
+            await updateOrderStatus(orderId, 'Return Initiated');
             
             setForceRerender(val => val + 1);
             
