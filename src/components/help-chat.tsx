@@ -47,7 +47,7 @@ const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect:
 );
 
 
-export function HelpChat({ order, onClose, initialOptions }: { order: Order, onClose: () => void, initialOptions?: string[] }) {
+export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { order: Order, onClose: () => void, initialOptions?: string[], onExecuteAction?: (action: string) => void }) {
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
@@ -86,6 +86,10 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
             const currentStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Unknown";
             const result = await getHelpChatResponse({ message: query, orderStatus: currentStatus });
             
+            if (result.action && onExecuteAction) {
+                onExecuteAction(result.action);
+            }
+            
             if (result.quickReplies.includes("Talk to a support executive") && result.quickReplies.length === 1) {
                 handleTalkToExecutive(result.response);
             } else {
@@ -102,7 +106,11 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
     const handleQuickReply = (reply: string) => {
         setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the old buttons
         addMessage('user', reply);
-        processUserQuery(reply);
+        if (reply === "Talk to a support executive") {
+            handleTalkToExecutive();
+        } else {
+            processUserQuery(reply);
+        }
     };
     
     const handleSendMessage = (e: React.FormEvent) => {

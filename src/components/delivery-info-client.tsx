@@ -362,6 +362,18 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         });
     };
 
+    const handleChatAction = (action: string) => {
+        if (action === 'cancel_order') {
+            setIsHelpChatOpen(false);
+            // Wait for chat to close before opening dialog
+            setTimeout(() => setIsCancelFlowOpen(true), 100);
+        }
+        if (action === 'return_order') {
+            setIsHelpChatOpen(false);
+            setTimeout(() => setIsReturnFlowOpen(true), 100);
+        }
+    };
+
     const handleHelp = () => {
         setIsHelpChatOpen(true);
     };
@@ -371,11 +383,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
-
-    const helpChatOptions = currentStatus === 'Delivered'
-        ? ["Problem with my item", "Talk to a support executive"]
-        : undefined;
-
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -671,7 +678,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                 <HelpChat 
                     order={order} 
                     onClose={() => setIsHelpChatOpen(false)}
-                    initialOptions={helpChatOptions}
+                    onExecuteAction={handleChatAction}
                 />
             )}
         </div>
