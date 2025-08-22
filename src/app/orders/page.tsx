@@ -352,9 +352,7 @@ export default function OrdersPage() {
                           <div className="w-full mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
                           <div className="w-full mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
                           <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
-                              <div className="flex justify-center w-full">
-                                  <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                              </div>
+                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
                           </div>
                       </div>
                       <div className="absolute bottom-1 right-1 md:top-1/2 md:-translate-y-1/2 md:right-2">
