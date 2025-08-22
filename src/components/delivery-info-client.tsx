@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -210,7 +211,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const currentStatus = useMemo(() => order ? getStatusFromTimeline(order.timeline) : "", [order]);
     
     const isReturnWindowActive = useMemo(() => {
-        if (currentStatus !== 'Delivered' || !order || order.isReturnable === false) {
+        if (!order || currentStatus !== 'Delivered' || order.isReturnable === false) {
             return false;
         }
         const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
@@ -370,6 +371,10 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
+
+    const helpChatOptions = currentStatus === 'Delivered'
+        ? ["Problem with my item", "Talk to a support executive"]
+        : undefined;
 
 
     return (
@@ -662,8 +667,13 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     )}
                 </Card>
             </main>
-            {isHelpChatOpen && <HelpChat order={order} onClose={() => setIsHelpChatOpen(false)} />}
+            {isHelpChatOpen && (
+                <HelpChat 
+                    order={order} 
+                    onClose={() => setIsHelpChatOpen(false)}
+                    initialOptions={helpChatOptions}
+                />
+            )}
         </div>
     );
 }
-

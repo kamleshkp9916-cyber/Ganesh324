@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -22,7 +23,7 @@ type ConversationState = {
 const INITIAL_TIMER = 60;
 const SECOND_TIMER = 30;
 
-const initialQuickReplies = [
+const defaultInitialQuickReplies = [
     "Where is my order?",
     "Problem with my item",
     "Payment issue",
@@ -53,13 +54,13 @@ const QuickReplyButtons = ({ replies, onSelect, onBack, showBack }: { replies: s
 );
 
 
-export function HelpChat({ order, onClose }: { order: Order, onClose: () => void }) {
+export function HelpChat({ order, onClose, initialOptions }: { order: Order, onClose: () => void, initialOptions?: string[] }) {
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const [conversationHistory, setConversationHistory] = useState<ConversationState[]>([]);
-    const [currentQuickReplies, setCurrentQuickReplies] = useState(initialQuickReplies);
+    const [currentQuickReplies, setCurrentQuickReplies] = useState(initialOptions || defaultInitialQuickReplies);
     const [interactions, setInteractions] = useState(0);
 
     const [timer, setTimer] = useState(INITIAL_TIMER);
@@ -68,15 +69,17 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
     const retryRef = useRef(false);
 
      useEffect(() => {
+        const initialReplies = initialOptions || defaultInitialQuickReplies;
         const initialState = {
             message: "Hi there! How can I help you today?",
-            quickReplies: initialQuickReplies
+            quickReplies: initialReplies
         };
         setMessages([
              { id: 1, sender: 'bot', content: initialState.message },
              { id: 2, sender: 'bot', content: <QuickReplyButtons replies={initialState.quickReplies} onSelect={handleQuickReply} />, hideAvatar: true },
         ]);
         setConversationHistory([initialState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
@@ -163,7 +166,7 @@ export function HelpChat({ order, onClose }: { order: Order, onClose: () => void
         setInteractions(prev => prev + 1);
 
         setTimeout(() => {
-            const nextReplies = initialQuickReplies.filter(r => r !== 'Problem with my item');
+            const nextReplies = defaultInitialQuickReplies.filter(r => r !== 'Problem with my item');
             showQuickReplies("Thanks for the information. Here are some other options that might help:", nextReplies);
         }, 800);
     }
