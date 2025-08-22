@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -125,16 +125,13 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const { user, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
-
-    const orderId = decodeURIComponent(encodedOrderId as string) as OrderId;
-    
-    // This state is used to force a re-render after an update
     const [forceRerender, setForceRerender] = useState(0);
 
-    // Use useMemo to get the order data directly. It will re-evaluate when forceRerender changes.
+    const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
+    
     const order = useMemo(() => {
         // eslint-disable-next-line no-unused-expressions
-        forceRerender; // Depend on forceRerender
+        forceRerender; 
         return allOrderData[orderId] || null;
     }, [orderId, forceRerender]);
 
@@ -164,7 +161,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         if (!order || !order.orderDate) return null;
         try {
             const parsedDate = parse(order.orderDate, 'MMM dd, yyyy', new Date());
-            const deliveryDate = addDays(parsedDate, 6);
+            const deliveryDate = addDays(parsedDate, 5);
             return format(deliveryDate, 'E, MMM dd, yyyy');
         } catch (error) {
             console.error("Error parsing date:", error);
@@ -299,6 +296,22 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             description: "Thank you for your feedback.",
         });
     };
+
+    const handleShare = () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url);
+        toast({
+            title: "Link Copied!",
+            description: "Delivery tracking link copied to clipboard.",
+        });
+    };
+
+    const handleHelp = () => {
+        toast({
+            title: "Need help?",
+            description: "Contact our support team for assistance with your order.",
+        });
+    }
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
@@ -316,7 +329,9 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                 <h1 className="text-xl font-bold">
                     Delivery Information
                 </h1>
-                <div className="w-10"></div>
+                <Button variant="ghost" size="icon" onClick={handleShare}>
+                    <Share2 className="h-5 w-5" />
+                </Button>
             </header>
 
             <main className="flex-grow p-4 lg:p-8">
@@ -403,6 +418,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                     <ReviewDialog order={order} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                                 </Dialog>
                             )}
+                             <Button variant="ghost" onClick={handleHelp}><MessageSquare className="mr-2 h-4 w-4"/> Need Help?</Button>
                             {showEditAddressButton && (
                                 <Dialog>
                                     <DialogTrigger asChild>

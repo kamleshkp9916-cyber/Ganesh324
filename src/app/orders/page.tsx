@@ -311,7 +311,7 @@ export default function OrdersPage() {
             return { label: 'Delivery Status', date: "N/A" };
         }
         const parsedDate = parse(order.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
-        const deliveryDate = addDays(parsedDate, 6);
+        const deliveryDate = addDays(parsedDate, 5);
         return { label: 'Est. Delivery', date: format(deliveryDate, 'dd MMM yyyy') };
     } catch {
         return { label: 'Est. Delivery', date: "N/A" };
