@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -63,6 +63,59 @@ const returnReasons = [
     "No longer need the item",
     "Other"
 ];
+
+const ReviewDialog = ({ order, onReviewSubmit }: { order: Order, onReviewSubmit: (review: any) => void }) => {
+    const [rating, setRating] = useState(0);
+    const [reviewText, setReviewText] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = () => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            onReviewSubmit({ rating, text: reviewText, productName: order.product.name });
+            setIsSubmitting(false);
+        }, 1000);
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Write a Review</DialogTitle>
+                <DialogDescription>Share your thoughts on the {order.product.name}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                            key={star}
+                            className={cn(
+                                "h-8 w-8 cursor-pointer transition-colors",
+                                rating >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"
+                            )}
+                            onClick={() => setRating(star)}
+                        />
+                    ))}
+                </div>
+                <Textarea
+                    placeholder="Tell us what you liked or disliked..."
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    rows={5}
+                />
+            </div>
+            <DialogFooter>
+                 <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSubmit} disabled={rating === 0 || !reviewText.trim() || isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit Review
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
 
 
 export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: string }) {
@@ -225,19 +278,28 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             title: "Address Updated",
             description: "Your delivery address has been successfully updated.",
         });
-    }
+    };
 
     const handleRefundRequest = () => {
         toast({
             title: "Refund Request Submitted",
             description: "Your refund request is being processed. You will be notified shortly.",
         });
-    }
+    };
+
+    const handleReviewSubmit = (review: any) => {
+        console.log("Review submitted:", review);
+        toast({
+            title: "Review Submitted!",
+            description: "Thank you for your feedback.",
+        });
+    };
     
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false;
     const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery') || currentStatus === 'Returned';
+    const showReviewButton = currentStatus === 'Delivered';
 
 
     return (
@@ -324,8 +386,16 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                             </div>
                         </div>
                     </CardContent>
-                    {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton) && (
+                    {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton || showReviewButton) && (
                         <CardFooter className="flex flex-wrap justify-end gap-2 border-t pt-6">
+                             {showReviewButton && (
+                                 <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
+                                    </DialogTrigger>
+                                    <ReviewDialog order={order} onReviewSubmit={handleReviewSubmit} />
+                                </Dialog>
+                            )}
                             {showEditAddressButton && (
                                 <Dialog>
                                     <DialogTrigger asChild>
@@ -520,3 +590,4 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
