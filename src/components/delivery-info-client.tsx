@@ -191,7 +191,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
 
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
 
-
     useEffect(() => {
         setIsMounted(true);
     }, []);
@@ -208,7 +207,25 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
     }, [order]);
 
-
+    const currentStatus = useMemo(() => order ? getStatusFromTimeline(order.timeline) : "", [order]);
+    
+    const isReturnWindowActive = useMemo(() => {
+        if (currentStatus !== 'Delivered' || !order || order.isReturnable === false) {
+            return false;
+        }
+        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
+        if (!deliveredStep || !deliveredStep.date) {
+            return false;
+        }
+        try {
+            const deliveryDate = parse(deliveredStep.date, 'MMM dd, yyyy', new Date());
+            const daysSinceDelivery = differenceInDays(new Date(), deliveryDate);
+            return daysSinceDelivery <= 7;
+        } catch {
+            return false;
+        }
+    }, [currentStatus, order]);
+    
     if (!isMounted || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -232,7 +249,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         );
     }
 
-    const currentStatus = getStatusFromTimeline(order.timeline);
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     const productId = `prod_${orderId.slice(-3)}`
@@ -351,24 +367,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
     const showCancelButton = !['Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
-    
-    const isReturnWindowActive = useMemo(() => {
-        if (currentStatus !== 'Delivered' || order.isReturnable === false) {
-            return false;
-        }
-        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
-        if (!deliveredStep || !deliveredStep.date) {
-            return false;
-        }
-        try {
-            const deliveryDate = parse(deliveredStep.date, 'MMM dd, yyyy', new Date());
-            const daysSinceDelivery = differenceInDays(new Date(), deliveryDate);
-            return daysSinceDelivery <= 7;
-        } catch {
-            return false;
-        }
-    }, [currentStatus, order]);
-
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
@@ -669,4 +667,3 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     );
 }
 
-    
