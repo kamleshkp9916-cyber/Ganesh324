@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter, useParams } from 'next/navigation';
@@ -76,8 +75,13 @@ export default function DeliveryInformationPage() {
 
     const orderId = decodeURIComponent(params.orderId as string) as OrderId;
     
+    // This state is used to force a re-render after an update
     const [forceRerender, setForceRerender] = useState(0);
-    const order = allOrderData[orderId] || allOrderData["#STREAM5896"];
+
+    // Use useMemo to get the order data directly. It will re-evaluate when forceRerender changes.
+    const order = useMemo(() => {
+        return allOrderData[orderId] || null;
+    }, [orderId, forceRerender]);
 
 
     const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
