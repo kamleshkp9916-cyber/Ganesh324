@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                <MoreHorizontal className="h-4 w-4" />
+                                                <MoreHorizontal className="h-4 w-4 rotate-90" />
                                                 <span className="sr-only">Toggle menu</span>
                                             </Button>
                                         </DropdownMenuTrigger>

@@ -361,7 +361,7 @@ export default function OrdersPage() {
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                      <MoreHorizontal className="h-4 w-4" />
+                                      <MoreHorizontal className="h-4 w-4 rotate-90" />
                                   </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
