@@ -19,8 +19,8 @@ type ConversationState = {
     quickReplies: string[];
 }
 
-const INITIAL_TIMER = 30;
-const SECOND_TIMER = 15;
+const INITIAL_TIMER = 60;
+const SECOND_TIMER = 30;
 
 const initialQuickReplies = [
     "Where is my order?",

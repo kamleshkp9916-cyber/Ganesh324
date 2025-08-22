@@ -349,7 +349,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         setIsHelpChatOpen(true);
     };
     
-    const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
+    const showCancelButton = !['Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false;
     const showRefundButton = currentStatus === 'Returned';
