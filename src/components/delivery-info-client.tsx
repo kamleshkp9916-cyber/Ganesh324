@@ -64,7 +64,7 @@ const returnReasons = [
     "Other"
 ];
 
-const ReviewDialog = ({ order, onReviewSubmit }: { order: Order, onReviewSubmit: (review: any) => void }) => {
+const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void }) => {
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +75,7 @@ const ReviewDialog = ({ order, onReviewSubmit }: { order: Order, onReviewSubmit:
         setTimeout(() => {
             onReviewSubmit({ rating, text: reviewText, productName: order.product.name });
             setIsSubmitting(false);
+            closeDialog();
         }, 1000);
     };
 
@@ -150,6 +151,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [returnFeedback, setReturnFeedback] = useState("");
     const [returnOtp, setReturnOtp] = useState('');
     const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
+
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
 
 
     useEffect(() => {
@@ -298,7 +301,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showCancelButton = ['Pending', 'Order Confirmed', 'Shipped'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false;
-    const showRefundButton = currentStatus === 'Cancelled by user' || currentStatus.includes('Failed Delivery') || currentStatus === 'Returned';
+    const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
 
 
@@ -389,11 +392,11 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton || showReviewButton) && (
                         <CardFooter className="flex flex-wrap justify-end gap-2 border-t pt-6">
                              {showReviewButton && (
-                                 <Dialog>
+                                 <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
                                     </DialogTrigger>
-                                    <ReviewDialog order={order} onReviewSubmit={handleReviewSubmit} />
+                                    <ReviewDialog order={order} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                                 </Dialog>
                             )}
                             {showEditAddressButton && (
@@ -590,3 +593,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    

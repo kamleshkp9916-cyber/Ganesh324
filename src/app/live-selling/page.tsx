@@ -91,6 +91,7 @@ const liveSellers = [
       category: 'Fashion',
       viewers: 1200,
       hint: 'woman posing stylish outfit',
+      productId: 'prod_1'
     },
     {
       id: 2,
@@ -100,6 +101,7 @@ const liveSellers = [
       category: 'Electronics',
       viewers: 2500,
       hint: 'unboxing new phone',
+      productId: 'prod_2'
     },
     {
       id: 3,
@@ -109,6 +111,7 @@ const liveSellers = [
       category: 'Home Goods',
       viewers: 850,
       hint: 'modern living room decor',
+      productId: 'prod_3'
     },
     {
       id: 4,
@@ -118,6 +121,7 @@ const liveSellers = [
       category: 'Beauty',
       viewers: 3100,
       hint: 'makeup tutorial',
+      productId: 'prod_4'
     },
     {
       id: 5,
@@ -127,6 +131,7 @@ const liveSellers = [
       category: 'Kitchenware',
       viewers: 975,
       hint: 'cooking demonstration',
+      productId: 'prod_5'
     },
     {
       id: 6,
@@ -136,6 +141,7 @@ const liveSellers = [
       category: 'Fitness',
       viewers: 1500,
       hint: 'yoga session',
+      productId: 'prod_6'
     },
     {
       id: 7,
@@ -145,6 +151,7 @@ const liveSellers = [
       category: 'Handmade',
       viewers: 450,
       hint: 'pottery making',
+      productId: 'prod_7'
     },
     {
       id: 8,
@@ -154,6 +161,7 @@ const liveSellers = [
       category: 'Pet Supplies',
       viewers: 1800,
       hint: 'playing with puppy',
+      productId: 'prod_8'
     },
     {
       id: 9,
@@ -163,6 +171,7 @@ const liveSellers = [
       category: 'Books',
       viewers: 620,
       hint: 'reading book cozy',
+      productId: 'prod_9'
     },
     {
       id: 10,
@@ -172,6 +181,7 @@ const liveSellers = [
       category: 'Gaming',
       viewers: 4200,
       hint: 'esports competition',
+      productId: 'prod_10'
     },
 ]
 
@@ -672,7 +682,7 @@ export default function LiveSellingPage() {
                          ) : filteredLiveSellers.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                 {filteredLiveSellers.map((seller) => (
-                                    <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                    <Link href={`/product/${seller.productId}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
                                                 LIVE
@@ -705,7 +715,7 @@ export default function LiveSellingPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         ) : (
@@ -887,7 +897,7 @@ export default function LiveSellingPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         {topLiveStreams.slice(0, 2).map((seller) => (
-                                            <div key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300">
+                                            <Link href={`/product/${seller.productId}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
                                                 <div className="absolute top-1.5 left-1.5 z-10">
                                                     <Badge className="bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
                                                 </div>
@@ -916,7 +926,7 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         ))}
                                     </CardContent>
                                 </Card>
@@ -939,3 +949,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
