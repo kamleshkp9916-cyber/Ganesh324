@@ -4,17 +4,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { X, MessageSquare, Clock, UserCheck } from 'lucide-react';
+import { X, MessageSquare, Clock, UserCheck, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
+import { Input } from './ui/input';
 
-type ChatStep = 'initial' | 'waiting' | 'connected';
+type ChatStep = 'initial' | 'waiting' | 'connected' | 'chatting';
 const INITIAL_TIMER = 30; // 30 seconds
 const SECOND_TIMER = 15; // 15 seconds
 
-const quickReplies = [
+const initialQuickReplies = [
     "Where is my order?",
     "Problem with my item",
     "Payment issue",
@@ -27,20 +28,32 @@ const LoadingMessage = () => (
     </div>
 );
 
+const QuickReplyButtons = ({ onSelect }: { onSelect: (reply: string) => void }) => (
+    <div className="w-full flex flex-wrap gap-2 justify-start mt-2">
+        {[...initialQuickReplies, "Talk to a support executive"].map(reply => (
+            <Button key={reply} size="sm" variant="outline" onClick={() => onSelect(reply)}>
+                {reply}
+            </Button>
+        ))}
+    </div>
+);
+
 
 export function HelpChat({ onClose }: { onClose: () => void }) {
     const { user } = useAuth();
     const [step, setStep] = useState<ChatStep>('initial');
-    const [messages, setMessages] = useState<{ id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode }[]>([
-        { id: 1, sender: 'bot', content: "Hi there! How can I help you today?" }
+    const [inputValue, setInputValue] = useState('');
+    const [messages, setMessages] = useState<{ id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean }[]>([
+        { id: 1, sender: 'bot', content: "Hi there! How can I help you today?" },
+        { id: 2, sender: 'bot', content: <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, hideAvatar: true },
     ]);
     const [timer, setTimer] = useState(INITIAL_TIMER);
     const [isExecutiveConnecting, setIsExecutiveConnecting] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const retryRef = useRef(false); // To track if we are on the second timer attempt
 
-    const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode) => {
-        setMessages(prev => [...prev, { id: prev.length + 1, sender, content }]);
+    const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
+        setMessages(prev => [...prev, { id: prev.length + 1, sender, content, hideAvatar }]);
     };
 
     const handleQuickReply = (reply: string) => {
@@ -54,6 +67,19 @@ export function HelpChat({ onClose }: { onClose: () => void }) {
             }, 500);
         }
     };
+    
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!inputValue.trim()) return;
+
+        addMessage('user', inputValue);
+        setInputValue('');
+
+        setTimeout(() => {
+            addMessage('bot', "Thanks for the information. Here are some options that might help:");
+            addMessage('bot', <QuickReplyButtons onSelect={(reply) => handleQuickReply(reply)} />, true);
+        }, 800);
+    }
 
     const handleTalkToExecutive = () => {
         setStep('waiting');
@@ -120,10 +146,13 @@ export function HelpChat({ onClose }: { onClose: () => void }) {
                            msg.sender === 'user' ? 'justify-end' : 
                            msg.sender === 'system' ? 'justify-center' : 'justify-start'
                        )}>
-                           {msg.sender === 'bot' && <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />}
+                           {msg.sender === 'bot' && !msg.hideAvatar && <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />}
+                           {msg.sender === 'bot' && msg.hideAvatar && <div className="w-6 h-6 flex-shrink-0" />}
+
                            <div className={cn("max-w-[85%] rounded-lg px-3 py-2 text-sm",
                                msg.sender === 'user' ? 'bg-primary text-primary-foreground' :
-                               msg.sender === 'system' ? 'text-xs text-muted-foreground italic text-center' : 'bg-muted'
+                               msg.sender === 'system' ? 'text-xs text-muted-foreground italic text-center w-full' : 
+                               typeof msg.content === 'string' ? 'bg-muted' : ''
                            )}>
                                {msg.content}
                            </div>
@@ -139,34 +168,29 @@ export function HelpChat({ onClose }: { onClose: () => void }) {
                     )}
                 </CardContent>
                 <CardFooter className="p-2 border-t">
-                    {step === 'initial' && (
-                        <div className="w-full flex flex-wrap gap-2 justify-center">
-                            {[...quickReplies, "Talk to a support executive"].map(reply => (
-                                <Button key={reply} size="sm" variant="outline" onClick={() => handleQuickReply(reply)}>
-                                    {reply}
-                                </Button>
-                            ))}
-                        </div>
-                    )}
-                     {step === 'waiting' && (
+                    {step === 'initial' || step === 'connected' ? (
+                        <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
+                             <Input 
+                                placeholder="Type your message..."
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                autoComplete="off"
+                                disabled={step !== 'initial' && step !== 'connected'}
+                             />
+                             <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+                                <Send className="w-4 h-4" />
+                             </Button>
+                        </form>
+                    ) : step === 'waiting' ? (
                         <div className="w-full text-center text-sm text-muted-foreground p-2">
                            <div className="flex items-center justify-center gap-2">
                              <Clock className="w-4 h-4 animate-spin" />
                              <span>Connecting... {timer}s</span>
                            </div>
                         </div>
-                    )}
-                     {step === 'connected' && (
-                        <div className="w-full text-center text-sm text-green-600 p-2">
-                           <div className="flex items-center justify-center gap-2">
-                             <UserCheck className="w-4 h-4" />
-                             <span>Connected to Support Executive</span>
-                           </div>
-                        </div>
-                    )}
+                    ) : null}
                 </CardFooter>
             </Card>
         </div>
     );
 }
-
