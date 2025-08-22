@@ -5,20 +5,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { X, MessageSquare, Clock, UserCheck, Send, ArrowLeft } from 'lucide-react';
+import { X, MessageSquare, Clock, UserCheck, Send, ArrowLeft, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
 import { Order } from '@/lib/order-data';
+import { getHelpChatResponse } from '@/ai/flows/help-chat-flow';
 
 type ChatStep = 'initial' | 'waiting' | 'connected' | 'chatting';
 type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
-type ConversationState = {
-    message: string;
-    quickReplies: string[];
-}
 
 const INITIAL_TIMER = 60;
 const SECOND_TIMER = 30;
@@ -35,21 +32,17 @@ const LoadingMessage = () => (
     <div className="flex items-center space-x-2">
         <Skeleton className="h-4 w-4 rounded-full" />
         <Skeleton className="h-4 w-[50px]" />
+        <Skeleton className="h-4 w-[30px]" />
     </div>
 );
 
-const QuickReplyButtons = ({ replies, onSelect, onBack, showBack }: { replies: string[], onSelect: (reply: string) => void, onBack?: () => void, showBack?: boolean }) => (
+const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect: (reply: string) => void }) => (
     <div className="w-full flex flex-wrap gap-2 justify-start mt-2">
         {replies.map(reply => (
             <Button key={reply} size="sm" variant="outline" onClick={() => onSelect(reply)}>
                 {reply}
             </Button>
         ))}
-        {showBack && (
-            <Button size="sm" variant="ghost" onClick={onBack}>
-                <ArrowLeft className="mr-2 h-4 w-4"/> Go Back
-            </Button>
-        )}
     </div>
 );
 
@@ -59,10 +52,8 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
-    const [conversationHistory, setConversationHistory] = useState<ConversationState[]>([]);
-    const [currentQuickReplies, setCurrentQuickReplies] = useState(initialOptions || defaultInitialQuickReplies);
-    const [interactions, setInteractions] = useState(0);
-
+    const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+    
     const [timer, setTimer] = useState(INITIAL_TIMER);
     const [isExecutiveConnecting, setIsExecutiveConnecting] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,106 +65,63 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
             message: "Hi there! How can I help you today?",
             quickReplies: initialReplies
         };
-        setMessages([
-             { id: 1, sender: 'bot', content: initialState.message },
-             { id: 2, sender: 'bot', content: <QuickReplyButtons replies={initialState.quickReplies} onSelect={handleQuickReply} />, hideAvatar: true },
-        ]);
-        setConversationHistory([initialState]);
+        addMessageWithReplies('bot', initialState.message, initialState.quickReplies);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
-        setMessages(prev => [...prev, { id: prev.length + 1, sender, content, hideAvatar }]);
+        setMessages(prev => [...prev, { id: Date.now() + Math.random(), sender, content, hideAvatar }]);
     };
     
-    const showQuickReplies = (message: string, replies: string[]) => {
-        const newState: ConversationState = { message, quickReplies: replies };
-        setConversationHistory(prev => [...prev, newState]);
-        setCurrentQuickReplies(replies);
-        
-        addMessage('bot', message, false);
-        addMessage('bot', <QuickReplyButtons replies={replies} onSelect={handleQuickReply} onBack={handleBack} showBack={conversationHistory.length > 1} />, true);
-    }
-    
-    const handleBack = () => {
-        const history = [...conversationHistory];
-        history.pop(); // Remove current state
-        const prevState = history[history.length - 1];
-
-        if (prevState) {
-            setConversationHistory(history);
-            setCurrentQuickReplies(prevState.quickReplies);
-            addMessage('system', 'Going back to previous options...');
-            addMessage('bot', prevState.message, false);
-            addMessage('bot', <QuickReplyButtons replies={prevState.quickReplies} onSelect={handleQuickReply} onBack={handleBack} showBack={history.length > 1}/>, true);
+    const addMessageWithReplies = (sender: 'bot' | 'user', message: string, replies: string[]) => {
+        addMessage(sender, message);
+        if (replies.length > 0) {
+            addMessage('bot', <QuickReplyButtons replies={replies} onSelect={handleQuickReply} />, true);
         }
     }
 
-    const handleQuickReply = (reply: string) => {
-        setMessages(prev => prev.slice(0, -1)); // Remove the old buttons
-        addMessage('user', reply);
-        setInteractions(prev => prev + 1);
-
-        const remainingReplies = currentQuickReplies.filter(r => r !== reply);
-        
-        let responseMessage = "";
-        let nextReplies = remainingReplies;
-        
-        setTimeout(() => {
-            switch (reply) {
-                case "Talk to a support executive":
-                    handleTalkToExecutive();
-                    return; // Exit here as handleTalkToExecutive manages its own flow
-                case "Where is my order?":
-                    const lastStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Order details being processed.";
-                    responseMessage = `Your order is currently at: ${lastStatus}. Is there anything else I can help with?`;
-                    break;
-                case "Problem with my item":
-                    responseMessage = "I'm sorry to hear that. Could you please describe the problem with your item?";
-                    nextReplies = []; // Expect user input
-                    break;
-                case "Payment issue":
-                    responseMessage = "I understand you're having a payment issue. For security, let's connect you with a support executive to resolve this.";
-                    nextReplies = ["Talk to a support executive"];
-                    break;
-                 case "Can I change my delivery address?":
-                    responseMessage = "For security reasons, the delivery address cannot be changed after an order is confirmed. You would need to cancel this order and place a new one with the correct address. Can I help with anything else?";
-                    break;
-                default:
-                    responseMessage = `I see you have an issue with: "${reply}". Could you please provide more details?`;
-                    nextReplies = []; // Expect user input
-                    break;
-            }
-
-            if (interactions >= 1 && !nextReplies.includes("Talk to a support executive")) {
-                 nextReplies.push("Talk to a support executive");
-            }
+    const processUserQuery = async (query: string) => {
+        setIsLoadingResponse(true);
+        try {
+            const currentStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Unknown";
+            const result = await getHelpChatResponse({ message: query, orderStatus: currentStatus });
             
-            if (nextReplies.length > 0) {
-                 showQuickReplies(responseMessage, nextReplies);
+            if (result.quickReplies.includes("Talk to a support executive") && result.quickReplies.length === 1) {
+                handleTalkToExecutive(result.response);
             } else {
-                 addMessage('bot', responseMessage);
+                 addMessageWithReplies('bot', result.response, result.quickReplies);
             }
-        }, 800);
+        } catch (error) {
+            console.error("AI response error:", error);
+            addMessageWithReplies('bot', "I'm having a little trouble right now. Please try again or connect to a support executive.", ["Talk to a support executive"]);
+        } finally {
+            setIsLoadingResponse(false);
+        }
+    }
+    
+    const handleQuickReply = (reply: string) => {
+        setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the old buttons
+        addMessage('user', reply);
+        processUserQuery(reply);
     };
     
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputValue.trim()) return;
+        const query = inputValue.trim();
+        if (!query) return;
 
-        addMessage('user', inputValue);
+        setMessages(prev => prev.filter(m => typeof m.content !== 'object'));
+        addMessage('user', query);
         setInputValue('');
-        setInteractions(prev => prev + 1);
-
-        setTimeout(() => {
-            const nextReplies = defaultInitialQuickReplies.filter(r => r !== 'Problem with my item');
-            showQuickReplies("Thanks for the information. Here are some other options that might help:", nextReplies);
-        }, 800);
+        processUserQuery(query);
     }
 
-    const handleTalkToExecutive = () => {
+    const handleTalkToExecutive = (message?: string) => {
         setStep('waiting');
-        setMessages(prev => prev.filter(m => m.sender !== 'bot' || typeof m.content !== 'object')); // Clean up buttons
+        setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Clean up buttons
+        if (message) {
+            addMessage('bot', message);
+        }
         addMessage('system', `Please wait while we connect you to an executive. Estimated wait time: ${INITIAL_TIMER} seconds.`);
         startTimer(INITIAL_TIMER);
     };
@@ -248,7 +196,15 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
                            </div>
                        </div>
                    ))}
-                    {isExecutiveConnecting && (
+                    {isLoadingResponse && (
+                        <div className="flex items-end gap-2 justify-start">
+                             <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
+                             <div className="bg-muted rounded-lg px-3 py-2 text-sm">
+                                <LoadingMessage />
+                             </div>
+                        </div>
+                    )}
+                     {isExecutiveConnecting && (
                         <div className="flex items-end gap-2 justify-start">
                              <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
                              <div className="bg-muted rounded-lg px-3 py-2 text-sm">
@@ -272,9 +228,9 @@ export function HelpChat({ order, onClose, initialOptions }: { order: Order, onC
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 autoComplete="off"
-                                disabled={!canType}
+                                disabled={!canType || isLoadingResponse}
                              />
-                             <Button type="submit" size="icon" disabled={!inputValue.trim() || !canType}>
+                             <Button type="submit" size="icon" disabled={!inputValue.trim() || !canType || isLoadingResponse}>
                                 <Send className="w-4 h-4" />
                              </Button>
                         </form>
