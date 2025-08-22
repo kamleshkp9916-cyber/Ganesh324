@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -226,7 +227,7 @@ export function OtpForm({ identifier }: { identifier?: string }) {
             />
 
             <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
-                {isLoading ? "Proceeding..." : "Proceed"}
+                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Proceeding...</> : "Proceed"}
             </Button>
         </form>
         </Form>
