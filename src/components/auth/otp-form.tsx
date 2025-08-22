@@ -39,8 +39,7 @@ const ADMIN_EMAIL = "samael.prajapati@example.com";
 // In a real app, you'd call your backend API here.
 async function verifyOtpOnServer(otp: string): Promise<{ success: boolean }> {
     console.log(`Verifying OTP: ${otp} on the server...`);
-    // We are removing the timeout to make it faster
-    // await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // In a real application, you would have your logic to verify the OTP.
     // For this demo, we'll accept '123456' as the correct OTP.
