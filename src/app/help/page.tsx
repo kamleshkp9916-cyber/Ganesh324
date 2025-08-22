@@ -4,7 +4,6 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Footer } from '@/components/footer';
 
 export default function HelpPage() {
   const router = useRouter();
@@ -24,7 +23,6 @@ export default function HelpPage() {
           <p>This is the help page. You can add content here.</p>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

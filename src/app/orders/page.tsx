@@ -16,7 +16,6 @@ import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
-import { Footer } from '@/components/footer';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { allOrderData, getStatusFromTimeline, Order as TimelineOrder } from '@/lib/order-data';
@@ -567,7 +566,6 @@ export default function OrdersPage() {
               )}
           </div>
       </main>
-      <Footer />
     </div>
   );
 }

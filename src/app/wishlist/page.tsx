@@ -4,7 +4,6 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Heart, ShoppingCart } from 'lucide-react';
-import { Footer } from '@/components/footer';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card } from '@/components/ui/card';
@@ -111,7 +110,6 @@ export default function WishlistPage() {
             )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

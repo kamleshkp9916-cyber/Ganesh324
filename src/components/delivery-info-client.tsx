@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState, useMemo } from 'react';
-import { Footer } from '@/components/footer';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse } from 'date-fns';
 import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
@@ -518,7 +517,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     )}
                 </Card>
             </main>
-            <Footer />
         </div>
     );
 }

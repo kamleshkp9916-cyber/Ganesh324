@@ -9,7 +9,6 @@ import React,
 { useEffect, useState, useRef, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ChatPopup } from '@/components/chat-popup';
-import { Footer } from '@/components/footer';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
@@ -233,7 +232,6 @@ export default function ProfilePage() {
                     onClose={() => setIsChatOpen(false)} 
                 />
             )}
-            <Footer />
         </div>
 
         <DialogContent className="max-w-lg w-[95vw] h-auto max-h-[85vh] flex flex-col p-0 rounded-lg">

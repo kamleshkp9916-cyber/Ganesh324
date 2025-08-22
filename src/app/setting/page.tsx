@@ -4,7 +4,6 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Wallet, ShieldCheck, Banknote, Plus, Trash2, Edit } from 'lucide-react';
-import { Footer } from '@/components/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
@@ -184,7 +183,6 @@ export default function SettingPage() {
                     </Card>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 }
