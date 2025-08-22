@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, parse } from 'date-fns';
+import { format, addDays, parse, differenceInDays } from 'date-fns';
 import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
 import { updateOrderStatus } from '@/ai/flows/chat-flow';
 import {
@@ -351,7 +351,25 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
     const showCancelButton = !['Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
     const showEditAddressButton = currentStatus === 'Pending' || currentStatus === 'Order Confirmed';
-    const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false;
+    
+    const isReturnWindowActive = useMemo(() => {
+        if (currentStatus !== 'Delivered' || order.isReturnable === false) {
+            return false;
+        }
+        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
+        if (!deliveredStep || !deliveredStep.date) {
+            return false;
+        }
+        try {
+            const deliveryDate = parse(deliveredStep.date, 'MMM dd, yyyy', new Date());
+            const daysSinceDelivery = differenceInDays(new Date(), deliveryDate);
+            return daysSinceDelivery <= 7;
+        } catch {
+            return false;
+        }
+    }, [currentStatus, order]);
+
+    const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
 
@@ -650,3 +668,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    
