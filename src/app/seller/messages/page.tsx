@@ -16,13 +16,14 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function ChatMessage({ msg }: { msg: Message }) {
+    // For seller, 'me' is the seller
     const isMe = msg.sender === 'me';
     return (
         <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
             {!isMe && (
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={`https://placehold.co/40x40.png`} />
-                    <AvatarFallback>{'U'}</AvatarFallback>
+                    <AvatarFallback>{'C'}</AvatarFallback>
                 </Avatar>
             )}
             <div className={`max-w-[70%] rounded-lg px-3 py-2 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
@@ -124,7 +125,7 @@ export default function SellerMessagePage() {
     const optimisticMessage: Message = {
         id: Math.random(),
         text: newMessage,
-        sender: 'me',
+        sender: 'me', // Seller is 'me'
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
@@ -132,7 +133,7 @@ export default function SellerMessagePage() {
     setNewMessage("");
 
     try {
-        const updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage });
+        const updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'seller');
         setMessages(updatedMessages);
     } catch (error) {
         console.error("Failed to send message", error);

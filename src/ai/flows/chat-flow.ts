@@ -45,6 +45,7 @@ const SendMessageInputSchema = z.object({
     text: z.string().optional(),
     image: z.string().optional(),
   }),
+  from: z.enum(['customer', 'seller']),
 });
 
 const SendMessageOutputSchema = z.array(MessageSchema);
@@ -122,6 +123,7 @@ const getMessagesFlow = ai.defineFlow(
   },
   async ({ userId }) => {
     console.log(`Getting messages for userId: ${userId}`);
+    // Seller is always 'me', customer is always 'them' in this mock data structure.
     return mockChatDatabase[userId] || [];
   }
 );
@@ -132,15 +134,20 @@ const sendMessageFlow = ai.defineFlow(
     inputSchema: SendMessageInputSchema,
     outputSchema: SendMessageOutputSchema,
   },
-  async ({ userId, message }) => {
+  async ({ userId, message, from }) => {
     if (!mockChatDatabase[userId]) {
         mockChatDatabase[userId] = [];
     }
     
     const currentMessages = mockChatDatabase[userId];
+
+    // Seller is always 'me', customer is always 'them'.
+    const sender = from === 'seller' ? 'me' : 'them';
+    const responseSender = from === 'seller' ? 'them' : 'me';
+
     const newMessage: Message = {
       id: currentMessages.length + 1,
-      sender: 'me',
+      sender: sender,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       ...message,
     };
@@ -150,7 +157,7 @@ const sendMessageFlow = ai.defineFlow(
     // Also add a mock response for demonstration
     const botResponse: Message = {
       id: currentMessages.length + 1,
-      sender: 'them',
+      sender: responseSender,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: "Thanks for your message! I'll get back to you shortly.",
     };
@@ -234,8 +241,12 @@ export async function getMessages(userId: string): Promise<GetMessagesOutput> {
     return getMessagesFlow({ userId });
 }
 
-export async function sendMessage(userId: string, message: { text?: string; image?: string }): Promise<SendMessageOutput> {
-    return sendMessageFlow({ userId, message });
+export async function sendMessage(
+  userId: string,
+  message: { text?: string; image?: string },
+  from: 'customer' | 'seller'
+): Promise<SendMessageOutput> {
+  return sendMessageFlow({ userId, message, from });
 }
 
 export async function getConversations(): Promise<Conversation[]> {
