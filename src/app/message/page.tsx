@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Search, Video, Phone, MoreVertical, Image as ImageIcon, Smile, Paperclip } from 'lucide-react';
+import { ArrowLeft, Send, Search, Video, Phone, MoreVertical, Image as ImageIcon, Smile, Paperclip, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -85,9 +85,9 @@ export default function MessagePage() {
         const fetchConversations = async () => {
             try {
                 const convos = await getConversations();
-                setConversations(convo);
-                if (convo.length > 0) {
-                    handleSelectConversation(convo[0]);
+                setConversations(convos);
+                if (convos.length > 0) {
+                    handleSelectConversation(convos[0]);
                 }
             } catch (error) {
                 console.error("Failed to fetch conversations:", error);
