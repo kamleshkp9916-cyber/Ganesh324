@@ -90,6 +90,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Fashion',
       viewers: 1200,
+      buyers: 25,
+      rating: 4.8,
+      reviews: 12,
       hint: 'woman posing stylish outfit',
       productId: 'prod_1'
     },
@@ -100,6 +103,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Electronics',
       viewers: 2500,
+      buyers: 42,
+      rating: 4.9,
+      reviews: 28,
       hint: 'unboxing new phone',
       productId: 'prod_2'
     },
@@ -110,6 +116,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Home Goods',
       viewers: 850,
+      buyers: 15,
+      rating: 4.7,
+      reviews: 9,
       hint: 'modern living room decor',
       productId: 'prod_3'
     },
@@ -120,6 +129,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Beauty',
       viewers: 3100,
+      buyers: 78,
+      rating: 4.9,
+      reviews: 55,
       hint: 'makeup tutorial',
       productId: 'prod_4'
     },
@@ -130,6 +142,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Kitchenware',
       viewers: 975,
+      buyers: 0,
+      rating: 0,
+      reviews: 0,
       hint: 'cooking demonstration',
       productId: 'prod_5'
     },
@@ -140,6 +155,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Fitness',
       viewers: 1500,
+      buyers: 33,
+      rating: 4.6,
+      reviews: 18,
       hint: 'yoga session',
       productId: 'prod_6'
     },
@@ -150,6 +168,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Handmade',
       viewers: 450,
+      buyers: 8,
+      rating: 5.0,
+      reviews: 6,
       hint: 'pottery making',
       productId: 'prod_7'
     },
@@ -160,6 +181,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Pet Supplies',
       viewers: 1800,
+      buyers: 50,
+      rating: 4.8,
+      reviews: 30,
       hint: 'playing with puppy',
       productId: 'prod_8'
     },
@@ -170,6 +194,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Books',
       viewers: 620,
+      buyers: 12,
+      rating: 4.9,
+      reviews: 10,
       hint: 'reading book cozy',
       productId: 'prod_9'
     },
@@ -180,6 +207,9 @@ const liveSellers = [
       thumbnailUrl: 'https://placehold.co/300x450.png',
       category: 'Gaming',
       viewers: 4200,
+      buyers: 102,
+      rating: 4.9,
+      reviews: 80,
       hint: 'esports competition',
       productId: 'prod_10'
     },
@@ -704,14 +734,21 @@ export default function LiveSellingPage() {
                                             data-ai-hint={seller.hint}
                                         />
                                         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-start gap-2">
                                                 <Avatar className="h-8 w-8 border-2 border-primary">
                                                     <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                                <div>
+                                                <div className="flex-1">
                                                     <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                     {seller.buyers > 0 && (
+                                                        <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
+                                                            <Star className="w-3 h-3 fill-current" />
+                                                            <span>{seller.rating.toFixed(1)}</span>
+                                                            <span className="text-muted-foreground/80">({seller.buyers})</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
