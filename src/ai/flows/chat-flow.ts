@@ -143,7 +143,7 @@ const sendMessageFlow = ai.defineFlow(
 
     // Seller is always 'me', customer is always 'them'.
     const sender = from === 'seller' ? 'me' : 'them';
-    const responseSender = from === 'seller' ? 'them' : 'me';
+    const responseSender = from === 'customer' ? 'me' : 'them';
 
     const newMessage: Message = {
       id: currentMessages.length + 1,
