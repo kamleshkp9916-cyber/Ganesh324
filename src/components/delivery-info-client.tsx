@@ -67,6 +67,14 @@ const returnReasons = [
     "Other"
 ];
 
+const mockReviews = [
+    { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
+    { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
+    { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
+];
+
+const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
+
 const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void }) => {
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
@@ -384,8 +392,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
-    const mockRating = (parseInt(orderId.replace(/[^0-9]/g, '').slice(-1)) % 5) + 3.9;
-    const mockBuyers = parseInt(orderId.replace(/[^0-9]/g, '').slice(-2));
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -425,11 +431,11 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             />
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                        <p className="font-bold">{order.product.price}</p>
+                                        <p className="font-bold text-foreground">{order.product.price}</p>
                                         <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                             <Star className="w-4 h-4 fill-current" />
-                                            <span>{mockRating.toFixed(1)}</span>
-                                            <span className="text-muted-foreground">({mockBuyers})</span>
+                                            <span>{averageRating}</span>
+                                            <span className="text-muted-foreground">({mockReviews.length})</span>
                                         </div>
                                     </CardContent>
                                 </Card>

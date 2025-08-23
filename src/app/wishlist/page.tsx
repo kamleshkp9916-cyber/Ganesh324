@@ -25,6 +25,13 @@ function EmptyWishlist() {
     );
 }
 
+const mockReviews = [
+    { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
+    { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
+    { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
+];
+const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
+
 export default function WishlistPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -106,11 +113,11 @@ export default function WishlistPage() {
                                 </div>
                                 <div className="p-3 flex-grow flex flex-col">
                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                    <p className="font-bold mt-1">{product.price}</p>
+                                    <p className="font-bold text-foreground mt-1">{product.price}</p>
                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                         <Star className="w-4 h-4 fill-current" />
-                                        <span>{(Math.random() * 1.1 + 3.9).toFixed(1)}</span>
-                                        <span className="text-muted-foreground">({Math.floor(Math.random() * 100) + 1})</span>
+                                        <span>{averageRating}</span>
+                                        <span className="text-muted-foreground">({mockReviews.length})</span>
                                     </div>
                                 </div>
                             </Card>
