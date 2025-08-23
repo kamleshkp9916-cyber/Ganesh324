@@ -514,7 +514,7 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
                 <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-7 w-7 text-destructive" />
+                    <ShoppingCart className="h-7 w-7 text-primary" />
                     <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
                 </div>
 
@@ -712,7 +712,7 @@ export default function LiveSellingPage() {
                          ) : filteredLiveSellers.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                 {filteredLiveSellers.map((seller) => (
-                                    <Link href={`/product/${seller.productId}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
                                                 LIVE
@@ -725,24 +725,30 @@ export default function LiveSellingPage() {
                                             </Badge>
                                         </div>
 
-                                        <Image 
-                                            src={seller.thumbnailUrl} 
-                                            alt={`Live stream from ${seller.name}`} 
-                                            width={300} 
-                                            height={450} 
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={seller.hint}
-                                        />
+                                        <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                            <Image 
+                                                src={seller.thumbnailUrl} 
+                                                alt={`Live stream from ${seller.name}`} 
+                                                width={300} 
+                                                height={450} 
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={seller.hint}
+                                            />
+                                        </Link>
                                         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                                             <div className="flex items-start gap-2">
-                                                <Avatar className="h-8 w-8 border-2 border-primary">
-                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
+                                                <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                    <Avatar className="h-8 w-8 border-2 border-primary">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                </Link>
                                                 <div className="flex-1">
-                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                    <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                    </Link>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                     {seller.buyers > 0 && (
+                                                    {seller.buyers > 0 && (
                                                         <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
                                                             <Star className="w-3 h-3 fill-current" />
                                                             <span>{seller.rating.toFixed(1)}</span>
@@ -752,7 +758,7 @@ export default function LiveSellingPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         ) : (
