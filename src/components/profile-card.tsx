@@ -416,7 +416,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 {profileData.role === 'seller' ? (
                                     <>
                                         <TabsTrigger value="products">Listed Products</TabsTrigger>
-                                        <TabsTrigger value="reviews">Reviews</TabsTrigger>
                                     </>
                                 ) : (
                                     <>
