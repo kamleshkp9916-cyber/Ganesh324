@@ -439,7 +439,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-semibold truncate text-sm">{item.name}</h4>
-                                                    <p className="text-primary font-bold">{item.price}</p>
+                                                    <p className="font-bold text-primary">{item.price}</p>
                                                 </div>
                                             </Card>
                                         ))}
