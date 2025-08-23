@@ -10,10 +10,10 @@ import { ArrowRight } from 'lucide-react';
 export default function Home() {
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:flex flex-col items-center justify-center bg-accent text-accent-foreground p-8">
+      <div className="hidden lg:flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-8">
         <div className="max-w-md text-center">
             <Logo className="h-24 w-auto mx-auto mb-6" />
-            <h1 className="text-4xl font-bold text-foreground">Welcome to StreamCart</h1>
+            <h1 className="text-4xl font-bold">Welcome to StreamCart</h1>
             <p className="mt-4 text-lg text-muted-foreground">
                 Your one-stop shop for live shopping. Discover, engage, and buy in real-time.
             </p>
