@@ -285,7 +285,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
     const newPost = {
         id: Date.now(),
-        sellerName: profileData.displayName,
+        sellerName: profileData.displayName || profileData.name,
         avatarUrl: profileData.photoURL,
         timestamp: 'just now',
         content: data.content,
@@ -408,7 +408,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                     </div>
                 </div>
 
-                {!isOwnProfile && (
+                {!isOwnProfile && profileData.role === 'seller' && (
                      <div className="mt-4 flex justify-center sm:justify-start gap-2">
                         <Button
                             onClick={() => setIsFollowing(!isFollowing)}
