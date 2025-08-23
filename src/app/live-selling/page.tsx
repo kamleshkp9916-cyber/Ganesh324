@@ -359,55 +359,59 @@ export default function LiveSellingPage() {
   
   useEffect(() => {
     setIsMounted(true);
-    // Simulate loading data
-    const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
-    const sellersTimer = setTimeout(() => {
-        setIsLoadingSellers(false)
-    }, 2000);
-    const feedTimer = setTimeout(() => {
-        setIsLoadingFeed(false)
-        setMockFeed(initialMockFeed);
-    }, 2500);
 
-    const checkLiveStream = () => {
-        if (typeof window !== 'undefined') {
-            const liveStreamDataRaw = localStorage.getItem('liveStream');
-            if (liveStreamDataRaw) {
-                const liveStreamData = JSON.parse(liveStreamDataRaw);
-                const sellerIsLive = allSellers.some(s => s.id === liveStreamData.seller.id);
+    const loadData = () => {
+        const storedFeed = localStorage.getItem('mockFeed');
+        if (storedFeed) {
+            setMockFeed(JSON.parse(storedFeed));
+        } else {
+            setMockFeed(initialMockFeed);
+            localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
+        }
 
-                if (!sellerIsLive) {
-                    const newSellerCard = {
-                        id: liveStreamData.seller.id,
-                        name: liveStreamData.seller.name,
-                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                        thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
-                        category: liveStreamData.product.category || 'General',
-                        viewers: Math.floor(Math.random() * 5000),
-                        buyers: Math.floor(Math.random() * 100),
-                        rating: 4.5,
-                        reviews: Math.floor(Math.random() * 50),
-                        hint: liveStreamData.product.name.toLowerCase(),
-                        productId: liveStreamData.product.id,
-                        isMyStream: true,
-                    };
-                    setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
-                }
-            } else {
-                 setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
+        const liveStreamDataRaw = localStorage.getItem('liveStream');
+        if (liveStreamDataRaw) {
+            const liveStreamData = JSON.parse(liveStreamDataRaw);
+            const sellerIsLive = allSellers.some(s => s.id === liveStreamData.seller.id);
+
+            if (!sellerIsLive) {
+                const newSellerCard = {
+                    id: liveStreamData.seller.id,
+                    name: liveStreamData.seller.name,
+                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                    thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
+                    category: liveStreamData.product.category || 'General',
+                    viewers: Math.floor(Math.random() * 5000),
+                    buyers: Math.floor(Math.random() * 100),
+                    rating: 4.5,
+                    reviews: Math.floor(Math.random() * 50),
+                    hint: liveStreamData.product.name.toLowerCase(),
+                    productId: liveStreamData.product.id,
+                    isMyStream: true,
+                };
+                setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
             }
+        } else {
+             setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
         }
     };
     
-    checkLiveStream();
-    window.addEventListener('storage', checkLiveStream);
+    // Initial load
+    loadData();
 
+    // Simulate loading spinners
+    const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
+    const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
+    const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
+
+    // Listen for storage changes from other tabs/pages
+    window.addEventListener('storage', loadData);
 
     return () => {
         clearTimeout(offersTimer);
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
-        window.removeEventListener('storage', checkLiveStream);
+        window.removeEventListener('storage', loadData);
     };
   }, []);
 
@@ -425,7 +429,11 @@ export default function LiveSellingPage() {
         replies: 0,
         location: data.location || null,
     };
-    setMockFeed([newPost, ...mockFeed]);
+    
+    const updatedFeed = [newPost, ...mockFeed];
+    setMockFeed(updatedFeed);
+    localStorage.setItem('mockFeed', JSON.stringify(updatedFeed));
+    
     toast({
         title: "Post Created!",
         description: "Your post has been successfully shared.",

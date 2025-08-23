@@ -27,6 +27,7 @@ import { getRecentlyViewed, addRecentlyViewed, addToWishlist, getWishlist, Produ
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import Link from 'next/link';
+import { CreatePostForm, PostData } from './create-post-form';
 
 const initialProducts: Product[] = [
     {
@@ -74,17 +75,17 @@ const mockReviews = [
     { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
 
-const mockSellerReviews = [
-  { id: 1, customerName: 'Ganesh Prajapati', rating: 5, comment: 'Fantastic seller! The product was exactly as described and shipped super fast. The live stream was very informative. Would definitely buy from again!', date: '1 day ago', productName: 'Vintage Camera' },
-  { id: 2, customerName: 'Jane Doe', rating: 4, comment: 'Good communication and fast shipping. The item was well-packaged. A great experience overall.', date: '3 days ago', productName: 'Wireless Headphones' },
-  { id: 3, customerName: 'Alex Smith', rating: 5, comment: 'One of my favorite sellers on this platform. Always has unique items and is very honest in the live streams. 10/10.', date: '1 week ago', productName: 'Handcrafted Vase' },
+const mockSellerFollowers = [
+  { id: 1, name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png' },
+  { id: 2, name: 'Jane Doe', handle: '@janedoe', avatar: 'https://placehold.co/40x40.png' },
+  { id: 3, name: 'Alex Smith', handle: '@alexsmith', avatar: 'https://placehold.co/40x40.png' },
+  { id: 4, name: 'Emily Brown', handle: '@emilyb', avatar: 'https://placehold.co/40x40.png' },
+  { id: 5, name: 'Chris Wilson', handle: '@chrisw', avatar: 'https://placehold.co/40x40.png' },
+  { id: 6, name: 'Michael Chen', handle: '@michaelc', avatar: 'https://placehold.co/40x40.png' },
+  { id: 7, name: 'Sarah Miller', handle: '@sarahm', avatar: 'https://placehold.co/40x40.png' },
 ];
 
-
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
-
-const sellerAverageRating = (mockSellerReviews.reduce((acc, review) => acc + review.rating, 0) / mockSellerReviews.length).toFixed(1);
-
 
 const mockAchievements = [
     { id: 1, name: 'Top Shopper', icon: <ShoppingBag />, description: 'Made over 50 purchases' },
@@ -152,6 +153,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+  const [sellerPosts, setSellerPosts] = useState<any[]>([]);
 
   // Seed recently viewed items for demo purposes
   useEffect(() => {
@@ -171,7 +173,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         if (storedProducts) {
             setSellerProducts(JSON.parse(storedProducts));
         } else {
-            // Using a default set if nothing is in local storage
             const defaultSellerProducts = initialProducts.map(p => ({
                 ...p,
                 image: { preview: p.imageUrl },
@@ -180,6 +181,8 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             }));
             setSellerProducts(defaultSellerProducts);
         }
+        const storedPosts = JSON.parse(localStorage.getItem('sellerPosts') || '[]');
+        setSellerPosts(storedPosts);
     }
     
     setTimeout(() => {
@@ -229,7 +232,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     } else {
         const newAddress = { ...data, id: Date.now() };
         newAddresses.push(newAddress);
-        // If it's the first address, make it default
         if (newAddresses.length === 1) {
             setDefaultAddressId(newAddress.id);
         }
@@ -245,7 +247,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     const newAddresses = addresses.filter((addr: any) => addr.id !== addressId);
     setAddresses(newAddresses);
     onAddressesUpdate(newAddresses);
-    // If the deleted address was the default, set the new default to the first one if it exists
     if (defaultAddressId === addressId) {
         setDefaultAddressId(newAddresses[0]?.id || null);
     }
@@ -260,6 +261,41 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         description: `${product.name} has been added to your wishlist.`
     });
   };
+  
+  const handleCreatePost = (data: PostData) => {
+    if (!user) return;
+
+    const newPost = {
+        id: Date.now(),
+        sellerName: profileData.displayName,
+        avatarUrl: profileData.photoURL,
+        timestamp: 'just now',
+        content: data.content,
+        productImageUrl: data.media?.url || null,
+        hint: 'user uploaded content',
+        likes: 0,
+        replies: 0,
+        location: data.location || null,
+    };
+    
+    // Update this seller's posts
+    const updatedSellerPosts = [newPost, ...sellerPosts];
+    setSellerPosts(updatedSellerPosts);
+    localStorage.setItem('sellerPosts', JSON.stringify(updatedSellerPosts));
+
+    // Update the global feed
+    const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
+    const updatedGlobalFeed = [newPost, ...globalFeed];
+    localStorage.setItem('mockFeed', JSON.stringify(updatedGlobalFeed));
+    
+    // Dispatch a storage event to notify other tabs/pages
+    window.dispatchEvent(new Event('storage'));
+
+    toast({
+        title: "Post Created!",
+        description: "Your post has been successfully shared on the main feed.",
+    });
+  };
 
   const openAddressDialog = (address: any = null) => {
     setEditingAddress(address);
@@ -267,6 +303,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   }
 
   const displayName = profileData.displayName || profileData.name || "";
+  const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
@@ -318,8 +355,38 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </div>
                     )}
                     <div className="text-left">
-                        <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                 <div className="cursor-pointer">
+                                    <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                                </div>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Followers</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="h-80">
+                                    <div className="p-4 space-y-4">
+                                        {mockSellerFollowers.map(follower => (
+                                            <div key={follower.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarImage src={follower.avatar} />
+                                                        <AvatarFallback>{follower.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold">{follower.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{follower.handle}</p>
+                                                    </div>
+                                                </div>
+                                                <Button variant="outline" size="sm">View</Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
             </div>
@@ -360,9 +427,9 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                             {addresses.map((address: any) => (
                                 <div key={address.id} className="flex items-center gap-2 p-2 rounded-lg border has-[:checked]:bg-muted/50">
                                     <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
-                                    <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer">
+                                    <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
                                         <div className="flex justify-between items-start">
-                                            <div className="text-sm text-muted-foreground">
+                                            <div className="text-muted-foreground">
                                                 <p className="font-semibold text-foreground">{address.name}</p>
                                                 <p>{address.village}, {address.district}</p>
                                                 <p>{address.city}, {address.state} - {address.pincode}</p>
@@ -418,6 +485,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 {profileData.role === 'seller' ? (
                                     <>
                                         <TabsTrigger value="products">Listed Products</TabsTrigger>
+                                        <TabsTrigger value="posts">Posts</TabsTrigger>
                                     </>
                                 ) : (
                                     <>
@@ -463,6 +531,50 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                     <p className="text-muted-foreground text-center py-8">No products found.</p>
                                 )
                             )}
+                        </TabsContent>
+                         <TabsContent value="posts" className="mt-4 space-y-4">
+                            {isOwnProfile && 
+                                <div className="mb-6">
+                                     <CreatePostForm onCreatePost={handleCreatePost} />
+                                </div>
+                            }
+                             {sellerPosts.map(post => (
+                               <Card key={post.id} className="overflow-hidden">
+                                    <div className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-grow">
+                                                <p className="font-semibold">{post.sellerName}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="px-4 pb-4">
+                                        <p className="text-sm mb-2">{post.content}</p>
+                                        {post.productImageUrl &&
+                                            <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                <Image src={post.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={post.hint} />
+                                            </div>
+                                        }
+                                    </div>
+                                    <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-4">
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <Heart className="w-4 h-4" />
+                                                <span>{post.likes}</span>
+                                            </button>
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <MessageSquare className="w-4 h-4" />
+                                                <span>{post.replies}</span>
+                                            </button>
+                                        </div>
+                                        {post.location && <span className="text-xs">{post.location}</span>}
+                                    </div>
+                                </Card>
+                            ))}
                         </TabsContent>
                         
 
