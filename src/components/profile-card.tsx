@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -10,7 +9,6 @@ import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
@@ -30,6 +28,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
+import { toggleFollow } from '@/lib/follow-data';
 
 const initialProducts: Product[] = [
     {
@@ -78,7 +77,7 @@ const mockReviews = [
 ];
 
 const mockSellerFollowers = [
-  { id: 1, name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 'mock-user-id-123', name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
   { id: 2, name: 'Jane Doe', handle: '@janedoe', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
   { id: 3, name: 'Alex Smith', handle: '@alexsmith', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
   { id: 4, name: 'Emily Brown', handle: '@emilyb', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
@@ -142,7 +141,7 @@ const paymentLabel = (method: {type: string, provider?: string}) => {
     return `Paid with ${method.provider}`;
 }
 
-export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpdate }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void, onFollowToggle?: () => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -162,6 +161,13 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const displayName = profileData.displayName || profileData.name || "";
 
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
+
+  useEffect(() => {
+    if (user && profileData.role === 'seller') {
+        const currentUserFollowing = JSON.parse(localStorage.getItem(`following_${user.uid}`) || '[]');
+        setIsFollowing(currentUserFollowing.includes(profileData.uid));
+    }
+  }, [user, profileData]);
 
   const loadSellerProducts = () => {
     if (profileData.role === 'seller') {
@@ -319,6 +325,15 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     setEditingAddress(address);
     setIsAddressDialogOpen(true);
   }
+  
+  const handleFollowToggle = () => {
+    if (!user) return;
+    toggleFollow(user.uid, profileData.uid);
+    setIsFollowing(prev => !prev);
+    if (onFollowToggle) {
+        onFollowToggle();
+    }
+  };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
@@ -365,12 +380,10 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
                 
                 <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
-                    {profileData.role === 'customer' && (
-                        <div className="text-left">
-                            <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                        </div>
-                    )}
+                    <div className="text-left">
+                        <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                    </div>
                     <div className="text-left">
                         <Dialog>
                             <DialogTrigger asChild>
@@ -385,8 +398,8 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 </DialogHeader>
                                 <ScrollArea className="h-80">
                                     <div className="p-4 space-y-4">
-                                        {mockSellerFollowers.filter(follower => follower.role !== 'Seller').map(follower => (
-                                            <Link href={`/profile?userId=${follower.handle.substring(1)}`} key={follower.id} className="flex items-center justify-between group">
+                                        {mockSellerFollowers.filter(follower => follower.role === 'Customer').map(follower => (
+                                            <Link href={`/profile?userId=${follower.id}`} key={follower.id} className="flex items-center justify-between group">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
                                                         <AvatarImage src={follower.avatar} />
@@ -410,7 +423,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 {!isOwnProfile && profileData.role === 'seller' && (
                      <div className="mt-4 flex justify-center sm:justify-start gap-2">
                         <Button
-                            onClick={() => setIsFollowing(!isFollowing)}
+                            onClick={handleFollowToggle}
                             variant={isFollowing ? "outline" : "default"}
                         >
                             <UserPlus className="mr-2 h-4 w-4" />

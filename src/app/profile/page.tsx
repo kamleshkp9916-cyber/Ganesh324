@@ -4,30 +4,14 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, MessageSquare, Search, Flag, MessageCircle, HelpCircle, Share2, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Edit, MoreHorizontal } from 'lucide-react';
-import React,
-{ useEffect, useState, useRef, useMemo } from 'react';
+import { ArrowLeft, MoreHorizontal, Edit, Share2, Flag } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ChatPopup } from '@/components/chat-popup';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { ProfileCard } from '@/components/profile-card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { EditProfileForm } from '@/components/edit-profile-form';
 import {
@@ -36,61 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ProfileCard } from '@/components/profile-card';
+import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 
-
-// Mock data generation
-const firstNames = ["Ganesh", "John", "Jane", "Alex", "Emily", "Chris", "Michael"];
-const lastNames = ["Prajapati", "Doe", "Smith", "Johnson", "Williams", "Brown", "Jones"];
-const bios = [
-  "Live selling enthusiast. Love finding great deals!",
-  "Collector of rare finds and vintage electronics.",
-  "Fashionista and beauty guru. Join my stream for the latest trends.",
-  "Home decor expert. Let's make your space beautiful.",
-  "Tech reviewer and gadget lover. Unboxing the future."
-];
-const locations = ["New York, USA", "London, UK", "Tokyo, Japan", "Sydney, Australia", "Paris, France"];
-
-const generateRandomUser = (currentUser: any, role: 'customer' | 'seller') => {
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-  const displayName = currentUser.displayName || `${firstName} ${lastName}`;
-  return {
-    displayName: displayName,
-    email: currentUser.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-    photoURL: currentUser.photoURL || `https://placehold.co/128x128.png?text=${firstName.charAt(0)}${lastName.charAt(0)}`,
-    bio: bios[Math.floor(Math.random() * bios.length)],
-    location: locations[Math.floor(Math.random() * locations.length)],
-    phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-    following: Math.floor(Math.random() * 500),
-    followers: Math.floor(Math.random() * 20000),
-    topAchievement: { name: 'Top Shopper', icon: <ShoppingBag className="w-4 h-4 mr-1.5" /> },
-    role: role,
-    addresses: [
-      {
-        id: 1,
-        name: displayName,
-        village: "Koregaon Park",
-        district: "Pune",
-        city: "Pune",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "411001",
-        phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`
-      },
-       {
-        id: 2,
-        name: displayName,
-        village: "Bandra West",
-        district: "Mumbai",
-        city: "Mumbai",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "400050",
-        phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`
-      }
-    ]
-  };
-};
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -98,54 +30,52 @@ export default function ProfilePage() {
   const userId = searchParams.get('userId');
   const { user, loading } = useAuth();
 
-  const [profileData, setProfileData] = useState<ReturnType<typeof generateRandomUser> | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
+  const [key, setKey] = useState(0); // Add a key to force re-renders
 
   const isOwnProfile = !userId;
 
   useEffect(() => {
-    // This logic now runs only on the client after the component mounts
-    const role = isOwnProfile ? 'customer' : 'seller';
-    const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '' };
+    const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '', uid: userId };
     if (activeUser) {
-        setProfileData(generateRandomUser(activeUser, role));
+        setProfileData(getUserData(activeUser.uid, {
+            displayName: activeUser.displayName || 'Unknown User',
+            email: activeUser.email || 'unknown@example.com',
+            photoURL: activeUser.photoURL || ''
+        }));
     }
-  }, [user, userId, isOwnProfile]);
+  }, [user, userId, isOwnProfile, key]);
 
 
-  const handleAuthAction = (action: () => void) => {
-    if (!user) {
-        setIsAuthDialogOpen(true);
-    } else {
-        action();
-    }
-  };
-  
   const handleProfileSave = (data: any) => {
       if (profileData) {
-          setProfileData({
+          const updatedData = {
               ...profileData,
               displayName: `${data.firstName} ${data.lastName}`,
               bio: data.bio,
               location: data.location,
               phone: `+91 ${data.phone}`,
               addresses: data.addresses || profileData.addresses,
-          });
+          };
+          updateUserData(profileData.uid, updatedData);
+          setProfileData(updatedData);
       }
       setProfileEditDialogOpen(false);
   };
-
+  
   const handleAddressesUpdate = (newAddresses: any) => {
     if(profileData){
-      setProfileData({
-        ...profileData,
-        addresses: newAddresses,
-      })
+      const updatedData = { ...profileData, addresses: newAddresses };
+      updateUserData(profileData.uid, updatedData);
+      setProfileData(updatedData);
     }
   }
+  
+  const onFollowToggle = () => {
+    // Force a re-render of the component to get fresh data
+    setKey(prev => prev + 1);
+  };
 
 
   if (loading || !profileData) {
@@ -169,26 +99,12 @@ export default function ProfilePage() {
   return (
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
         <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            You need to be logged in to perform this action. Please log in or create an account to continue.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => router.push('/signup')}>Create Account</AlertDialogAction>
-                        <AlertDialogAction onClick={() => router.push('/')}>Login</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className={cn("text-xl font-bold truncate")}>{profileData.displayName}</h1>
+                <h1 className="text-xl font-bold truncate">{profileData.displayName}</h1>
                 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -219,19 +135,13 @@ export default function ProfilePage() {
 
             <main className="flex-grow">
                 <ProfileCard 
-                    onEdit={() => setProfileEditDialogOpen(true)} 
+                    key={key}
                     profileData={profileData} 
                     isOwnProfile={isOwnProfile}
                     onAddressesUpdate={handleAddressesUpdate}
+                    onFollowToggle={onFollowToggle}
                 />
             </main>
-            
-            {isChatOpen && !isOwnProfile && (
-                <ChatPopup 
-                    user={{ displayName: profileData.displayName, photoURL: profileData.photoURL }}
-                    onClose={() => setIsChatOpen(false)} 
-                />
-            )}
         </div>
 
         <DialogContent className="max-w-lg w-[95vw] h-auto max-h-[85vh] flex flex-col p-0 rounded-lg">

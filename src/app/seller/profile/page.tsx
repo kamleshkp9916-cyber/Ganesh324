@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { EditProfileForm } from '@/components/edit-profile-form';
 import {
@@ -22,31 +21,42 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ProfileCard } from '@/components/profile-card';
+import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 
 
 export default function SellerProfilePage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
+    if (!loading && user) {
         const sellerDetailsRaw = localStorage.getItem('sellerDetails');
         if (sellerDetailsRaw) {
             const details = JSON.parse(sellerDetailsRaw);
-            setProfileData({
-                ...details,
-                displayName: details.name,
-                followers: Math.floor(Math.random() * 20000), // Mock data
-                role: 'seller',
-                photoURL: user?.photoURL || `https://placehold.co/128x128.png`,
-                addresses: details.addresses || [],
+            const sellerUid = `seller_${details.email}`;
+            const existingData = getUserData(sellerUid, {
+                 displayName: details.name,
+                 email: details.email,
+                 photoURL: user?.photoURL || `https://placehold.co/128x128.png`,
+                 role: 'seller'
             });
-        } else if (!loading) {
+            
+            const updatedData = {
+                ...existingData,
+                ...details, // Ensure localStorage details are present
+                displayName: details.name,
+                addresses: details.addresses || [],
+                uid: sellerUid
+            };
+
+            setProfileData(updatedData);
+            updateUserData(sellerUid, updatedData);
+        } else {
              router.push('/seller/register');
         }
     }
@@ -54,24 +64,30 @@ export default function SellerProfilePage() {
 
 
   const handleProfileSave = (data: any) => {
+      if(!profileData) return;
+
       const updatedDetails = {
           ...profileData,
-          name: `${data.firstName} ${data.lastName}`,
           displayName: `${data.firstName} ${data.lastName}`,
+          name: `${data.firstName} ${data.lastName}`,
           bio: data.bio,
           location: data.location,
           phone: `+91 ${data.phone}`,
           addresses: data.addresses,
       };
-      setProfileData(updatedDetails);
+
+      updateUserData(profileData.uid, updatedDetails);
       localStorage.setItem('sellerDetails', JSON.stringify(updatedDetails));
+      setProfileData(updatedDetails);
       setProfileEditDialogOpen(false);
   };
   
   const handleAddressesUpdate = (newAddresses: any) => {
+    if(!profileData) return;
     const updatedDetails = { ...profileData, addresses: newAddresses };
-    setProfileData(updatedDetails);
+    updateUserData(profileData.uid, updatedDetails);
     localStorage.setItem('sellerDetails', JSON.stringify(updatedDetails));
+    setProfileData(updatedDetails);
   }
 
 
