@@ -3,6 +3,7 @@
 
 export interface Product {
     id: number;
+    key: string; // e.g., 'prod_1'
     name: string;
     price: string;
     imageUrl: string;
@@ -100,10 +101,10 @@ export const addToCart = (product: CartProduct) => {
     
     if (existingProductIndex > -1) {
         // Product exists, update quantity
-        items[existingProductIndex].quantity += 1;
+        items[existingProductIndex].quantity += product.quantity;
     } else {
         // Product is new, add it to cart
-        items.push({ ...product, quantity: 1 });
+        items.push({ ...product, quantity: product.quantity || 1 });
     }
     localStorage.setItem(CART_KEY, JSON.stringify(items));
 };

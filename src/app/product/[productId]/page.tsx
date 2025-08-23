@@ -17,17 +17,17 @@ import { useToast } from '@/hooks/use-toast';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
-    'prod_1': { id: 1, name: 'Vintage Camera', price: '₹12,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
-    'prod_2': { id: 2, name: 'Wireless Headphones', price: '₹4,999.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
-    'prod_3': { id: 3, name: 'Handcrafted Vase', price: '₹2,100.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
-    'prod_4': { id: 4, name: 'Smart Watch', price: '₹8,750.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
-    'prod_5': { id: 5, name: 'Leather Backpack', price: '₹6,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
+    'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', price: '₹12,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
+    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', price: '₹4,999.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
+    'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', price: '₹2,100.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
+    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', price: '₹8,750.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
+    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', price: '₹6,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
     // Adding fallbacks for other product IDs
-    'prod_6': { id: 6, name: 'Fitness Mat', price: '₹1,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
-    'prod_7': { id: 7, name: 'Pottery Kit', price: '₹3,000.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
-    'prod_8': { id: 8, name: 'Dog Bed', price: '₹2,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
-    'prod_9': { id: 9, name: 'Signed Novel', price: '₹1,800.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
-    'prod_10': { id: 10, name: 'GamerGuild', price: '₹4,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'esports competition', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
+    'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', price: '₹1,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
+    'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', price: '₹3,000.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
+    'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', price: '₹2,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
+    'prod_9': { id: 9, key: 'prod_9', name: 'Signed Novel', price: '₹1,800.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
+    'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', price: '₹4,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
 };
 
 
@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
             // Add to recently viewed when component mounts with a valid product
             addRecentlyViewed({
                 id: details.id,
+                key: details.key,
                 name: details.name,
                 price: details.price,
                 imageUrl: details.imageUrl,

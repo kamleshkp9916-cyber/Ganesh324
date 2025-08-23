@@ -92,13 +92,13 @@ export default function WishlistPage() {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {wishlistItems.map((product) => (
-                         <Link href={`/product/${product.id}`} key={product.id} className="group block">
+                         <Link href={`/product/${product.key}`} key={product.id} className="group block">
                             <Card className="w-full overflow-hidden h-full flex flex-col">
                                 <div className="relative aspect-square bg-muted">
                                     <Image 
                                         src={product.imageUrl}
                                         alt={product.name}
-                                        layout="fill"
+                                        fill
                                         className="object-cover"
                                         data-ai-hint={product.hint}
                                     />
