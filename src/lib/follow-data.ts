@@ -107,3 +107,20 @@ export const toggleFollow = (currentUserId: string, targetUserId: string) => {
     // Dispatch a storage event to notify other components/tabs
     window.dispatchEvent(new StorageEvent('storage', { key: 'globalUserData' }));
 };
+
+export const getFollowers = (targetUserId: string): UserData[] => {
+    if (typeof window === 'undefined') return [];
+    
+    const allUsers = getGlobalUserData();
+    const followerList: UserData[] = [];
+
+    for (const userId in allUsers) {
+        const followingKey = `following_${userId}`;
+        const followingList: string[] = JSON.parse(localStorage.getItem(followingKey) || '[]');
+        if (followingList.includes(targetUserId)) {
+            followerList.push(allUsers[userId]);
+        }
+    }
+    
+    return followerList;
+};

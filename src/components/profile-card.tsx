@@ -28,7 +28,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData } from '@/lib/follow-data';
+import { toggleFollow, getUserData, getFollowers } from '@/lib/follow-data';
 
 // This is now a "seeder" for demonstration purposes
 const initialRecentlyViewedItems = [
@@ -115,6 +115,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
+  const [followerList, setFollowerList] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const displayName = profileData.displayName || profileData.name || "";
@@ -130,6 +131,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
           const followedUsers = currentUserFollowingIds.map((id: string) => getUserData(id));
           setFollowingList(followedUsers);
         }
+
+        const followers = getFollowers(profileData.uid).filter(follower => follower.role === 'customer');
+        setFollowerList(followers);
     }
   };
 
@@ -312,6 +316,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
   return (
+    <>
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative bg-card">
             <div className="relative z-10 flex-shrink-0">
@@ -354,41 +359,43 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
                 
                 <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <div className="text-left cursor-pointer">
-                                <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                                <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                            </div>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Following</DialogTitle>
-                            </DialogHeader>
-                            <ScrollArea className="h-80">
-                                <div className="p-4 space-y-4">
-                                    {followingList.map(followedUser => (
-                                        <div key={followedUser.uid} className="flex items-center justify-between group">
-                                            <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage src={followedUser.photoURL} />
-                                                    <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
-                                                    <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
-                                                </div>
-                                            </Link>
-                                            <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
-                                        </div>
-                                    ))}
-                                    {followingList.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
-                                    )}
+                    {profileData.role === 'customer' && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <div className="text-left cursor-pointer">
+                                    <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                                 </div>
-                            </ScrollArea>
-                        </DialogContent>
-                    </Dialog>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Following</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="h-80">
+                                    <div className="p-4 space-y-4">
+                                        {followingList.map(followedUser => (
+                                            <div key={followedUser.uid} className="flex items-center justify-between group">
+                                                <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarImage src={followedUser.photoURL} />
+                                                        <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
+                                                        <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
+                                                    </div>
+                                                </Link>
+                                                <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
+                                            </div>
+                                        ))}
+                                        {followingList.length === 0 && (
+                                            <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                     {profileData.role === 'seller' && (
                          <div className="text-left">
                             <Dialog>
@@ -403,8 +410,27 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                         <DialogTitle>Followers</DialogTitle>
                                     </DialogHeader>
                                     <ScrollArea className="h-80">
-                                        <div className="p-4 space-y-4">
-                                            {/* Followers mock data is now inside the component */}
+                                         <div className="p-4 space-y-4">
+                                            {followerList.map(follower => (
+                                                <div key={follower.uid} className="flex items-center justify-between group">
+                                                    <Link href={`/profile?userId=${follower.displayName}`} className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarImage src={follower.photoURL} />
+                                                            <AvatarFallback>{follower.displayName.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold group-hover:underline">{follower.displayName}</p>
+                                                            <p className="text-sm text-muted-foreground">@{follower.displayName.toLowerCase().replace(' ', '')}</p>
+                                                        </div>
+                                                    </Link>
+                                                    <Button variant="outline" size="sm" asChild>
+                                                        <Link href={`/profile?userId=${follower.displayName}`}>View</Link>
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            {followerList.length === 0 && (
+                                                <p className="text-center text-muted-foreground py-8">No followers yet.</p>
+                                            )}
                                         </div>
                                     </ScrollArea>
                                 </DialogContent>
@@ -745,5 +771,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
             />
         </DialogContent>
     </Dialog>
+    </>
   );
 }
