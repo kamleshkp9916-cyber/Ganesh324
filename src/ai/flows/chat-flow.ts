@@ -143,7 +143,6 @@ const sendMessageFlow = ai.defineFlow(
 
     // Seller is always 'me', customer is always 'them'.
     const sender = from === 'seller' ? 'me' : 'them';
-    const responseSender = from === 'customer' ? 'me' : 'them';
 
     const newMessage: Message = {
       id: currentMessages.length + 1,
@@ -154,15 +153,6 @@ const sendMessageFlow = ai.defineFlow(
     
     currentMessages.push(newMessage);
     
-    // Also add a mock response for demonstration
-    const botResponse: Message = {
-      id: currentMessages.length + 1,
-      sender: responseSender,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "Thanks for your message! I'll get back to you shortly.",
-    };
-    currentMessages.push(botResponse);
-
     mockChatDatabase[userId] = currentMessages;
 
     // Update conversation list
