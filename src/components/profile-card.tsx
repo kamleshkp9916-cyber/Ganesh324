@@ -78,14 +78,15 @@ const mockReviews = [
 ];
 
 const mockSellerFollowers = [
-  { id: 1, name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png' },
-  { id: 2, name: 'Jane Doe', handle: '@janedoe', avatar: 'https://placehold.co/40x40.png' },
-  { id: 3, name: 'Alex Smith', handle: '@alexsmith', avatar: 'https://placehold.co/40x40.png' },
-  { id: 4, name: 'Emily Brown', handle: '@emilyb', avatar: 'https://placehold.co/40x40.png' },
-  { id: 5, name: 'Chris Wilson', handle: '@chrisw', avatar: 'https://placehold.co/40x40.png' },
-  { id: 6, name: 'Michael Chen', handle: '@michaelc', avatar: 'https://placehold.co/40x40.png' },
-  { id: 7, name: 'Sarah Miller', handle: '@sarahm', avatar: 'https://placehold.co/40x40.png' },
+  { id: 1, name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 2, name: 'Jane Doe', handle: '@janedoe', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 3, name: 'Alex Smith', handle: '@alexsmith', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 4, name: 'Emily Brown', handle: '@emilyb', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 5, name: 'Chris Wilson', handle: '@chrisw', avatar: 'https://placehold.co/40x40.png', role: 'Seller' }, // This user is a seller and should be filtered out
+  { id: 6, name: 'Michael Chen', handle: '@michaelc', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
+  { id: 7, name: 'Sarah Miller', handle: '@sarahm', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
 ];
+
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
@@ -389,7 +390,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 </DialogHeader>
                                 <ScrollArea className="h-80">
                                     <div className="p-4 space-y-4">
-                                        {mockSellerFollowers.map(follower => (
+                                        {mockSellerFollowers.filter(follower => follower.role === 'Customer').map(follower => (
                                             <Link href={`/profile?userId=${follower.handle.substring(1)}`} key={follower.id} className="flex items-center justify-between group">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
