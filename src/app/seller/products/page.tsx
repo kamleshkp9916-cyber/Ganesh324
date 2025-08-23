@@ -55,7 +55,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { ProductForm, Product } from "@/components/seller/product-form"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -103,6 +103,97 @@ const initialProducts: Product[] = [
     },
 ];
 
+const ProductTable = ({ products, onEdit, onDelete }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void }) => (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="hidden w-[100px] sm:table-cell">
+                <span className="sr-only">Image</span>
+              </TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Price</TableHead>
+              <TableHead className="hidden md:table-cell">Stock</TableHead>
+              <TableHead>
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.length > 0 ? products.map(product => (
+              <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
+                <TableCell className="hidden sm:table-cell">
+                  <Link href={`/product/${product.id}`}>
+                    {product.image?.preview ? (
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.image.preview}
+                        width="64"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </Link>
+                </TableCell>
+                <TableCell className="font-medium">
+                  <Link href={`/product/${product.id}`} className="hover:underline">
+                    {product.name}
+                  </Link>
+                  {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  ₹{product.price.toLocaleString()}
+                </TableCell>
+                <TableCell className={cn("hidden md:table-cell", product.stock === 0 && "text-destructive font-bold")}>
+                  {product.stock}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-haspopup="true"
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onSelect={() => onEdit(product)}>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onDelete(product.id as string)}>Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            )) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  No products found in this category.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+      <CardFooter>
+        <div className="text-xs text-muted-foreground">
+          Showing <strong>1-{products.length > 10 ? 10 : products.length}</strong> of <strong>{products.length}</strong> products
+        </div>
+      </CardFooter>
+    </Card>
+);
+
 export default function SellerProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isMounted, setIsMounted] = useState(false);
@@ -148,6 +239,10 @@ export default function SellerProductsPage() {
              }
         }
     }, [products, isMounted, user]);
+
+    const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
+    const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
+    const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -226,47 +321,7 @@ export default function SellerProductsPage() {
             </div>
          </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <Tabs defaultValue="all">
-            <div className="flex items-center gap-4">
-                <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="draft">Draft</TabsTrigger>
-                <TabsTrigger value="archived" className="hidden sm:flex">
-                    Archived
-                </TabsTrigger>
-                </TabsList>
-                <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                        <ListFilter className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                        </span>
-                    </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                        Available
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                        Out of Stock
-                    </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
-                    <File className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
-                    </span>
-                </Button>
-                </div>
-            </div>
-            <TabsContent value="all">
-                <Card>
+            <Card>
                 <CardHeader>
                     <CardTitle>Products</CardTitle>
                     <CardDescription>
@@ -274,99 +329,62 @@ export default function SellerProductsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead className="hidden w-[100px] sm:table-cell">
-                            <span className="sr-only">Image</span>
-                        </TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="hidden md:table-cell">
-                            Price
-                        </TableHead>
-                        <TableHead className="hidden md:table-cell">
-                            Stock
-                        </TableHead>
-                        <TableHead>
-                            <span className="sr-only">Actions</span>
-                        </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {products.length > 0 ? products.map(product => (
-                        <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
-                            <TableCell className="hidden sm:table-cell">
-                             <Link href={`/product/${product.id}`}>
-                                {product.image?.preview ? (
-                                    <Image
-                                        alt={product.name}
-                                        className="aspect-square rounded-md object-cover"
-                                        height="64"
-                                        src={product.image.preview}
-                                        width="64"
-                                    />
-                                ) : (
-                                    <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                                    </div>
-                                )}
-                              </Link>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                                <Link href={`/product/${product.id}`} className="hover:underline">
-                                    {product.name}
-                                </Link>
-                                 {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
-                            </TableCell>
-                            <TableCell>
-                            <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell">
-                            ₹{product.price.toLocaleString()}
-                            </TableCell>
-                            <TableCell className={cn("hidden md:table-cell", product.stock === 0 && "text-destructive font-bold")}>
-                            {product.stock}
-                            </TableCell>
-                            <TableCell>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button
-                                    aria-haspopup="true"
-                                    size="icon"
-                                    variant="ghost"
-                                >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onSelect={() => handleEditProduct(product)}>Edit</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => handleDeleteProduct(product.id as string)}>Delete</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                        )) : (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                    You haven't listed any products yet.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                    </Table>
-                </CardContent>
-                <CardFooter>
-                    <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-{products.length > 10 ? 10 : products.length}</strong> of <strong>{products.length}</strong>{" "}
-                    products
+                    <Tabs defaultValue="all">
+                    <div className="flex items-center gap-4">
+                        <TabsList>
+                        <TabsTrigger value="all">All ({products.length})</TabsTrigger>
+                        <TabsTrigger value="active">Active ({activeProducts.length})</TabsTrigger>
+                        <TabsTrigger value="draft">Draft ({draftProducts.length})</TabsTrigger>
+                        <TabsTrigger value="archived" className="hidden sm:flex">
+                            Archived ({archivedProducts.length})
+                        </TabsTrigger>
+                        </TabsList>
+                        <div className="ml-auto flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 gap-1">
+                                <ListFilter className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Filter
+                                </span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuCheckboxItem checked>
+                                Available
+                            </DropdownMenuCheckboxItem>
+                            <DropdownMenuCheckboxItem>
+                                Out of Stock
+                            </DropdownMenuCheckboxItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button size="sm" variant="outline" className="h-8 gap-1">
+                            <File className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Export
+                            </span>
+                        </Button>
+                        </div>
                     </div>
-                </CardFooter>
-                </Card>
-            </TabsContent>
-            </Tabs>
+                    <div className="mt-4">
+                        <TabsContent value="all">
+                             <ProductTable products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+                        </TabsContent>
+                        <TabsContent value="active">
+                            <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+                        </TabsContent>
+                        <TabsContent value="draft">
+                            <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+                        </TabsContent>
+                        <TabsContent value="archived">
+                            <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+                        </TabsContent>
+                    </div>
+                    </Tabs>
+                </CardContent>
+            </Card>
         </main>
         <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
