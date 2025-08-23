@@ -107,8 +107,7 @@ export default function CartPage() {
   }, [appliedCoupon, subtotal]);
 
   const shippingCost = 50.00;
-  const tax = subtotal * 0.05; // 5% tax
-  const total = subtotal - couponDiscount + shippingCost + tax;
+  const total = subtotal - couponDiscount + shippingCost;
   const estimatedDeliveryDate = useMemo(() => format(addDays(new Date(), 5), 'E, MMM dd, yyyy'), []);
 
   const handleApplyCoupon = (coupon: typeof mockCoupons[0]) => {
@@ -172,36 +171,6 @@ export default function CartPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
-                             <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    <span>Delivery</span>
-                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Change Delivery Address</DialogTitle>
-                                            </DialogHeader>
-                                            <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
-                                        </DialogContent>
-                                    </Dialog>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-sm space-y-2">
-                                <div className="flex items-start gap-3">
-                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
-                                    <div>
-                                        <p className="font-semibold">{address.name}</p>
-                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
-                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
-                                    </div>
-                                </div>
-                                <Separator className="my-4" />
-                                <p className="text-muted-foreground">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
-                            </CardContent>
-                        </Card>
-                        <Card>
                             <CardHeader>
                                 <CardTitle>Your Items ({totalItems})</CardTitle>
                             </CardHeader>
@@ -248,27 +217,6 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Available Coupons</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                               {mockCoupons.map(coupon => (
-                                <div key={coupon.code} className="flex items-center justify-between p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Ticket className="h-6 w-6 text-primary" />
-                                        <div>
-                                            <p className="font-bold text-primary">{coupon.code}</p>
-                                            <p className="text-xs text-muted-foreground">{coupon.description}</p>
-                                        </div>
-                                    </div>
-                                    <Button size="sm" variant="outline" onClick={() => handleApplyCoupon(coupon)} disabled={appliedCoupon?.code === coupon.code}>
-                                        {appliedCoupon?.code === coupon.code ? 'Applied' : 'Apply'}
-                                    </Button>
-                                </div>
-                               ))}
-                            </CardContent>
-                        </Card>
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">
@@ -296,10 +244,6 @@ export default function CartPage() {
                                     <span className="text-muted-foreground">Delivery Charges</span>
                                     <span>₹{shippingCost.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Tax (5%)</span>
-                                    <span>₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                </div>
                                 <Separator />
                                 <div className="flex justify-between font-bold text-lg">
                                     <span>Total Amount</span>
@@ -309,6 +253,59 @@ export default function CartPage() {
                             <CardFooter>
                                 <Button className="w-full" size="lg">Proceed to Checkout</Button>
                             </CardFooter>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Available Coupons</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                               {mockCoupons.map(coupon => (
+                                <div key={coupon.code} className="flex items-center justify-between p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg">
+                                    <div className="flex items-center gap-3">
+                                        <Ticket className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="font-bold text-primary">{coupon.code}</p>
+                                            <p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                        </div>
+                                    </div>
+                                    <Button size="sm" variant="outline" onClick={() => handleApplyCoupon(coupon)} disabled={appliedCoupon?.code === coupon.code}>
+                                        {appliedCoupon?.code === coupon.code ? 'Applied' : 'Apply'}
+                                    </Button>
+                                </div>
+                               ))}
+                            </CardContent>
+                        </Card>
+                        
+                        <Card>
+                             <CardHeader>
+                                <CardTitle className="flex items-center justify-between text-base">
+                                    <span>Delivery</span>
+                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Change Delivery Address</DialogTitle>
+                                            </DialogHeader>
+                                            <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm space-y-2">
+                                <div className="flex items-start gap-3">
+                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">{address.name}</p>
+                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                    </div>
+                                </div>
+                                <Separator className="my-2" />
+                                <p className="text-xs text-muted-foreground">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
+                            </CardContent>
                         </Card>
                      </div>
                 </div>
