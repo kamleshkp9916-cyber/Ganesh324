@@ -66,11 +66,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { Product } from "@/components/seller/product-form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import Image from "next/image";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileCard } from "@/components/profile-card";
 
@@ -137,9 +133,6 @@ export default function SellerDashboard() {
   const [sellerDetails, setSellerDetails] = useState<any>(null);
   const [typeFilter, setTypeFilter] = useState<FilterType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilterType>("month");
-  const [isGoLiveOpen, setIsGoLiveOpen] = useState(false);
-  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -151,10 +144,6 @@ export default function SellerDashboard() {
         } else {
             const details = JSON.parse(sellerDetailsRaw);
             setSellerDetails(details);
-            const productsRaw = localStorage.getItem('sellerProducts');
-            if(productsRaw) {
-                setSellerProducts(JSON.parse(productsRaw));
-            }
             // "Complete" the verification on first visit to dashboard
             if (details.verificationStatus === 'pending') {
                 details.verificationStatus = 'verified';
@@ -193,25 +182,6 @@ export default function SellerDashboard() {
     return filteredTransactions.reduce((acc, curr) => acc + curr.total, 0);
   }, [filteredTransactions]);
 
-  const handleStartStream = () => {
-    if (!selectedProduct) {
-        toast({ title: 'No product selected', description: 'Please select a product to feature in your stream.', variant: 'destructive' });
-        return;
-    }
-    const streamData = {
-        seller: {
-            id: sellerDetails.email,
-            name: sellerDetails.name,
-            photoURL: user?.photoURL,
-        },
-        product: selectedProduct,
-    };
-    localStorage.setItem('liveStream', JSON.stringify(streamData));
-    toast({ title: 'You are now live!', description: `Your stream featuring ${selectedProduct.name} has started.` });
-    setIsGoLiveOpen(false);
-    router.push('/live-selling');
-  };
-
   if (!isMounted || loading || (isMounted && !sellerDetails)) {
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -231,7 +201,6 @@ export default function SellerDashboard() {
   }
 
   return (
-    <Dialog open={isGoLiveOpen} onOpenChange={setIsGoLiveOpen}>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -312,12 +281,10 @@ export default function SellerDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="ml-auto">
              <Video className="h-4 w-4 mr-2" />
             Go Live
           </Button>
-          </DialogTrigger>
           <form className="flex-1 sm:flex-initial">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -419,7 +386,16 @@ export default function SellerDashboard() {
             </CardContent>
           </Card>
         </div>
-        <div className="grid gap-4 md:gap-8">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
+            <Card className="lg:col-span-2">
+                 <CardHeader>
+                    <CardTitle>Profile Preview</CardTitle>
+                    <CardDescription>This is how your profile appears to customers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <ProfileCard profileData={sellerDetails} isOwnProfile={false} onAddressesUpdate={() => {}}/>
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                 <CardTitle>Sales Overview</CardTitle>
@@ -516,49 +492,5 @@ export default function SellerDashboard() {
         </div>
       </main>
     </div>
-    <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-            <DialogTitle>Go Live</DialogTitle>
-            <DialogDescription>
-                Select a product to feature in your live stream.
-            </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-            <RadioGroup onValueChange={(productId) => {
-                const product = sellerProducts.find(p => p.id === productId);
-                setSelectedProduct(product || null);
-            }}>
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {sellerProducts.filter(p => p.status === 'active' && p.stock > 0).map((product) => (
-                        <div key={product.id} className="flex items-center space-x-3 p-3 rounded-md border has-[:checked]:bg-primary/10">
-                            <RadioGroupItem value={product.id} id={product.id} />
-                            <Label htmlFor={product.id} className="flex items-center gap-4 cursor-pointer w-full">
-                                <Image
-                                    src={product.image.preview}
-                                    alt={product.name}
-                                    width={40}
-                                    height={40}
-                                    className="rounded-md"
-                                />
-                                <div className="flex-1">
-                                    <p className="font-semibold">{product.name}</p>
-                                    <p className="text-sm text-muted-foreground">Stock: {product.stock}</p>
-                                </div>
-                                <p className="font-bold">₹{product.price.toLocaleString()}</p>
-                            </Label>
-                        </div>
-                    ))}
-                </div>
-            </RadioGroup>
-        </div>
-        <DialogFooter>
-            <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={handleStartStream} disabled={!selectedProduct}>
-                Start Stream
-            </Button>
-        </DialogFooter>
-    </DialogContent>
-    </Dialog>
   )
+}
