@@ -252,7 +252,7 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" size="lg">Proceed to Checkout</Button>
+                                <Button className="w-full bg-warning text-warning-foreground hover:bg-warning/90" size="lg">Proceed to Checkout</Button>
                             </CardFooter>
                         </Card>
 
