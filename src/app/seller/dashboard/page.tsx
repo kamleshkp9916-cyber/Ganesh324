@@ -65,6 +65,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
+import { ProfileCard } from "@/components/profile-card";
 
 const salesData = [
   { name: "Jan", sales: 4000 },
@@ -126,7 +127,7 @@ export default function SellerDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [isSeller, setIsSeller] = useState(false);
+  const [sellerDetails, setSellerDetails] = useState<any>(null);
   const [typeFilter, setTypeFilter] = useState<FilterType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilterType>("month");
 
@@ -137,16 +138,22 @@ export default function SellerDashboard() {
         if (!sellerDetailsRaw) {
             router.push('/seller/register');
         } else {
-            setIsSeller(true);
-            const sellerDetails = JSON.parse(sellerDetailsRaw);
+            const details = JSON.parse(sellerDetailsRaw);
+            setSellerDetails({
+                ...details,
+                displayName: details.name, // Match expected prop for ProfileCard
+                followers: Math.floor(Math.random() * 20000), // Mock data
+                role: 'seller',
+                photoURL: user?.photoURL || `https://placehold.co/128x128.png`
+            });
             // "Complete" the verification on first visit to dashboard
-            if (sellerDetails.verificationStatus === 'pending') {
-                sellerDetails.verificationStatus = 'verified';
-                localStorage.setItem('sellerDetails', JSON.stringify(sellerDetails));
+            if (details.verificationStatus === 'pending') {
+                details.verificationStatus = 'verified';
+                localStorage.setItem('sellerDetails', JSON.stringify(details));
             }
         }
     }
-  }, [router]);
+  }, [router, user]);
   
   const filteredTransactions = useMemo(() => {
     let items = recentTransactions.filter(t => t.status !== 'Cancelled');
@@ -177,7 +184,7 @@ export default function SellerDashboard() {
     return filteredTransactions.reduce((acc, curr) => acc + curr.total, 0);
   }, [filteredTransactions]);
 
-  if (!isMounted || loading || (isMounted && !isSeller)) {
+  if (!isMounted || loading || (isMounted && !sellerDetails)) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -377,103 +384,116 @@ export default function SellerDashboard() {
           </Card>
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <Card className="xl:col-span-2">
-            <CardHeader>
-              <CardTitle>Sales Overview</CardTitle>
-              <CardDescription>
-                An overview of your sales performance.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={salesData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="flex-1">
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>An overview of your most recent sales.</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                            <ListFilter className="h-3.5 w-3.5" />
-                            <span className="capitalize">{typeFilter}</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => setTypeFilter('all')}>All</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setTypeFilter('stream')}>Live Stream</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setTypeFilter('product')}>Listed Product</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                       <Button variant="outline" size="sm" className="h-8 gap-1">
-                            <ListFilter className="h-3.5 w-3.5" />
-                            <span className="capitalize">{dateFilter === 'month' ? 'This Month' : dateFilter === 'week' ? 'This Week' : 'Today'}</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => setDateFilter('month')}>This Month</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setDateFilter('week')}>This Week</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setDateFilter('today')}>Today</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTransactions.length > 0 ? filteredTransactions.map((transaction, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="font-medium">{transaction.customer.name}</div>
-                        <div className="hidden text-sm text-muted-foreground md:inline">
-                          <Badge variant={transaction.type === 'Live Stream' ? "destructive" : "secondary"} className="mr-2">{transaction.type}</Badge>
-                          <Badge variant={transaction.status === 'Fulfilled' ? "success" : transaction.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{transaction.status}</Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">{'₹' + transaction.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    </TableRow>
-                  )) : (
-                     <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
-                            No transactions found for the selected filters.
-                        </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="flex justify-between items-center bg-muted/50 p-4 rounded-b-lg">
-                <div className="font-semibold">Total Revenue</div>
-                <div className="font-bold text-lg text-primary">{'₹' + totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            </CardFooter>
-          </Card>
+            <div className="xl:col-span-2 grid gap-4 md:gap-8">
+                 <Card>
+                    <CardHeader>
+                    <CardTitle>Sales Overview</CardTitle>
+                    <CardDescription>
+                        An overview of your sales performance.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={salesData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex-1">
+                        <CardTitle>Recent Transactions</CardTitle>
+                        <CardDescription>An overview of your most recent sales.</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 gap-1">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="capitalize">{typeFilter}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => setTypeFilter('all')}>All</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => setTypeFilter('stream')}>Live Stream</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => setTypeFilter('product')}>Listed Product</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 gap-1">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="capitalize">{dateFilter === 'month' ? 'This Month' : dateFilter === 'week' ? 'This Week' : 'Today'}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => setDateFilter('month')}>This Month</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => setDateFilter('week')}>This Week</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => setDateFilter('today')}>Today</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    </CardHeader>
+                    <CardContent>
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredTransactions.length > 0 ? filteredTransactions.map((transaction, index) => (
+                            <TableRow key={index}>
+                            <TableCell>
+                                <div className="font-medium">{transaction.customer.name}</div>
+                                <div className="hidden text-sm text-muted-foreground md:inline">
+                                <Badge variant={transaction.type === 'Live Stream' ? "destructive" : "secondary"} className="mr-2">{transaction.type}</Badge>
+                                <Badge variant={transaction.status === 'Fulfilled' ? "success" : transaction.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{transaction.status}</Badge>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right">{'₹' + transaction.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                            </TableRow>
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
+                                    No transactions found for the selected filters.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
+                    </CardContent>
+                    <CardFooter className="flex justify-between items-center bg-muted/50 p-4 rounded-b-lg">
+                        <div className="font-semibold">Total Revenue</div>
+                        <div className="font-bold text-lg text-primary">{'₹' + totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    </CardFooter>
+                </Card>
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Profile Preview</CardTitle>
+                    <CardDescription>This is how your profile appears to customers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProfileCard 
+                        profileData={sellerDetails}
+                        isOwnProfile={false}
+                        onAddressesUpdate={() => {}}
+                    />
+                </CardContent>
+            </Card>
         </div>
       </main>
     </div>
   )
 }
-
-    

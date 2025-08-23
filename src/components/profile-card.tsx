@@ -110,8 +110,8 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [addresses, setAddresses] = useState(profileData.addresses);
-  const [defaultAddressId, setDefaultAddressId] = useState(addresses[0]?.id || null);
+  const [addresses, setAddresses] = useState(profileData.addresses || []);
+  const [defaultAddressId, setDefaultAddressId] = useState((profileData.addresses && profileData.addresses[0]?.id) || null);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAddress, setEditingAddress] = useState(null);
@@ -223,8 +223,8 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             
             <div className="relative z-10">
                 <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-lg">
-                    <AvatarImage src={profileImage || user?.photoURL || `https://placehold.co/128x128.png?text=${user?.displayName?.charAt(0)}`} alt={user?.displayName || ""} />
-                    <AvatarFallback className="text-4xl">{user?.displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${profileData?.displayName?.charAt(0)}`} alt={profileData?.displayName || ""} />
+                    <AvatarFallback className="text-4xl">{profileData?.displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
                  {isOwnProfile && (
                     <>
@@ -357,7 +357,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 {!isOwnProfile && (
                     <>
                         <div>
-                            <h3 className="text-lg font-semibold mb-2">About Me</h3>
+                            <h3 className="text-lg font-semibold mb-2">About {profileData.displayName.split(' ')[0]}</h3>
                             <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
                         </div>
                         <Separator />
