@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -189,8 +189,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [returnFeedback, setReturnFeedback] = useState("");
     const [returnOtp, setReturnOtp] = useState('');
     const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
-
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -336,6 +336,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             title: "Address Updated",
             description: "Your delivery address has been successfully updated.",
         });
+        setIsAddressDialogOpen(false);
     };
 
     const handleRefundRequest = () => {
@@ -484,15 +485,16 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                             )}
                              <Button variant="ghost" onClick={handleHelp}><MessageSquare className="mr-2 h-4 w-4"/> Need Help?</Button>
                             {showEditAddressButton && (
-                                <Dialog>
+                                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Address</Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Edit Delivery Address</DialogTitle>
+                                            <DialogTitle>Change Delivery Address</DialogTitle>
+                                            <DialogDescription>Select a saved address or add a new one.</DialogDescription>
                                         </DialogHeader>
-                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => {}} />
+                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
                                     </DialogContent>
                                 </Dialog>
                             )}
@@ -679,6 +681,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     order={order} 
                     onClose={() => setIsHelpChatOpen(false)}
                     onExecuteAction={handleChatAction}
+                    initialOptions={currentStatus === 'Delivered' ? ["Problem with my item", "Return & Refund Policy", "Talk to a support executive"] : undefined}
                 />
             )}
         </div>

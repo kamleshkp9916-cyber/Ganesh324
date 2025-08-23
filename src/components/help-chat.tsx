@@ -13,8 +13,9 @@ import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
 import { Order } from '@/lib/order-data';
 import { getHelpChatResponse } from '@/ai/flows/help-chat-flow';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 
-type ChatStep = 'initial' | 'waiting' | 'connected' | 'chatting';
+type ChatStep = 'initial' | 'waiting' | 'confirm_executive' | 'connected' | 'chatting';
 type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
 
 const INITIAL_TIMER = 60;
@@ -25,7 +26,6 @@ const defaultInitialQuickReplies = [
     "Problem with my item",
     "Payment issue",
     "Can I change my delivery address?",
-    "Talk to a support executive",
 ];
 
 const LoadingMessage = () => (
@@ -43,6 +43,9 @@ const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect:
                 {reply}
             </Button>
         ))}
+         <Button size="sm" variant="outline" onClick={() => onSelect("Talk to a support executive")}>
+            Talk to a support executive
+        </Button>
     </div>
 );
 
@@ -107,7 +110,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
         setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Remove the old buttons
         addMessage('user', reply);
         if (reply === "Talk to a support executive") {
-            handleTalkToExecutive();
+            setStep('confirm_executive');
         } else {
             processUserQuery(reply);
         }
@@ -171,6 +174,20 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
 
     return (
         <div className="fixed bottom-4 right-4 z-50">
+            <AlertDialog open={step === 'confirm_executive'} onOpenChange={(open) => !open && setStep('initial')}>
+                 <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Connect to Support Executive?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to be connected to a live support agent?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setStep('initial')}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleTalkToExecutive()}>Yes, Connect</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <Card className="w-80 h-[450px] flex flex-col shadow-2xl rounded-xl">
                 <CardHeader className="flex flex-row items-center justify-between p-3 border-b bg-card">
                     <div className="flex items-center gap-3">

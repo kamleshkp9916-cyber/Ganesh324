@@ -15,7 +15,7 @@ body {
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 0 100% 50%; /* #FF0000 */
+    --primary: 221.2 83.2% 53.3%; /* Blue */
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -35,7 +35,7 @@ body {
     --purple-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 100% 50%;
+    --ring: 221.2 83.2% 53.3%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -58,7 +58,7 @@ body {
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 100% 50%; /* #FF0000 */
+    --primary: 217.2 91.2% 59.8%; /* Blue */
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
@@ -78,7 +78,7 @@ body {
     --purple-foreground: 0 0% 98%;
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 0 100% 50%;
+    --ring: 217.2 91.2% 59.8%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;

@@ -21,13 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, LocateFixed } from 'lucide-react';
+import { MapPin, LocateFixed, Plus, Trash2 } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { DialogClose } from "./ui/dialog";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Label } from "./ui/label";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
-const formSchema = z.object({
+const addressSchema = z.object({
+  id: z.number().optional(),
   name: z.string().min(1, { message: "Name is required." }),
   village: z.string().min(1, { message: "Village/Area is required." }),
   district: z.string().min(1, { message: "District is required." }),
@@ -38,215 +43,151 @@ const formSchema = z.object({
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
 });
 
+const formSchema = z.object({
+    selectedAddressId: z.string().optional(),
+    newAddress: addressSchema.optional(),
+});
+
 interface EditAddressFormProps {
-  currentAddress?: {
-    name: string;
-    village: string;
-    district: string;
-    city: string;
-    state: string;
-    country: string;
-    pincode: string;
-    phone: string;
-  } | null;
-  onSave: (data: z.infer<typeof formSchema>) => void;
+  onSave: (data: z.infer<typeof addressSchema>) => void;
   onCancel: () => void;
 }
 
-export function EditAddressForm({ currentAddress, onSave, onCancel }: EditAddressFormProps) {
+const mockAddresses = [
+    {
+        id: 1,
+        name: "Samael Prajapati (Home)",
+        village: "Koregaon Park",
+        district: "Pune",
+        city: "Pune",
+        state: "Maharashtra",
+        country: "India",
+        pincode: "411001",
+        phone: "+91 9876543210"
+    },
+    {
+        id: 2,
+        name: "Samael Prajapati (Work)",
+        village: "Bandra West",
+        district: "Mumbai",
+        city: "Mumbai",
+        state: "Maharashtra",
+        country: "India",
+        pincode: "400050",
+        phone: "+91 9876543211"
+    }
+];
+
+export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [addresses, setAddresses] = useState(mockAddresses);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: currentAddress?.name || "",
-      village: currentAddress?.village || "",
-      district: currentAddress?.district || "",
-      city: currentAddress?.city || "",
-      state: currentAddress?.state || "",
-      country: currentAddress?.country || "India",
-      pincode: currentAddress?.pincode || "",
-      phone: currentAddress?.phone || "+91 ",
-    },
+        selectedAddressId: addresses.length > 0 ? String(addresses[0].id) : undefined,
+    }
   });
-  
+
   const handleSave = (values: z.infer<typeof formSchema>) => {
-    onSave(values);
+    if (showNewAddressForm && values.newAddress) {
+        onSave(values.newAddress);
+    } else if (values.selectedAddressId) {
+        const selectedAddress = addresses.find(addr => String(addr.id) === values.selectedAddressId);
+        if (selectedAddress) {
+            onSave(selectedAddress);
+        }
+    }
     document.getElementById('edit-address-close')?.click();
   };
 
-
   const handleGetCurrentLocation = () => {
-    // In a real app, you'd use navigator.geolocation here
-    // For now, we just log a message
     console.log("Fetching current location...");
-    // You could also pre-fill some fields based on a reverse geocoding API call
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSave)}>
         <ScrollArea className="h-[65vh]">
-          <div className="grid gap-4 p-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Samael Prajapati" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="village"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Village / Area</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Koregaon Park" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="district"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>District</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Pune" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Pune" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>State</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a state" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <ScrollArea className="h-48">
-                          {indianStates.map((state) => (
-                            <SelectItem key={state} value={state}>{state}</SelectItem>
-                          ))}
-                        </ScrollArea>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="pincode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pin Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 411001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., India" disabled {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input 
-                          placeholder="+91 98765 43210" 
-                          {...field}
-                          onChange={(e) => {
-                              let value = e.target.value;
-                              if (!value.startsWith('+91 ')) {
-                                  value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                              }
-                              if (value.length > 14) {
-                                  value = value.substring(0, 14);
-                              }
-                              field.onChange(value);
-                          }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div>
-              <FormLabel>Pinpoint Location on Map</FormLabel>
-              <div className="mt-2 flex flex-col md:flex-row gap-4">
-                <div className="flex-grow h-40 rounded-lg bg-muted flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <MapPin className="mx-auto h-8 w-8" />
-                    <p className="text-sm">Map placeholder</p>
-                  </div>
-                </div>
-                <Button type="button" variant="outline" className="md:self-end" onClick={handleGetCurrentLocation}>
-                  <LocateFixed className="mr-2 h-4 w-4" />
-                  Use Current Location
+            <div className="p-6">
+                <FormField
+                    control={form.control}
+                    name="selectedAddressId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="text-base font-semibold">Select an Address</FormLabel>
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="mt-2 space-y-2">
+                                    {addresses.map(address => (
+                                        <div key={address.id} className="flex items-center gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                                            <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
+                                            <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
+                                                <p className="font-semibold text-foreground">{address.name}</p>
+                                                <p>{address.village}, {address.district}</p>
+                                                <p>{address.city}, {address.state} - {address.pincode}</p>
+                                                <p>Phone: {address.phone}</p>
+                                            </Label>
+                                        </div>
+                                    ))}
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <Button type="button" variant="link" className="p-0 h-auto mt-4" onClick={() => setShowNewAddressForm(!showNewAddressForm)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {showNewAddressForm ? 'Cancel' : 'Add a new address'}
                 </Button>
-              </div>
-            </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="ghost" onClick={onCancel} id="edit-address-close">Cancel</Button>
-              </DialogClose>
-              <Button type="submit">Save Details</Button>
+                {showNewAddressForm && (
+                     <div className="mt-4 pt-4 border-t space-y-4">
+                         <h3 className="font-semibold">New Address Details</h3>
+                         {/* This could be its own component */}
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField control={form.control} name="newAddress.name" render={({ field }) => (
+                                 <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                             )}/>
+                             <FormField control={form.control} name="newAddress.phone" render={({ field }) => (
+                                 <FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                             )}/>
+                         </div>
+                          <FormField control={form.control} name="newAddress.village" render={({ field }) => (
+                                 <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="House no, street, area" {...field} /></FormControl><FormMessage /></FormItem>
+                         )}/>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="newAddress.city" render={({ field }) => (
+                                <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={form.control} name="newAddress.pincode" render={({ field }) => (
+                                <FormItem><FormLabel>Pincode</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                         </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField control={form.control} name="newAddress.state" render={({ field }) => (
+                                 <FormItem>
+                                     <FormLabel>State</FormLabel>
+                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                         <FormControl><SelectTrigger><SelectValue placeholder="Select state" /></SelectTrigger></FormControl>
+                                         <SelectContent><ScrollArea className="h-48">{indianStates.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</ScrollArea></SelectContent>
+                                     </Select>
+                                     <FormMessage />
+                                 </FormItem>
+                             )}/>
+                              <FormField control={form.control} name="newAddress.country" render={({ field }) => (
+                                <FormItem><FormLabel>Country</FormLabel><FormControl><Input disabled {...field} defaultValue="India" /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                         </div>
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-6">
+                    <DialogClose asChild>
+                        <Button type="button" variant="ghost" onClick={onCancel} id="edit-address-close">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit">Use this Address</Button>
+                </div>
             </div>
-          </div>
         </ScrollArea>
       </form>
     </Form>
