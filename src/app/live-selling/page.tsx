@@ -283,6 +283,12 @@ const allSuggestedUsers = [
     { id: 'book', name: 'BookNook', handle: '@booknook', avatar: 'https://placehold.co/40x40.png' },
 ];
 
+const mockNotifications = [
+    { id: 1, title: 'Your order has shipped!', description: 'Your Vintage Camera is on its way.', time: '15m ago', read: false },
+    { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false },
+    { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true },
+];
+
 // Function to shuffle an array
 const shuffleArray = (array: any[]) => {
     let currentIndex = array.length, randomIndex;
@@ -357,6 +363,8 @@ export default function LiveSellingPage() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [allSellers, setAllSellers] = useState(liveSellers);
+  const [notifications, setNotifications] = useState(mockNotifications);
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   
   useEffect(() => {
     setIsMounted(true);
@@ -531,6 +539,11 @@ export default function LiveSellingPage() {
     setCurrentSlide(api.selectedScrollSnap());
   }, []);
 
+  const markAsRead = (id: number) => {
+    setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+
   useEffect(() => {
     if (!api) {
       return
@@ -590,9 +603,36 @@ export default function LiveSellingPage() {
                     ) : user ? (
                         <>
                             
-                            <Button variant="ghost" size="icon" className="text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
-                                <Bell />
-                            </Button>
+                           <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                        <Bell />
+                                         {unreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                            </span>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-80">
+                                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {notifications.map(n => (
+                                        <DropdownMenuItem key={n.id} className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                            <div className="flex justify-between w-full">
+                                                <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                                <p className="text-xs text-muted-foreground">{n.time}</p>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">{n.description}</p>
+                                        </DropdownMenuItem>
+                                    ))}
+                                    {notifications.length === 0 && (
+                                        <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Avatar className="h-9 w-9 cursor-pointer">

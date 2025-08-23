@@ -16,6 +16,7 @@ import {
   ListFilter,
   Video,
   MessageSquare,
+  Bell
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 
@@ -69,6 +70,7 @@ import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 import { Product } from "@/components/seller/product-form";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const salesData = [
   { name: "Jan", sales: 400000 },
@@ -122,6 +124,13 @@ const recentTransactions = [
     }
 ];
 
+const mockNotifications = [
+    { id: 1, title: 'New Order Received', description: 'Order #ORD5905 for Designer Sunglasses.', time: '5m ago', read: false },
+    { id: 2, title: 'Low Stock Warning', description: 'Vintage Camera has only 2 items left.', time: '1h ago', read: false },
+    { id: 3, title: 'New Follower', description: 'Jane Doe started following you.', time: '3h ago', read: true },
+    { id: 4, title: 'Weekly Payout Sent', description: '₹17,499.00 has been sent to your bank.', time: '1d ago', read: true },
+];
+
 type FilterType = "all" | "stream" | "product";
 type DateFilterType = "month" | "week" | "today";
 
@@ -134,6 +143,9 @@ export default function SellerDashboard() {
   const [typeFilter, setTypeFilter] = useState<FilterType>("all");
   const [dateFilter, setDateFilter] = useState<DateFilterType>("month");
   const { toast } = useToast();
+  const [notifications, setNotifications] = useState(mockNotifications);
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -178,6 +190,10 @@ export default function SellerDashboard() {
   const totalRevenue = useMemo(() => {
     return filteredTransactions.reduce((acc, curr) => acc + curr.total, 0);
   }, [filteredTransactions]);
+
+  const markAsRead = (id: number) => {
+    setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
+  };
 
   if (!isMounted || loading || (isMounted && !sellerDetails)) {
     return (
@@ -304,6 +320,35 @@ export default function SellerDashboard() {
               />
             </div>
           </form>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                        </span>
+                    )}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.map(n => (
+                    <DropdownMenuItem key={n.id} className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                         <div className="flex justify-between w-full">
+                            <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                            <p className="text-xs text-muted-foreground">{n.time}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{n.description}</p>
+                    </DropdownMenuItem>
+                ))}
+                 {notifications.length === 0 && (
+                     <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                 )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
