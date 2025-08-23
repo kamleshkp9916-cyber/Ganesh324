@@ -355,21 +355,59 @@ export default function LiveSellingPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [allSellers, setAllSellers] = useState(liveSellers);
   
   useEffect(() => {
     setIsMounted(true);
     // Simulate loading data
     const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
-    const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
+    const sellersTimer = setTimeout(() => {
+        setIsLoadingSellers(false)
+    }, 2000);
     const feedTimer = setTimeout(() => {
         setIsLoadingFeed(false)
         setMockFeed(initialMockFeed);
     }, 2500);
 
+    const checkLiveStream = () => {
+        if (typeof window !== 'undefined') {
+            const liveStreamDataRaw = localStorage.getItem('liveStream');
+            if (liveStreamDataRaw) {
+                const liveStreamData = JSON.parse(liveStreamDataRaw);
+                const sellerIsLive = allSellers.some(s => s.id === liveStreamData.seller.id);
+
+                if (!sellerIsLive) {
+                    const newSellerCard = {
+                        id: liveStreamData.seller.id,
+                        name: liveStreamData.seller.name,
+                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                        thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
+                        category: liveStreamData.product.category || 'General',
+                        viewers: Math.floor(Math.random() * 5000),
+                        buyers: Math.floor(Math.random() * 100),
+                        rating: 4.5,
+                        reviews: Math.floor(Math.random() * 50),
+                        hint: liveStreamData.product.name.toLowerCase(),
+                        productId: liveStreamData.product.id,
+                        isMyStream: true,
+                    };
+                    setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
+                }
+            } else {
+                 setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
+            }
+        }
+    };
+    
+    checkLiveStream();
+    window.addEventListener('storage', checkLiveStream);
+
+
     return () => {
         clearTimeout(offersTimer);
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
+        window.removeEventListener('storage', checkLiveStream);
     };
   }, []);
 
@@ -404,16 +442,16 @@ export default function LiveSellingPage() {
   };
 
   const topLiveStreams = useMemo(() => {
-    return [...liveSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
-  }, []);
+    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+  }, [allSellers]);
 
   const filteredLiveSellers = useMemo(() => {
-    if (!searchTerm) return liveSellers;
-    return liveSellers.filter(seller => 
+    if (!searchTerm) return allSellers;
+    return allSellers.filter(seller => 
         seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         seller.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, allSellers]);
 
   const filteredFeed = useMemo(() => {
     if (!searchTerm) return mockFeed;
@@ -711,13 +749,20 @@ export default function LiveSellingPage() {
                             </div>
                          ) : filteredLiveSellers.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {filteredLiveSellers.map((seller) => (
+                                {filteredLiveSellers.map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
                                             <Badge className="bg-destructive text-destructive-foreground">
                                                 LIVE
                                             </Badge>
                                         </div>
+                                         {seller.isMyStream && (
+                                            <div className="absolute top-10 left-2 z-10">
+                                                <Badge variant="secondary" className="bg-purple text-purple-foreground">
+                                                    Your Stream
+                                                </Badge>
+                                            </div>
+                                        )}
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
                                                 <Users className="w-3 h-3 mr-1.5" />
@@ -748,12 +793,14 @@ export default function LiveSellingPage() {
                                                         <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                     </Link>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    {seller.buyers > 0 && (
-                                                        <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
-                                                            <Star className="w-3 h-3 fill-current" />
-                                                            <span>{seller.rating.toFixed(1)}</span>
-                                                            <span className="text-muted-foreground/80">({seller.buyers})</span>
-                                                        </div>
+                                                    {seller.rating > 0 && (
+                                                         <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                            <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
+                                                                <Star className="w-3 h-3 fill-current" />
+                                                                <span>{seller.rating.toFixed(1)}</span>
+                                                                <span className="text-muted-foreground/80">({seller.reviews})</span>
+                                                            </div>
+                                                        </Link>
                                                     )}
                                                 </div>
                                             </div>
@@ -992,5 +1039,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
