@@ -251,12 +251,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             <div className="text-center relative z-10 text-foreground">
                 <div className="flex flex-col sm:flex-row items-center gap-2">
                     <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
-                    {profileData.topAchievement && (
-                        <Badge variant="secondary" className="text-xs sm:text-sm">
-                            {React.cloneElement(profileData.topAchievement.icon, { className: "w-4 h-4 mr-1.5" })}
-                            {profileData.topAchievement.name}
-                        </Badge>
-                    )}
                 </div>
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
             </div>
