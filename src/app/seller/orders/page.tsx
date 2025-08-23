@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -187,9 +186,9 @@ function OrderDetailCard({ order }: { order: Order }) {
                     <div>
                         <h3 className="font-semibold mb-2">Order Information</h3>
                         <div className="text-sm text-muted-foreground space-y-1">
-                            <p><strong>Date:</strong> {order.date} at {order.time}</p>
-                            <p><strong>Status:</strong> <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"}>{order.status}</Badge></p>
-                            <p><strong>Type:</strong> <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>{order.type}</Badge></p>
+                            <div><strong>Date:</strong> {order.date} at {order.time}</div>
+                            <div className="flex items-center gap-2"><strong>Status:</strong> <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"}>{order.status}</Badge></div>
+                            <div className="flex items-center gap-2"><strong>Type:</strong> <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>{order.type}</Badge></div>
                         </div>
                     </div>
                 </div>
