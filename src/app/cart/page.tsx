@@ -196,6 +196,7 @@ export default function CartPage() {
                                                         <span>1,234 buyers</span>
                                                     </div>
                                                 </div>
+                                                <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)}>
@@ -280,7 +281,7 @@ export default function CartPage() {
                         <Card>
                              <CardHeader>
                                 <CardTitle className="flex items-center justify-between text-base">
-                                    <span>Delivery</span>
+                                    <span>Delivery To</span>
                                      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
@@ -303,8 +304,6 @@ export default function CartPage() {
                                         <p className="text-muted-foreground">Phone: {address.phone}</p>
                                     </div>
                                 </div>
-                                <Separator className="my-2" />
-                                <p className="text-xs text-muted-foreground">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
                             </CardContent>
                         </Card>
                      </div>
