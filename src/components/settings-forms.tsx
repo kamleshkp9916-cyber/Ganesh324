@@ -7,7 +7,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DialogClose } from "@/components/ui/dialog";
+import { DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
@@ -148,4 +148,3 @@ export function WithdrawForm({ bankAccounts }: WithdrawFormProps) {
         </Form>
     );
 }
-
