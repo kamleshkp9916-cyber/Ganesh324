@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card } from '@/components/ui/card';
@@ -106,7 +106,12 @@ export default function WishlistPage() {
                                 </div>
                                 <div className="p-3 flex-grow flex flex-col">
                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                    <p className="text-primary font-bold mt-1">{product.price}</p>
+                                    <p className="font-bold mt-1">{product.price}</p>
+                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                        <Star className="w-4 h-4 fill-current" />
+                                        <span>{(Math.random() * 1.1 + 3.9).toFixed(1)}</span>
+                                        <span className="text-muted-foreground">({Math.floor(Math.random() * 100) + 1})</span>
+                                    </div>
                                 </div>
                             </Card>
                         </Link>

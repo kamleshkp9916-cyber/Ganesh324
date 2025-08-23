@@ -399,7 +399,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                     </div>
                                                     <div className="p-3">
                                                         <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                                        <p className="text-foreground font-bold">{product.price}</p>
+                                                        <p className="font-bold">{product.price}</p>
                                                     </div>
                                                 </Card>
                                             ))}
@@ -439,7 +439,12 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-semibold truncate text-sm">{item.name}</h4>
-                                                    <p className="font-bold text-foreground">{item.price}</p>
+                                                    <p className="font-bold">{item.price}</p>
+                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        <span>{(Math.random() * 1.1 + 3.9).toFixed(1)}</span>
+                                                        <span className="text-muted-foreground">({Math.floor(Math.random() * 100) + 1})</span>
+                                                    </div>
                                                 </div>
                                             </Card>
                                         ))}
