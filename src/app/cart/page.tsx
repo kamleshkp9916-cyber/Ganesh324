@@ -164,6 +164,36 @@ export default function CartPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
+                             <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>Delivery</span>
+                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Change Delivery Address</DialogTitle>
+                                            </DialogHeader>
+                                            <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm space-y-2">
+                                <div className="flex items-start gap-3">
+                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">{address.name}</p>
+                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                    </div>
+                                </div>
+                                <Separator className="my-4" />
+                                <p className="text-muted-foreground">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
+                            </CardContent>
+                        </Card>
+                        <Card>
                             <CardHeader>
                                 <CardTitle>Your Items ({totalItems})</CardTitle>
                             </CardHeader>
@@ -225,36 +255,6 @@ export default function CartPage() {
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">
-                        <Card>
-                             <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    <span>Delivery</span>
-                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Change Delivery Address</DialogTitle>
-                                            </DialogHeader>
-                                            <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
-                                        </DialogContent>
-                                    </Dialog>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-sm space-y-2">
-                                <div className="flex items-start gap-3">
-                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
-                                    <div>
-                                        <p className="font-semibold">{address.name}</p>
-                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
-                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
-                                    </div>
-                                </div>
-                                <Separator className="my-4" />
-                                <p className="text-muted-foreground">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
-                            </CardContent>
-                        </Card>
                          <Card>
                             <CardHeader>
                                 <CardTitle>Price Details</CardTitle>
@@ -296,4 +296,3 @@ export default function CartPage() {
     </div>
   );
 }
-
