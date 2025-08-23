@@ -1,10 +1,11 @@
+
 "use client";
 
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -48,6 +49,14 @@ const mockReviews = [
     { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'smartwatch face', productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
     { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
+
+const mockSellerReviews = [
+  { id: 1, customerName: 'Ganesh Prajapati', rating: 5, comment: 'Fantastic seller! The product was exactly as described and shipped super fast. The live stream was very informative. Would definitely buy from again!', date: '1 day ago', productName: 'Vintage Camera' },
+  { id: 2, customerName: 'Jane Doe', rating: 4, comment: 'Good communication and fast shipping. The item was well-packaged. A great experience overall.', date: '3 days ago', productName: 'Wireless Headphones' },
+  { id: 3, customerName: 'Alex Smith', rating: 5, comment: 'One of my favorite sellers on this platform. Always has unique items and is very honest in the live streams. 10/10.', date: '1 week ago', productName: 'Handcrafted Vase' },
+];
+
+
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
 const mockAchievements = [
@@ -95,12 +104,12 @@ const PaymentIcon = ({method}: {method: {type: string, provider?: string}}) => {
     if (method.type === 'COD') return <Truck className="w-4 h-4 text-muted-foreground" />;
     if (method.provider?.toLowerCase().includes('wallet')) return <Wallet className="w-4 h-4 text-muted-foreground" />;
     return <CreditCard className="w-4 h-4 text-muted-foreground" />;
-}
+};
   
 const paymentLabel = (method: {type: string, provider?: string}) => {
     if (method.type === 'COD') return 'Paid with Cash on Delivery';
     return `Paid with ${method.provider}`;
-}
+};
 
 export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpdate }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void }) {
   const { user } = useAuth();
@@ -214,11 +223,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
-        <div 
-            className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-primary/10"
-        >
-            <div className={cn("absolute inset-0 bg-primary/10")} />
-            
+        <div className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-primary/10">
             <div className="relative z-10 flex-shrink-0">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${profileData?.displayName?.charAt(0)}`} alt={profileData?.displayName || ""} />
@@ -257,12 +262,10 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                             <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                         </div>
                     )}
-                    {profileData.role === 'seller' && (
-                        <div className="text-left">
-                            <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                        </div>
-                    )}
+                    <div className="text-left">
+                        <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -270,7 +273,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         <div className="p-4 sm:p-6">
             <CardContent className="p-0 space-y-6">
                 
-                {isOwnProfile && (
+                {isOwnProfile && profileData.role === 'customer' && (
                     <>
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
@@ -351,58 +354,61 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                     </>
                 )}
                 
-                {!isOwnProfile && profileData.role === 'seller' && (
-                    <>
-                        <div>
-                            <h3 className="text-lg font-semibold mb-2">About {profileData.displayName.split(' ')[0]}</h3>
-                            <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
-                        </div>
-                        <Separator />
-                    </>
-                )}
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">About {profileData.displayName.split(' ')[0]}</h3>
+                    <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
+                </div>
+                <Separator />
 
 
                 <div className="w-full max-w-full mx-auto">
-                    <Tabs defaultValue={!isOwnProfile ? "products" : "recent"} className="w-full">
+                    <Tabs defaultValue={profileData.role === 'seller' ? "products" : "recent"} className="w-full">
                         <ScrollArea className="w-full whitespace-nowrap">
                              <TabsList className="inline-flex">
-                                {!isOwnProfile && <TabsTrigger value="products">Listed Products</TabsTrigger>}
-                                {isOwnProfile && <TabsTrigger value="recent">Recently Viewed</TabsTrigger>}
-                                {isOwnProfile && <TabsTrigger value="reviews">My Reviews</TabsTrigger>}
-                                {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
+                                {profileData.role === 'seller' ? (
+                                    <>
+                                        <TabsTrigger value="products">Listed Products</TabsTrigger>
+                                        <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                                    </>
+                                ) : (
+                                    <>
+                                        <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
+                                        <TabsTrigger value="reviews">My Reviews</TabsTrigger>
+                                        <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                                    </>
+                                )}
                             </TabsList>
                         </ScrollArea>
 
-                        {!isOwnProfile && (
-                            <TabsContent value="products" className="mt-4">
-                                {isLoadingContent ? <ProductSkeletonGrid /> : (
-                                     filteredProducts.length > 0 ? (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                            {filteredProducts.map((product) => (
-                                                <Card key={product.id} className="w-full">
-                                                    <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
-                                                        <Image 
-                                                            src={product.imageUrl}
-                                                            alt={product.name}
-                                                            width={180}
-                                                            height={180}
-                                                            className="object-cover w-full h-full"
-                                                            data-ai-hint={product.hint}
-                                                        />
-                                                    </div>
-                                                    <div className="p-3">
-                                                        <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                                        <p className="font-bold text-foreground">{product.price}</p>
-                                                    </div>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-muted-foreground text-center py-8">No products found.</p>
-                                    )
-                                )}
-                            </TabsContent>
-                        )}
+                        <TabsContent value="products" className="mt-4">
+                            {isLoadingContent ? <ProductSkeletonGrid /> : (
+                                    filteredProducts.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {filteredProducts.map((product) => (
+                                            <Card key={product.id} className="w-full">
+                                                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                                    <Image 
+                                                        src={product.imageUrl}
+                                                        alt={product.name}
+                                                        width={180}
+                                                        height={180}
+                                                        className="object-cover w-full h-full"
+                                                        data-ai-hint={product.hint}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="font-semibold truncate text-sm">{product.name}</h4>
+                                                    <p className="font-bold text-foreground">{product.price}</p>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">No products found.</p>
+                                )
+                            )}
+                        </TabsContent>
+                        
 
                         <TabsContent value="recent" className="mt-4">
                              {isLoadingContent ? <ProductSkeletonGrid /> : (
@@ -454,45 +460,75 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
                         <TabsContent value="reviews" className="mt-4 space-y-4">
                             {isLoadingContent ? <div className="space-y-4"><ReviewSkeleton /><ReviewSkeleton /></div> : (
-                                filteredReviews.length > 0 ? (
-                                    filteredReviews.map(review => (
-                                        <Collapsible key={review.id} asChild>
-                                            <Card>
-                                                <CollapsibleTrigger className="w-full text-left cursor-pointer">
-                                                    <div className="p-4 flex gap-4">
-                                                        <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
-                                                        <div className="flex-grow">
-                                                            <h4 className="font-semibold">{review.productName}</h4>
-                                                            <div className="flex items-center gap-1 mt-1">
-                                                                {[...Array(5)].map((_, i) => (
-                                                                    <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                                ))}
-                                                            </div>
-                                                            <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
-                                                            <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
+                                profileData.role === 'seller' ? (
+                                    mockSellerReviews.length > 0 ? (
+                                        mockSellerReviews.map(review => (
+                                            <Card key={review.id} className="p-4">
+                                                <div className="flex gap-4">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={`https://placehold.co/40x40.png?text=${review.customerName.charAt(0)}`} alt={review.customerName} />
+                                                        <AvatarFallback>{review.customerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <div className="flex justify-between items-center">
+                                                            <h4 className="font-semibold">{review.customerName}</h4>
+                                                            <p className="text-xs text-muted-foreground">{review.date}</p>
                                                         </div>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <StarIcon key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-2 italic">"{review.comment}"</p>
+                                                        <p className="text-xs text-muted-foreground mt-2">Review for: <strong>{review.productName}</strong></p>
                                                     </div>
-                                                </CollapsibleTrigger>
-                                                <CollapsibleContent>
-                                                    <div className="border-t p-4 space-y-3">
-                                                        <div>
-                                                            <h5 className="text-sm font-semibold mb-1">Product Information</h5>
-                                                            <p className="text-sm text-muted-foreground">{review.productInfo}</p>
-                                                        </div>
-                                                        <div>
-                                                            <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
-                                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                                <PaymentIcon method={review.paymentMethod} />
-                                                                <span>{paymentLabel(review.paymentMethod)}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </CollapsibleContent>
+                                                </div>
                                             </Card>
-                                        </Collapsible>
-                                    ))
+                                        ))
+                                    ) : (
+                                        <p className="text-muted-foreground text-center py-8">No reviews yet.</p>
+                                    )
                                 ) : (
-                                    <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                                    filteredReviews.length > 0 ? (
+                                        filteredReviews.map(review => (
+                                            <Collapsible key={review.id} asChild>
+                                                <Card>
+                                                    <CollapsibleTrigger className="w-full text-left cursor-pointer">
+                                                        <div className="p-4 flex gap-4">
+                                                            <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint} />
+                                                            <div className="flex-grow">
+                                                                <h4 className="font-semibold">{review.productName}</h4>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                                    ))}
+                                                                </div>
+                                                                <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
+                                                                <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
+                                                            </div>
+                                                        </div>
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent>
+                                                        <div className="border-t p-4 space-y-3">
+                                                            <div>
+                                                                <h5 className="text-sm font-semibold mb-1">Product Information</h5>
+                                                                <p className="text-sm text-muted-foreground">{review.productInfo}</p>
+                                                            </div>
+                                                            <div>
+                                                                <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
+                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                                    <PaymentIcon method={review.paymentMethod} />
+                                                                    <span>{paymentLabel(review.paymentMethod)}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Card>
+                                            </Collapsible>
+                                        ))
+                                    ) : (
+                                        <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                                    )
                                 )
                             )}
                         </TabsContent>
