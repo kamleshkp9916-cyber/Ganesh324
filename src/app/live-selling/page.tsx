@@ -747,8 +747,8 @@ export default function LiveSellingPage() {
                                                 <Image
                                                 src={slide.imageUrl}
                                                 alt={slide.title}
-                                                layout="fill"
-                                                objectFit="cover"
+                                                fill
+                                                style={{objectFit: 'cover'}}
                                                 className="brightness-75"
                                                 data-ai-hint={slide.hint}
                                                 />
