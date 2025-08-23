@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -127,6 +127,14 @@ export default function CartPage() {
     });
   };
 
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    toast({
+        title: "Coupon Removed",
+        description: "The coupon has been removed from your order."
+    });
+  };
+
 
    if (loading || !isClient) {
     return (
@@ -209,7 +217,16 @@ export default function CartPage() {
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
                                                 <p className="text-sm text-muted-foreground">{item.price}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">1,234 buyers</p>
+                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                    <div className="flex items-center gap-1 text-amber-500">
+                                                        <Star className="w-3 h-3 fill-current" />
+                                                        <span>4.8</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <Users className="w-3 h-3" />
+                                                        <span>1,234 buyers</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)}>
@@ -265,9 +282,14 @@ export default function CartPage() {
                                     <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 {appliedCoupon && (
-                                     <div className="flex justify-between text-success">
-                                        <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon Applied ({appliedCoupon.code})</span>
-                                        <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                     <div className="flex justify-between items-center text-success">
+                                        <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
+                                        <div className="flex items-center gap-1">
+                                            <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={handleRemoveCoupon}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
