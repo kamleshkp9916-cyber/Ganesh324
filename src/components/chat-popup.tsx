@@ -62,7 +62,7 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     setMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      const updatedMessages = await sendMessage(user.displayName, content);
+      const updatedMessages = await sendMessage(user.displayName, content, 'customer');
       setMessages(updatedMessages);
     } catch (error) {
       console.error("Failed to send message:", error);
