@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -28,38 +28,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow } from '@/lib/follow-data';
-
-const initialProducts: Product[] = [
-    {
-        id: 1,
-        name: "Vintage Camera",
-        price: "₹12,500",
-        imageUrl: "https://placehold.co/300x300.png",
-        hint: "vintage camera",
-    },
-    {
-        id: 2,
-        name: "Wireless Headphones",
-        price: "₹4,999",
-        imageUrl: "https://placehold.co/300x300.png",
-        hint: "headphones",
-    },
-    {
-        id: 3,
-        name: "Leather Backpack",
-        price: "₹6,200",
-        imageUrl: "https://placehold.co/300x300.png",
-        hint: "leather backpack",
-    },
-     {
-        id: 4,
-        name: "Smart Watch",
-        price: "₹8,750",
-        imageUrl: "https://placehold.co/300x300.png",
-        hint: "smartwatch",
-    },
-];
+import { toggleFollow, getUserData } from '@/lib/follow-data';
 
 // This is now a "seeder" for demonstration purposes
 const initialRecentlyViewedItems = [
@@ -75,17 +44,6 @@ const mockReviews = [
     { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'smartwatch face', productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
     { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
-
-const mockSellerFollowers = [
-  { id: 'mock-user-id-123', name: 'Ganesh Prajapati', handle: '@ganesh', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-  { id: 2, name: 'Jane Doe', handle: '@janedoe', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-  { id: 3, name: 'Alex Smith', handle: '@alexsmith', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-  { id: 4, name: 'Emily Brown', handle: '@emilyb', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-  { id: 5, name: 'Chris Wilson', handle: '@chrisw', avatar: 'https://placehold.co/40x40.png', role: 'Seller' },
-  { id: 6, name: 'Michael Chen', handle: '@michaelc', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-  { id: 7, name: 'Sarah Miller', handle: '@sarahm', avatar: 'https://placehold.co/40x40.png', role: 'Customer' },
-];
-
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
@@ -156,18 +114,30 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
+  const [followingList, setFollowingList] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const displayName = profileData.displayName || profileData.name || "";
-
+  
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
+  
+  const loadFollowData = () => {
+    if (user) {
+        const currentUserFollowingIds = JSON.parse(localStorage.getItem(`following_${user.uid}`) || '[]');
+        setIsFollowing(currentUserFollowingIds.includes(profileData.uid));
+        
+        if (isOwnProfile) {
+          const followedUsers = currentUserFollowingIds.map((id: string) => getUserData(id));
+          setFollowingList(followedUsers);
+        }
+    }
+  };
 
   useEffect(() => {
-    if (user && profileData.role === 'seller') {
-        const currentUserFollowing = JSON.parse(localStorage.getItem(`following_${user.uid}`) || '[]');
-        setIsFollowing(currentUserFollowing.includes(profileData.uid));
+    if (user) {
+       loadFollowData();
     }
-  }, [user, profileData]);
+  }, [user, profileData.uid, isOwnProfile]);
 
   const loadSellerProducts = () => {
     if (profileData.role === 'seller') {
@@ -198,6 +168,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       if (event.key === 'mockFeed') {
         const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
         setSellerPosts(globalFeed.filter((p: any) => p.sellerName === displayName));
+      }
+      if(event.key?.startsWith('following_')) {
+          loadFollowData();
       }
     };
     
@@ -326,13 +299,14 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setIsAddressDialogOpen(true);
   }
   
-  const handleFollowToggle = () => {
+  const handleFollowToggle = (targetId: string) => {
     if (!user) return;
-    toggleFollow(user.uid, profileData.uid);
+    toggleFollow(user.uid, targetId);
     setIsFollowing(prev => !prev);
     if (onFollowToggle) {
         onFollowToggle();
     }
+    loadFollowData(); // Reload data to update dialog list
   };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -380,10 +354,41 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
                 
                 <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
-                    <div className="text-left">
-                        <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                    </div>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <div className="text-left cursor-pointer">
+                                <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Following</DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="h-80">
+                                <div className="p-4 space-y-4">
+                                    {followingList.map(followedUser => (
+                                        <div key={followedUser.uid} className="flex items-center justify-between group">
+                                            <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
+                                                <Avatar>
+                                                    <AvatarImage src={followedUser.photoURL} />
+                                                    <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
+                                                    <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
+                                                </div>
+                                            </Link>
+                                            <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
+                                        </div>
+                                    ))}
+                                    {followingList.length === 0 && (
+                                        <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </DialogContent>
+                    </Dialog>
                     {profileData.role === 'seller' && (
                          <div className="text-left">
                             <Dialog>
@@ -399,21 +404,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     </DialogHeader>
                                     <ScrollArea className="h-80">
                                         <div className="p-4 space-y-4">
-                                            {mockSellerFollowers.filter(follower => follower.role === 'Customer').map(follower => (
-                                                <Link href={`/profile?userId=${follower.id}`} key={follower.id} className="flex items-center justify-between group">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar>
-                                                            <AvatarImage src={follower.avatar} />
-                                                            <AvatarFallback>{follower.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-semibold group-hover:underline">{follower.name}</p>
-                                                            <p className="text-sm text-muted-foreground">{follower.handle}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Button variant="outline" size="sm">View</Button>
-                                                </Link>
-                                            ))}
+                                            {/* Followers mock data is now inside the component */}
                                         </div>
                                     </ScrollArea>
                                 </DialogContent>
@@ -425,7 +416,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                 {!isOwnProfile && profileData.role === 'seller' && (
                      <div className="mt-4 flex justify-center sm:justify-start gap-2">
                         <Button
-                            onClick={handleFollowToggle}
+                            onClick={() => handleFollowToggle(profileData.uid)}
                             variant={isFollowing ? "outline" : "default"}
                         >
                             <UserPlus className="mr-2 h-4 w-4" />
