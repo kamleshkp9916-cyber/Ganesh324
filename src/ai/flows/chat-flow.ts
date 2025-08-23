@@ -23,6 +23,15 @@ const MessageSchema = z.object({
 
 export type Message = z.infer<typeof MessageSchema>;
 
+export type Conversation = {
+    userId: string;
+    userName: string;
+    avatarUrl: string;
+    lastMessage: string;
+    lastMessageTimestamp: string;
+    unreadCount: number;
+}
+
 const GetMessagesInputSchema = z.object({
   userId: z.string(),
 });
@@ -48,12 +57,62 @@ const UpdateOrderStatusInputSchema = z.object({
 
 // Mock database
 const mockChatDatabase: Record<string, Message[]> = {
-  "default": [
+  "FashionFinds": [
     { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'them', timestamp: '10:00 AM' },
     { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'me', timestamp: '10:01 AM' },
     { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'them', timestamp: '10:01 AM' },
   ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'them', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'me', timestamp: 'Yesterday' },
+  ],
+  "HomeHaven": [
+       { id: 1, text: "Do you have the ceramic vases in blue?", sender: 'them', timestamp: 'Yesterday' },
+  ]
 };
+
+const mockConversations: Conversation[] = [
+    {
+        userId: "FashionFinds",
+        userName: "FashionFinds",
+        avatarUrl: "https://placehold.co/40x40.png",
+        lastMessage: "Awesome! Could you tell me a bit more about the lens?",
+        lastMessageTimestamp: "10:01 AM",
+        unreadCount: 1,
+    },
+    {
+        userId: "GadgetGuru",
+        userName: "GadgetGuru",
+        avatarUrl: "https://placehold.co/40x40.png",
+        lastMessage: "Sure, what would you like to know?",
+        lastMessageTimestamp: "Yesterday",
+        unreadCount: 0,
+    },
+    {
+        userId: "HomeHaven",
+        userName: "HomeHaven",
+        avatarUrl: "https://placehold.co/40x40.png",
+        lastMessage: "Do you have the ceramic vases in blue?",
+        lastMessageTimestamp: "Yesterday",
+        unreadCount: 2,
+    },
+     {
+        userId: "ArtisanAlley",
+        userName: "ArtisanAlley",
+        avatarUrl: "https://placehold.co/40x40.png",
+        lastMessage: "Perfect, I'll take it!",
+        lastMessageTimestamp: "2 days ago",
+        unreadCount: 0,
+    },
+     {
+        userId: "GamerGuild",
+        userName: "GamerGuild",
+        avatarUrl: "https://placehold.co/40x40.png",
+        lastMessage: "Is the tournament open for registration?",
+        lastMessageTimestamp: "3 days ago",
+        unreadCount: 0,
+    }
+]
 
 const getMessagesFlow = ai.defineFlow(
   {
@@ -63,8 +122,7 @@ const getMessagesFlow = ai.defineFlow(
   },
   async ({ userId }) => {
     console.log(`Getting messages for userId: ${userId}`);
-    // In a real app, you would fetch this from a database like Firestore.
-    return mockChatDatabase[userId] || mockChatDatabase['default'];
+    return mockChatDatabase[userId] || [];
   }
 );
 
@@ -76,7 +134,7 @@ const sendMessageFlow = ai.defineFlow(
   },
   async ({ userId, message }) => {
     if (!mockChatDatabase[userId]) {
-        mockChatDatabase[userId] = [...mockChatDatabase['default']];
+        mockChatDatabase[userId] = [];
     }
     
     const currentMessages = mockChatDatabase[userId];
@@ -88,14 +146,40 @@ const sendMessageFlow = ai.defineFlow(
     };
     
     currentMessages.push(newMessage);
-    console.log(`Sending message for userId: ${userId}`, newMessage);
+    
+    // Also add a mock response for demonstration
+    const botResponse: Message = {
+      id: currentMessages.length + 1,
+      sender: 'them',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      text: "Thanks for your message! I'll get back to you shortly.",
+    };
+    currentMessages.push(botResponse);
 
-    // In a real app, you would save this to a database.
     mockChatDatabase[userId] = currentMessages;
+
+    // Update conversation list
+    const convo = mockConversations.find(c => c.userId === userId);
+    if (convo) {
+        convo.lastMessage = newMessage.text || "Image sent";
+        convo.lastMessageTimestamp = newMessage.timestamp;
+    }
 
     return currentMessages;
   }
 );
+
+const getConversationsFlow = ai.defineFlow(
+    {
+        name: 'getConversationsFlow',
+        inputSchema: z.void(),
+        outputSchema: z.array(z.custom<Conversation>()),
+    },
+    async () => {
+        return mockConversations;
+    }
+);
+
 
 const updateOrderStatusFlow = ai.defineFlow(
     {
@@ -152,6 +236,10 @@ export async function getMessages(userId: string): Promise<GetMessagesOutput> {
 
 export async function sendMessage(userId: string, message: { text?: string; image?: string }): Promise<SendMessageOutput> {
     return sendMessageFlow({ userId, message });
+}
+
+export async function getConversations(): Promise<Conversation[]> {
+    return getConversationsFlow();
 }
 
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
