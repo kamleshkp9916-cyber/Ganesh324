@@ -384,40 +384,42 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
                         <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                     </div>
-                    <div className="text-left">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                 <div className="cursor-pointer">
-                                    <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                                    <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                                </div>
-                            </DialogTrigger>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Followers</DialogTitle>
-                                </DialogHeader>
-                                <ScrollArea className="h-80">
-                                    <div className="p-4 space-y-4">
-                                        {mockSellerFollowers.filter(follower => follower.role === 'Customer').map(follower => (
-                                            <Link href={`/profile?userId=${follower.id}`} key={follower.id} className="flex items-center justify-between group">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar>
-                                                        <AvatarImage src={follower.avatar} />
-                                                        <AvatarFallback>{follower.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold group-hover:underline">{follower.name}</p>
-                                                        <p className="text-sm text-muted-foreground">{follower.handle}</p>
-                                                    </div>
-                                                </div>
-                                                <Button variant="outline" size="sm">View</Button>
-                                            </Link>
-                                        ))}
+                    {profileData.role === 'seller' && (
+                         <div className="text-left">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <div className="cursor-pointer">
+                                        <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                                        <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
                                     </div>
-                                </ScrollArea>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Followers</DialogTitle>
+                                    </DialogHeader>
+                                    <ScrollArea className="h-80">
+                                        <div className="p-4 space-y-4">
+                                            {mockSellerFollowers.filter(follower => follower.role === 'Customer').map(follower => (
+                                                <Link href={`/profile?userId=${follower.id}`} key={follower.id} className="flex items-center justify-between group">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarImage src={follower.avatar} />
+                                                            <AvatarFallback>{follower.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold group-hover:underline">{follower.name}</p>
+                                                            <p className="text-sm text-muted-foreground">{follower.handle}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="outline" size="sm">View</Button>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    )}
                 </div>
 
                 {!isOwnProfile && profileData.role === 'seller' && (
