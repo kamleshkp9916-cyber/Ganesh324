@@ -9,12 +9,17 @@ export interface Product {
     hint: string;
 }
 
+export interface CartProduct extends Product {
+    quantity: number;
+}
+
 interface ViewedProduct extends Product {
     viewedAt: number; // Timestamp
 }
 
 const WISHLIST_KEY = 'streamcart_wishlist';
 const RECENTLY_VIEWED_KEY = 'streamcart_recently_viewed';
+const CART_KEY = 'streamcart_cart';
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
 // --- Wishlist Functions ---
@@ -78,4 +83,48 @@ export const addRecentlyViewed = (product: Product) => {
     // const limitedItems = newItems.slice(0, 20);
 
     localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(newItems));
+};
+
+
+// --- Cart Functions ---
+
+export const getCart = (): CartProduct[] => {
+    if (typeof window === 'undefined') return [];
+    const items = localStorage.getItem(CART_KEY);
+    return items ? JSON.parse(items) : [];
+};
+
+export const addToCart = (product: CartProduct) => {
+    const items = getCart();
+    const existingProductIndex = items.findIndex(p => p.id === product.id);
+    
+    if (existingProductIndex > -1) {
+        // Product exists, update quantity
+        items[existingProductIndex].quantity += 1;
+    } else {
+        // Product is new, add it to cart
+        items.push({ ...product, quantity: 1 });
+    }
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
+};
+
+export const removeFromCart = (productId: number) => {
+    const items = getCart();
+    const newItems = items.filter(p => p.id !== productId);
+    localStorage.setItem(CART_KEY, JSON.stringify(newItems));
+};
+
+export const updateCartQuantity = (productId: number, quantity: number) => {
+    const items = getCart();
+    const productIndex = items.findIndex(p => p.id === productId);
+    
+    if (productIndex > -1) {
+        if (quantity > 0) {
+            items[productIndex].quantity = quantity;
+        } else {
+            // Remove if quantity is 0 or less
+            items.splice(productIndex, 1);
+        }
+    }
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
 };

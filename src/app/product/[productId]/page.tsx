@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, Product } from '@/lib/product-history';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
@@ -43,6 +44,7 @@ export default function ProductDetailPage() {
     const params = useParams();
     const { productId } = params;
     const [product, setProduct] = useState<(typeof productDetails)[keyof typeof productDetails] | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (productId) {
@@ -59,6 +61,17 @@ export default function ProductDetailPage() {
             });
         }
     }, [productId]);
+
+    const handleAddToCart = () => {
+        if (product) {
+            addToCart({ ...product, quantity: 1 });
+            toast({
+                title: "Added to Cart!",
+                description: `${product.name} has been added to your shopping cart.`,
+            });
+        }
+    };
+
 
     if (!product) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
@@ -104,7 +117,7 @@ export default function ProductDetailPage() {
                             <span className="text-sm font-medium">Safe and Secure Shopping</span>
                         </div>
 
-                        <Button size="lg" className="w-full">
+                        <Button size="lg" className="w-full" onClick={handleAddToCart}>
                             <ShoppingCart className="mr-2 h-5 w-5" />
                             Add to Cart
                         </Button>
