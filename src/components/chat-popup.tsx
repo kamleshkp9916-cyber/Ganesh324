@@ -14,7 +14,7 @@ import { getMessages, sendMessage, Message } from '@/ai/flows/chat-flow';
 import { Skeleton } from './ui/skeleton';
 
 interface ChatPopupProps {
-  user: {
+  user: { // The seller being messaged
     displayName: string;
     photoURL: string;
   };
@@ -32,7 +32,8 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     const fetchMessages = async () => {
       setIsLoading(true);
       try {
-        const history = await getMessages(user.displayName);
+        // Fetch message history between customer and this seller
+        const history = await getMessages(user.displayName); 
         setMessages(history);
       } catch (error) {
         console.error("Failed to fetch messages:", error);
@@ -52,11 +53,13 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
       setNewMessage('');
     }
 
-    // Optimistically update the UI
+    // Optimistically update the UI. 'them' is the customer, 'me' is the seller in the mock data.
+    // So when a customer sends a message it should appear as 'them' from the data's point of view.
+    // However, for the UI, 'me' is always the person using the chat.
     const optimisticMessage: Message = {
       id: Math.random(), // Temporary ID
       ...content,
-      sender: 'me',
+      sender: 'them', // This should be the customer's perspective. In the mock, customer is 'them'.
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
@@ -121,25 +124,31 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
                   <Skeleton className="h-10 w-1/2" />
                 </>
               ) : (
-                messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[75%] rounded-lg px-3 py-2 ${
-                      msg.sender === 'me'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}>
-                      {msg.text && <p className="text-sm">{msg.text}</p>}
-                      {msg.image && (
-                          <Image src={msg.image} alt="Sent image" width={150} height={150} className="rounded-md" />
-                      )}
-                      <p className={`text-xs mt-1 ${
-                          msg.sender === 'me'
-                          ? 'text-primary-foreground/70 text-right'
-                          : 'text-muted-foreground text-right'
-                      }`}>{msg.timestamp}</p>
-                    </div>
-                  </div>
-                ))
+                messages.map((msg) => {
+                  // In the mock data, seller is 'me', customer is 'them'.
+                  // The person using the chat popup is always the customer.
+                  // So, msg.sender === 'them' means it's a message from the customer.
+                  const isMyMessage = msg.sender === 'them';
+                  return (
+                      <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[75%] rounded-lg px-3 py-2 ${
+                          isMyMessage
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}>
+                          {msg.text && <p className="text-sm">{msg.text}</p>}
+                          {msg.image && (
+                              <Image src={msg.image} alt="Sent image" width={150} height={150} className="rounded-md" />
+                          )}
+                          <p className={`text-xs mt-1 ${
+                              isMyMessage
+                              ? 'text-primary-foreground/70 text-right'
+                              : 'text-muted-foreground text-right'
+                          }`}>{msg.timestamp}</p>
+                        </div>
+                      </div>
+                  );
+                })
               )}
             </div>
           </ScrollArea>
