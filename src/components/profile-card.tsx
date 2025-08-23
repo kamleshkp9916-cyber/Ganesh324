@@ -136,7 +136,7 @@ const PaymentIcon = ({method}: {method: {type: string, provider?: string}}) => {
 const paymentLabel = (method: {type: string, provider?: string}) => {
     if (method.type === 'COD') return 'Paid with Cash on Delivery';
     return `Paid with ${method.provider}`;
-};
+}
 
 export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpdate }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void }) {
   const { user } = useAuth();
@@ -266,13 +266,15 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     setIsAddressDialogOpen(true);
   }
 
+  const displayName = profileData.displayName || profileData.name || "";
+
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-card">
             <div className="relative z-10 flex-shrink-0">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${profileData?.displayName?.charAt(0)}`} alt={profileData?.displayName || ""} />
-                    <AvatarFallback className="text-4xl">{profileData?.displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
+                    <AvatarFallback className="text-4xl">{displayName.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
                  {isOwnProfile && (
                     <>
@@ -298,7 +300,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             
             <div className="relative z-10 text-foreground flex-grow">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                     {profileData.role === 'seller' && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                             <Star className="h-3 w-3" />
@@ -403,7 +405,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 )}
                 
                 <div>
-                    <h3 className="text-lg font-semibold mb-2">About {profileData.displayName.split(' ')[0]}</h3>
+                    <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
                     <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
                 </div>
                 <Separator />
