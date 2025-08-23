@@ -159,20 +159,18 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const displayName = profileData.displayName || profileData.name || "";
+
+  const getProductsKey = (name: string) => `sellerProducts_${name}`;
 
   const loadSellerProducts = () => {
     if (profileData.role === 'seller') {
-      const storedProducts = localStorage.getItem('sellerProducts');
+      const productsKey = getProductsKey(displayName);
+      const storedProducts = localStorage.getItem(productsKey);
       if (storedProducts) {
         setSellerProducts(JSON.parse(storedProducts));
       } else {
-        const defaultSellerProducts = initialProducts.map(p => ({
-          ...p,
-          image: { preview: p.imageUrl },
-          stock: Math.floor(Math.random() * 50),
-          status: 'active'
-        }));
-        setSellerProducts(defaultSellerProducts);
+        setSellerProducts([]);
       }
     }
   };
@@ -188,7 +186,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   // Load data from localStorage on mount and add storage listener
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'sellerProducts') {
+      if (event.key === getProductsKey(displayName)) {
         loadSellerProducts();
       }
       if (event.key === 'mockFeed') {
@@ -213,7 +211,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         window.removeEventListener('storage', handleStorageChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileData.role]);
+  }, [profileData.role, displayName]);
 
 
   const filteredProducts = useMemo(() => {
@@ -290,8 +288,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
     
-    const displayName = profileData.displayName || profileData.name;
-
     const newPost = {
         id: Date.now(),
         sellerName: displayName,
@@ -311,7 +307,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     localStorage.setItem('mockFeed', JSON.stringify(updatedGlobalFeed));
     
     // Dispatch a storage event to notify other tabs/pages
-    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'mockFeed' }));
 
     toast({
         title: "Post Created!",
@@ -324,7 +320,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     setIsAddressDialogOpen(true);
   }
 
-  const displayName = profileData.displayName || profileData.name || "";
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
   return (
@@ -576,7 +571,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                      <CreatePostForm onCreatePost={handleCreatePost} />
                                 </div>
                             }
-                             {sellerPosts.map(post => (
+                             {sellerPosts.length > 0 ? sellerPosts.map(post => (
                                <Card key={post.id} className="overflow-hidden">
                                     <div className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
@@ -612,7 +607,9 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                         {post.location && <span className="text-xs">{post.location}</span>}
                                     </div>
                                 </Card>
-                            ))}
+                            )) : (
+                                <p className="text-muted-foreground text-center py-8">This seller hasn't posted anything yet.</p>
+                            )}
                         </TabsContent>
                         
 

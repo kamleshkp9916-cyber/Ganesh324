@@ -112,25 +112,42 @@ export default function SellerProductsPage() {
     const router = useRouter();
     const { toast } = useToast();
 
+    const getProductsKey = (userName: string | null | undefined) => {
+        if (!userName) return null;
+        return `sellerProducts_${userName}`;
+    }
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined') {
-            const storedProducts = localStorage.getItem('sellerProducts');
+        if (typeof window !== 'undefined' && user) {
+            const productsKey = getProductsKey(user.displayName);
+            if (!productsKey) return;
+            
+            const storedProducts = localStorage.getItem(productsKey);
             if (storedProducts) {
                 setProducts(JSON.parse(storedProducts));
             } else {
-                setProducts(initialProducts);
-                localStorage.setItem('sellerProducts', JSON.stringify(initialProducts));
+                // Only set initial products for the mock user for demo purposes
+                if (user.displayName === 'Samael Prajapati') {
+                    setProducts(initialProducts);
+                    localStorage.setItem(productsKey, JSON.stringify(initialProducts));
+                } else {
+                    setProducts([]);
+                }
             }
         }
-    }, []);
+    }, [user]);
     
     useEffect(() => {
-        if (isMounted) {
-             localStorage.setItem('sellerProducts', JSON.stringify(products));
+        if (isMounted && user) {
+             const productsKey = getProductsKey(user.displayName);
+             if (productsKey) {
+                localStorage.setItem(productsKey, JSON.stringify(products));
+                // Dispatch event so other components (like profile page) can update
+                window.dispatchEvent(new StorageEvent('storage', { key: productsKey }));
+             }
         }
-    }, [products, isMounted]);
+    }, [products, isMounted, user]);
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -277,7 +294,7 @@ export default function SellerProductsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.map(product => (
+                        {products.length > 0 ? products.map(product => (
                         <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
                             <TableCell className="hidden sm:table-cell">
                              <Link href={`/product/${product.id}`}>
@@ -331,7 +348,13 @@ export default function SellerProductsPage() {
                             </DropdownMenu>
                             </TableCell>
                         </TableRow>
-                        ))}
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                    You haven't listed any products yet.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                     </Table>
                 </CardContent>
