@@ -163,7 +163,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
       reader.onloadend = () => {
         setProfileImage(reader.result as string);
       };
-      reader.readDataURL(file);
+      reader.readAsDataURL(file);
     }
   };
   
@@ -399,7 +399,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                     </div>
                                                     <div className="p-3">
                                                         <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                                        <p className="text-primary font-bold">{product.price}</p>
+                                                        <p className="text-foreground font-bold">{product.price}</p>
                                                     </div>
                                                 </Card>
                                             ))}
@@ -439,7 +439,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-semibold truncate text-sm">{item.name}</h4>
-                                                    <p className="font-bold text-primary">{item.price}</p>
+                                                    <p className="font-bold text-foreground">{item.price}</p>
                                                 </div>
                                             </Card>
                                         ))}

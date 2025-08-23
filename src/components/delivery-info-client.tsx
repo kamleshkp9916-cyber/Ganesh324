@@ -195,7 +195,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     useEffect(() => {
         setIsMounted(true);
     }, []);
-    
+
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
         try {
@@ -209,7 +209,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     }, [order]);
 
     const currentStatus = useMemo(() => order ? getStatusFromTimeline(order.timeline) : "", [order]);
-    
+
     const isReturnWindowActive = useMemo(() => {
         if (!order || currentStatus !== 'Delivered' || order.isReturnable === false) {
             return false;
@@ -423,7 +423,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             />
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                        <p className="text-primary font-bold">{order.product.price}</p>
+                                        <p className="text-foreground font-bold">{order.product.price}</p>
                                     </CardContent>
                                 </Card>
                             </Link>

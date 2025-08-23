@@ -87,7 +87,7 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
 
-                        <p className="text-3xl font-bold text-primary">{product.price}</p>
+                        <p className="text-3xl font-bold text-foreground">{product.price}</p>
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
