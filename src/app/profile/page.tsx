@@ -37,12 +37,16 @@ export default function ProfilePage() {
   const isOwnProfile = !userId;
 
   useEffect(() => {
+    // If a userId is present, we assume it's a seller's profile for this app's logic
+    const role = userId ? 'seller' : 'customer';
     const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '', uid: userId };
+    
     if (activeUser) {
         setProfileData(getUserData(activeUser.uid, {
             displayName: activeUser.displayName || 'Unknown User',
             email: activeUser.email || 'unknown@example.com',
-            photoURL: activeUser.photoURL || ''
+            photoURL: activeUser.photoURL || '',
+            role: role 
         }));
     }
   }, [user, userId, isOwnProfile, key]);
