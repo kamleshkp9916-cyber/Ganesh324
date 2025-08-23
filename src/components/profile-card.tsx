@@ -27,12 +27,43 @@ import { getRecentlyViewed, addRecentlyViewed, addToWishlist, getWishlist, Produ
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 
-const mockProducts = [
-    { id: 1, name: 'Vintage Camera', price: '₹12,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'vintage film camera' },
-    { id: 2, name: 'Wireless Headphones', price: '₹4,999', imageUrl: 'https://placehold.co/300x300.png', hint: 'modern headphones' },
-    { id: 3, name: 'Handcrafted Vase', price: '₹2,100', imageUrl: 'https://placehold.co/300x300.png', hint: 'ceramic vase' },
-    { id: 4, name: 'Smart Watch', price: '₹8,750', imageUrl: 'https://placehold.co/300x300.png', hint: 'smartwatch face' },
-    { id: 5, name: 'Leather Backpack', price: '₹6,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'brown leather backpack' },
+const initialProducts: Product[] = [
+    {
+        id: 'prod_1',
+        name: "Vintage Camera",
+        description: "A classic 35mm film camera from the 70s. Fully functional.",
+        price: 12500,
+        stock: 15,
+        image: { preview: "https://placehold.co/80x80.png" },
+        status: "active"
+    },
+    {
+        id: 'prod_2',
+        name: "Wireless Headphones",
+        description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
+        price: 4999,
+        stock: 50,
+        image: { preview: "https://placehold.co/80x80.png" },
+        status: "active"
+    },
+    {
+        id: 'prod_3',
+        name: "Leather Backpack",
+        description: "Handmade genuine leather backpack, perfect for daily use.",
+        price: 6200,
+        stock: 0,
+        image: { preview: "https://placehold.co/80x80.png" },
+        status: "archived"
+    },
+     {
+        id: 'prod_4',
+        name: "Smart Watch",
+        description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
+        price: 8750,
+        stock: 30,
+        image: { preview: "https://placehold.co/80x80.png" },
+        status: "draft"
+    },
 ];
 
 // This is now a "seeder" for demonstration purposes
@@ -58,6 +89,9 @@ const mockSellerReviews = [
 
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
+
+const sellerAverageRating = (mockSellerReviews.reduce((acc, review) => acc + review.rating, 0) / mockSellerReviews.length).toFixed(1);
+
 
 const mockAchievements = [
     { id: 1, name: 'Top Shopper', icon: <ShoppingBag />, description: 'Made over 50 purchases' },
@@ -105,11 +139,11 @@ const PaymentIcon = ({method}: {method: {type: string, provider?: string}}) => {
     if (method.provider?.toLowerCase().includes('wallet')) return <Wallet className="w-4 h-4 text-muted-foreground" />;
     return <CreditCard className="w-4 h-4 text-muted-foreground" />;
 };
-  
+
 const paymentLabel = (method: {type: string, provider?: string}) => {
     if (method.type === 'COD') return 'Paid with Cash on Delivery';
     return `Paid with ${method.provider}`;
-};
+}
 
 export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpdate }: { onEdit?: () => void, profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void }) {
   const { user } = useAuth();
@@ -124,6 +158,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [editingAddress, setEditingAddress] = useState(null);
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
+  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
 
   // Seed recently viewed items for demo purposes
   useEffect(() => {
@@ -137,18 +172,28 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   useEffect(() => {
     setRecentlyViewedItems(getRecentlyViewed());
     setWishlist(getWishlist().map(p => p.id));
+    
+    if (profileData.role === 'seller') {
+        const storedProducts = localStorage.getItem('sellerProducts');
+        if (storedProducts) {
+            setSellerProducts(JSON.parse(storedProducts));
+        } else {
+            setSellerProducts(initialProducts);
+        }
+    }
+    
     setTimeout(() => {
         setIsLoadingContent(false);
     }, 1000)
-  }, []);
+  }, [profileData.role]);
 
 
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return mockProducts;
-    return mockProducts.filter(product =>
+    if (!searchTerm) return sellerProducts;
+    return sellerProducts.filter(product =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, sellerProducts]);
 
   const filteredRecentlyViewed = useMemo(() => {
     if (!searchTerm) return recentlyViewedItems;
@@ -223,7 +268,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
-        <div className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-primary/10">
+        <div className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-card">
             <div className="relative z-10 flex-shrink-0">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${profileData?.displayName?.charAt(0)}`} alt={profileData?.displayName || ""} />
@@ -252,7 +297,15 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
             </div>
             
             <div className="relative z-10 text-foreground flex-grow">
-                <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                    {profileData.role === 'seller' && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            <Star className="h-3 w-3" />
+                            {sellerAverageRating}
+                        </Badge>
+                    )}
+                </div>
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
                 
                 <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
@@ -346,11 +399,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </RadioGroup>
                     </div>
                     <Separator />
-                     <div>
-                        <h3 className="text-lg font-semibold mb-2">About Me</h3>
-                        <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
-                    </div>
-                    <Separator />
                     </>
                 )}
                 
@@ -384,21 +432,21 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                             {isLoadingContent ? <ProductSkeletonGrid /> : (
                                     filteredProducts.length > 0 ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                        {filteredProducts.map((product) => (
+                                        {filteredProducts.map((product: any) => (
                                             <Card key={product.id} className="w-full">
                                                 <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
                                                     <Image 
-                                                        src={product.imageUrl}
+                                                        src={product.image.preview}
                                                         alt={product.name}
                                                         width={180}
                                                         height={180}
                                                         className="object-cover w-full h-full"
-                                                        data-ai-hint={product.hint}
+                                                        data-ai-hint={product.hint || 'product image'}
                                                     />
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                                    <p className="font-bold text-foreground">{product.price}</p>
+                                                    <p className="font-bold text-foreground">₹{product.price.toLocaleString()}</p>
                                                 </div>
                                             </Card>
                                         ))}
@@ -563,3 +611,5 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     </Dialog>
   );
 }
+
+    
