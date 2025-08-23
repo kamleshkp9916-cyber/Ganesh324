@@ -68,7 +68,6 @@ import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 import { Product } from "@/components/seller/product-form";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileCard } from "@/components/profile-card";
 
 const salesData = [
   { name: "Jan", sales: 4000 },
@@ -388,15 +387,6 @@ export default function SellerDashboard() {
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
             <Card className="lg:col-span-2">
-                 <CardHeader>
-                    <CardTitle>Profile Preview</CardTitle>
-                    <CardDescription>This is how your profile appears to customers.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <ProfileCard profileData={sellerDetails} isOwnProfile={false} onAddressesUpdate={() => {}}/>
-                </CardContent>
-            </Card>
-            <Card>
                 <CardHeader>
                 <CardTitle>Sales Overview</CardTitle>
                 <CardDescription>
@@ -415,7 +405,7 @@ export default function SellerDashboard() {
                 </ResponsiveContainer>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="lg:col-span-2">
                 <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex-1">
                     <CardTitle>Recent Transactions</CardTitle>
