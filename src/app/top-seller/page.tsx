@@ -15,7 +15,7 @@ const topSellers = [
     { id: 'BeautyBox', name: 'BeautyBox', avatar: 'https://placehold.co/80x80.png', followers: '31.1k', rating: 4.9, bio: 'All things makeup, skincare, and beauty tutorials.' },
     { id: 'HomeHaven', name: 'HomeHaven', avatar: 'https://placehold.co/80x80.png', followers: '12.8k', rating: 4.7, bio: 'Making your home a sanctuary with beautiful decor.' },
     { id: 'GamerGuild', name: 'GamerGuild', avatar: 'https://placehold.co/80x80.png', followers: '42.3k', rating: 4.9, bio: 'Pro tips, reviews, and the best gaming gear.' },
-    { id 'ArtisanAlley', name: 'ArtisanAlley', avatar: 'https://placehold.co/80x80.png', followers: '8.6k', rating: 5.0, bio: 'Handcrafted goods made with love and passion.' },
+    { id: 'ArtisanAlley', name: 'ArtisanAlley', avatar: 'https://placehold.co/80x80.png', followers: '8.6k', rating: 5.0, bio: 'Handcrafted goods made with love and passion.' },
 ];
 
 export default function TopSellerPage() {
