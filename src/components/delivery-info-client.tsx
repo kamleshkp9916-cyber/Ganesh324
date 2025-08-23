@@ -384,6 +384,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
+    const mockRating = (parseInt(orderId.replace(/[^0-9]/g, '').slice(-1)) % 5) + 3.9;
+    const mockBuyers = parseInt(orderId.replace(/[^0-9]/g, '').slice(-2));
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -423,7 +425,12 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             />
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                        <p className="text-foreground font-bold">{order.product.price}</p>
+                                        <p className="font-bold">{order.product.price}</p>
+                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                            <Star className="w-4 h-4 fill-current" />
+                                            <span>{mockRating.toFixed(1)}</span>
+                                            <span className="text-muted-foreground">({mockBuyers})</span>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </Link>
