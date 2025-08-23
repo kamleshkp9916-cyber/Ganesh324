@@ -15,6 +15,7 @@ import {
   Users,
   ListFilter,
   Video,
+  MessageSquare,
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 
@@ -226,6 +227,12 @@ export default function SellerDashboard() {
             Products
           </Link>
           <Link
+            href="/seller/messages"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Messages
+          </Link>
+          <Link
             href="#"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -266,6 +273,12 @@ export default function SellerDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
+              </Link>
+               <Link
+                href="/seller/messages"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Messages
               </Link>
               <Link
                 href="#"

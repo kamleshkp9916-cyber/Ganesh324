@@ -13,6 +13,10 @@ import {
   MoreVertical,
   Printer,
   Truck,
+  MessageSquare,
+  Menu,
+  Package2,
+  Video
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link";
@@ -260,16 +264,20 @@ export default function SellerOrdersPage() {
   return (
     <Dialog open={!!selectedOrder} onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-                <div className="flex items-center gap-4 pt-4">
-                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => router.back()}>
-                        <ChevronLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Button>
+            <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
+                 <Link
+                    href="/seller/dashboard"
+                    className="flex items-center gap-2 text-lg font-semibold md:text-base mr-4"
+                  >
+                    <Package2 className="h-6 w-6" />
+                    <span className="sr-only">StreamCart Seller</span>
+                  </Link>
+                <div className="relative ml-auto flex-1 md:grow-0">
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    All Orders
+                        All Orders
                     </h1>
-                    <div className="ml-auto flex items-center gap-2">
+                </div>
+                <div className="ml-auto flex items-center gap-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="h-8 gap-1">
@@ -297,8 +305,9 @@ export default function SellerOrdersPage() {
                         Export
                         </span>
                     </Button>
-                    </div>
                 </div>
+            </header>
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
                 <CardHeader>
                     <CardTitle>Orders</CardTitle>

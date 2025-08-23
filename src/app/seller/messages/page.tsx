@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Search, MoreVertical, Image as ImageIcon, Smile, Paperclip, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Send, Search, MoreVertical, Smile, Paperclip, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -69,7 +69,7 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
     );
 }
 
-export default function MessagePage() {
+export default function SellerMessagePage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -145,7 +145,7 @@ export default function MessagePage() {
   }
   
   if (!user) {
-      router.push('/');
+      router.push('/seller/register');
       return null;
   }
 
@@ -157,7 +157,7 @@ export default function MessagePage() {
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                     <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => router.push('/live-selling')}>
+                     <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => router.push('/seller/dashboard')}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
