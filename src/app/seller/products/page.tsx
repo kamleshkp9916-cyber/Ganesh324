@@ -60,6 +60,8 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 const initialProducts: Product[] = [
     {
@@ -107,6 +109,7 @@ export default function SellerProductsPage() {
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
 
 
     useEffect(() => {
@@ -138,11 +141,25 @@ export default function SellerProductsPage() {
     }
 
     const handleSaveProduct = (product: Product) => {
+        let wasInStock = true;
         if (editingProduct) {
+            const originalProduct = products.find(p => p.id === product.id);
+            if (originalProduct) {
+                wasInStock = originalProduct.stock > 0;
+            }
             setProducts(products.map(p => p.id === product.id ? product : p));
         } else {
             setProducts([...products, { ...product, id: `prod_${Date.now()}` }]);
         }
+
+        if (product.stock === 0 && wasInStock) {
+            toast({
+                variant: "destructive",
+                title: "Product Sold Out!",
+                description: `${product.name} is now out of stock.`,
+            });
+        }
+
         setIsFormOpen(false);
         setEditingProduct(undefined);
     };
@@ -248,7 +265,7 @@ export default function SellerProductsPage() {
                     </TableHeader>
                     <TableBody>
                         {products.map(product => (
-                        <TableRow key={product.id}>
+                        <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
                             <TableCell className="hidden sm:table-cell">
                              <Link href={`/product/${product.id}`}>
                                 {product.image?.preview ? (
@@ -270,6 +287,7 @@ export default function SellerProductsPage() {
                                 <Link href={`/product/${product.id}`} className="hover:underline">
                                     {product.name}
                                 </Link>
+                                 {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
                             </TableCell>
                             <TableCell>
                             <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
@@ -277,7 +295,7 @@ export default function SellerProductsPage() {
                             <TableCell className="hidden md:table-cell">
                             ₹{product.price.toLocaleString()}
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">
+                            <TableCell className={cn("hidden md:table-cell", product.stock === 0 && "text-destructive font-bold")}>
                             {product.stock}
                             </TableCell>
                             <TableCell>

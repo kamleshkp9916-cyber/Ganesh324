@@ -11,6 +11,7 @@ import {
   File,
   ListFilter,
   MoreVertical,
+  Printer,
   Truck,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -26,6 +27,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,66 +50,199 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import Image from "next/image"
+import { useToast } from "@/hooks/use-toast";
 
 
 const mockSellerOrders = [
     {
         orderId: "#ORD5896",
         productId: "prod_1",
-        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
-        product: { name: "Vintage Camera" },
+        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com", phone: "+91 98765 43210", address: "123 Sunshine Apartments, Koregaon Park, Pune, Maharashtra - 411001" },
+        product: { name: "Vintage Camera", imageUrl: "https://placehold.co/80x80.png", hint: "vintage camera" },
         date: "July 27, 2024",
+        time: "10:31 PM",
         status: "Fulfilled",
-        total: "₹12,500.00",
+        price: 12500.00,
         type: "Listed Product"
     },
     {
         orderId: "#ORD5897",
         productId: "prod_2",
-        customer: { name: "Jane Doe", email: "jane.d@example.com" },
-        product: { name: "Wireless Headphones" },
+        customer: { name: "Jane Doe", email: "jane.d@example.com", phone: "+91 98765 43211", address: "456 Moonbeam Towers, Bandra West, Mumbai, Maharashtra - 400050" },
+        product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/80x80.png", hint: "headphones" },
         date: "July 26, 2024",
+        time: "08:16 AM",
         status: "Fulfilled",
-        total: "₹4,999.00",
+        price: 4999.00,
         type: "Live Stream"
     },
     {
         orderId: "#ORD5902",
         productId: "prod_3",
-        customer: { name: "David Garcia", email: "david.g@example.com" },
-        product: { name: "Bluetooth Speaker" },
+        customer: { name: "David Garcia", email: "david.g@example.com", phone: "+91 98765 43212", address: "789 Starlight Plaza, Indiranagar, Bengaluru, Karnataka - 560038" },
+        product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/80x80.png", hint: "bluetooth speaker" },
         date: "July 22, 2024",
+        time: "07:00 PM",
         status: "Processing",
-        total: "₹3,200.00",
+        price: 3200.00,
         type: "Live Stream"
     },
      {
         orderId: "#ORD5905",
         productId: "prod_4",
-        customer: { name: "Peter Jones", email: "peter.j@example.com" },
-        product: { name: "Designer Sunglasses" },
+        customer: { name: "Peter Jones", email: "peter.j@example.com", phone: "+91 98765 43213", address: "101 Galaxy Heights, Malviya Nagar, Jaipur, Rajasthan - 302017" },
+        product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/80x80.png", hint: "sunglasses" },
         date: "July 28, 2024",
+        time: "02:30 PM",
         status: "Pending",
-        total: "₹7,800.00",
+        price: 7800.00,
         type: "Listed Product"
     },
     {
         orderId: "#ORD5903",
         productId: "prod_5",
-        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
-        product: { name: "Coffee Maker" },
+        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com", phone: "+91 98765 43214", address: "222 Ocean View, Besant Nagar, Chennai, Tamil Nadu - 600090" },
+        product: { name: "Coffee Maker", imageUrl: "https://placehold.co/80x80.png", hint: "coffee maker" },
         date: "July 21, 2024",
+        time: "11:00 AM",
         status: "Cancelled",
-        total: "₹4,500.00",
+        price: 4500.00,
         type: "Listed Product"
     }
 ];
 
+type Order = typeof mockSellerOrders[0];
+
+function OrderDetailCard({ order }: { order: Order }) {
+    const { toast } = useToast();
+    const deliveryCharge = 50.00;
+    const convenienceFee = 20.00;
+    const gstRate = 0.12;
+    const gstAmount = order.price * gstRate;
+    const totalAmount = order.price + deliveryCharge + convenienceFee + gstAmount;
+
+    const copyToClipboard = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: "Copied to Clipboard",
+            description: `${label} has been copied.`
+        });
+    };
+    
+    const handlePrint = () => {
+        window.print();
+    };
+
+    return (
+        <DialogContent className="max-w-3xl p-0" id="printable-order">
+            <style>
+                {`
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #printable-order, #printable-order * {
+                        visibility: visible;
+                    }
+                    #printable-order {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none;
+                    }
+                }
+                `}
+            </style>
+            <DialogHeader className="p-6 pb-0">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <DialogTitle className="text-2xl">Order Details</DialogTitle>
+                        <p className="text-muted-foreground">Order ID: {order.orderId}</p>
+                    </div>
+                    <Button onClick={handlePrint} variant="outline" size="sm" className="no-print">
+                        <Printer className="h-4 w-4 mr-2" />
+                        Print
+                    </Button>
+                </div>
+            </DialogHeader>
+            <div className="px-6 py-4 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 className="font-semibold mb-2">Customer Details</h3>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                            <p><strong>Name:</strong> {order.customer.name}</p>
+                            <p><strong>Email:</strong> {order.customer.email}</p>
+                            <p><strong>Phone:</strong> {order.customer.phone}</p>
+                            <p><strong>Address:</strong> {order.customer.address}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold mb-2">Order Information</h3>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                            <p><strong>Date:</strong> {order.date} at {order.time}</p>
+                            <p><strong>Status:</strong> <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"}>{order.status}</Badge></p>
+                            <p><strong>Type:</strong> <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>{order.type}</Badge></p>
+                        </div>
+                    </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                    <h3 className="font-semibold mb-2">Product Details</h3>
+                    <div className="flex items-center gap-4 p-4 border rounded-lg">
+                        <Image src={order.product.imageUrl} alt={order.product.name} width={64} height={64} className="rounded-md" data-ai-hint={order.product.hint} />
+                        <div className="flex-grow">
+                            <p className="font-medium">{order.product.name}</p>
+                            <p className="text-sm text-muted-foreground">Product ID: {order.productId}</p>
+                        </div>
+                        <p className="font-semibold">₹{order.price.toFixed(2)}</p>
+                    </div>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                     <h3 className="font-semibold mb-2">Payment Summary</h3>
+                     <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Product Price:</span>
+                            <span>₹{order.price.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Delivery Charges:</span>
+                            <span>₹{deliveryCharge.toFixed(2)}</span>
+                        </div>
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">Convenience Fee:</span>
+                            <span>₹{convenienceFee.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">GST (12%):</span>
+                            <span>₹{gstAmount.toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-bold text-base">
+                            <span>Total Amount:</span>
+                            <span>₹{totalAmount.toFixed(2)}</span>
+                        </div>
+                     </div>
+                </div>
+
+            </div>
+        </DialogContent>
+    );
+}
 
 export default function SellerOrdersPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -118,107 +258,110 @@ export default function SellerOrdersPage() {
     }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <div className="flex items-center gap-4 pt-4">
-                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => router.back()}>
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="sr-only">Back</span>
-                </Button>
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                   All Orders
-                </h1>
-                <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                        <ListFilter className="h-3.5 w-3.5" />
+    <Dialog open={!!selectedOrder} onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+                <div className="flex items-center gap-4 pt-4">
+                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => router.back()}>
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Button>
+                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                    All Orders
+                    </h1>
+                    <div className="ml-auto flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-1">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Filter
+                            </span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuCheckboxItem checked>
+                            Fulfilled
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem>Processing</DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem>
+                            Cancelled
+                        </DropdownMenuCheckboxItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button size="sm" variant="outline" className="h-8 gap-1">
+                        <File className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
+                        Export
                         </span>
                     </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                        Fulfilled
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Processing</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                        Cancelled
-                    </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
-                    <File className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
-                    </span>
-                </Button>
-                </div>
-            </div>
-            <Card>
-            <CardHeader>
-                <CardTitle>Orders</CardTitle>
-                <CardDescription>
-                A list of all orders from your live streams and product listings.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="divide-y divide-border">
-                {mockSellerOrders.map((order) => (
-                    <div key={order.orderId} className="grid grid-cols-2 md:grid-cols-6 items-start gap-4 py-4">
-                        <div className="font-medium col-span-2 md:col-span-1">
-                            <p>{order.orderId}</p>
-                            <p className="text-xs text-muted-foreground">{order.date}</p>
-                        </div>
-                        <div className="col-span-2 md:col-span-2">
-                           <Link href={`/product/${order.productId}`} className="font-medium hover:underline">{order.product.name}</Link>
-                           <p className="text-xs text-muted-foreground">Sold to: {order.customer.name}</p>
-                        </div>
-                        <div className="col-span-2 md:col-span-1">
-                             <p className="font-medium">{order.customer.name}</p>
-                             <p className="text-xs text-muted-foreground">{order.customer.email}</p>
-                        </div>
-                        <div className="text-left md:text-center">
-                            <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>
-                                {order.type}
-                            </Badge>
-                        </div>
-                         <div className="text-left md:text-center">
-                            <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">
-                                {order.status}
-                            </Badge>
-                        </div>
-                        <div className="font-medium text-right">{order.total}</div>
                     </div>
-                ))}
                 </div>
-            </CardContent>
-            <CardFooter>
-                <div className="text-xs text-muted-foreground">
-                Showing <strong>1-5</strong> of <strong>{mockSellerOrders.length}</strong> orders
-                </div>
-                 <Pagination className="ml-auto mr-0 w-auto">
-                    <PaginationContent>
-                    <PaginationItem>
-                        <Button size="icon" variant="outline" className="h-6 w-6">
-                        <ChevronLeft className="h-3.5 w-3.5" />
-                        <span className="sr-only">Previous Order</span>
-                        </Button>
-                    </PaginationItem>
-                    <PaginationItem>
-                        <Button size="icon" variant="outline" className="h-6 w-6">
-                        <ChevronRight className="h-3.5 w-3.5" />
-                        <span className="sr-only">Next Order</span>
-                        </Button>
-                    </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-            </CardFooter>
-            </Card>
-        </main>
-    </div>
+                <Card>
+                <CardHeader>
+                    <CardTitle>Orders</CardTitle>
+                    <CardDescription>
+                    A list of all orders from your live streams and product listings.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="divide-y divide-border">
+                    {mockSellerOrders.map((order) => (
+                        <div key={order.orderId} className="grid grid-cols-2 md:grid-cols-6 items-start gap-4 py-4 cursor-pointer hover:bg-accent/50" onClick={() => setSelectedOrder(order)}>
+                            <div className="font-medium col-span-2 md:col-span-1">
+                                <p>{order.orderId}</p>
+                                <p className="text-xs text-muted-foreground">{order.date}</p>
+                            </div>
+                            <div className="col-span-2 md:col-span-2">
+                            <p className="font-medium hover:underline">{order.product.name}</p>
+                            <p className="text-xs text-muted-foreground">Sold to: {order.customer.name}</p>
+                            </div>
+                            <div className="col-span-2 md:col-span-1">
+                                <p className="font-medium">{order.customer.name}</p>
+                                <p className="text-xs text-muted-foreground">{order.customer.email}</p>
+                            </div>
+                            <div className="text-left md:text-center">
+                                <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>
+                                    {order.type}
+                                </Badge>
+                            </div>
+                            <div className="text-left md:text-center">
+                                <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">
+                                    {order.status}
+                                </Badge>
+                            </div>
+                            <div className="font-medium text-right">₹{order.price.toFixed(2)}</div>
+                        </div>
+                    ))}
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <div className="text-xs text-muted-foreground">
+                    Showing <strong>1-5</strong> of <strong>{mockSellerOrders.length}</strong> orders
+                    </div>
+                    <Pagination className="ml-auto mr-0 w-auto">
+                        <PaginationContent>
+                        <PaginationItem>
+                            <Button size="icon" variant="outline" className="h-6 w-6">
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                            <span className="sr-only">Previous Order</span>
+                            </Button>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <Button size="icon" variant="outline" className="h-6 w-6">
+                            <ChevronRight className="h-3.5 w-3.5" />
+                            <span className="sr-only">Next Order</span>
+                            </Button>
+                        </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </CardFooter>
+                </Card>
+            </main>
+            {selectedOrder && <OrderDetailCard order={selectedOrder} />}
+        </div>
+    </Dialog>
   )
 }
