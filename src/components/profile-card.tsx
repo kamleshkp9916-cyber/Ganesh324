@@ -29,6 +29,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
+import { ChatPopup } from './chat-popup';
 
 const initialProducts: Product[] = [
     {
@@ -156,6 +157,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const loadSellerProducts = () => {
     if (profileData.role === 'seller') {
@@ -188,14 +190,18 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
       if (event.key === 'sellerProducts') {
         loadSellerProducts();
       }
+      if (event.key === 'mockFeed') {
+        const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
+        setSellerPosts(globalFeed.filter((p: any) => p.sellerName === displayName));
+      }
     };
     
     setRecentlyViewedItems(getRecentlyViewed());
     setWishlist(getWishlist().map(p => p.id));
     loadSellerProducts();
 
-    const storedPosts = JSON.parse(localStorage.getItem('sellerPosts') || '[]');
-    setSellerPosts(storedPosts);
+    const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
+    setSellerPosts(globalFeed.filter((p: any) => p.sellerName === displayName));
     
     setTimeout(() => {
         setIsLoadingContent(false);
@@ -282,11 +288,13 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
+    
+    const displayName = profileData.displayName || profileData.name;
 
     const newPost = {
         id: Date.now(),
-        sellerName: profileData.displayName || profileData.name,
-        avatarUrl: profileData.photoURL,
+        sellerName: displayName,
+        avatarUrl: profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`,
         timestamp: 'just now',
         content: data.content,
         productImageUrl: data.media?.url || null,
@@ -296,11 +304,6 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
         location: data.location || null,
     };
     
-    // Update this seller's posts
-    const updatedSellerPosts = [newPost, ...sellerPosts];
-    setSellerPosts(updatedSellerPosts);
-    localStorage.setItem('sellerPosts', JSON.stringify(updatedSellerPosts));
-
     // Update the global feed
     const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
     const updatedGlobalFeed = [newPost, ...globalFeed];
@@ -417,7 +420,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                             <UserPlus className="mr-2 h-4 w-4" />
                             {isFollowing ? "Following" : "Follow"}
                         </Button>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={() => setIsChatOpen(true)}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Message
                         </Button>
@@ -722,12 +725,17 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 </div>
             </CardContent>
         </div>
+        {isChatOpen && !isOwnProfile && (
+            <ChatPopup 
+                user={{ displayName, photoURL: profileData.photoURL }}
+                onClose={() => setIsChatOpen(false)} 
+            />
+        )}
         <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>{editingAddress ? 'Edit' : 'Add New'} Delivery Address</DialogTitle>
             </DialogHeader>
             <EditAddressForm 
-                currentAddress={editingAddress}
                 onSave={handleAddressSave} 
                 onCancel={() => setIsAddressDialogOpen(false)}
             />
@@ -735,5 +743,3 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     </Dialog>
   );
 }
-
-    

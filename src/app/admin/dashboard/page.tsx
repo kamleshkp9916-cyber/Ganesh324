@@ -225,10 +225,10 @@ export default function AdminDashboard() {
               <CardTitle className="text-sm font-medium">
                 Total Revenue
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">₹</span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$1,245,231.89</div>
+              <div className="text-2xl font-bold">₹1,24,52,31.89</div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last month
               </p>

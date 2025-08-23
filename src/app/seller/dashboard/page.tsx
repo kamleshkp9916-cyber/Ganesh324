@@ -70,12 +70,12 @@ import { Product } from "@/components/seller/product-form";
 import { useToast } from "@/hooks/use-toast";
 
 const salesData = [
-  { name: "Jan", sales: 4000 },
-  { name: "Feb", sales: 3000 },
-  { name: "Mar", sales: 5000 },
-  { name: "Apr", sales: 4500 },
-  { name: "May", sales: 6000 },
-  { name: "Jun", sales: 5500 },
+  { name: "Jan", sales: 400000 },
+  { name: "Feb", sales: 300000 },
+  { name: "Mar", sales: 500000 },
+  { name: "Apr", sales: 450000 },
+  { name: "May", sales: 600000 },
+  { name: "Jun", sales: 550000 },
 ]
 
 const recentTransactions = [
@@ -143,7 +143,6 @@ export default function SellerDashboard() {
         } else {
             const details = JSON.parse(sellerDetailsRaw);
             setSellerDetails(details);
-            // "Complete" the verification on first visit to dashboard
             if (details.verificationStatus === 'pending') {
                 details.verificationStatus = 'verified';
                 localStorage.setItem('sellerDetails', JSON.stringify(details));
@@ -155,14 +154,12 @@ export default function SellerDashboard() {
   const filteredTransactions = useMemo(() => {
     let items = recentTransactions.filter(t => t.status !== 'Cancelled');
     
-    // Type filter
     if (typeFilter === 'stream') {
         items = items.filter(t => t.type === 'Live Stream');
     } else if (typeFilter === 'product') {
         items = items.filter(t => t.type === 'Listed Product');
     }
 
-    // Date filter
     const now = new Date();
     if (dateFilter === 'today') {
         items = items.filter(t => t.date.toDateString() === now.toDateString());
@@ -335,10 +332,10 @@ export default function SellerDashboard() {
               <CardTitle className="text-sm font-medium">
                 Total Revenue
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">₹</span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
+              <div className="text-2xl font-bold">₹4,52,31,890</div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last month
               </p>
@@ -366,7 +363,7 @@ export default function SellerDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">+152</div>
               <p className="text-xs text-muted-foreground">
-                +12 since last month
+                since account creation
               </p>
             </CardContent>
           </Card>
@@ -397,8 +394,8 @@ export default function SellerDashboard() {
                 <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={salesData}>
                     <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
+                    <YAxis tickFormatter={(value) => `₹${Number(value) / 1000}k`} />
+                    <Tooltip formatter={(value) => `₹${value.toLocaleString('en-IN')}`} />
                     <Legend />
                     <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
