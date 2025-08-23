@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React from 'react';
@@ -217,12 +215,12 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
         <div 
-            className="p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-4 relative bg-cover bg-center bg-primary/10"
+            className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-primary/10"
         >
             <div className={cn("absolute inset-0 bg-primary/10")} />
             
-            <div className="relative z-10">
-                <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background shadow-lg">
+            <div className="relative z-10 flex-shrink-0">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${profileData?.displayName?.charAt(0)}`} alt={profileData?.displayName || ""} />
                     <AvatarFallback className="text-4xl">{profileData?.displayName?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -248,25 +246,24 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 )}
             </div>
             
-            <div className="text-center relative z-10 text-foreground">
-                <div className="flex flex-col sm:flex-row items-center gap-2">
-                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
-                </div>
+            <div className="relative z-10 text-foreground flex-grow">
+                <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
-            </div>
-            <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 relative z-10 text-foreground">
-                {profileData.role === 'customer' && (
-                    <div className="text-center">
-                        <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                    </div>
-                )}
-                {profileData.role === 'seller' && (
-                    <div className="text-center">
-                        <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                    </div>
-                )}
+                
+                <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
+                    {profileData.role === 'customer' && (
+                        <div className="text-left">
+                            <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                        </div>
+                    )}
+                    {profileData.role === 'seller' && (
+                        <div className="text-left">
+                            <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
 
@@ -354,7 +351,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                     </>
                 )}
                 
-                {!isOwnProfile && (
+                {!isOwnProfile && profileData.role === 'seller' && (
                     <>
                         <div>
                             <h3 className="text-lg font-semibold mb-2">About {profileData.displayName.split(' ')[0]}</h3>
