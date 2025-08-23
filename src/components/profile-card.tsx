@@ -653,7 +653,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                       <Image 
                                                           src={item.imageUrl}
                                                           alt={item.name}
-                                                          layout="fill"
+                                                          fill
                                                           className="object-cover"
                                                           data-ai-hint={item.hint}
                                                       />
