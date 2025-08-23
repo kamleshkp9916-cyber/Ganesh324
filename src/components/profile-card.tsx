@@ -6,7 +6,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -155,6 +155,24 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  const loadSellerProducts = () => {
+    if (profileData.role === 'seller') {
+      const storedProducts = localStorage.getItem('sellerProducts');
+      if (storedProducts) {
+        setSellerProducts(JSON.parse(storedProducts));
+      } else {
+        const defaultSellerProducts = initialProducts.map(p => ({
+          ...p,
+          image: { preview: p.imageUrl },
+          stock: Math.floor(Math.random() * 50),
+          status: 'active'
+        }));
+        setSellerProducts(defaultSellerProducts);
+      }
+    }
+  };
 
   // Seed recently viewed items for demo purposes
   useEffect(() => {
@@ -164,31 +182,30 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
     }
   }, []);
 
-  // Load data from localStorage on mount
+  // Load data from localStorage on mount and add storage listener
   useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'sellerProducts') {
+        loadSellerProducts();
+      }
+    };
+    
     setRecentlyViewedItems(getRecentlyViewed());
     setWishlist(getWishlist().map(p => p.id));
-    
-    if (profileData.role === 'seller') {
-        const storedProducts = localStorage.getItem('sellerProducts');
-        if (storedProducts) {
-            setSellerProducts(JSON.parse(storedProducts));
-        } else {
-            const defaultSellerProducts = initialProducts.map(p => ({
-                ...p,
-                image: { preview: p.imageUrl },
-                stock: Math.floor(Math.random() * 50),
-                status: 'active'
-            }));
-            setSellerProducts(defaultSellerProducts);
-        }
-        const storedPosts = JSON.parse(localStorage.getItem('sellerPosts') || '[]');
-        setSellerPosts(storedPosts);
-    }
+    loadSellerProducts();
+
+    const storedPosts = JSON.parse(localStorage.getItem('sellerPosts') || '[]');
+    setSellerPosts(storedPosts);
     
     setTimeout(() => {
         setIsLoadingContent(false);
-    }, 1000)
+    }, 1000);
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileData.role]);
 
 
@@ -308,7 +325,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
 
   return (
     <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
-        <div className="p-4 sm:p-6 flex flex-row items-center gap-4 sm:gap-6 relative bg-card">
+        <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative bg-card">
             <div className="relative z-10 flex-shrink-0">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
@@ -336,8 +353,8 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 )}
             </div>
             
-            <div className="relative z-10 text-foreground flex-grow">
-                <div className="flex items-center gap-2">
+            <div className="relative z-10 text-foreground flex-grow text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
                     <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                     {profileData.role === 'seller' && (
                         <Badge variant="secondary" className="flex items-center gap-1">
@@ -348,7 +365,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                 </div>
                 {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
                 
-                <div className="flex gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
+                <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
                     {profileData.role === 'customer' && (
                         <div className="text-left">
                             <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
@@ -370,19 +387,19 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                                 <ScrollArea className="h-80">
                                     <div className="p-4 space-y-4">
                                         {mockSellerFollowers.map(follower => (
-                                            <div key={follower.id} className="flex items-center justify-between">
+                                            <Link href={`/profile?userId=${follower.handle.substring(1)}`} key={follower.id} className="flex items-center justify-between group">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar>
                                                         <AvatarImage src={follower.avatar} />
                                                         <AvatarFallback>{follower.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold">{follower.name}</p>
+                                                        <p className="font-semibold group-hover:underline">{follower.name}</p>
                                                         <p className="text-sm text-muted-foreground">{follower.handle}</p>
                                                     </div>
                                                 </div>
                                                 <Button variant="outline" size="sm">View</Button>
-                                            </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 </ScrollArea>
@@ -390,6 +407,22 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </Dialog>
                     </div>
                 </div>
+
+                {!isOwnProfile && (
+                     <div className="mt-4 flex justify-center sm:justify-start gap-2">
+                        <Button
+                            onClick={() => setIsFollowing(!isFollowing)}
+                            variant={isFollowing ? "outline" : "default"}
+                        >
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            {isFollowing ? "Following" : "Follow"}
+                        </Button>
+                        <Button variant="outline">
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Message
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
 
@@ -535,7 +568,7 @@ export function ProfileCard({ onEdit, profileData, isOwnProfile, onAddressesUpda
                         </TabsContent>
                          <TabsContent value="posts" className="mt-4 space-y-4">
                             {isOwnProfile && 
-                                <div className="mb-6">
+                                <div className="mb-6 sticky top-20 z-40">
                                      <CreatePostForm onCreatePost={handleCreatePost} />
                                 </div>
                             }
