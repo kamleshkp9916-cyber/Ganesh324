@@ -178,11 +178,11 @@ export default function CartPage() {
                                 <div className="divide-y">
                                     {cartItems.map(item => (
                                         <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                            <Link href={`/product/${item.id}`} className="block flex-shrink-0">
+                                            <Link href={`/product/${item.key}`} className="block flex-shrink-0">
                                                 <Image src={item.imageUrl} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
                                             <div className="flex-grow">
-                                                <Link href={`/product/${item.id}`} className="hover:underline">
+                                                <Link href={`/product/${item.key}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
                                                 <p className="text-sm text-muted-foreground">{item.price}</p>
@@ -296,7 +296,7 @@ export default function CartPage() {
                                         </DialogContent>
                                     </Dialog>
                                 </div>
-                                 <CardDescription>Your order will be delivered to this address.</CardDescription>
+                                 <CardDescription>Your order will be delivered to this address. Select any address it will reach to that destination with {address.pincode}</CardDescription>
                             </CardHeader>
                             <CardContent className="text-sm space-y-2">
                                 <div className="flex items-start gap-3">
