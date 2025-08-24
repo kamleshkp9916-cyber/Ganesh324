@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays } from 'date-fns';
 import { Input } from './ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
@@ -250,46 +252,58 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 Buy Now
                             </Button>
                         </div>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Available Offers</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {mockOffers.map((offer, index) => (
-                                    <div key={index} className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                        <div>
-                                            <h5 className="font-semibold">{offer.title}</h5>
-                                            <p className="text-sm text-muted-foreground">{offer.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
 
-                <div className="mt-12">
-                    <h3 className="font-semibold">Check Delivery</h3>
-                    <div className="flex items-center gap-2 mt-2">
-                        <Input
-                            placeholder="Enter Pincode"
-                            maxLength={6}
-                            className="max-w-[150px]"
-                            value={pincode}
-                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                        />
-                        <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                            {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
-                        </Button>
-                    </div>
-                    {isDeliverable === true && (
-                        <div className="flex items-center gap-2 mt-2 text-green-600">
-                            <Truck className="h-5 w-5" />
-                            <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                <div className="mt-12 space-y-8">
+                    <div>
+                        <h3 className="font-semibold mb-2">Check Delivery Availability</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Input
+                                placeholder="Enter Pincode"
+                                maxLength={6}
+                                className="max-w-[150px]"
+                                value={pincode}
+                                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                            />
+                            <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
+                            </Button>
                         </div>
-                    )}
+                        {isDeliverable === true && (
+                            <div className="flex items-center gap-2 mt-2 text-green-600">
+                                <Truck className="h-5 w-5" />
+                                <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <Collapsible>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="outline" className="w-full justify-between">
+                                View Available Offers
+                                <ChevronDown className="h-4 w-4" />
+                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                             <Card className="mt-2">
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Available Offers</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {mockOffers.map((offer, index) => (
+                                        <div key={index} className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                            <div>
+                                                <h5 className="font-semibold">{offer.title}</h5>
+                                                <p className="text-sm text-muted-foreground">{offer.description}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        </CollapsibleContent>
+                    </Collapsible>
                 </div>
                 
                  {/* Related Products Section */}
