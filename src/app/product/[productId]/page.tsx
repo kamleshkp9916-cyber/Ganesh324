@@ -51,6 +51,7 @@ export default function ProductDetailPage() {
             // @ts-ignore
             const details = productDetails[productId as keyof typeof productDetails] || productDetails['prod_1']; // Fallback
             setProduct(details);
+             document.title = "Product Detail";
             // Add to recently viewed when component mounts with a valid product
             addRecentlyViewed({
                 id: details.id,
