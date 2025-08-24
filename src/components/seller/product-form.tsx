@@ -31,6 +31,8 @@ import Image from "next/image"
 const productFormSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(3, "Product name must be at least 3 characters."),
+  brand: z.string().min(2, "Brand name must be at least 2 characters."),
+  category: z.string().min(1, "Please select a category."),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
   price: z.coerce.number().positive("Price must be a positive number."),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
@@ -39,6 +41,8 @@ const productFormSchema = z.object({
 })
 
 export type Product = z.infer<typeof productFormSchema> & { image: { file?: File, preview: string } };
+
+const categories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Kitchenware", "Fitness", "Handmade", "Pet Supplies", "Books", "Gaming"];
 
 interface ProductFormProps {
   onSave: (product: Product) => void;
@@ -53,6 +57,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: productToEdit || {
       name: "",
+      brand: "",
+      category: "",
       description: "",
       price: 0,
       stock: 0,
@@ -110,6 +116,41 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               </FormItem>
             )}
           />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="brand"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Brand Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g. Sony, Apple, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <FormField
             control={form.control}
             name="description"

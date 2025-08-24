@@ -6,27 +6,28 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed, addToCart, Product } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
-    'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', price: '₹12,500.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
-    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', price: '₹4,999.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
-    'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', price: '₹2,100.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
-    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', price: '₹8,750.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
-    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', price: '₹6,200.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
-    'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', price: '₹1,500.00', images: ['https://placehold.co/600x600.png'], hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
-    'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', price: '₹3,000.00', images: ['https://placehold.co/600x600.png'], hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
-    'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', price: '₹2,500.00', images: ['https://placehold.co/600x600.png'], hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
-    'prod_9': { id: 9, key: 'prod_9', name: 'Signed Novel', price: '₹1,800.00', images: ['https://placehold.co/600x600.png'], hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
-    'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', price: '₹4,200.00', images: ['https://placehold.co/600x600.png'], hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
+    'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', brand: 'RetroCam', category: 'Electronics', price: '₹12,500.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
+    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', brand: 'SoundWave', category: 'Electronics', price: '₹4,999.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
+    'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', brand: 'Artisan Home', category: 'Home Goods', price: '₹2,100.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
+    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', brand: 'TimeWarp', category: 'Electronics', price: '₹8,750.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
+    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', brand: 'UrbanCarry', category: 'Fashion', price: '₹6,200.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
+    'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', brand: 'ZenFlex', category: 'Fitness', price: '₹1,500.00', images: ['https://placehold.co/600x600.png'], hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
+    'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', brand: 'ClayWorks', category: 'Handmade', price: '₹3,000.00', images: ['https://placehold.co/600x600.png'], hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
+    'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', brand: 'Pawsome', category: 'Pet Supplies', price: '₹2,500.00', images: ['https://placehold.co/600x600.png'], hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
+    'prod_9': { id: 9, key: 'prod_9', name: 'Signed Novel', brand: 'Bookish', category: 'Books', price: '₹1,800.00', images: ['https://placehold.co/600x600.png'], hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
+    'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', brand: 'ClickFast', category: 'Gaming', price: '₹4,200.00', images: ['https://placehold.co/600x600.png'], hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
 };
 
 const mockReviews = [
@@ -44,6 +45,7 @@ export default function ProductDetailPage() {
     const [product, setProduct] = useState<(typeof productDetails)[keyof typeof productDetails] | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
+    const [wishlisted, setWishlisted] = useState(false);
 
     useEffect(() => {
         if (productId) {
@@ -54,23 +56,59 @@ export default function ProductDetailPage() {
                 setSelectedImage(details.images[0]);
             }
             document.title = "Product Detail";
-            addRecentlyViewed({
+            const productForHistory: Product = {
                 id: details.id,
                 key: details.key,
                 name: details.name,
                 price: details.price,
-                imageUrl: details.images[0], // Use first image for history
+                imageUrl: details.images[0],
                 hint: details.hint,
-            });
+                brand: details.brand,
+                category: details.category,
+            };
+            addRecentlyViewed(productForHistory);
+            setWishlisted(isWishlisted(details.id));
         }
     }, [productId]);
-
+    
     const handleAddToCart = () => {
         if (product) {
-            addToCart({ ...product, imageUrl: product.images[0], quantity: 1 });
+            const productForCart: Product = {
+                id: product.id,
+                key: product.key,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.images[0],
+                hint: product.hint,
+                brand: product.brand,
+                category: product.category,
+            };
+            addToCart({ ...productForCart, quantity: 1 });
             toast({
                 title: "Added to Cart!",
                 description: `${product.name} has been added to your shopping cart.`,
+            });
+        }
+    };
+    
+    const handleWishlistToggle = () => {
+        if (product) {
+            const productForWishlist: Product = {
+                id: product.id,
+                key: product.key,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.images[0],
+                hint: product.hint,
+                brand: product.brand,
+                category: product.category,
+            };
+            addToWishlist(productForWishlist); // This function toggles
+            const newWishlistedState = isWishlisted(product.id);
+            setWishlisted(newWishlistedState);
+            toast({
+                title: newWishlistedState ? "Added to Wishlist" : "Removed from Wishlist",
+                description: `${product.name} has been ${newWishlistedState ? 'added to' : 'removed from'} your wishlist.`,
             });
         }
     };
@@ -78,6 +116,10 @@ export default function ProductDetailPage() {
     if (!product) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
     }
+
+    const relatedProducts = Object.values(productDetails).filter(
+        p => p.category === product.category && p.id !== product.id
+    ).slice(0, 4);
 
     return (
         <div className="min-h-screen bg-background">
@@ -92,8 +134,19 @@ export default function ProductDetailPage() {
             <main className="container mx-auto py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Image Gallery */}
-                    <div className="flex flex-row gap-4">
-                        <div className="flex flex-col gap-2 overflow-y-auto pr-2 no-scrollbar max-h-[500px]">
+                    <div className="flex flex-row-reverse gap-4">
+                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
+                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
+                             <Button
+                                size="icon"
+                                variant="secondary"
+                                className={cn("absolute top-3 right-3 h-10 w-10 rounded-full z-10", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+                                onClick={handleWishlistToggle}
+                            >
+                                <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
+                            </Button>
+                        </div>
+                         <div className="flex flex-col gap-2 overflow-y-auto pr-2 no-scrollbar max-h-[500px]">
                            {product.images.map((img, index) => (
                                <div 
                                     key={index}
@@ -107,14 +160,12 @@ export default function ProductDetailPage() {
                                </div>
                            ))}
                         </div>
-                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
-                        </div>
                     </div>
 
                     {/* Product Details */}
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4">
                         <div>
+                             <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
                             <div className="flex items-center gap-2 mt-2">
                                 <div className="flex items-center gap-1">
@@ -135,10 +186,36 @@ export default function ProductDetailPage() {
                             <span className="text-sm font-medium">Safe and Secure Shopping</span>
                         </div>
 
-                        <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                            <ShoppingCart className="mr-2 h-5 w-5" />
-                            Add to Cart
-                        </Button>
+                         <div className="flex flex-col gap-2">
+                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                Add to Cart
+                            </Button>
+                            <Button size="lg" className="w-full" variant="outline">
+                                Buy Now
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+                
+                 {/* Related Products Section */}
+                <div className="mt-16">
+                     <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {relatedProducts.map(related => (
+                            <Link href={`/product/${related.key}`} key={related.id} className="group block">
+                                <Card className="overflow-hidden">
+                                    <div className="aspect-square bg-muted relative">
+                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover"/>
+                                    </div>
+                                    <CardContent className="p-3">
+                                        <p className="text-xs text-muted-foreground">{related.brand}</p>
+                                        <h3 className="font-semibold truncate group-hover:underline">{related.name}</h3>
+                                        <p className="font-bold">{related.price}</p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
                     </div>
                 </div>
 

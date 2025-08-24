@@ -8,6 +8,8 @@ export interface Product {
     price: string;
     imageUrl: string;
     hint: string;
+    brand?: string;
+    category?: string;
 }
 
 export interface CartProduct extends Product {
@@ -36,6 +38,8 @@ export const addToWishlist = (product: Product) => {
     if (!items.find(p => p.id === product.id)) {
         const newItems = [...items, product];
         localStorage.setItem(WISHLIST_KEY, JSON.stringify(newItems));
+    } else {
+        removeFromWishlist(product.id);
     }
 };
 
