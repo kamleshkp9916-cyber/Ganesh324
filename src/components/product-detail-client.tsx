@@ -232,6 +232,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
+                        <div className="flex flex-col gap-2">
+                             {inCart ? (
+                                <Button asChild size="lg" className="w-full">
+                                    <Link href="/cart">
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Go to Cart
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    Add to Cart
+                                </Button>
+                            )}
+                            <Button size="lg" className="w-full" variant="outline">
+                                Buy Now
+                            </Button>
+                        </div>
+
                         <Card>
                             <CardContent className="p-4 space-y-3">
                                 <h4 className="font-semibold">Delivery</h4>
@@ -273,24 +292,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </CardContent>
                         </Card>
 
-                         <div className="flex flex-col gap-2">
-                             {inCart ? (
-                                <Button asChild size="lg" className="w-full">
-                                    <Link href="/cart">
-                                        <ShoppingCart className="mr-2 h-5 w-5" />
-                                        Go to Cart
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Add to Cart
-                                </Button>
-                            )}
-                            <Button size="lg" className="w-full" variant="outline">
-                                Buy Now
-                            </Button>
-                        </div>
                     </div>
                 </div>
                 
