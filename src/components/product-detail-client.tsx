@@ -43,13 +43,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
     const product = productDetails[productId as keyof typeof productDetails] || null;
 
-    const [selectedImage, setSelectedImage] = useState<string | null>(product?.images[0] || null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (product) {
+            setSelectedImage(product.images[0]);
             document.title = product.name;
             const productForHistory: Product = {
                 id: product.id,
@@ -64,9 +66,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
-        } else {
-             document.title = "Product Not Found";
         }
+        setIsLoading(false);
     }, [product]);
     
     const handleAddToCart = () => {
@@ -119,6 +120,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             description: "Product link copied to clipboard.",
         });
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner />
+            </div>
+        )
+    }
 
     if (!product) {
         return (
@@ -285,5 +294,4 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </main>
         </div>
     );
-
-    
+}
