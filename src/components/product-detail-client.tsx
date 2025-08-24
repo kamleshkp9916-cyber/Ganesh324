@@ -41,39 +41,34 @@ const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     
-    const [product, setProduct] = useState<(typeof productDetails)[keyof typeof productDetails] | null>(null);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    // Look up product data directly. No need for a loading state here.
+    const product = productDetails[productId as keyof typeof productDetails] || null;
+
+    const [selectedImage, setSelectedImage] = useState<string | null>(product?.images[0] || null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
 
     useEffect(() => {
-        if (productId) {
-            const castProductId = productId as keyof typeof productDetails;
-            const details = productDetails[castProductId] || null;
-            
-            if(details){
-                setProduct(details);
-                if (details.images && details.images.length > 0) {
-                    setSelectedImage(details.images[0]);
-                }
-                document.title = "Product Detail";
-                const productForHistory: Product = {
-                    id: details.id,
-                    key: details.key,
-                    name: details.name,
-                    price: details.price,
-                    imageUrl: details.images[0],
-                    hint: details.hint,
-                    brand: details.brand,
-                    category: details.category,
-                };
-                addRecentlyViewed(productForHistory);
-                setWishlisted(isWishlisted(details.id));
-                setInCart(isProductInCart(details.id));
-            }
+        if (product) {
+            document.title = product.name;
+            const productForHistory: Product = {
+                id: product.id,
+                key: product.key,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.images[0],
+                hint: product.hint,
+                brand: product.brand,
+                category: product.category,
+            };
+            addRecentlyViewed(productForHistory);
+            setWishlisted(isWishlisted(product.id));
+            setInCart(isProductInCart(product.id));
+        } else {
+             document.title = "Product Not Found";
         }
-    }, [productId]);
+    }, [product]);
     
     const handleAddToCart = () => {
         if (product) {
@@ -126,9 +121,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         });
     };
 
-
     if (!product) {
-        return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
+        return (
+             <div className="flex flex-col h-screen items-center justify-center">
+                <p className="text-2xl font-semibold mb-4">Product Not Found</p>
+                <Button onClick={() => router.back()}>Go Back</Button>
+            </div>
+        );
     }
 
     const relatedProducts = Object.values(productDetails).filter(
@@ -288,3 +287,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
