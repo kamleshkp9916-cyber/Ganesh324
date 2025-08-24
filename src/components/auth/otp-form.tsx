@@ -53,7 +53,7 @@ async function verifyOtpOnServer(otp: string): Promise<{ success: boolean }> {
 }
 
 
-export function OtpForm({ identifier }: { identifier?: string }) {
+export function OtpForm({ identifier }: { identifier: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);

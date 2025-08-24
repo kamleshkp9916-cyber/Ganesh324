@@ -5,7 +5,7 @@ import { Logo } from '@/components/logo';
 import { ChevronLeft } from 'lucide-react';
 
 export default function OtpPage({ searchParams }: { searchParams: { identifier?: string } }) {
-  const { identifier } = searchParams;
+  const identifier = searchParams.identifier || '';
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-background p-4">
