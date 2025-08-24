@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { getCart, removeFromCart, updateCartQuantity, CartProduct } from '@/lib/product-history';
@@ -280,8 +280,10 @@ export default function CartPage() {
                         
                         <Card>
                              <CardHeader>
-                                <CardTitle className="flex items-center justify-between text-base">
-                                    <span>Delivery To</span>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-base">
+                                        Delivery To
+                                    </CardTitle>
                                      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
@@ -293,7 +295,8 @@ export default function CartPage() {
                                             <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
                                         </DialogContent>
                                     </Dialog>
-                                </CardTitle>
+                                </div>
+                                 <CardDescription>Your order will be delivered to this address.</CardDescription>
                             </CardHeader>
                             <CardContent className="text-sm space-y-2">
                                 <div className="flex items-start gap-3">
