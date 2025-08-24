@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
 
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
-    ).slice(0, 4);
+    ).slice(0, 6);
 
     return (
         <div className="min-h-screen bg-background">
@@ -232,21 +232,21 @@ export default function ProductDetailPage() {
                  {/* Related Products Section */}
                 <div className="mt-16">
                      <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {relatedProducts.map(related => (
                             <Link href={`/product/${related.key}`} key={related.id} className="group block">
                                 <Card className="overflow-hidden h-full flex flex-col">
                                     <div className="aspect-square bg-muted relative">
                                         <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
                                     </div>
-                                    <CardContent className="p-3 flex-grow flex flex-col">
+                                    <CardContent className="p-2 flex-grow flex flex-col">
                                         <p className="text-xs text-muted-foreground">{related.brand}</p>
-                                        <h3 className="font-semibold truncate group-hover:underline text-sm flex-grow">{related.name}</h3>
-                                        <p className="font-bold mt-1">{related.price}</p>
+                                        <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
+                                        <p className="font-bold text-sm mt-1">{related.price}</p>
                                         <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-4 h-4 fill-current" />
+                                            <Star className="w-3 h-3 fill-current" />
                                             <span>{averageRating}</span>
-                                            <span className="text-muted-foreground">({mockReviews.length})</span>
+                                            <span className="text-muted-foreground text-xs">({mockReviews.length})</span>
                                         </div>
                                     </CardContent>
                                 </Card>
