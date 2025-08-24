@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -16,6 +16,7 @@ import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isP
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays } from 'date-fns';
+import { Input } from './ui/input';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
@@ -31,10 +32,16 @@ const productDetails = {
     'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', brand: 'ClickFast', category: 'Gaming', price: '₹4,200.00', images: ['https://placehold.co/600x600.png'], hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
 };
 
+
 const mockReviews = [
     { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
     { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
     { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
+];
+
+const mockOffers = [
+    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
+    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -48,6 +55,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
+    const [pincode, setPincode] = useState("");
+    const [isDeliverable, setIsDeliverable] = useState<boolean | null>(null);
+    const [checkingPincode, setCheckingPincode] = useState(false);
+
 
     useEffect(() => {
         if (product) {
@@ -74,7 +85,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         const deliveryDate = addDays(today, 5);
         return format(deliveryDate, 'E, MMM dd');
     }, []);
-    
+
+    const handlePincodeCheck = () => {
+        if (pincode.length !== 6) {
+            toast({ variant: "destructive", title: "Invalid Pincode", description: "Please enter a valid 6-digit pincode." });
+            return;
+        }
+        setCheckingPincode(true);
+        setTimeout(() => {
+            setIsDeliverable(true);
+            setCheckingPincode(false);
+        }, 1000);
+    };
+
     const handleAddToCart = () => {
         if (product) {
             const productForCart: Product = {
@@ -209,15 +232,46 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
-                        <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed">
-                             <Truck className="h-6 w-6 text-primary" />
-                            <p className="text-sm">Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
-                        </div>
+                        <Card>
+                            <CardContent className="p-4 space-y-3">
+                                <h4 className="font-semibold">Delivery</h4>
+                                <div className="flex items-center gap-2">
+                                    <Input 
+                                        placeholder="Enter Pincode" 
+                                        maxLength={6} 
+                                        className="max-w-[150px]" 
+                                        value={pincode}
+                                        onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                                    />
+                                    <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                        {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
+                                    </Button>
+                                </div>
+                                {isDeliverable === true && (
+                                    <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-success-foreground bg-success/10 border-success/50">
+                                        <Truck className="h-6 w-6" />
+                                        <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                         
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <span className="text-sm font-medium">Safe and Secure Shopping</span>
-                        </div>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Available Offers</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {mockOffers.map((offer, index) => (
+                                    <div key={index} className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                        <div>
+                                            <h5 className="font-semibold">{offer.title}</h5>
+                                            <p className="text-sm text-muted-foreground">{offer.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
 
                          <div className="flex flex-col gap-2">
                              {inCart ? (
