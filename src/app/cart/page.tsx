@@ -88,8 +88,16 @@ export default function CartPage() {
   };
 
   const handleQuantityChange = (productId: number, newQuantity: number) => {
-      updateCartQuantity(productId, newQuantity);
-      setCartItems(getCart());
+      if (isBuyNow) {
+          setCartItems(currentItems => 
+              currentItems.map(item => 
+                  item.id === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item
+              )
+          );
+      } else {
+          updateCartQuantity(productId, newQuantity);
+          setCartItems(getCart());
+      }
   };
 
   const handleAddressSave = (newAddress: any) => {
@@ -215,24 +223,23 @@ export default function CartPage() {
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
                                             </div>
+                                            
+                                            <div className="flex items-center gap-2">
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                                                    <Minus className="h-4 w-4" />
+                                                </Button>
+                                                <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="font-bold w-24 text-right">
+                                                ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </div>
                                             {!isBuyNow && (
-                                                <>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)}>
-                                                            <Minus className="h-4 w-4" />
-                                                        </Button>
-                                                        <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                    <div className="font-bold w-24 text-right">
-                                                        ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </div>
-                                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id)}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </>
+                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
                                             )}
                                         </div>
                                     ))}
