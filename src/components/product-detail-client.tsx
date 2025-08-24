@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { format, addDays } from 'date-fns';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
@@ -47,7 +48,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (product) {
@@ -67,8 +67,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
         }
-        setIsLoading(false);
     }, [product]);
+
+    const estimatedDeliveryDate = useMemo(() => {
+        const today = new Date();
+        const deliveryDate = addDays(today, 5);
+        return format(deliveryDate, 'E, MMM dd');
+    }, []);
     
     const handleAddToCart = () => {
         if (product) {
@@ -120,14 +125,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             description: "Product link copied to clipboard.",
         });
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner />
-            </div>
-        )
-    }
 
     if (!product) {
         return (
@@ -212,6 +209,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
+                        <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed">
+                             <Truck className="h-6 w-6 text-primary" />
+                            <p className="text-sm">Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                        </div>
+                        
                         <div className="flex items-center gap-2">
                             <ShieldCheck className="h-5 w-5 text-primary" />
                             <span className="text-sm font-medium">Safe and Secure Shopping</span>
@@ -295,5 +297,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
-    
