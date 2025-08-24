@@ -252,30 +252,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
 
                         <Card>
-                            <CardContent className="p-4 space-y-3">
-                                <h4 className="font-semibold">Delivery</h4>
-                                <div className="flex items-center gap-2">
-                                    <Input 
-                                        placeholder="Enter Pincode" 
-                                        maxLength={6} 
-                                        className="max-w-[150px]" 
-                                        value={pincode}
-                                        onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                                    />
-                                    <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                        {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
-                                    </Button>
-                                </div>
-                                {isDeliverable === true && (
-                                    <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-success-foreground bg-success/10 border-success/50">
-                                        <Truck className="h-6 w-6" />
-                                        <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                        
-                        <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg">Available Offers</CardTitle>
                             </CardHeader>
@@ -291,8 +267,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 ))}
                             </CardContent>
                         </Card>
-
                     </div>
+                </div>
+
+                <div className="mt-12">
+                    <h3 className="font-semibold">Check Delivery</h3>
+                    <div className="flex items-center gap-2 mt-2">
+                        <Input
+                            placeholder="Enter Pincode"
+                            maxLength={6}
+                            className="max-w-[150px]"
+                            value={pincode}
+                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                        />
+                        <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                            {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
+                        </Button>
+                    </div>
+                    {isDeliverable === true && (
+                        <div className="flex items-center gap-2 mt-2 text-green-600">
+                            <Truck className="h-5 w-5" />
+                            <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                        </div>
+                    )}
                 </div>
                 
                  {/* Related Products Section */}
