@@ -41,7 +41,6 @@ const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     
-    // Look up product data directly. No need for a loading state here.
     const product = productDetails[productId as keyof typeof productDetails] || null;
 
     const [selectedImage, setSelectedImage] = useState<string | null>(product?.images[0] || null);
@@ -83,7 +82,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 category: product.category,
             };
             addToCart({ ...productForCart, quantity: 1 });
-            setInCart(true); // Update state to reflect it's in the cart
+            setInCart(true);
             toast({
                 title: "Added to Cart!",
                 description: `${product.name} has been added to your shopping cart.`,
@@ -103,7 +102,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 brand: product.brand,
                 category: product.category,
             };
-            addToWishlist(productForWishlist); // This function toggles
+            addToWishlist(productForWishlist);
             const newWishlistedState = isWishlisted(product.id);
             setWishlisted(newWishlistedState);
             toast({
@@ -286,4 +285,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </main>
         </div>
     );
-}
+
+    
