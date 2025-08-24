@@ -93,9 +93,6 @@ export default function ProductDetailPage() {
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Image Gallery */}
                     <div className="flex flex-row gap-4">
-                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
-                        </div>
                         <div className="flex flex-col gap-2 overflow-y-auto pr-2 no-scrollbar max-h-[500px]">
                            {product.images.map((img, index) => (
                                <div 
@@ -109,6 +106,9 @@ export default function ProductDetailPage() {
                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} width={100} height={100} className="object-cover w-full h-full" />
                                </div>
                            ))}
+                        </div>
+                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
                         </div>
                     </div>
 
