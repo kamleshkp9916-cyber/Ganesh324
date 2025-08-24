@@ -99,6 +99,11 @@ export const getCart = (): CartProduct[] => {
     return items ? JSON.parse(items) : [];
 };
 
+export const isProductInCart = (productId: number): boolean => {
+    const items = getCart();
+    return items.some(p => p.id === productId);
+};
+
 export const addToCart = (product: CartProduct) => {
     const items = getCart();
     const existingProductIndex = items.findIndex(p => p.id === product.id);

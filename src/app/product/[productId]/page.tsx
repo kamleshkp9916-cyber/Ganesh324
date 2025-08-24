@@ -6,13 +6,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -46,6 +46,7 @@ export default function ProductDetailPage() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
+    const [inCart, setInCart] = useState(false);
 
     useEffect(() => {
         if (productId) {
@@ -68,6 +69,7 @@ export default function ProductDetailPage() {
             };
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(details.id));
+            setInCart(isProductInCart(details.id));
         }
     }, [productId]);
     
@@ -84,6 +86,7 @@ export default function ProductDetailPage() {
                 category: product.category,
             };
             addToCart({ ...productForCart, quantity: 1 });
+            setInCart(true); // Update state to reflect it's in the cart
             toast({
                 title: "Added to Cart!",
                 description: `${product.name} has been added to your shopping cart.`,
@@ -112,6 +115,15 @@ export default function ProductDetailPage() {
             });
         }
     };
+    
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+            title: "Link Copied!",
+            description: "Product link copied to clipboard.",
+        });
+    };
+
 
     if (!product) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
@@ -134,18 +146,7 @@ export default function ProductDetailPage() {
             <main className="container mx-auto py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Image Gallery */}
-                    <div className="flex flex-row-reverse gap-4">
-                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
-                             <Button
-                                size="icon"
-                                variant="secondary"
-                                className={cn("absolute top-3 right-3 h-10 w-10 rounded-full z-10", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
-                                onClick={handleWishlistToggle}
-                            >
-                                <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
-                            </Button>
-                        </div>
+                    <div className="flex flex-row gap-4">
                          <div className="flex flex-col gap-2 overflow-y-auto pr-2 no-scrollbar max-h-[500px]">
                            {product.images.map((img, index) => (
                                <div 
@@ -159,6 +160,27 @@ export default function ProductDetailPage() {
                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} width={100} height={100} className="object-cover w-full h-full" />
                                </div>
                            ))}
+                        </div>
+                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
+                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
+                            <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+                                 <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    className={cn("h-10 w-10 rounded-full", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+                                    onClick={handleWishlistToggle}
+                                >
+                                    <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
+                                </Button>
+                                 <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    className="h-10 w-10 rounded-full"
+                                    onClick={handleShare}
+                                >
+                                    <Share2 className="h-5 w-5" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -187,10 +209,19 @@ export default function ProductDetailPage() {
                         </div>
 
                          <div className="flex flex-col gap-2">
-                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                Add to Cart
-                            </Button>
+                             {inCart ? (
+                                <Button asChild size="lg" className="w-full">
+                                    <Link href="/cart">
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Go to Cart
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    Add to Cart
+                                </Button>
+                            )}
                             <Button size="lg" className="w-full" variant="outline">
                                 Buy Now
                             </Button>
@@ -201,17 +232,22 @@ export default function ProductDetailPage() {
                  {/* Related Products Section */}
                 <div className="mt-16">
                      <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {relatedProducts.map(related => (
                             <Link href={`/product/${related.key}`} key={related.id} className="group block">
-                                <Card className="overflow-hidden">
+                                <Card className="overflow-hidden h-full flex flex-col">
                                     <div className="aspect-square bg-muted relative">
-                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover"/>
+                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
                                     </div>
-                                    <CardContent className="p-3">
+                                    <CardContent className="p-3 flex-grow flex flex-col">
                                         <p className="text-xs text-muted-foreground">{related.brand}</p>
-                                        <h3 className="font-semibold truncate group-hover:underline">{related.name}</h3>
-                                        <p className="font-bold">{related.price}</p>
+                                        <h3 className="font-semibold truncate group-hover:underline text-sm flex-grow">{related.name}</h3>
+                                        <p className="font-bold mt-1">{related.price}</p>
+                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                            <Star className="w-4 h-4 fill-current" />
+                                            <span>{averageRating}</span>
+                                            <span className="text-muted-foreground">({mockReviews.length})</span>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </Link>
