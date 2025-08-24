@@ -41,7 +41,7 @@ const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 
 export default function ProductDetailPage() {
     const router = useRouter();
     const params = useParams();
-    const { productId } = params;
+    
     const [product, setProduct] = useState<(typeof productDetails)[keyof typeof productDetails] | null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
@@ -49,9 +49,10 @@ export default function ProductDetailPage() {
     const [inCart, setInCart] = useState(false);
 
     useEffect(() => {
-        if (productId) {
+        if (params && params.productId) {
+            const productId = params.productId as keyof typeof productDetails;
             // @ts-ignore
-            const details = productDetails[productId as keyof typeof productDetails] || productDetails['prod_1']; // Fallback
+            const details = productDetails[productId] || productDetails['prod_1']; // Fallback
             setProduct(details);
             if (details.images && details.images.length > 0) {
                 setSelectedImage(details.images[0]);
@@ -71,7 +72,7 @@ export default function ProductDetailPage() {
             setWishlisted(isWishlisted(details.id));
             setInCart(isProductInCart(details.id));
         }
-    }, [productId]);
+    }, [params]);
     
     const handleAddToCart = () => {
         if (product) {
@@ -146,8 +147,8 @@ export default function ProductDetailPage() {
             <main className="container mx-auto py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Image Gallery */}
-                    <div className="flex flex-row gap-4">
-                         <div className="flex flex-col gap-2 overflow-y-auto pr-2 no-scrollbar max-h-[500px]">
+                    <div className="flex flex-col-reverse md:flex-row gap-4">
+                         <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar max-h-[500px]">
                            {product.images.map((img, index) => (
                                <div 
                                     key={index}
@@ -235,12 +236,11 @@ export default function ProductDetailPage() {
                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {relatedProducts.map(related => (
                             <Link href={`/product/${related.key}`} key={related.id} className="group block">
-                                <Card className="overflow-hidden h-full flex flex-col">
-                                    <div className="aspect-square bg-muted relative">
+                                <Card className="overflow-hidden h-full flex flex-col p-2">
+                                    <div className="aspect-square bg-muted relative rounded-md overflow-hidden">
                                         <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
                                     </div>
                                     <CardContent className="p-2 flex-grow flex flex-col">
-                                        <p className="text-xs text-muted-foreground">{related.brand}</p>
                                         <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
                                         <p className="font-bold text-sm mt-1">{related.price}</p>
                                         <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
@@ -286,4 +286,5 @@ export default function ProductDetailPage() {
             </main>
         </div>
     );
-}
+
+    
