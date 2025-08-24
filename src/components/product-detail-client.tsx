@@ -21,7 +21,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collap
 
 
 // Mock data - in a real app this would come from a database
-const productDetails = {
+export const productDetails = {
     'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', brand: 'RetroCam', category: 'Electronics', price: '₹12,500.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
     'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', brand: 'SoundWave', category: 'Electronics', price: '₹4,999.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
     'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', brand: 'Artisan Home', category: 'Home Goods', price: '₹2,100.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
@@ -150,6 +150,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             description: "Product link copied to clipboard.",
         });
     };
+    
+    const handleBuyNow = () => {
+        if (product) {
+            router.push(`/cart?buyNow=true&productId=${product.key}`);
+        }
+    };
 
     if (!product) {
         return (
@@ -248,7 +254,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     Add to Cart
                                 </Button>
                             )}
-                            <Button size="lg" className="w-full" variant="outline">
+                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
                                 Buy Now
                             </Button>
                         </div>
@@ -363,3 +369,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    

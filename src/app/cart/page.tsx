@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { format, addDays } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
+import { productDetails } from '@/components/product-detail-client';
 
 const mockAddress = {
     name: "Samael Prajapati",
@@ -46,6 +47,7 @@ function EmptyCart() {
 
 export default function CartPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
@@ -54,12 +56,27 @@ export default function CartPage() {
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<typeof mockCoupons[0] | null>(null);
 
+  const buyNowProductId = searchParams.get('productId');
+  const isBuyNow = searchParams.get('buyNow') === 'true';
+
   useEffect(() => {
     setIsClient(true);
     if (user) {
+      if (isBuyNow && buyNowProductId) {
+        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
+        if (productData) {
+          const buyNowItem: CartProduct = {
+            ...productData,
+            quantity: 1,
+            imageUrl: productData.images[0]
+          };
+          setCartItems([buyNowItem]);
+        }
+      } else {
         setCartItems(getCart());
+      }
     }
-  }, [user]);
+  }, [user, isBuyNow, buyNowProductId]);
 
   const handleRemoveFromCart = (productId: number) => {
     removeFromCart(productId);
@@ -159,7 +176,7 @@ export default function CartPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold">Shopping Cart</h1>
+        <h1 className="text-xl font-bold">{isBuyNow ? 'Checkout' : 'Shopping Cart'}</h1>
         <div className="w-10"></div>
       </header>
 
@@ -172,7 +189,7 @@ export default function CartPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Your Items ({totalItems})</CardTitle>
+                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="divide-y">
@@ -198,21 +215,25 @@ export default function CartPage() {
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)}>
-                                                    <Minus className="h-4 w-4" />
-                                                </Button>
-                                                <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            <div className="font-bold w-24 text-right">
-                                                ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            {!isBuyNow && (
+                                                <>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)}>
+                                                            <Minus className="h-4 w-4" />
+                                                        </Button>
+                                                        <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="font-bold w-24 text-right">
+                                                        ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </div>
+                                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -317,5 +338,7 @@ export default function CartPage() {
     </div>
   );
 }
+
+    
 
     
