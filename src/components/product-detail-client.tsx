@@ -148,8 +148,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Image Gallery */}
-                    <div className="flex flex-row gap-4">
-                         <div className="flex flex-col gap-2 overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar max-h-[500px]">
+                    <div className="flex flex-col-reverse md:flex-row gap-4">
+                         <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar md:max-h-[500px]">
                            {product.images.map((img, index) => (
                                <div 
                                     key={index}
