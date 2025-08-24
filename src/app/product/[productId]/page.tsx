@@ -17,19 +17,17 @@ import { useToast } from '@/hooks/use-toast';
 
 // Mock data - in a real app this would come from a database
 const productDetails = {
-    'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', price: '₹12,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
-    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', price: '₹4,999.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
-    'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', price: '₹2,100.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
-    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', price: '₹8,750.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
-    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', price: '₹6,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
-    // Adding fallbacks for other product IDs
-    'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', price: '₹1,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
-    'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', price: '₹3,000.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
-    'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', price: '₹2,500.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
-    'prod_9': { id: 9, key: 'prod_9', name: 'Signed Novel', price: '₹1,800.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
-    'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', price: '₹4,200.00', imageUrl: 'https://placehold.co/600x600.png', hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
+    'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', price: '₹12,500.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.' },
+    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', price: '₹4,999.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.' },
+    'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', price: '₹2,100.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.' },
+    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', price: '₹8,750.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.' },
+    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', price: '₹6,200.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.' },
+    'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', price: '₹1,500.00', images: ['https://placehold.co/600x600.png'], hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.' },
+    'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', price: '₹3,000.00', images: ['https://placehold.co/600x600.png'], hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.' },
+    'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', price: '₹2,500.00', images: ['https://placehold.co/600x600.png'], hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.' },
+    'prod_9': { id: 9, key: 'prod_9', name: 'Signed Novel', price: '₹1,800.00', images: ['https://placehold.co/600x600.png'], hint: 'book cover', description: 'A first edition novel, signed by the author. A must-have for collectors.' },
+    'prod_10': { id: 10, key: 'prod_10', name: 'Gaming Mouse', price: '₹4,200.00', images: ['https://placehold.co/600x600.png'], hint: 'gaming mouse', description: 'An ergonomic gaming mouse with customizable RGB lighting and programmable buttons.' },
 };
-
 
 const mockReviews = [
     { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
@@ -44,6 +42,7 @@ export default function ProductDetailPage() {
     const params = useParams();
     const { productId } = params;
     const [product, setProduct] = useState<(typeof productDetails)[keyof typeof productDetails] | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -51,14 +50,16 @@ export default function ProductDetailPage() {
             // @ts-ignore
             const details = productDetails[productId as keyof typeof productDetails] || productDetails['prod_1']; // Fallback
             setProduct(details);
-             document.title = "Product Detail";
-            // Add to recently viewed when component mounts with a valid product
+            if (details.images && details.images.length > 0) {
+                setSelectedImage(details.images[0]);
+            }
+            document.title = "Product Detail";
             addRecentlyViewed({
                 id: details.id,
                 key: details.key,
                 name: details.name,
                 price: details.price,
-                imageUrl: details.imageUrl,
+                imageUrl: details.images[0], // Use first image for history
                 hint: details.hint,
             });
         }
@@ -66,14 +67,13 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         if (product) {
-            addToCart({ ...product, quantity: 1 });
+            addToCart({ ...product, imageUrl: product.images[0], quantity: 1 });
             toast({
                 title: "Added to Cart!",
                 description: `${product.name} has been added to your shopping cart.`,
             });
         }
     };
-
 
     if (!product) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
@@ -91,9 +91,25 @@ export default function ProductDetailPage() {
 
             <main className="container mx-auto py-8">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Product Image */}
-                    <div className="aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                        <Image src={product.imageUrl} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />
+                    {/* Product Image Gallery */}
+                    <div className="flex flex-col-reverse md:flex-row gap-4">
+                        <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto pr-2 md:pr-0 md:pl-2 no-scrollbar">
+                           {product.images.map((img, index) => (
+                               <div 
+                                    key={index}
+                                    className={cn(
+                                        "w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2",
+                                        selectedImage === img ? "border-primary" : "border-transparent"
+                                    )}
+                                    onClick={() => setSelectedImage(img)}
+                               >
+                                   <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} width={100} height={100} className="object-cover w-full h-full" />
+                               </div>
+                           ))}
+                        </div>
+                        <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
+                        </div>
                     </div>
 
                     {/* Product Details */}
