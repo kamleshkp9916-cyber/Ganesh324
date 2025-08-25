@@ -24,22 +24,27 @@ function initializeFirebase() {
             });
         } else {
             app = getApp();
+            // This ensures we get the auth instance associated with the app,
+            // which is crucial in a Next.js environment with Fast Refresh.
             auth = getAuth(app);
         }
     }
 }
 
-// Initialize on load
+// Initialize on load to be ready for other parts of the app
 initializeFirebase();
 
-const getFirebaseApp = (): FirebaseApp => {
-    if (!app) initializeFirebase();
+
+export const getFirebaseApp = (): FirebaseApp => {
+    if (!app) {
+        initializeFirebase();
+    }
     return app;
 }
 
-const getFirebaseAuth = (): Auth => {
-    if (!auth) initializeFirebase();
+export const getFirebaseAuth = (): Auth => {
+    if (!auth) {
+        initializeFirebase();
+    }
     return auth;
 };
-
-export { getFirebaseApp, getFirebaseAuth };

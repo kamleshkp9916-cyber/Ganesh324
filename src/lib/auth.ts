@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
+    // Get the auth instance directly inside the hook to ensure it's initialized.
     const auth = getFirebaseAuth();
 
     const signInWithGoogle = async () => {
