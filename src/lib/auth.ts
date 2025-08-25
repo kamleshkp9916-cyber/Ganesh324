@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -13,19 +13,11 @@ export function useAuthActions() {
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            // In a real app, you would let Firebase handle the popup and result.
-            // await signInWithPopup(auth, provider);
-            
-            // For mock flow, we simulate success immediately.
-            console.log("Simulating Google Sign-In...");
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            await signInWithPopup(auth, provider);
             toast({
                 title: "Signed In!",
                 description: `Welcome back!`,
             });
-            // This is key for the mock user flow
-            sessionStorage.setItem('mockUserSessionActive', 'true');
             window.location.href = "/live-selling";
         } catch (error) {
             console.error("Error signing in with Google: ", error);
@@ -37,26 +29,21 @@ export function useAuthActions() {
         }
     };
     
-    const signUpWithEmailAndPassword = async (email: string, password: string, profileData: { firstName: string; lastName: string; }) => {
+    const signUpWithEmail = async (email: string, password: string, profileData: { firstName: string; lastName: string; }) => {
         try {
-            // In a real app, you would use this. For now, we simulate.
-            // const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            // const user = userCredential.user;
-            // await updateProfile(user, {
-            //     displayName: `${profileData.firstName} ${profileData.lastName}`,
-            // });
-            console.log("Simulating account creation for:", email);
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // This is key for the mock user flow
-            sessionStorage.setItem('mockUserSessionActive', 'true');
-            
-            // We still return a mock userCredential-like object if needed elsewhere
-            // return { user: { email, displayName: `${profileData.firstName} ${profileData.lastName}` } };
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            await updateProfile(user, {
+                displayName: `${profileData.firstName} ${profileData.lastName}`,
+            });
+             toast({
+                title: "Account Created!",
+                description: "You have been successfully signed up.",
+            });
+            router.push('/live-selling');
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";
-            // This error handling is kept for when you switch to real auth
             switch (error.code) {
                 case 'auth/email-already-in-use':
                     errorMessage = "This email address is already in use by another account.";
@@ -76,15 +63,55 @@ export function useAuthActions() {
             throw new Error(errorMessage);
         }
     };
+    
+    const signInWithEmail = async (email: string, password: string) => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            toast({
+                title: "Logged In!",
+                description: "Welcome back!",
+            });
+
+            if (email === "samael.prajapati@example.com") {
+                router.push('/admin/dashboard');
+                return;
+            }
+
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const sellerDetails = JSON.parse(sellerDetailsRaw);
+                if (sellerDetails.email === email) {
+                    router.push('/seller/dashboard');
+                    return;
+                }
+            }
+            
+            router.push('/live-selling');
+        } catch (error: any) {
+            console.error("Error signing in: ", error);
+             let errorMessage = "An unknown error occurred.";
+            switch (error.code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    errorMessage = "Invalid email or password. Please try again.";
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = "Please enter a valid email address.";
+                    break;
+                case 'auth/user-disabled':
+                    errorMessage = "This account has been disabled.";
+                    break;
+                default:
+                    errorMessage = "Failed to sign in. Please try again later.";
+            }
+            throw new Error(errorMessage);
+        }
+    };
 
     const signOut = async () => {
         try {
-            // In a real app, you would sign out from Firebase
-            // await firebaseSignOut(auth);
-            
-            // This is key for the mock user flow
-            sessionStorage.removeItem('mockUserSessionActive');
-            sessionStorage.removeItem('isSellerLogin');
+            await firebaseSignOut(auth);
             
             toast({
                 title: "Signed Out",
@@ -103,7 +130,7 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmailAndPassword };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';

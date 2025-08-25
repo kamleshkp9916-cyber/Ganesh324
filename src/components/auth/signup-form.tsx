@@ -33,7 +33,6 @@ const formSchema = z.object({
     .refine((val) => /^[a-z0-9_.]+$/.test(val.substring(1)), {
       message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
     }),
-  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
@@ -75,27 +74,22 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm() {
   const router = useRouter();
-  const { signInWithGoogle, signUpWithEmailAndPassword } = useAuthActions();
+  const { signInWithGoogle, signUpWithEmail } = useAuthActions();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "", userId: "@", phone: "+91 ", email: "", password: "" },
+    defaultValues: { firstName: "", lastName: "", userId: "@", email: "", password: "" },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await signUpWithEmailAndPassword(values.email, values.password, { 
+      await signUpWithEmail(values.email, values.password, { 
         firstName: values.firstName, 
         lastName: values.lastName 
       });
-      toast({
-          title: "Account Created!",
-          description: "An OTP has been sent to your device for verification.",
-      });
-      router.push(`/otp?identifier=${values.email}`);
     } catch (error: any) {
         toast({
             title: "Sign Up Failed",
@@ -153,33 +147,6 @@ export function SignupForm() {
                             let value = e.target.value.toLowerCase();
                             if (!value.startsWith('@')) {
                                 value = '@' + value.replace(/@/g, '');
-                            }
-                            field.onChange(value);
-                        }}
-                    />
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-            )}
-        />
-        <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-            <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                    <Input 
-                        placeholder="98765 43210" 
-                        {...field} 
-                        disabled={isLoading}
-                        onChange={(e) => {
-                            let value = e.target.value;
-                            if (!value.startsWith('+91 ')) {
-                                value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                            }
-                            if (value.length > 14) {
-                                value = value.substring(0, 14);
                             }
                             field.onChange(value);
                         }}

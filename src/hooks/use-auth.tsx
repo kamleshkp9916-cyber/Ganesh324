@@ -45,7 +45,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   
-  const enableMockUser = true;
+  const enableMockUser = false; // Disabled mock user flow
 
   useEffect(() => {
     const updateUserState = (firebaseUser: User | null) => {

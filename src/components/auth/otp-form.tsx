@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/input-otp"
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
   otp: z.string().min(6, {
@@ -56,6 +57,7 @@ async function verifyOtpOnServer(otp: string): Promise<{ success: boolean }> {
 export function OtpForm({ identifier }: { identifier: string }) {
   const router = useRouter();
   const { toast } = useToast();
+  const { signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
@@ -152,19 +154,25 @@ export function OtpForm({ identifier }: { identifier: string }) {
             description: "Your OTP has been verified.",
         });
 
+        // This part is now handled by the Firebase Auth state persistence
+        // The useAuth hook will automatically pick up the logged-in user.
+        
         if (identifier === ADMIN_EMAIL) {
-            window.location.href = "/admin/dashboard";
+            router.push("/admin/dashboard");
             return;
         }
 
         const sellerDetails = localStorage.getItem('sellerDetails');
-        const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
-
-        if (sellerDetails && isSellerLogin) {
-            window.location.href = "/seller/dashboard";
-        } else {
-             window.location.href = "/live-selling";
+        if (sellerDetails) {
+            const parsedDetails = JSON.parse(sellerDetails);
+            if (parsedDetails.email === identifier) {
+                router.push("/seller/dashboard");
+                return;
+            }
         }
+        
+        router.push("/live-selling");
+
 
       } else {
          toast({

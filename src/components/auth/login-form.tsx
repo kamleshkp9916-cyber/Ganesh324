@@ -25,13 +25,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  identifier: z.string().refine((value) => {
-    const isEmail = z.string().email().safeParse(value).success;
-    const isPhone = /^\d{10}$/.test(value);
-    return isEmail || isPhone;
-  }, {
-    message: "Please enter a valid email or a 10-digit phone number.",
-  }),
+  identifier: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
   rememberMe: z.boolean().default(false).optional(),
 });
@@ -69,7 +63,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function LoginForm() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuthActions();
+  const { signInWithGoogle, signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -77,48 +71,20 @@ export function LoginForm() {
     resolver: zodResolver(formSchema),
     defaultValues: { identifier: "", password: "", rememberMe: false },
   });
-  
-  useEffect(() => {
-    // This ensures that if a user skips login, then comes back,
-    // we don't accidentally keep them in a "logged-in" mock state.
-    if (typeof window !== 'undefined' && !sessionStorage.getItem('mockUserSessionActive')) {
-      sessionStorage.removeItem('isSellerLogin');
-    }
-  }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // This simulates a login check before OTP.
-    // In a real app, you'd verify password here.
-    console.log("Simulating credential check for:", values.identifier);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // This is key for the mock user flow
-    sessionStorage.setItem('mockUserSessionActive', 'true');
-
-    if (values.identifier === ADMIN_EMAIL) {
-        sessionStorage.removeItem('isSellerLogin');
-    } else {
-        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (sellerDetailsRaw) {
-            const sellerDetails = JSON.parse(sellerDetailsRaw);
-            if (sellerDetails.email === values.identifier) {
-                sessionStorage.setItem('isSellerLogin', 'true');
-            } else {
-                sessionStorage.removeItem('isSellerLogin');
-            }
-        } else {
-             sessionStorage.removeItem('isSellerLogin');
-        }
+    try {
+        await signInWithEmail(values.identifier, values.password);
+    } catch (error: any) {
+        toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive"
+        });
+    } finally {
+        setIsLoading(false);
     }
-
-
-    toast({
-        title: "Verification Required",
-        description: "An OTP has been sent to your device.",
-    });
-
-    router.push(`/otp?identifier=${values.identifier}`);
   }
 
   return (
@@ -129,9 +95,9 @@ export function LoginForm() {
           name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email / Phone</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com or 1234567890" {...field} disabled={isLoading} className="bg-background"/>
+                <Input placeholder="name@example.com" {...field} disabled={isLoading} className="bg-background"/>
               </FormControl>
               <FormMessage />
             </FormItem>
