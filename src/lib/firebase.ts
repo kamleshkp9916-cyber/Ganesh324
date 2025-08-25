@@ -12,41 +12,36 @@ const firebaseConfig = {
   "messagingSenderId": "658712603017"
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
 
-// This function ensures Firebase is initialized, but only on the client-side.
 function initializeFirebase() {
     if (typeof window !== "undefined") {
         if (!getApps().length) {
             app = initializeApp(firebaseConfig);
-            // Use initializeAuth for more explicit control, especially with persistence.
             auth = initializeAuth(app, {
                 persistence: browserLocalPersistence,
             });
         } else {
             app = getApp();
-            // Crucially, get the auth instance from the existing app.
             auth = getAuth(app);
         }
     }
 }
 
-// Call initialization on module load.
+// Initialize Firebase on client side
 initializeFirebase();
 
-// Export a function that returns the app instance.
 export const getFirebaseApp = (): FirebaseApp => {
     if (!app) {
         initializeFirebase();
     }
-    return app;
+    return app!;
 }
 
-// Export a function that returns the auth instance.
 export const getFirebaseAuth = (): Auth => {
     if (!auth) {
         initializeFirebase();
     }
-    return auth;
+    return auth!;
 };
