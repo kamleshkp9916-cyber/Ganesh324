@@ -2,13 +2,14 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebase";
+import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
+    const auth = getFirebaseAuth();
 
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
@@ -134,4 +135,4 @@ export function useAuthActions() {
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';
-export { auth };
+export { getFirebaseAuth as getAuth };

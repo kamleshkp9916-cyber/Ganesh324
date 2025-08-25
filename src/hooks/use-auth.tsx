@@ -3,7 +3,7 @@
 
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getFirebaseAuth } from '@/lib/firebase';
 import { usePathname, useRouter } from 'next/navigation';
 
 const mockUser: User = {
@@ -44,6 +44,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const auth = getFirebaseAuth();
   
   const enableMockUser = false; // Disabled mock user flow
 
@@ -84,7 +85,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
       unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [auth]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

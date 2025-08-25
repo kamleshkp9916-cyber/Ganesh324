@@ -1,6 +1,6 @@
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, initializeAuth, browserLocalPersistence } from "firebase/auth";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, initializeAuth, browserLocalPersistence, Auth } from "firebase/auth";
 
 const firebaseConfig = {
   "projectId": "streamcart-login",
@@ -12,11 +12,18 @@ const firebaseConfig = {
   "messagingSenderId": "658712603017"
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+let auth: Auth;
 
-// Initialize auth with local persistence
-const auth = initializeAuth(app, {
-  persistence: browserLocalPersistence
-});
+if (typeof window !== 'undefined') {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = initializeAuth(app, {
+      persistence: browserLocalPersistence
+    });
+}
 
-export { app, auth };
+// @ts-ignore
+const getFirebaseApp = (): FirebaseApp => app;
+const getFirebaseAuth = (): Auth => auth;
+
+export { getFirebaseApp, getFirebaseAuth };
