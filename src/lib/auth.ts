@@ -9,10 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
-    // Get the auth instance directly inside the hook to ensure it's initialized.
-    const auth = getFirebaseAuth();
 
     const signInWithGoogle = async () => {
+        // Get the auth instance directly inside the action.
+        const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
@@ -32,6 +32,7 @@ export function useAuthActions() {
     };
     
     const signUpWithEmail = async (email: string, password: string, profileData: { firstName: string; lastName: string; }) => {
+        const auth = getFirebaseAuth();
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
@@ -67,6 +68,7 @@ export function useAuthActions() {
     };
     
     const signInWithEmail = async (email: string, password: string) => {
+        const auth = getFirebaseAuth();
         try {
             await signInWithEmailAndPassword(auth, email, password);
             toast({
@@ -112,6 +114,7 @@ export function useAuthActions() {
     };
 
     const signOut = async () => {
+        const auth = getFirebaseAuth();
         try {
             await firebaseSignOut(auth);
             

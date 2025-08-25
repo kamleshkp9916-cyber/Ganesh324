@@ -15,26 +15,27 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 
+// This function ensures Firebase is initialized, but only on the client-side.
 function initializeFirebase() {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         if (!getApps().length) {
             app = initializeApp(firebaseConfig);
+            // Use initializeAuth for more explicit control, especially with persistence.
             auth = initializeAuth(app, {
-                persistence: browserLocalPersistence
+                persistence: browserLocalPersistence,
             });
         } else {
             app = getApp();
-            // This ensures we get the auth instance associated with the app,
-            // which is crucial in a Next.js environment with Fast Refresh.
+            // Crucially, get the auth instance from the existing app.
             auth = getAuth(app);
         }
     }
 }
 
-// Initialize on load to be ready for other parts of the app
+// Call initialization on module load.
 initializeFirebase();
 
-
+// Export a function that returns the app instance.
 export const getFirebaseApp = (): FirebaseApp => {
     if (!app) {
         initializeFirebase();
@@ -42,6 +43,7 @@ export const getFirebaseApp = (): FirebaseApp => {
     return app;
 }
 
+// Export a function that returns the auth instance.
 export const getFirebaseAuth = (): Auth => {
     if (!auth) {
         initializeFirebase();
