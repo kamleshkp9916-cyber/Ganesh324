@@ -15,15 +15,31 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 
-if (typeof window !== 'undefined') {
-    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    auth = initializeAuth(app, {
-      persistence: browserLocalPersistence
-    });
+function initializeFirebase() {
+    if (typeof window !== 'undefined') {
+        if (!getApps().length) {
+            app = initializeApp(firebaseConfig);
+            auth = initializeAuth(app, {
+                persistence: browserLocalPersistence
+            });
+        } else {
+            app = getApp();
+            auth = getAuth(app);
+        }
+    }
 }
 
-// @ts-ignore
-const getFirebaseApp = (): FirebaseApp => app;
-const getFirebaseAuth = (): Auth => auth;
+// Initialize on load
+initializeFirebase();
+
+const getFirebaseApp = (): FirebaseApp => {
+    if (!app) initializeFirebase();
+    return app;
+}
+
+const getFirebaseAuth = (): Auth => {
+    if (!auth) initializeFirebase();
+    return auth;
+};
 
 export { getFirebaseApp, getFirebaseAuth };

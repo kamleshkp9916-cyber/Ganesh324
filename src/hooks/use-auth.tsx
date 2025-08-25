@@ -44,11 +44,11 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const auth = getFirebaseAuth();
   
   const enableMockUser = false; // Disabled mock user flow
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
     const updateUserState = (firebaseUser: User | null) => {
       if (enableMockUser && sessionStorage.getItem('mockUserSessionActive') === 'true') {
         const isSellerLogin = sessionStorage.getItem('isSellerLogin') === 'true';
@@ -76,7 +76,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
 
     const handleStorageChange = (event: StorageEvent) => {
        if (event.key === 'mockUserSessionActive' || event.key === 'sellerDetails' || event.key === 'isSellerLogin' || event.key === null) {
-          updateUserState(auth.currentUser); 
+          updateUserState(getFirebaseAuth().currentUser); 
        }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -85,7 +85,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
       unsubscribe();
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [auth]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
