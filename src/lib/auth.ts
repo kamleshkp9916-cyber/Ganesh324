@@ -159,9 +159,28 @@ export function useAuthActions() {
             });
         }
     };
+    
+    const sendPasswordResetLink = async (email: string) => {
+        const auth = getFirebaseAuth();
+        try {
+            await sendPasswordResetEmail(auth, email);
+            toast({
+                title: "Password Reset Email Sent",
+                description: "If an account exists for this email, a reset link has been sent.",
+            });
+             router.push('/');
+        } catch (error: any) {
+             console.error("Error sending password reset email: ", error);
+             toast({
+                title: "Error",
+                description: "Failed to send password reset email. Please try again later.",
+                variant: "destructive",
+            });
+        }
+    };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';
-export { getFirebaseAuth as getAuth };
+export { getFirebaseAuth as getAuth, sendPasswordResetEmail };

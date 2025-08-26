@@ -136,6 +136,9 @@ export function LoginForm() {
                 </FormItem>
                 )}
             />
+             <Link href="/forgot-password" className="inline-block text-sm underline text-primary">
+                Forgot your password?
+            </Link>
         </div>
         <Button 
           type="submit" 
