@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays } from 'date-fns';
 import { Input } from './ui/input';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 // Mock data - in a real app this would come from a database
@@ -320,28 +320,23 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CollapsibleContent>
                     </Collapsible>
 
-                     <Collapsible defaultOpen>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="outline" className="w-full justify-between">
-                                Product Details
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                             <Card className="mt-2">
-                                <CardContent className="pt-6">
-                                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                        {productSpecificDetails.map(detail => (
-                                             <React.Fragment key={detail.label}>
-                                                <dt className="text-muted-foreground">{detail.label}</dt>
-                                                <dd className="font-medium">{detail.value}</dd>
-                                            </React.Fragment>
-                                        ))}
-                                    </dl>
-                                </CardContent>
-                            </Card>
-                        </CollapsibleContent>
-                    </Collapsible>
+                    <div>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Product Details</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    {productSpecificDetails.map(detail => (
+                                         <React.Fragment key={detail.label}>
+                                            <dt className="text-muted-foreground">{detail.label}</dt>
+                                            <dd className="font-medium">{detail.value}</dd>
+                                        </React.Fragment>
+                                    ))}
+                                </dl>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
                 
                  {/* Related Products Section */}
