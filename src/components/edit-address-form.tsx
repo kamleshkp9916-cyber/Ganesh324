@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, LocateFixed, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -34,10 +34,10 @@ import { useAuth } from "@/hooks/use-auth";
 const addressSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, { message: "Name is required." }),
-  village: z.string().min(1, { message: "Village/Area is required." }),
+  village: z.string().min(1, { message: "Address is required." }),
   district: z.string().min(1, { message: "District is required." }),
   city: z.string().min(1, { message: "City is required." }),
-  country: z.string().min(1, { message: "Country is required." }),
+  country: z.string().default("India"),
   state: z.string().min(1, { message: "State is required." }),
   pincode: z.string().regex(/^\d{6}$/, { message: "Please enter a valid 6-digit pin code." }),
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
@@ -46,7 +46,16 @@ const addressSchema = z.object({
 const formSchema = z.object({
     selectedAddressId: z.string().optional(),
     newAddress: addressSchema.optional(),
+}).superRefine((data, ctx) => {
+    if (data.selectedAddressId === 'new' && !data.newAddress) {
+         ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['newAddress'],
+            message: 'Please fill out the new address details.',
+        });
+    }
 });
+
 
 interface EditAddressFormProps {
   onSave: (data: z.infer<typeof addressSchema>) => void;
@@ -101,9 +110,6 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
     document.getElementById('edit-address-close')?.click();
   };
 
-  const handleGetCurrentLocation = () => {
-    console.log("Fetching current location...");
-  };
 
   return (
     <Form {...form}>
@@ -143,13 +149,31 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                 {showNewAddressForm && (
                      <div className="mt-4 pt-4 border-t space-y-4">
                          <h3 className="font-semibold">New Address Details</h3>
-                         {/* This could be its own component */}
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <FormField control={form.control} name="newAddress.name" render={({ field }) => (
-                                 <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                 <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g. Samael Prajapati" {...field} /></FormControl><FormMessage /></FormItem>
                              )}/>
                              <FormField control={form.control} name="newAddress.phone" render={({ field }) => (
-                                 <FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                 <FormItem>
+                                    <FormLabel>Phone</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="+91 98765 43210"
+                                            {...field}
+                                            onChange={(e) => {
+                                                let value = e.target.value;
+                                                if (!value.startsWith('+91 ')) {
+                                                    value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                                }
+                                                if (value.length > 14) {
+                                                    value = value.substring(0, 14);
+                                                }
+                                                field.onChange(value);
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                              )}/>
                          </div>
                           <FormField control={form.control} name="newAddress.village" render={({ field }) => (
@@ -175,7 +199,7 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                                  </FormItem>
                              )}/>
                               <FormField control={form.control} name="newAddress.country" render={({ field }) => (
-                                <FormItem><FormLabel>Country</FormLabel><FormControl><Input disabled {...field} defaultValue="India" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Country</FormLabel><FormControl><Input disabled {...field} value="India" /></FormControl><FormMessage /></FormItem>
                             )}/>
                          </div>
                     </div>
