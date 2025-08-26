@@ -34,6 +34,7 @@ const formSchema = z.object({
       message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
     }),
   email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
 
@@ -80,7 +81,7 @@ export function SignupForm() {
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "", userId: "@", email: "", password: "" },
+    defaultValues: { firstName: "", lastName: "", userId: "@", email: "", phone: "+91 ", password: "" },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -168,6 +169,32 @@ export function SignupForm() {
               <FormMessage />
             </FormItem>
           )}
+        />
+         <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                        <Input 
+                            placeholder="+91 98765 43210" 
+                            {...field}
+                            onChange={(e) => {
+                                let value = e.target.value;
+                                if (!value.startsWith('+91 ')) {
+                                    value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                }
+                                if (value.length > 14) {
+                                    value = value.substring(0, 14);
+                                }
+                                field.onChange(value);
+                            }}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}
         />
         <FormField
           control={form.control}
