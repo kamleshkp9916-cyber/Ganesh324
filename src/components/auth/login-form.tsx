@@ -136,7 +136,7 @@ export function LoginForm() {
                 </FormItem>
                 )}
             />
-            <Link href="#" className={cn("inline-block text-sm underline text-primary", isLoading && "pointer-events-none opacity-50")}>
+            <Link href="/forgot-password" className={cn("inline-block text-sm underline text-primary", isLoading && "pointer-events-none opacity-50")}>
                 Forgot your password?
             </Link>
         </div>

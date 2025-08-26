@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,6 @@ export function useAuthActions() {
     const { toast } = useToast();
 
     const signInWithGoogle = async () => {
-        // Get the auth instance directly inside the action.
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
@@ -135,7 +134,26 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail };
+    const sendPasswordResetLink = async (email: string) => {
+        const auth = getFirebaseAuth();
+        try {
+            await sendPasswordResetEmail(auth, email);
+            toast({
+                title: 'Password Reset Email Sent',
+                description: `If an account exists for ${email}, you will receive a password reset link. Please check your inbox.`,
+            });
+            router.push('/');
+        } catch (error: any) {
+             console.error("Error sending password reset email: ", error);
+             toast({
+                title: 'Error',
+                description: "Failed to send password reset email. Please try again.",
+                variant: "destructive",
+            });
+        }
+    }
+
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';
