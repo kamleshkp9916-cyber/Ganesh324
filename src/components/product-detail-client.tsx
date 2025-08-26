@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -7,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -271,6 +270,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 Buy Now
                             </Button>
                         </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
+                            <div className="flex flex-col items-center gap-1">
+                                <RotateCcw className="h-6 w-6" />
+                                <span>7-Day Return Policy</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <Banknote className="h-6 w-6" />
+                                <span>Pay on Delivery</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                                <ShieldCheck className="h-6 w-6" />
+                                <span>100% Genuine</span>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -414,4 +429,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
