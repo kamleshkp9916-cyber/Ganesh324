@@ -218,10 +218,12 @@ export function SignupForm() {
           Get Started With Google
         </Button>
 
-        <div className="text-center text-sm">
-            <Link href="/terms-and-conditions" className="underline">
-                Term & Conditions
+        <div className="text-center text-xs text-muted-foreground">
+            By creating an account, you agree to our{" "}
+            <Link href="/terms-and-conditions" className="underline hover:text-primary">
+                Terms & Conditions
             </Link>
+            .
         </div>
          <div className="mt-4 text-center text-sm flex items-center justify-center gap-2">
             Any Query ?{" "}
