@@ -1,4 +1,5 @@
 
+
 "use client";
 
 // This is a mock database for user data, including follower/following counts.
@@ -19,30 +20,19 @@ export interface UserData {
 }
 
 const generateRandomUser = (uid: string, initialDetails: Partial<UserData>): UserData => {
+  const displayName = initialDetails.displayName || "Anonymous User";
   return {
     uid: uid,
-    displayName: initialDetails.displayName || "Anonymous User",
+    displayName: displayName,
     email: initialDetails.email || "anonymous@example.com",
-    photoURL: initialDetails.photoURL || `https://placehold.co/128x128.png?text=${(initialDetails.displayName || 'A').charAt(0)}`,
+    photoURL: initialDetails.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`,
     role: initialDetails.role || 'customer',
-    followers: Math.floor(Math.random() * 20000),
-    following: Math.floor(Math.random() * 500),
-    bio: "Live selling enthusiast. Love finding great deals!",
-    location: "New York, USA",
-    phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-    addresses: [
-      {
-        id: 1,
-        name: initialDetails.displayName,
-        village: "Koregaon Park",
-        district: "Pune",
-        city: "Pune",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "411001",
-        phone: `+91 ${Math.floor(1000000000 + Math.random() * 9000000000)}`
-      }
-    ]
+    followers: 0,
+    following: 0,
+    bio: "",
+    location: "",
+    phone: "",
+    addresses: []
   };
 };
 
@@ -60,7 +50,8 @@ const setGlobalUserData = (data: Record<string, UserData>) => {
 export const getUserData = (uid: string, initialDetails: Partial<UserData> = {}): UserData => {
     const allUsers = getGlobalUserData();
     if (allUsers[uid]) {
-        return allUsers[uid];
+        // Return existing user but ensure role is updated if provided
+        return { ...allUsers[uid], role: initialDetails.role || allUsers[uid].role };
     }
     const newUser = generateRandomUser(uid, initialDetails);
     allUsers[uid] = newUser;

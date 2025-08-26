@@ -31,15 +31,6 @@ import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
 import { toggleFollow, getUserData, getFollowers } from '@/lib/follow-data';
 
-// This is now a "seeder" for demonstration purposes
-const initialRecentlyViewedItems: Product[] = [
-    { id: 6, key: 'prod_6', name: 'Noise Cancelling Headphones', price: '₹14,999', imageUrl: 'https://placehold.co/300x300.png', hint: 'sleek black headphones' },
-    { id: 7, key: 'prod_7', name: 'Minimalist Wall Clock', price: '₹1,500', imageUrl: 'https://placehold.co/300x300.png', hint: 'modern wall clock' },
-    { id: 8, key: 'prod_8', name: 'Running Shoes', price: '₹5,600', imageUrl: 'https://placehold.co/300x300.png', hint: 'colorful running shoes' },
-    { id: 9, key: 'prod_9', name: 'Yoga Mat', price: '₹999', imageUrl: 'https://placehold.co/300x300.png', hint: 'rolled up yoga mat' },
-    { id: 10, key: 'prod_10', name: 'Portable Blender', price: '₹3,200', imageUrl: 'https://placehold.co/300x300.png', hint: 'blender with fruit' },
-];
-
 const mockReviews = [
     { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.', paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } },
     { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: null, hint: null, productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
@@ -155,14 +146,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       }
     }
   };
-
-  // Seed recently viewed items for demo purposes
-  useEffect(() => {
-    const items = getRecentlyViewed();
-    if (items.length === 0) {
-      initialRecentlyViewedItems.forEach(item => addRecentlyViewed(item));
-    }
-  }, []);
 
   // Load data from localStorage on mount and add storage listener
   useEffect(() => {
@@ -359,82 +342,80 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
               
               <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
-                  {profileData.role === 'customer' && (
-                      <Dialog>
-                          <DialogTrigger asChild>
-                              <div className="text-left cursor-pointer">
-                                  <p className="text-xl sm:text-2xl font-bold">{profileData.following}</p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                              </div>
-                          </DialogTrigger>
-                          <DialogContent>
-                              <DialogHeader>
-                                  <DialogTitle>Following</DialogTitle>
-                              </DialogHeader>
-                              <ScrollArea className="h-80">
-                                  <div className="p-4 space-y-4">
-                                      {followingList.map(followedUser => (
-                                          <div key={followedUser.uid} className="flex items-center justify-between group">
-                                              <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
-                                                  <Avatar>
-                                                      <AvatarImage src={followedUser.photoURL} />
-                                                      <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
-                                                  </Avatar>
-                                                  <div>
-                                                      <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
-                                                      <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
-                                                  </div>
-                                              </Link>
-                                              <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
-                                          </div>
-                                      ))}
-                                      {followingList.length === 0 && (
-                                          <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
-                                      )}
-                                  </div>
-                              </ScrollArea>
-                          </DialogContent>
-                      </Dialog>
-                  )}
-                  {profileData.role === 'seller' && (
-                        <Dialog>
-                              <DialogTrigger asChild>
-                                  <div className="cursor-pointer">
-                                      <p className="text-xl sm:text-2xl font-bold">{(profileData.followers / 1000).toFixed(1)}k</p>
-                                      <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                                  </div>
-                              </DialogTrigger>
-                              <DialogContent>
-                                  <DialogHeader>
-                                      <DialogTitle>Followers</DialogTitle>
-                                  </DialogHeader>
-                                  <ScrollArea className="h-80">
-                                        <div className="p-4 space-y-4">
-                                          {followerList.map(follower => (
-                                              <div key={follower.uid} className="flex items-center justify-between group">
-                                                  <Link href={`/profile?userId=${follower.displayName}`} className="flex items-center gap-3">
-                                                      <Avatar>
-                                                          <AvatarImage src={follower.photoURL} />
-                                                          <AvatarFallback>{follower.displayName.charAt(0)}</AvatarFallback>
-                                                      </Avatar>
-                                                      <div>
-                                                          <p className="font-semibold group-hover:underline">{follower.displayName}</p>
-                                                          <p className="text-sm text-muted-foreground">@{follower.displayName.toLowerCase().replace(' ', '')}</p>
-                                                      </div>
-                                                  </Link>
-                                                  <Button variant="outline" size="sm" asChild>
-                                                      <Link href={`/profile?userId=${follower.displayName}`}>View</Link>
-                                                  </Button>
+                  <Dialog>
+                      <DialogTrigger asChild>
+                          <div className="text-left cursor-pointer">
+                              <p className="text-xl sm:text-2xl font-bold">{profileData.following || 0}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                          </div>
+                      </DialogTrigger>
+                      <DialogContent>
+                          <DialogHeader>
+                              <DialogTitle>Following</DialogTitle>
+                          </DialogHeader>
+                          <ScrollArea className="h-80">
+                              <div className="p-4 space-y-4">
+                                  {followingList.map(followedUser => (
+                                      <div key={followedUser.uid} className="flex items-center justify-between group">
+                                          <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
+                                              <Avatar>
+                                                  <AvatarImage src={followedUser.photoURL} />
+                                                  <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
+                                              </Avatar>
+                                              <div>
+                                                  <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
+                                                  <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
                                               </div>
-                                          ))}
-                                          {followerList.length === 0 && (
-                                              <p className="text-center text-muted-foreground py-8">No followers yet.</p>
+                                          </Link>
+                                          {isOwnProfile && (
+                                               <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
                                           )}
                                       </div>
-                                  </ScrollArea>
-                              </DialogContent>
-                          </Dialog>
-                  )}
+                                  ))}
+                                  {followingList.length === 0 && (
+                                      <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
+                                  )}
+                              </div>
+                          </ScrollArea>
+                      </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                        <DialogTrigger asChild>
+                            <div className="cursor-pointer">
+                                <p className="text-xl sm:text-2xl font-bold">{(profileData.followers || 0) > 1000 ? `${((profileData.followers || 0)/1000).toFixed(1)}k` : (profileData.followers || 0)}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Followers</DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="h-80">
+                                  <div className="p-4 space-y-4">
+                                    {followerList.map(follower => (
+                                        <div key={follower.uid} className="flex items-center justify-between group">
+                                            <Link href={`/profile?userId=${follower.displayName}`} className="flex items-center gap-3">
+                                                <Avatar>
+                                                    <AvatarImage src={follower.photoURL} />
+                                                    <AvatarFallback>{follower.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold group-hover:underline">{follower.displayName}</p>
+                                                    <p className="text-sm text-muted-foreground">@{follower.displayName.toLowerCase().replace(' ', '')}</p>
+                                                </div>
+                                            </Link>
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link href={`/profile?userId=${follower.displayName}`}>View</Link>
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {followerList.length === 0 && (
+                                        <p className="text-center text-muted-foreground py-8">No followers yet.</p>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </DialogContent>
+                    </Dialog>
               </div>
 
               {!isOwnProfile && profileData.role === 'seller' && (
@@ -458,7 +439,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       <div className="p-4 sm:p-6">
           <CardContent className="p-0 space-y-6">
               
-              {isOwnProfile && profileData.role === 'customer' && (
+              {isOwnProfile && (
                   <>
                   <div>
                       <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
@@ -469,11 +450,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           </div>
                           <div className="flex items-center gap-3">
                               <Phone className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                              <span>{profileData.phone}</span>
+                              <span>{profileData.phone || 'Not provided'}</span>
                           </div>
                           <div className="flex items-center gap-3">
                               <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                              <span>{profileData.location}</span>
+                              <span>{profileData.location || 'Not provided'}</span>
                           </div>
                       </div>
                   </div>
@@ -486,49 +467,53 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                               Add New
                           </Button>
                       </div>
-                      <RadioGroup value={String(defaultAddressId)} onValueChange={(val) => setDefaultAddressId(Number(val))} className="space-y-2">
-                          {addresses.map((address: any) => (
-                              <div key={address.id} className="flex items-center gap-2 p-2 rounded-lg border has-[:checked]:bg-muted/50">
-                                  <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
-                                  <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
-                                      <div className="flex justify-between items-start">
-                                          <div className="text-muted-foreground">
-                                              <p className="font-semibold text-foreground">{address.name}</p>
-                                              <p>{address.village}, {address.district}</p>
-                                              <p>{address.city}, {address.state} - {address.pincode}</p>
-                                              <p>Phone: {address.phone}</p>
-                                          </div>
-                                      </div>
-                                  </Label>
-                                  <div className="flex gap-1">
-                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
-                                          <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                                  <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                              <AlertDialogHeader>
-                                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                  <AlertDialogDescription>
-                                                      This action cannot be undone. This will permanently delete this address.
-                                                  </AlertDialogDescription>
-                                              </AlertDialogHeader>
-                                              <AlertDialogFooter>
-                                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                  <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                      Delete
-                                                  </AlertDialogAction>
-                                              </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                      </AlertDialog>
-                                  </div>
-                              </div>
-                          ))}
-                      </RadioGroup>
+                      {addresses && addresses.length > 0 ? (
+                        <RadioGroup value={String(defaultAddressId)} onValueChange={(val) => setDefaultAddressId(Number(val))} className="space-y-2">
+                            {addresses.map((address: any) => (
+                                <div key={address.id} className="flex items-center gap-2 p-2 rounded-lg border has-[:checked]:bg-muted/50">
+                                    <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
+                                    <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
+                                        <div className="flex justify-between items-start">
+                                            <div className="text-muted-foreground">
+                                                <p className="font-semibold text-foreground">{address.name}</p>
+                                                <p>{address.village}, {address.district}</p>
+                                                <p>{address.city}, {address.state} - {address.pincode}</p>
+                                                <p>Phone: {address.phone}</p>
+                                            </div>
+                                        </div>
+                                    </Label>
+                                    <div className="flex gap-1">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete this address.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
+                                </div>
+                            ))}
+                        </RadioGroup>
+                      ) : (
+                         <div className="text-center py-8 text-muted-foreground">No addresses added yet.</div>
+                      )}
                   </div>
                   <Separator />
                   </>
@@ -536,7 +521,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               
               <div>
                   <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
-                  <p className="text-sm text-muted-foreground italic">"{profileData.bio}"</p>
+                  <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
               </div>
               <Separator />
 
@@ -739,17 +724,25 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
                       
                       <TabsContent value="achievements" className="mt-4">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                              {mockAchievements.map(achievement => (
-                                  <Card key={achievement.id} className="p-4 flex flex-col items-center justify-center text-center gap-2">
-                                      <div className="p-3 bg-primary/10 rounded-full text-primary">
-                                          {React.cloneElement(achievement.icon, { className: "w-6 h-6" })}
-                                      </div>
-                                      <h4 className="font-semibold">{achievement.name}</h4>
-                                      <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                                  </Card>
-                              ))}
-                          </div>
+                        {isLoadingContent ? <ProductSkeletonGrid /> : mockAchievements.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {mockAchievements.map(achievement => (
+                                    <Card key={achievement.id} className="p-4 flex flex-col items-center justify-center text-center gap-2">
+                                        <div className="p-3 bg-primary/10 rounded-full text-primary">
+                                            {React.cloneElement(achievement.icon, { className: "w-6 h-6" })}
+                                        </div>
+                                        <h4 className="font-semibold">{achievement.name}</h4>
+                                        <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                             <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+                                <Award className="w-16 h-16 text-border" />
+                                <h3 className="text-xl font-semibold">No Achievements Yet</h3>
+                                <p>Keep shopping and interacting to unlock achievements!</p>
+                            </div>
+                        )}
                       </TabsContent>
                   </Tabs>
               </div>

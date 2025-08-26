@@ -42,7 +42,12 @@ export default function ProfilePage() {
     
     if (targetId) {
         // Get the full user object from our mock data store
-        const fetchedData = getUserData(targetId);
+        // Pass initial details from auth state if available, especially for new users
+        const fetchedData = getUserData(targetId, {
+             displayName: isOwnProfile ? user?.displayName : undefined,
+             email: isOwnProfile ? user?.email : undefined,
+             photoURL: isOwnProfile ? user?.photoURL : undefined,
+        });
 
         // If it's the logged-in user's own profile, ensure the data is fresh from the auth state
         if (isOwnProfile && user) {
