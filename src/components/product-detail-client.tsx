@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -245,7 +246,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </div>
                         </div>
 
-                        <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                        <div>
+                            <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                            <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
+                        </div>
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
@@ -271,27 +275,41 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 <div className="mt-12 space-y-8">
-                    <div>
-                        <h3 className="font-semibold mb-2">Check Delivery Availability</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                            <Input
-                                placeholder="Enter Pincode"
-                                maxLength={6}
-                                className="max-w-[150px]"
-                                value={pincode}
-                                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                            />
-                            <Button variant="outline" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
-                            </Button>
-                        </div>
-                        {isDeliverable === true && (
-                            <div className="flex items-center gap-2 mt-2 text-green-600">
-                                <Truck className="h-5 w-5" />
-                                <p className="text-sm">Deliverable! Estimated delivery by <span className="font-bold">{estimatedDeliveryDate}</span>.</p>
+                    <Card>
+                        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h3 className="font-semibold mb-2">Delivery</h3>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Input
+                                        placeholder="Enter Pincode"
+                                        maxLength={6}
+                                        className="max-w-[150px]"
+                                        value={pincode}
+                                        onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                                    />
+                                    <Button variant="link" className="p-0 h-auto" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                        {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
+                                    </Button>
+                                </div>
+                                {isDeliverable === true ? (
+                                    <p className="text-sm text-green-600 mt-2">Yay! Delivery is available to this pincode.</p>
+                                ) : isDeliverable === false ? (
+                                     <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
+                                ) : (
+                                     <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
+                                )}
                             </div>
-                        )}
-                    </div>
+                            <div className="text-sm">
+                                 <div className="flex items-center gap-3">
+                                    <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                    <div>
+                                        <p className="font-semibold">Get it by {estimatedDeliveryDate}</p>
+                                        <p className="text-xs text-muted-foreground">Standard Delivery</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                     
                     <Collapsible>
                         <CollapsibleTrigger asChild>
@@ -396,3 +414,4 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
