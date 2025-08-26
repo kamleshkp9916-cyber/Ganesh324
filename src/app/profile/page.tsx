@@ -43,10 +43,12 @@ export default function ProfilePage() {
     if (targetId) {
         // Get the full user object from our mock data store
         // Pass initial details from auth state if available, especially for new users
+        // Explicitly set the role to 'customer' for a new customer profile.
         const fetchedData = getUserData(targetId, {
              displayName: isOwnProfile ? user?.displayName : undefined,
              email: isOwnProfile ? user?.email : undefined,
              photoURL: isOwnProfile ? user?.photoURL : undefined,
+             role: 'customer' // Default to customer, seller profile will override this
         });
 
         // If it's the logged-in user's own profile, ensure the data is fresh from the auth state

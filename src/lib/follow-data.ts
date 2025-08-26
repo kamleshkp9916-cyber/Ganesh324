@@ -50,8 +50,8 @@ const setGlobalUserData = (data: Record<string, UserData>) => {
 export const getUserData = (uid: string, initialDetails: Partial<UserData> = {}): UserData => {
     const allUsers = getGlobalUserData();
     if (allUsers[uid]) {
-        // Return existing user but ensure role is updated if provided
-        return { ...allUsers[uid], role: initialDetails.role || allUsers[uid].role };
+        // Return existing user but ensure role is updated if provided, giving priority to the new role.
+        return { ...allUsers[uid], ...initialDetails };
     }
     const newUser = generateRandomUser(uid, initialDetails);
     allUsers[uid] = newUser;
