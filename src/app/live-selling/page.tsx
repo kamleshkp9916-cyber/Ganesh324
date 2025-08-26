@@ -400,6 +400,7 @@ export default function LiveSellingPage() {
                 setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
             }
         } else {
+             // If liveStream data is gone, remove the stream card
              setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
         }
     };
@@ -413,13 +414,18 @@ export default function LiveSellingPage() {
     const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
 
     // Listen for storage changes from other tabs/pages
-    window.addEventListener('storage', loadData);
+    window.addEventListener('storage', (event) => {
+        // Specifically listen for 'liveStream' key changes or null key which indicates clear()
+        if (event.key === 'liveStream' || event.key === null) {
+            loadData();
+        }
+    });
 
     return () => {
         clearTimeout(offersTimer);
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
-        window.removeEventListener('storage', loadData);
+        // The event listener is attached to window, it will be cleaned up automatically when the component unmounts.
     };
   }, []);
 
@@ -1035,7 +1041,7 @@ export default function LiveSellingPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         {topLiveStreams.slice(0, 2).map((seller) => (
-                                            <Link href={`/product/${seller.productId}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
+                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
                                                 <div className="absolute top-1.5 left-1.5 z-10">
                                                     <Badge className="bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
                                                 </div>
@@ -1091,3 +1097,4 @@ export default function LiveSellingPage() {
     
 
     
+
