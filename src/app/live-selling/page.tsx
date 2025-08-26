@@ -364,6 +364,7 @@ export default function LiveSellingPage() {
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+  const [activeFilter, setActiveFilter] = useState('All');
   
   useEffect(() => {
     setIsMounted(true);
@@ -468,12 +469,28 @@ export default function LiveSellingPage() {
   }, [allSellers]);
 
   const filteredLiveSellers = useMemo(() => {
-    if (!searchTerm) return allSellers;
-    return allSellers.filter(seller => 
-        seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        seller.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, allSellers]);
+    let sellers = [...allSellers];
+
+    // Filter by category
+    if (activeFilter !== 'All' && activeFilter !== 'Popular') {
+        sellers = sellers.filter(seller => seller.category === activeFilter);
+    }
+
+    // Sort by popularity if selected
+    if (activeFilter === 'Popular') {
+        sellers.sort((a, b) => b.viewers - a.viewers);
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+        sellers = sellers.filter(seller => 
+            seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            seller.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
+    return sellers;
+  }, [searchTerm, allSellers, activeFilter]);
 
   const filteredFeed = useMemo(() => {
     if (!searchTerm) return mockFeed;
@@ -785,7 +802,13 @@ export default function LiveSellingPage() {
 
                         <div className="flex flex-wrap gap-2 mb-6">
                             {filterButtons.map((filter) => (
-                            <Button key={filter} variant="outline" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
+                            <Button 
+                                key={filter} 
+                                variant={activeFilter === filter ? 'default' : 'outline'} 
+                                size="sm" 
+                                className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
+                                onClick={() => setActiveFilter(filter)}
+                            >
                                 {filter}
                             </Button>
                             ))}
@@ -864,8 +887,8 @@ export default function LiveSellingPage() {
                             </div>
                         ) : (
                              <div className="text-center py-12 text-muted-foreground">
-                                <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
-                                <p>Try searching for something else.</p>
+                                <p className="text-lg font-semibold">No results found</p>
+                                <p>Try searching for something else or changing the filter.</p>
                             </div>
                         )}
                     </TabsContent>
@@ -1097,5 +1120,6 @@ export default function LiveSellingPage() {
     
 
     
+
 
 
