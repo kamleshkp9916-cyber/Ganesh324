@@ -818,7 +818,7 @@ export default function LiveSellingPage() {
                                             </Badge>
                                         </div>
 
-                                        <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                        <Link href={`/stream/${seller.id}`} className="cursor-pointer">
                                             <Image 
                                                 src={seller.thumbnailUrl} 
                                                 alt={`Live stream from ${seller.name}`} 
