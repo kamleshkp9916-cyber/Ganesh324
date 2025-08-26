@@ -37,18 +37,28 @@ export default function ProfilePage() {
   const isOwnProfile = !userId || (user && user.uid === userId);
 
   useEffect(() => {
-    const activeUserId = isOwnProfile ? user?.uid : userId;
+    // Determine whose profile to load
+    const targetId = isOwnProfile ? user?.uid : userId;
     
-    if (activeUserId) {
-        const activeUser = isOwnProfile ? user : null;
-        const role = userId ? 'seller' : 'customer';
+    if (targetId) {
+        // Get the full user object from our mock data store
+        const fetchedData = getUserData(targetId);
 
-        setProfileData(getUserData(activeUserId, {
-            displayName: activeUser?.displayName || userId || 'Unknown User',
-            email: activeUser?.email || `${userId}@example.com`,
-            photoURL: activeUser?.photoURL || '',
-            role: role 
-        }));
+        // If it's the logged-in user's own profile, ensure the data is fresh from the auth state
+        if (isOwnProfile && user) {
+             const finalData = {
+                ...fetchedData,
+                uid: user.uid,
+                displayName: user.displayName || 'Unnamed User',
+                email: user.email || 'no-email@example.com',
+                photoURL: user.photoURL || '',
+             };
+             setProfileData(finalData);
+             updateUserData(user.uid, finalData); // Keep our mock DB in sync
+        } else {
+            // For viewing other profiles
+            setProfileData(fetchedData);
+        }
     }
   }, [user, userId, isOwnProfile, key]);
 
