@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,7 @@ export function LoginForm() {
   const router = useRouter();
   const { signInWithGoogle, signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -109,8 +110,25 @@ export function LoginForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading} className="bg-background"/>
+               <FormControl>
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    {...field} 
+                    disabled={isLoading} 
+                    className="bg-background pr-10"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                    onClick={() => setShowPassword(prev => !prev)}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
