@@ -395,7 +395,7 @@ export default function LiveSellingPage() {
                     reviews: Math.floor(Math.random() * 50),
                     hint: liveStreamData.product.name.toLowerCase(),
                     productId: liveStreamData.product.id,
-                    isMyStream: true,
+                    isMyStream: user?.email === liveStreamData.seller.email,
                 };
                 setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
             }
@@ -427,7 +427,7 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
         // The event listener is attached to window, it will be cleaned up automatically when the component unmounts.
     };
-  }, []);
+  }, [user]);
 
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
@@ -1097,4 +1097,5 @@ export default function LiveSellingPage() {
     
 
     
+
 
