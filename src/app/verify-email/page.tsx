@@ -10,7 +10,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { MailCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { sendEmailVerification } from "firebase/auth";
+import { sendEmailVerification, User } from "firebase/auth";
 
 export default function VerifyEmailPage() {
     const { user, loading } = useAuth();
@@ -18,6 +18,7 @@ export default function VerifyEmailPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isResending, setIsResending] = useState(false);
+    const [isChecking, setIsChecking] = useState(false);
 
     useEffect(() => {
         if (!loading) {
@@ -51,6 +52,29 @@ export default function VerifyEmailPage() {
         }
     };
     
+    const handleContinue = async () => {
+        if (!user) return;
+        setIsChecking(true);
+        const currentUser = user as User; // We know user is not null here
+        await currentUser.reload();
+        
+        // After reload, check the emailVerified status again
+        if (currentUser.emailVerified) {
+            toast({
+                title: "Verification Successful!",
+                description: "Redirecting you now...",
+            });
+            router.push('/live-selling');
+        } else {
+             toast({
+                title: "Email Not Verified",
+                description: "Please check your inbox and click the verification link.",
+                variant: "destructive",
+            });
+            setIsChecking(false);
+        }
+    };
+    
     if (loading || !user || user.emailVerified) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -73,14 +97,18 @@ export default function VerifyEmailPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                     <p className="text-sm text-muted-foreground mb-6">
-                        Didn't receive the email? Check your spam folder or click below to resend.
+                        Once verified, click the continue button below.
                     </p>
                     <div className="flex flex-col gap-4">
-                        <Button onClick={handleResendVerification} disabled={isResending}>
+                        <Button onClick={handleContinue} disabled={isChecking}>
+                            {isChecking ? <LoadingSpinner className="h-4 w-4 mr-2"/> : null}
+                            Continue to App
+                        </Button>
+                        <Button variant="outline" onClick={handleResendVerification} disabled={isResending}>
                             {isResending ? <LoadingSpinner className="h-4 w-4 mr-2"/> : null}
                             Resend Verification Email
                         </Button>
-                        <Button variant="outline" onClick={signOut}>
+                        <Button variant="ghost" onClick={signOut}>
                             Log Out
                         </Button>
                     </div>
