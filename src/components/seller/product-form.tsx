@@ -2,7 +2,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import * as z from "zod"
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,7 @@ import {
 import { DialogFooter, DialogClose } from "../ui/dialog"
 import { Loader2, UploadCloud } from "lucide-react"
 import Image from "next/image"
+import { cn } from "@/lib/utils";
 
 const productFormSchema = z.object({
   id: z.string().optional(),
@@ -38,6 +39,11 @@ const productFormSchema = z.object({
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   image: z.any().refine(file => file, "Image is required.").refine(file => file?.size <= 5000000, `Max image size is 5MB.`),
   status: z.enum(["draft", "active", "archived"]),
+  // Category specific fields
+  size: z.string().optional(),
+  color: z.string().optional(),
+  modelNumber: z.string().optional(),
+  origin: z.string().optional(),
 })
 
 export type Product = z.infer<typeof productFormSchema> & { image: { file?: File, preview: string } };
@@ -48,6 +54,80 @@ interface ProductFormProps {
   onSave: (product: Product) => void;
   productToEdit?: Product;
 }
+
+const CategorySpecificFields = ({ control }: { control: any }) => {
+    const category = useWatch({ control, name: 'category' });
+
+    if (!category) return null;
+
+    return (
+        <>
+            {category === 'Fashion' && (
+                 <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={control}
+                        name="size"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Size</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select a size" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="XS">XS</SelectItem>
+                                        <SelectItem value="S">S</SelectItem>
+                                        <SelectItem value="M">M</SelectItem>
+                                        <SelectItem value="L">L</SelectItem>
+                                        <SelectItem value="XL">XL</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name="color"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Color</FormLabel>
+                                <FormControl><Input placeholder="e.g., Blue" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
+             {category === 'Electronics' && (
+                <FormField
+                    control={control}
+                    name="modelNumber"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Model Number</FormLabel>
+                            <FormControl><Input placeholder="e.g., A2651" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
+             {['Home Goods', 'Kitchenware', 'Handmade'].includes(category) && (
+                 <FormField
+                    control={control}
+                    name="origin"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Country of Origin</FormLabel>
+                            <FormControl><Input placeholder="e.g., India" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
+        </>
+    );
+};
 
 export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
@@ -64,6 +144,10 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       stock: 0,
       image: undefined,
       status: "draft",
+      size: "",
+      color: "",
+      modelNumber: "",
+      origin: "",
     },
   })
 
@@ -151,6 +235,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               )}
             />
           </div>
+           <CategorySpecificFields control={form.control} />
           <FormField
             control={form.control}
             name="description"
