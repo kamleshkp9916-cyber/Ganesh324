@@ -34,18 +34,19 @@ export default function ProfilePage() {
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
   const [key, setKey] = useState(0); // Add a key to force re-renders
 
-  const isOwnProfile = !userId;
+  const isOwnProfile = !userId || (user && user.uid === userId);
 
   useEffect(() => {
-    // If a userId is present, we assume it's a seller's profile for this app's logic
-    const role = userId ? 'seller' : 'customer';
-    const activeUser = isOwnProfile ? user : { displayName: userId, email: `${userId}@example.com`, photoURL: '', uid: userId };
+    const activeUserId = isOwnProfile ? user?.uid : userId;
     
-    if (activeUser) {
-        setProfileData(getUserData(activeUser.uid, {
-            displayName: activeUser.displayName || 'Unknown User',
-            email: activeUser.email || 'unknown@example.com',
-            photoURL: activeUser.photoURL || '',
+    if (activeUserId) {
+        const activeUser = isOwnProfile ? user : null;
+        const role = userId ? 'seller' : 'customer';
+
+        setProfileData(getUserData(activeUserId, {
+            displayName: activeUser?.displayName || userId || 'Unknown User',
+            email: activeUser?.email || `${userId}@example.com`,
+            photoURL: activeUser?.photoURL || '',
             role: role 
         }));
     }

@@ -31,14 +31,20 @@ export default function SellerProfilePage() {
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
-    if (!loading && user) {
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !loading && user) {
         const sellerDetailsRaw = localStorage.getItem('sellerDetails');
         if (sellerDetailsRaw) {
             const details = JSON.parse(sellerDetailsRaw);
+            // Use a consistent UID for sellers based on their email
             const sellerUid = `seller_${details.email}`;
+            
             const existingData = getUserData(sellerUid, {
                  displayName: details.name,
                  email: details.email,
@@ -48,19 +54,25 @@ export default function SellerProfilePage() {
             
             const updatedData = {
                 ...existingData,
-                ...details, // Ensure localStorage details are present
+                // Make sure all details from registration are present
+                ...details, 
+                uid: sellerUid,
                 displayName: details.name,
-                addresses: details.addresses || [],
-                uid: sellerUid
+                email: details.email,
+                phone: details.phone || existingData.phone,
+                bio: details.bio || existingData.bio,
+                location: details.location || existingData.location,
+                addresses: details.addresses || existingData.addresses,
             };
 
             setProfileData(updatedData);
+            // Ensure the global user data store is up-to-date
             updateUserData(sellerUid, updatedData);
-        } else {
+        } else if (!loading) {
              router.push('/seller/register');
         }
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted, key]);
 
 
   const handleProfileSave = (data: any) => {
@@ -89,6 +101,10 @@ export default function SellerProfilePage() {
     localStorage.setItem('sellerDetails', JSON.stringify(updatedDetails));
     setProfileData(updatedDetails);
   }
+  
+  const onFollowToggle = () => {
+    setKey(prev => prev + 1); // Force re-render to get fresh follow data
+  };
 
 
   if (!isMounted || loading || !profileData) {
@@ -134,10 +150,12 @@ export default function SellerProfilePage() {
             </header>
 
             <main className="flex-grow">
-                <ProfileCard 
+                <ProfileCard
+                    key={key} 
                     profileData={profileData} 
                     isOwnProfile={true}
                     onAddressesUpdate={handleAddressesUpdate}
+                    onFollowToggle={onFollowToggle}
                 />
             </main>
             
