@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -14,12 +14,24 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            toast({
-                title: "Signed In!",
-                description: `Welcome back!`,
-            });
-            window.location.href = "/live-selling";
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            if (!user.emailVerified) {
+                await sendEmailVerification(user);
+                 toast({
+                    title: "Verification Email Sent",
+                    description: "Please check your email to verify your account before logging in.",
+                });
+                router.push('/verify-email');
+            } else {
+                 toast({
+                    title: "Signed In!",
+                    description: `Welcome back!`,
+                });
+                window.location.href = "/live-selling";
+            }
+
         } catch (error) {
             console.error("Error signing in with Google: ", error);
             toast({
@@ -38,11 +50,12 @@ export function useAuthActions() {
             await updateProfile(user, {
                 displayName: `${profileData.firstName} ${profileData.lastName}`,
             });
+            await sendEmailVerification(user);
              toast({
                 title: "Account Created!",
-                description: "You have been successfully signed up.",
+                description: "A verification email has been sent. Please check your inbox.",
             });
-            router.push('/live-selling');
+            router.push('/verify-email');
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";
@@ -69,7 +82,20 @@ export function useAuthActions() {
     const signInWithEmail = async (email: string, password: string) => {
         const auth = getFirebaseAuth();
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            if (!user.emailVerified) {
+                await sendEmailVerification(user);
+                toast({
+                    title: "Email Not Verified",
+                    description: "Please verify your email address. A new verification link has been sent.",
+                    variant: "destructive"
+                });
+                router.push('/verify-email');
+                return;
+            }
+
             toast({
                 title: "Logged In!",
                 description: "Welcome back!",
@@ -134,26 +160,7 @@ export function useAuthActions() {
         }
     };
 
-    const sendPasswordResetLink = async (email: string) => {
-        const auth = getFirebaseAuth();
-        try {
-            await sendPasswordResetEmail(auth, email);
-            toast({
-                title: 'Password Reset Email Sent',
-                description: `If an account exists for ${email}, you will receive a password reset link. Please check your inbox.`,
-            });
-            router.push('/');
-        } catch (error: any) {
-             console.error("Error sending password reset email: ", error);
-             toast({
-                title: 'Error',
-                description: "Failed to send password reset email. Please try again.",
-                variant: "destructive",
-            });
-        }
-    }
-
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';

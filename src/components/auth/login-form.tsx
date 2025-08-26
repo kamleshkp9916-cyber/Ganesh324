@@ -136,9 +136,6 @@ export function LoginForm() {
                 </FormItem>
                 )}
             />
-            <Link href="/forgot-password" className={cn("inline-block text-sm underline text-primary", isLoading && "pointer-events-none opacity-50")}>
-                Forgot your password?
-            </Link>
         </div>
         <Button 
           type="submit" 
