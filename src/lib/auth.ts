@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { getUserData, updateUserData } from "./follow-data";
 
+const ADMIN_EMAIL = "samael.prajapati@example.com";
+
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
@@ -112,6 +114,42 @@ export function useAuthActions() {
     
     const signInWithEmail = async (email: string, password: string) => {
         const auth = getFirebaseAuth();
+
+        // Special case for admin login
+        if (email === ADMIN_EMAIL) {
+            const adminData = Object.values(getUserData('')).find(u => u.role === 'admin' && u.email === ADMIN_EMAIL);
+            if(adminData) {
+                // This is a mock user object. In a real app, you'd get the actual user object.
+                const mockAdminUser: User = {
+                    uid: adminData.uid,
+                    email: adminData.email,
+                    displayName: adminData.displayName,
+                    photoURL: adminData.photoURL,
+                    emailVerified: true,
+                    isAnonymous: false,
+                    metadata: {},
+                    providerData: [],
+                    providerId: 'password',
+                    tenantId: null,
+                    delete: async () => {},
+                    getIdToken: async () => '',
+                    getIdTokenResult: async () => ({
+                        token: '',
+                        authTime: '',
+                        issuedAtTime: '',
+                        signInProvider: null,
+                        signInSecondFactor: null,
+                        expirationTime: '',
+                        claims: {},
+                    }),
+                    reload: async () => {},
+                    toJSON: () => ({}),
+                };
+                handleLoginSuccess(mockAdminUser);
+                return;
+            }
+        }
+        
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
