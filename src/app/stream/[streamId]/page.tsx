@@ -14,7 +14,8 @@ import {
   Users,
   X,
   PlusCircle,
-  Video
+  Video,
+  Zap,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -47,29 +48,40 @@ const liveSellers = [
 const mockChat = [
     { id: 1, type: 'chat', user: 'Alice', message: 'This looks amazing! What material is it?' },
     { id: 2, type: 'chat', user: 'Bob', message: 'Just joined, what did I miss?' },
-    { id: 3, type: 'product', productKey: 'prod_1' },
+    { id: 3, type: 'product', productKey: 'prod_1', stock: 15 },
     { id: 4, type: 'chat', user: 'Charlie', message: 'I bought this last week, it\'s great quality!'},
     { id: 5, type: 'chat', user: 'Diana', message: 'Is there a discount code?'},
-    { id: 6, type: 'product', productKey: 'prod_2'},
+    { id: 6, type: 'product', productKey: 'prod_2', stock: 8 },
     { id: 7, type: 'chat', user: 'Eve', message: '🔥🔥🔥'},
     { id: 8, type: 'chat', user: 'Frank', message: 'Can you show the back of the product?'},
 ];
 
-function ProductChatMessage({ productKey, onAddToCart }: { productKey: string, onAddToCart: (productKey: string) => void }) {
+function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
     const product = productDetails[productKey as keyof typeof productDetails];
     if (!product) return null;
 
     return (
         <Card className="bg-background/80 backdrop-blur-sm border-primary/50 my-2">
-            <CardContent className="p-2 flex items-center gap-3">
-                <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md object-cover" data-ai-hint={product.hint}/>
-                <div className="flex-grow overflow-hidden">
-                    <p className="text-sm font-semibold truncate">{product.name}</p>
-                    <p className="text-sm font-bold text-primary">{product.price}</p>
+            <CardContent className="p-3 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                    <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md object-cover" data-ai-hint={product.hint}/>
+                    <div className="flex-grow overflow-hidden">
+                        <p className="text-sm font-semibold truncate">{product.name}</p>
+                        <p className="text-sm font-bold text-primary">{product.price}</p>
+                         <Badge variant={stock > 10 ? "outline" : "destructive"} className="mt-1">
+                            <Zap className="mr-1 h-3 w-3" />
+                            {stock} left
+                        </Badge>
+                    </div>
                 </div>
-                <Button size="sm" onClick={() => onAddToCart(productKey)}>
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Add
-                </Button>
+                 <div className="flex items-center gap-2">
+                    <Button size="sm" className="flex-1" onClick={() => onAddToCart(productKey)}>
+                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                    </Button>
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(productKey)}>
+                        Buy Now
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     );
@@ -113,6 +125,10 @@ export default function StreamPage() {
             description: `${product.name} has been added to your shopping cart.`,
         });
     }
+  };
+
+  const handleBuyNow = (productKey: string) => {
+      router.push(`/cart?buyNow=true&productId=${productKey}`);
   };
 
 
@@ -177,7 +193,13 @@ export default function StreamPage() {
                     </div>
                 </div>
             ) : (
-                <ProductChatMessage key={item.id} productKey={item.productKey!} onAddToCart={handleAddToCart} />
+                <ProductChatMessage 
+                    key={item.id} 
+                    productKey={item.productKey!}
+                    stock={item.stock!} 
+                    onAddToCart={handleAddToCart}
+                    onBuyNow={handleBuyNow}
+                />
             )
           ))}
         </div>
