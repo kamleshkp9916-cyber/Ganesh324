@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -99,6 +100,10 @@ const emojis = [
     '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
+
+const mockNewUsers = [
+    'GadgetFan', 'StyleQueen', 'HomeBody', 'DealHunter', 'GamerPro', 'BookLover', 'PetParent'
+]
 
 
 function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
@@ -228,6 +233,21 @@ export default function StreamPage() {
             }
         }
     }
+
+    // Simulate new users joining
+    const joinInterval = setInterval(() => {
+        const newUser = mockNewUsers[Math.floor(Math.random() * mockNewUsers.length)];
+        const newMessage = {
+            id: Date.now(),
+            type: 'join',
+            user: newUser,
+            message: 'joined the stream'
+        };
+        // @ts-ignore
+        setChatMessages(prev => [...prev, newMessage]);
+    }, Math.random() * (15000 - 5000) + 5000); // every 5-15 seconds
+
+    return () => clearInterval(joinInterval);
   }, [streamId]);
 
   const handleAddToCart = (productKey: string) => {
@@ -416,6 +436,10 @@ export default function StreamPage() {
                             <p className="font-semibold">{item.user}</p>
                             <p className="text-muted-foreground">{item.message}</p>
                         </div>
+                    </div>
+                ) : item.type === 'join' ? (
+                    <div key={item.id} className="text-center text-xs text-muted-foreground italic my-2">
+                        <span>{item.user} {item.message}</span>
                     </div>
                 ) : (
                     <ProductChatMessage 
