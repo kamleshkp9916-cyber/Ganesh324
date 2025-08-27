@@ -63,7 +63,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function LoginForm() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmail } = useAuthActions();
+  const { signInWithGoogle, signInWithEmail, setMockUserSession } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -75,6 +75,15 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+
+    if (values.identifier === ADMIN_EMAIL) {
+        setMockUserSession('admin');
+        toast({ title: "Admin Login Successful!", description: "Redirecting to the admin dashboard." });
+        router.push('/admin/dashboard');
+        setIsLoading(false);
+        return;
+    }
+
     try {
         await signInWithEmail(values.identifier, values.password);
     } catch (error: any) {

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +10,26 @@ export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
 
+    const setMockUserSession = (type: 'admin' | 'seller') => {
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('mockUserSessionActive', 'true');
+            if (type === 'seller') {
+                 sessionStorage.setItem('isSellerLogin', 'true');
+            } else {
+                 sessionStorage.removeItem('isSellerLogin');
+            }
+            // Trigger a storage event to update useAuth hook
+            window.dispatchEvent(new Event('storage'));
+        }
+    };
+
     const signInWithGoogle = async () => {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
+            sessionStorage.removeItem('mockUserSessionActive');
 
             if (!user.emailVerified) {
                 await sendEmailVerification(user);
@@ -51,6 +65,15 @@ export function useAuthActions() {
                 displayName: `${profileData.firstName} ${profileData.lastName}`,
             });
             await sendEmailVerification(user);
+
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const sellerDetails = JSON.parse(sellerDetailsRaw);
+                if (sellerDetails.email === email) {
+                    setMockUserSession('seller');
+                }
+            }
+            
              toast({
                 title: "Account Created!",
                 description: "A verification email has been sent. Please check your inbox.",
@@ -86,6 +109,8 @@ export function useAuthActions() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            sessionStorage.removeItem('mockUserSessionActive');
+
 
             if (!user.emailVerified) {
                 await sendEmailVerification(user);
@@ -112,6 +137,7 @@ export function useAuthActions() {
             if (sellerDetailsRaw) {
                 const sellerDetails = JSON.parse(sellerDetailsRaw);
                 if (sellerDetails.email === email) {
+                    setMockUserSession('seller');
                     router.push('/seller/dashboard');
                     return;
                 }
@@ -144,7 +170,10 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         try {
             await firebaseSignOut(auth);
-            
+            sessionStorage.removeItem('mockUserSessionActive');
+            sessionStorage.removeItem('isSellerLogin');
+             window.dispatchEvent(new Event('storage'));
+
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
@@ -181,8 +210,8 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, setMockUserSession };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';
-export { getFirebaseAuth as getAuth, sendPasswordResetEmail };
+export { getFirebaseAuth as getAuth };

@@ -45,7 +45,7 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   
-  const enableMockUser = false; // Disabled mock user flow
+  const enableMockUser = true;
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -74,9 +74,12 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, updateUserState);
     updateUserState(auth.currentUser);
 
-    const handleStorageChange = (event: StorageEvent) => {
-       if (event.key === 'mockUserSessionActive' || event.key === 'sellerDetails' || event.key === 'isSellerLogin' || event.key === null) {
+    const handleStorageChange = (event: StorageEvent | Event) => {
+        // We check for event instanceof StorageEvent but also handle custom events.
+       if ('key' in event && (event.key === 'mockUserSessionActive' || event.key === 'sellerDetails' || event.key === 'isSellerLogin' || event.key === null)) {
           updateUserState(getFirebaseAuth().currentUser); 
+       } else if (!('key' in event)) { // For custom events
+           updateUserState(getFirebaseAuth().currentUser);
        }
     };
     window.addEventListener('storage', handleStorageChange);
