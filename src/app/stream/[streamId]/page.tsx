@@ -27,6 +27,9 @@ import {
   Smile,
   PanelRightClose,
   PanelRightOpen,
+  Flag,
+  MessageCircle,
+  LifeBuoy,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -376,7 +379,27 @@ export default function StreamPage() {
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
                     <PanelRightClose />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                            <Flag className="mr-2 h-4 w-4" />
+                            <span>Report</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            <span>Feedback</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem>
+                            <LifeBuoy className="mr-2 h-4 w-4" />
+                            <span>Help</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
             <ScrollArea className="flex-grow p-4 space-y-4">
@@ -462,4 +485,3 @@ export default function StreamPage() {
     </div>
   );
 }
-
