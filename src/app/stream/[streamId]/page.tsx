@@ -186,7 +186,7 @@ export default function StreamPage() {
     const liveStreamDataRaw = localStorage.getItem('liveStream');
     if (liveStreamDataRaw) {
       const liveStreamData = JSON.parse(liveStreamDataRaw);
-      if (user && liveStreamData.seller.email === user.email && streamId === liveStreamData.seller.id) {
+      if (user && liveStreamData.seller.email === user.email && streamId === `seller_${user.email}`) {
         setIsMyStream(true);
       }
     }
@@ -225,9 +225,10 @@ export default function StreamPage() {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-            if (liveStreamData.seller.id === streamId) {
+             if (liveStreamData.seller.id === streamId || (streamId.startsWith('seller_') && streamId.endsWith(liveStreamData.seller.email))) {
                 sellerData = {
                     ...liveStreamData.seller,
+                    id: streamId, // Use the ID from the URL
                     viewers: Math.floor(Math.random() * 5000),
                     productId: liveStreamData.product.id
                 };
@@ -238,6 +239,7 @@ export default function StreamPage() {
     if (sellerData) {
         setSeller(sellerData);
         if (user) {
+            const userData = getUserData(user.uid);
             const followingKey = `following_${user.uid}`;
             const followingList = JSON.parse(localStorage.getItem(followingKey) || '[]');
             setIsFollowing(followingList.includes(sellerData.id));
@@ -313,6 +315,8 @@ export default function StreamPage() {
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
   }
+  
+  const sellerProfileUrl = `/seller/profile?userId=${seller.id}`;
 
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground">
@@ -323,20 +327,22 @@ export default function StreamPage() {
              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.push('/live-selling')}>
               <ArrowLeft />
             </Button>
-            <Avatar>
-              <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-              <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="font-semibold">{seller.name}</h2>
-              <div className="flex items-center gap-2 text-xs">
-                <Badge variant="destructive" className="h-5">LIVE</Badge>
-                <div className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  <span>{seller.viewers}</span>
+            <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
+                <Avatar>
+                  <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                  <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
+                  <div className="flex items-center gap-2 text-xs">
+                    <Badge variant="destructive" className="h-5">LIVE</Badge>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      <span>{seller.viewers}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             {!isChatVisible && (
@@ -538,3 +544,4 @@ export default function StreamPage() {
     </div>
   );
 }
+
