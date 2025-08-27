@@ -21,6 +21,8 @@ import {
   Settings,
   RadioTower,
   Tv,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +113,7 @@ export default function StreamPage() {
   const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
   const [isMyStream, setIsMyStream] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [quality, setQuality] = useState('Auto');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -249,7 +252,10 @@ export default function StreamPage() {
                 </Button>
             </div>
             
-            <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
+                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => setIsMuted(!isMuted)}>
+                    {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+                </Button>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white">
