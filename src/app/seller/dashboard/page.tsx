@@ -255,8 +255,7 @@ export default function SellerDashboard() {
             const details = JSON.parse(sellerDetailsRaw);
             setSellerDetails(details);
             if (details.verificationStatus === 'pending') {
-                details.verificationStatus = 'verified';
-                localStorage.setItem('sellerDetails', JSON.stringify(details));
+                router.push('/seller/verification');
             }
         }
     }

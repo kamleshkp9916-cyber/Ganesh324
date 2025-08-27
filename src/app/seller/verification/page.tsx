@@ -115,13 +115,13 @@ export default function SellerVerificationPage() {
                          if (status === 'needs-resubmission') {
                             router.push('/seller/register');
                          } else {
-                            router.push('/live-selling');
+                            router.push('/');
                          }
                     }} 
                     className="flex items-center gap-2"
                 >
                     <ArrowLeft className="h-4 w-4" />
-                    {status === 'needs-resubmission' ? 'Back to Form' : 'Back to Live Shopping'}
+                    {status === 'needs-resubmission' ? 'Back to Form' : 'Back to Home'}
                 </Button>
             </div>
             {renderContent()}

@@ -6,8 +6,26 @@ import { LoginForm } from '@/components/auth/login-form';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth.tsx';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+        // This is a simple check. In a real app, you'd have a more robust role management system.
+        if (localStorage.getItem('sellerDetails')) {
+             router.replace('/seller/dashboard');
+        } else {
+            router.replace('/live-selling');
+        }
+    }
+  }, [user, loading, router]);
+
+
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-8">

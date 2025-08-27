@@ -194,9 +194,9 @@ export default function SellerRegisterPage() {
         return (
              <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
                  <div className="absolute top-4 left-4">
-                    <Button variant="ghost" onClick={() => router.push('/live-selling')} className="flex items-center gap-2">
+                    <Button variant="ghost" onClick={() => router.push('/')} className="flex items-center gap-2">
                         <ArrowLeft className="h-4 w-4" />
-                        Back to Live Shopping
+                        Back to Home
                     </Button>
                 </div>
                  <Alert variant="destructive" className="max-w-lg">
