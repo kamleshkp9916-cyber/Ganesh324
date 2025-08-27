@@ -45,6 +45,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -65,6 +71,57 @@ const allUsers = [
     { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07" },
     { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05" },
 ];
+
+const customers = allUsers.filter(user => user.role === 'Customer');
+const sellers = allUsers.filter(user => user.role === 'Seller');
+
+const UserTable = ({ users }: { users: typeof allUsers }) => (
+    <>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead className="hidden md:table-cell">Signup Date</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {users.map((u, index) => (
+                    <TableRow key={index}>
+                        <TableCell>
+                            <div className="font-medium">{u.name}</div>
+                            <div className="text-sm text-muted-foreground">{u.email}</div>
+                        </TableCell>
+                         <TableCell className="hidden md:table-cell">{new Date(u.date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4 rotate-90" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+        <CardFooter className="px-0 pt-4">
+            <div className="text-xs text-muted-foreground">
+                Showing <strong>1-{users.length > 10 ? 10 : users.length}</strong> of <strong>{users.length}</strong> users
+            </div>
+        </CardFooter>
+    </>
+);
+
 
 export default function AdminUsersPage() {
   const { user, loading } = useAuth();
@@ -219,74 +276,46 @@ export default function AdminUsersPage() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle>Users</CardTitle>
-                        <CardDescription>Manage all users on the platform.</CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="h-8 gap-1">
-                            <File className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
-                        </Button>
-                         <Button size="sm" className="h-8 gap-1">
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add User</span>
-                        </Button>
-                    </div>
+        <Tabs defaultValue="customers">
+            <div className="flex items-center justify-between">
+                <TabsList>
+                    <TabsTrigger value="customers">Customers</TabsTrigger>
+                    <TabsTrigger value="sellers">Sellers</TabsTrigger>
+                </TabsList>
+                 <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="h-8 gap-1">
+                        <File className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
+                    </Button>
+                     <Button size="sm" className="h-8 gap-1">
+                        <PlusCircle className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add User</span>
+                    </Button>
                 </div>
-            </CardHeader>
-            <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>User</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead className="hidden md:table-cell">Signup Date</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {allUsers.map((u, index) => (
-                            <TableRow key={index}>
-                                <TableCell>
-                                    <div className="font-medium">{u.name}</div>
-                                    <div className="text-sm text-muted-foreground">{u.email}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={u.role === 'Seller' ? 'secondary' : 'outline'}>{u.role}</Badge>
-                                </TableCell>
-                                 <TableCell className="hidden md:table-cell">{new Date(u.date).toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                     <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                <MoreHorizontal className="h-4 w-4 rotate-90" />
-                                                <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            <DropdownMenuItem>View Profile</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-            <CardFooter>
-                <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-10</strong> of <strong>{allUsers.length}</strong> users
-                </div>
-            </CardFooter>
-        </Card>
+            </div>
+             <TabsContent value="customers">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Customers</CardTitle>
+                        <CardDescription>Manage all customer accounts.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <UserTable users={customers} />
+                    </CardContent>
+                </Card>
+             </TabsContent>
+             <TabsContent value="sellers">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Sellers</CardTitle>
+                        <CardDescription>Manage all seller accounts.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <UserTable users={sellers} />
+                    </CardContent>
+                </Card>
+             </TabsContent>
+        </Tabs>
       </main>
     </div>
   )
