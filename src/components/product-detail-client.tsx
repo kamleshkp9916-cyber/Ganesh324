@@ -401,41 +401,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </dl>
                         </CardContent>
                     </div>
-                     {productHighlights.length > 0 && (
-                        <div className="py-4 border-t">
-                             <CardHeader className="p-0">
-                                <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 pt-4">
-                                <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                     <div className="py-4 border-t">
+                        <CardHeader className="p-0">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary"/> Product Highlights
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 pt-4 grid md:grid-cols-2 gap-4">
+                             {productHighlights.length > 0 && (
+                                <ul className="list-disc list-inside text-muted-foreground space-y-2 text-sm my-auto">
                                     {productHighlights.map((highlight, index) => (
                                         <li key={index}>{highlight}</li>
                                     ))}
                                 </ul>
-                            </CardContent>
-                        </div>
-                    )}
-                     <div className="py-4 border-t">
-                        <CardHeader className="p-0">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <ImageIcon className="h-5 w-5 text-primary"/> Product Gallery
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 pt-4">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {product.images.map((img, index) => (
-                                    <Dialog key={index}>
-                                        <DialogTrigger asChild>
-                                            <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
-                                                <Image src={img} alt={`${product.name} highlight ${index + 1}`} width={300} height={300} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
-                                            </div>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-3xl h-auto">
-                                            <Image src={img} alt={`${product.name} highlight ${index + 1}`} width={800} height={800} className="object-contain rounded-lg w-full h-full" />
-                                        </DialogContent>
-                                    </Dialog>
-                                ))}
-                            </div>
+                            )}
+                            {product.images.length > 1 && (
+                                 <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
+                                     <Image src={product.images[1]} alt={`${product.name} highlight`} width={400} height={400} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                                 </div>
+                            )}
                         </CardContent>
                     </div>
                 </div>
