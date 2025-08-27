@@ -292,8 +292,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 <div className="mt-12 space-y-8">
-                    <Card className="shadow-none border-t border-b rounded-none">
-                        <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="py-4 border-y">
+                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold mb-2">Delivery</h3>
                                 <div className="flex items-center gap-2 mt-2">
@@ -325,8 +325,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                     
                     <Collapsible>
                         <CollapsibleTrigger asChild>
@@ -355,37 +355,33 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CollapsibleContent>
                     </Collapsible>
 
-                    <div>
-                         <Card className="shadow-none border-t border-b rounded-none">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Product Details</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                    {productSpecificDetails.map(detail => (
-                                         <React.Fragment key={detail.label}>
-                                            <dt className="text-muted-foreground">{detail.label}</dt>
-                                            <dd className="font-medium">{detail.value}</dd>
-                                        </React.Fragment>
-                                    ))}
-                                </dl>
-                            </CardContent>
-                        </Card>
+                     <div className="py-4 border-y">
+                        <CardHeader className="p-0">
+                            <CardTitle className="text-lg">Product Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 pt-4">
+                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                {productSpecificDetails.map(detail => (
+                                     <React.Fragment key={detail.label}>
+                                        <dt className="text-muted-foreground">{detail.label}</dt>
+                                        <dd className="font-medium">{detail.value}</dd>
+                                    </React.Fragment>
+                                ))}
+                            </dl>
+                        </CardContent>
                     </div>
                      {productHighlights.length > 0 && (
-                        <div>
-                             <Card className="shadow-none border-t border-b rounded-none">
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
-                                        {productHighlights.map((highlight, index) => (
-                                            <li key={index}>{highlight}</li>
-                                        ))}
-                                    </ul>
-                                </CardContent>
-                            </Card>
+                        <div className="py-4 border-b">
+                             <CardHeader className="p-0">
+                                <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 pt-4">
+                                <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                    {productHighlights.map((highlight, index) => (
+                                        <li key={index}>{highlight}</li>
+                                    ))}
+                                </ul>
+                            </CardContent>
                         </div>
                     )}
                 </div>
