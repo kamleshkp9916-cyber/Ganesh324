@@ -24,7 +24,7 @@ export function useAuthActions() {
         });
 
         // Redirect based on role
-        if (userData.role === 'admin') {
+        if (user.email === ADMIN_EMAIL) {
             router.push('/admin/dashboard');
         } else if (userData.role === 'seller') {
             router.push('/seller/dashboard');
@@ -114,40 +114,49 @@ export function useAuthActions() {
     
     const signInWithEmail = async (email: string, password: string) => {
         const auth = getFirebaseAuth();
-
-        // Special case for admin login
-        if (email === ADMIN_EMAIL) {
-            // This is a mock user object. In a real app, you'd get the actual user object.
-            const mockAdminUser: User = {
-                uid: 'admin_uid_placeholder', // A consistent placeholder UID
-                email: ADMIN_EMAIL,
-                displayName: 'Samael Prajapati',
-                photoURL: '',
-                emailVerified: true,
-                isAnonymous: false,
-                metadata: {},
-                providerData: [],
-                providerId: 'password',
-                tenantId: null,
-                delete: async () => {},
-                getIdToken: async () => 'mock-token',
-                getIdTokenResult: async () => ({
-                    token: 'mock-token',
-                    authTime: new Date().toISOString(),
-                    issuedAtTime: new Date().toISOString(),
-                    signInProvider: 'password',
-                    signInSecondFactor: null,
-                    expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
-                    claims: {},
-                }),
-                reload: async () => {},
-                toJSON: () => ({}),
-            };
-            handleLoginSuccess(mockAdminUser);
-            return; // IMPORTANT: This stops the function from proceeding to the real auth call.
-        }
-        
         try {
+            // Special case for admin login
+            if (email === ADMIN_EMAIL) {
+                const mockAdminUser: User = {
+                    uid: 'admin_uid_placeholder',
+                    email: ADMIN_EMAIL,
+                    displayName: 'Samael Prajapati',
+                    photoURL: '',
+                    emailVerified: true,
+                    isAnonymous: false,
+                    metadata: {},
+                    providerData: [],
+                    providerId: 'password',
+                    tenantId: null,
+                    delete: async () => {},
+                    getIdToken: async () => 'mock-admin-token',
+                    getIdTokenResult: async () => ({
+                        token: 'mock-admin-token',
+                        authTime: new Date().toISOString(),
+                        issuedAtTime: new Date().toISOString(),
+                        signInProvider: 'password',
+                        signInSecondFactor: null,
+                        expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
+                        claims: {},
+                    }),
+                    reload: async () => {},
+                    toJSON: () => ({}),
+                };
+
+                // Manually setting auth state for admin
+                const authInstance = getAuth();
+                // This is a way to trick the onAuthStateChanged listener
+                // In a real app you would handle this with custom tokens or roles
+                 if (authInstance.currentUser?.email !== ADMIN_EMAIL) {
+                    // This is a simplified mock. A real implementation would involve custom tokens.
+                    // For the purpose of this prototype, we'll navigate directly after setting our "mock" state.
+                    const userState = { user: mockAdminUser, loading: false };
+                    // The handleLoginSuccess will now be called with the correct user object.
+                    handleLoginSuccess(mockAdminUser);
+                    return;
+                }
+            }
+
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -232,3 +241,5 @@ export function useAuthActions() {
 
 export { useAuth } from '@/hooks/use-auth.tsx';
 export { getFirebaseAuth as getAuth };
+
+    

@@ -66,14 +66,21 @@ const recentSignups = [
 ]
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // This is a workaround for the mock admin user.
+    if (!loading && !user) {
+        const potentialAdmin = sessionStorage.getItem('mockAdminUser');
+        if (potentialAdmin) {
+            setUser(JSON.parse(potentialAdmin));
+        }
+    }
+  }, [loading, user, setUser]);
 
   if (!isMounted || loading) {
     return (
@@ -92,6 +99,12 @@ export default function AdminDashboard() {
              <Button onClick={() => router.push('/')}>Go to Login</Button>
         </div>
     );
+  }
+
+  const handleAdminSignOut = () => {
+    sessionStorage.removeItem('mockAdminUser');
+    setUser(null);
+    signOut();
   }
 
   return (
@@ -213,7 +226,7 @@ export default function AdminDashboard() {
               <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAdminSignOut}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -314,3 +327,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+    
