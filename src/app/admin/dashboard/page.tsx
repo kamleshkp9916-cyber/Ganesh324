@@ -102,8 +102,6 @@ export default function AdminDashboard() {
   }
 
   const handleAdminSignOut = () => {
-    sessionStorage.removeItem('mockAdminUser');
-    setUser(null);
     signOut();
   }
 
@@ -327,5 +325,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
-    
