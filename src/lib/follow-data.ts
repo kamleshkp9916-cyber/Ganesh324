@@ -54,7 +54,7 @@ const setGlobalUserData = (data: Record<string, UserData>) => {
     localStorage.setItem('globalUserData', JSON.stringify(data));
 };
 
-export const getUserData = (uid: string): UserData => {
+export const getUserData = (uid: string, defaults?: Partial<UserData>): UserData => {
     const allUsers = getGlobalUserData();
     
     // Find user by UID
@@ -72,10 +72,10 @@ export const getUserData = (uid: string): UserData => {
     // Returning a default customer profile to avoid errors.
     return {
         uid,
-        displayName: 'New User',
-        email: '',
-        photoURL: `https://placehold.co/128x128.png?text=U`,
-        role: 'customer',
+        displayName: defaults?.displayName || 'New User',
+        email: defaults?.email || '',
+        photoURL: defaults?.photoURL || `https://placehold.co/128x128.png?text=U`,
+        role: defaults?.role || 'customer',
         followers: 0,
         following: 0,
         bio: "",

@@ -56,6 +56,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toggleFollow, getUserData } from "@/lib/follow-data";
 
 
 const liveSellers = [
@@ -175,6 +176,7 @@ export default function StreamPage() {
   const [chatMessages, setChatMessages] = useState(mockInitialChat);
   const [newChatMessage, setNewChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
 
@@ -215,22 +217,30 @@ export default function StreamPage() {
   }, [isMyStream, toast]);
 
   useEffect(() => {
-    const sellerData = liveSellers.find(s => String(s.id) === streamId);
-    if (sellerData) {
-      setSeller(sellerData);
+    let sellerData: any;
+    const sellerFromList = liveSellers.find(s => String(s.id) === streamId);
+    if (sellerFromList) {
+        sellerData = sellerFromList;
     } else {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
             if (liveStreamData.seller.id === streamId) {
-                setSeller({
-                    id: liveStreamData.seller.id,
-                    name: liveStreamData.seller.name,
-                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                sellerData = {
+                    ...liveStreamData.seller,
                     viewers: Math.floor(Math.random() * 5000),
                     productId: liveStreamData.product.id
-                });
+                };
             }
+        }
+    }
+
+    if (sellerData) {
+        setSeller(sellerData);
+        if (user) {
+            const followingKey = `following_${user.uid}`;
+            const followingList = JSON.parse(localStorage.getItem(followingKey) || '[]');
+            setIsFollowing(followingList.includes(sellerData.id));
         }
     }
 
@@ -248,7 +258,7 @@ export default function StreamPage() {
     }, Math.random() * (15000 - 5000) + 5000); // every 5-15 seconds
 
     return () => clearInterval(joinInterval);
-  }, [streamId]);
+  }, [streamId, user]);
 
   const handleAddToCart = (productKey: string) => {
     const product = productDetails[productKey as keyof typeof productDetails];
@@ -283,6 +293,22 @@ export default function StreamPage() {
    const addEmoji = (emoji: string) => {
         setNewChatMessage(prev => prev + emoji);
     };
+
+    const handleFollowToggle = () => {
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: 'Login Required',
+                description: 'You must be logged in to follow a seller.',
+            });
+            return;
+        }
+        if (seller) {
+            toggleFollow(user.uid, seller.id);
+            setIsFollowing(prev => !prev);
+        }
+    };
+
 
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -319,9 +345,9 @@ export default function StreamPage() {
                 Show Chat
               </Button>
             )}
-            <Button variant="secondary" size="sm">
+            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Follow
+              {isFollowing ? 'Following' : 'Follow'}
             </Button>
           </div>
         </header>
