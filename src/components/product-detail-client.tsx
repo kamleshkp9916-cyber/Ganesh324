@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -415,6 +415,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </CardContent>
                         </div>
                     )}
+                     <div className="py-4 border-t">
+                        <CardHeader className="p-0">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <ImageIcon className="h-5 w-5 text-primary"/> Product Gallery
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 pt-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {product.images.map((img, index) => (
+                                    <Dialog key={index}>
+                                        <DialogTrigger asChild>
+                                            <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
+                                                <Image src={img} alt={`${product.name} highlight ${index + 1}`} width={300} height={300} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                                            </div>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-3xl h-auto">
+                                            <Image src={img} alt={`${product.name} highlight ${index + 1}`} width={800} height={800} className="object-contain rounded-lg w-full h-full" />
+                                        </DialogContent>
+                                    </Dialog>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </div>
                 </div>
 
                 <div className="mt-8">

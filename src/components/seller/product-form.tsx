@@ -2,7 +2,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm, useWatch, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DialogFooter, DialogClose } from "../ui/dialog"
-import { Loader2, UploadCloud } from "lucide-react"
+import { Loader2, UploadCloud, X } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,7 +39,10 @@ const productFormSchema = z.object({
   highlights: z.string().optional(),
   price: z.coerce.number().positive("Price must be a positive number."),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
-  image: z.any().refine(file => file, "Image is required.").refine(file => file?.size <= 5000000, `Max image size is 5MB.`),
+  images: z.array(z.object({
+      file: z.any().refine(file => file, "Image is required."),
+      preview: z.string()
+  })).min(1, "Please upload at least one image."),
   status: z.enum(["draft", "active", "archived"]),
   // Category specific fields
   size: z.string().optional(),
@@ -48,13 +51,13 @@ const productFormSchema = z.object({
   origin: z.string().optional(),
 })
 
-export type Product = z.infer<typeof productFormSchema> & { image: { file?: File, preview: string } };
+export type Product = z.infer<typeof productFormSchema>;
 
 const categories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Kitchenware", "Fitness", "Handmade", "Pet Supplies", "Books", "Gaming"];
 
 interface ProductFormProps {
   onSave: (product: Product) => void;
-  productToEdit?: Product;
+  productToEdit?: Product & {image?: any};
 }
 
 const CategorySpecificFields = ({ control }: { control: any }) => {
@@ -133,11 +136,17 @@ const CategorySpecificFields = ({ control }: { control: any }) => {
 
 export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(productToEdit?.image?.preview || null);
-
-  const form = useForm<z.infer<typeof productFormSchema>>({
-    resolver: zodResolver(productFormSchema),
-    defaultValues: productToEdit || {
+  
+  const defaultValues = useMemo(() => {
+    if (productToEdit) {
+        let images = productToEdit.images;
+        // Legacy support for single image
+        if (productToEdit.image && !productToEdit.images) {
+            images = [{ file: null, preview: productToEdit.image.preview }];
+        }
+        return { ...productToEdit, images: images || [] };
+    }
+    return {
       name: "",
       brand: "",
       category: "",
@@ -145,44 +154,48 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       highlights: "",
       price: 0,
       stock: 0,
-      image: undefined,
+      images: [],
       status: "draft",
       size: "",
       color: "",
       modelNumber: "",
       origin: "",
-    },
-  })
+    };
+  }, [productToEdit]);
+
+  const form = useForm<z.infer<typeof productFormSchema>>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: defaultValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "images"
+  });
 
   useEffect(() => {
-    if (productToEdit) {
-      form.reset(productToEdit);
-      setImagePreview(productToEdit.image?.preview || null);
-    }
-  }, [productToEdit, form]);
+    form.reset(defaultValues);
+  }, [productToEdit, form, defaultValues]);
 
   function onSubmit(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
-    // Simulate async operation
     setTimeout(() => {
-        const finalProduct = {
-            ...values,
-            id: productToEdit?.id,
-            image: {
-                file: values.image as File,
-                preview: imagePreview || ""
-            }
-        };
-        onSave(finalProduct);
+        onSave(values);
         setIsSaving(false);
     }, 1000);
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      form.setValue('image', file);
-      setImagePreview(URL.createObjectURL(file));
+    const files = e.target.files;
+    if (files) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                append({ file: file, preview: event.target?.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
     }
   };
 
@@ -309,34 +322,57 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   )}
                 />
               </div>
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Image</FormLabel>
-                    <FormControl>
-                        <div className="flex items-center gap-4">
-                            <div className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground">
-                                {imagePreview ? (
-                                    <Image src={imagePreview} alt="Preview" width={96} height={96} className="object-cover rounded-md" />
-                                ) : (
-                                    <UploadCloud className="h-8 w-8" />
-                                )}
-                            </div>
-                            <div className="grid gap-1.5">
-                                <Button type="button" variant="outline" onClick={() => document.getElementById('image-upload')?.click()}>
-                                    Upload Image
-                                </Button>
-                                <Input id="image-upload" type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                                <FormDescription>Max 5MB, JPG, PNG, WEBP.</FormDescription>
-                            </div>
-                        </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+               <FormField
+                    control={form.control}
+                    name="images"
+                    render={() => (
+                        <FormItem>
+                            <FormLabel>Product Images</FormLabel>
+                            <FormControl>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="relative w-24 h-24">
+                                            <Image
+                                                src={field.preview}
+                                                alt={`Preview ${index}`}
+                                                width={96}
+                                                height={96}
+                                                className="object-cover rounded-md w-full h-full"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                                onClick={() => remove(index)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+
+                                    <label htmlFor="image-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
+                                        <div className="text-center">
+                                            <UploadCloud className="h-8 w-8 mx-auto" />
+                                            <span className="text-xs">Add Images</span>
+                                        </div>
+                                        <Input
+                                            id="image-upload"
+                                            type="file"
+                                            multiple
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                        />
+                                    </label>
+                                </div>
+                            </FormControl>
+                             <FormDescription>Max 5MB per image. JPG, PNG, WEBP.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                <FormField
                 control={form.control}
                 name="status"
@@ -376,5 +412,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
-
-    

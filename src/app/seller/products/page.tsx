@@ -6,7 +6,7 @@ import {
   PlusCircle,
   MoreHorizontal,
   ListFilter,
-  Image as ImageIcon,
+  ImageIcon,
   ArrowLeft,
   MessageSquare,
   HelpCircle,
@@ -74,7 +74,7 @@ const initialProducts: Product[] = [
         description: "A classic 35mm film camera from the 70s. Fully functional.",
         price: 12500,
         stock: 15,
-        image: { preview: "https://placehold.co/80x80.png" },
+        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
         status: "active"
     },
     {
@@ -83,7 +83,7 @@ const initialProducts: Product[] = [
         description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
         price: 4999,
         stock: 50,
-        image: { preview: "https://placehold.co/80x80.png" },
+        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
         status: "active"
     },
     {
@@ -92,7 +92,7 @@ const initialProducts: Product[] = [
         description: "Handmade genuine leather backpack, perfect for daily use.",
         price: 6200,
         stock: 0,
-        image: { preview: "https://placehold.co/80x80.png" },
+        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
         status: "archived"
     },
      {
@@ -101,7 +101,7 @@ const initialProducts: Product[] = [
         description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
         price: 8750,
         stock: 30,
-        image: { preview: "https://placehold.co/80x80.png" },
+        images: [],
         status: "draft"
     },
 ];
@@ -190,12 +190,12 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
               <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
                 <TableCell className="hidden sm:table-cell">
                   <Link href={`/product/${product.id}`}>
-                    {product.image?.preview ? (
+                    {product.images && product.images.length > 0 ? (
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={product.image.preview}
+                        src={product.images[0].preview}
                         width="64"
                       />
                     ) : (
@@ -330,7 +330,7 @@ export default function SellerProductsPage() {
             }
             setProducts(products.map(p => p.id === product.id ? product : p));
         } else {
-            setProducts([...products, { ...product, id: `prod_${Date.now()}` }]);
+            setProducts(prev => [...prev, { ...product, id: `prod_${Date.now()}` }]);
         }
 
         if (product.stock === 0 && wasInStock) {
