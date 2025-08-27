@@ -2,7 +2,7 @@
 "use client"
 
 import { useAuth } from '@/hooks/use-auth.tsx';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreHorizontal, Edit } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -26,6 +26,8 @@ import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 
 export default function SellerProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userIdFromQuery = searchParams.get('userId');
   const { user, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<UserData | null>(null);
@@ -38,41 +40,37 @@ export default function SellerProfilePage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !loading && user) {
-        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (sellerDetailsRaw) {
-            const details = JSON.parse(sellerDetailsRaw);
-            // Use a consistent UID for sellers based on their email
-            const sellerUid = `seller_${details.email}`;
-            
-            const existingData = getUserData(sellerUid, {
-                 displayName: details.name,
-                 email: details.email,
-                 photoURL: user?.photoURL || `https://placehold.co/128x128.png`,
-                 role: 'seller'
-            });
-            
-            const updatedData = {
-                ...existingData,
-                // Make sure all details from registration are present
-                ...details, 
-                uid: sellerUid,
-                displayName: details.name,
-                email: details.email,
-                phone: details.phone || existingData.phone,
-                bio: details.bio || existingData.bio,
-                location: details.location || existingData.location,
-                addresses: details.addresses || existingData.addresses,
-            };
-
-            setProfileData(updatedData);
-            // Ensure the global user data store is up-to-date
-            updateUserData(sellerUid, updatedData);
-        } else if (!loading) {
-             router.push('/seller/register');
+    if (isMounted && !loading) {
+        // If viewing someone else's seller profile
+        if (userIdFromQuery && user?.uid !== userIdFromQuery) {
+            const data = getUserData(userIdFromQuery);
+            setProfileData(data);
+        } 
+        // If viewing own seller profile
+        else if (user) {
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                const details = JSON.parse(sellerDetailsRaw);
+                const sellerUid = `seller_${details.email}`;
+                
+                const existingData = getUserData(sellerUid, {
+                     displayName: details.name,
+                     email: details.email,
+                     photoURL: user?.photoURL || `https://placehold.co/128x128.png`,
+                     role: 'seller'
+                });
+                
+                const updatedData = { ...existingData, ...details, uid: sellerUid, displayName: details.name };
+                setProfileData(updatedData);
+                updateUserData(sellerUid, updatedData);
+            } else if (!loading) {
+                 router.push('/seller/register');
+            }
+        } else {
+             router.push('/seller/login');
         }
     }
-  }, [user, loading, router, isMounted, key]);
+  }, [user, loading, router, isMounted, key, userIdFromQuery]);
 
 
   const handleProfileSave = (data: any) => {
@@ -114,16 +112,8 @@ export default function SellerProfilePage() {
           </div>
       )
   }
-
-  if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your profile.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
-  }
+  
+  const isOwnProfile = user?.uid === profileData.uid || (user?.email === profileData.email && profileData.role === 'seller');
 
   return (
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
@@ -141,10 +131,12 @@ export default function SellerProfilePage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                         <DropdownMenuItem onSelect={() => setProfileEditDialogOpen(true)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit Profile</span>
-                        </DropdownMenuItem>
+                         {isOwnProfile && (
+                            <DropdownMenuItem onSelect={() => setProfileEditDialogOpen(true)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit Profile</span>
+                            </DropdownMenuItem>
+                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
@@ -153,7 +145,7 @@ export default function SellerProfilePage() {
                 <ProfileCard
                     key={key} 
                     profileData={profileData} 
-                    isOwnProfile={true}
+                    isOwnProfile={isOwnProfile}
                     onAddressesUpdate={handleAddressesUpdate}
                     onFollowToggle={onFollowToggle}
                 />

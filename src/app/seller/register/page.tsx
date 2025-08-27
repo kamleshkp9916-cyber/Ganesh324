@@ -152,8 +152,6 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         
         try {
-            // Always try to sign up. If the email is in use, it will throw an error handled below.
-            // This ensures a password-based account is created.
             await signUpWithEmail(values, 'seller', true);
 
              const sellerData = {
@@ -163,6 +161,13 @@ export default function SellerRegisterPage() {
             };
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
+
+            // Store in a pending list for admin to review
+            const pendingSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
+            pendingSellers.push(sellerData);
+            localStorage.setItem('pendingSellers', JSON.stringify(pendingSellers));
+            
+            // Also save to their own key in case they come back to this page
             localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
             
             router.push('/seller/verification');
@@ -509,5 +514,3 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
-
-    

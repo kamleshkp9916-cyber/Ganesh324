@@ -9,8 +9,13 @@ import {
   MoreHorizontal,
   PlusCircle,
   File,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react"
 import { useEffect, useState } from "react";
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import {
   Avatar,
@@ -51,31 +56,27 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast"
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
 const allUsers = [
-    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2023-07-15" },
-    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2023-07-15" },
-    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "2023-07-14" },
-    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "2023-07-12" },
-    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "2023-07-10" },
-    { name: "Sarah Miller", email: "sarah.m@example.com", role: "Customer", date: "2023-07-09" },
-    { name: "David Garcia", email: "david.g@example.com", role: "Customer", date: "2023-07-09" },
-    { name: "Laura Williams", email: "laura.w@example.com", role: "Seller", date: "2023-07-08" },
-    { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07" },
-    { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05" },
+    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2023-07-15", verificationStatus: 'verified' },
+    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2023-07-15", verificationStatus: 'verified' },
+    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "2023-07-14", verificationStatus: 'verified' },
+    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "2023-07-12", verificationStatus: 'verified' },
+    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "2023-07-10", verificationStatus: 'verified' },
+    { name: "Sarah Miller", email: "sarah.m@example.com", role: "Customer", date: "2023-07-09", verificationStatus: 'verified' },
+    { name: "David Garcia", email: "david.g@example.com", role: "Customer", date: "2023-07-09", verificationStatus: 'verified' },
+    { name: "Laura Williams", email: "laura.w@example.com", role: "Seller", date: "2023-07-08", verificationStatus: 'verified' },
+    { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07", verificationStatus: 'verified' },
+    { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05", verificationStatus: 'verified' },
 ];
 
-const customers = allUsers.filter(user => user.role === 'Customer');
-const sellers = allUsers.filter(user => user.role === 'Seller');
-
-const UserTable = ({ users }: { users: typeof allUsers }) => (
+const UserTable = ({ users, onRowClick }: { users: typeof allUsers, onRowClick: (email: string) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -87,7 +88,7 @@ const UserTable = ({ users }: { users: typeof allUsers }) => (
             </TableHeader>
             <TableBody>
                 {users.map((u, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={index} onClick={() => onRowClick(u.email)} className="cursor-pointer">
                         <TableCell>
                             <div className="font-medium">{u.name}</div>
                             <div className="text-sm text-muted-foreground">{u.email}</div>
@@ -96,17 +97,17 @@ const UserTable = ({ users }: { users: typeof allUsers }) => (
                         <TableCell>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                                         <MoreHorizontal className="h-4 w-4 rotate-90" />
                                         <span className="sr-only">Toggle menu</span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onRowClick(u.email)}>View Profile</DropdownMenuItem>
+                                    <DropdownMenuItem>Hold Account</DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive">Delete Account</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -122,15 +123,81 @@ const UserTable = ({ users }: { users: typeof allUsers }) => (
     </>
 );
 
+const VerificationRequestsTable = ({ requests, onUpdateRequest }: { requests: any[], onUpdateRequest: (email: string, status: 'verified' | 'rejected') => void }) => (
+     <>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Seller Applicant</TableHead>
+                    <TableHead className="hidden md:table-cell">Business Name</TableHead>
+                    <TableHead className="hidden md:table-cell">PAN</TableHead>
+                    <TableHead>Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {requests.length > 0 ? requests.map((req, index) => (
+                    <TableRow key={index}>
+                        <TableCell>
+                            <div className="font-medium">{req.firstName} {req.lastName}</div>
+                            <div className="text-sm text-muted-foreground">{req.email}</div>
+                        </TableCell>
+                         <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
+                         <TableCell className="hidden md:table-cell font-mono">{req.pan}</TableCell>
+                        <TableCell className="flex gap-2">
+                             <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.email, 'verified')}>
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only">Approve</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => onUpdateRequest(req.email, 'rejected')}>
+                                <XCircle className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only">Reject</span>
+                            </Button>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+        <CardFooter className="px-0 pt-4">
+            <div className="text-xs text-muted-foreground">
+                Showing <strong>1-{requests.length > 10 ? 10 : requests.length}</strong> of <strong>{requests.length}</strong> requests
+            </div>
+        </CardFooter>
+    </>
+);
+
 
 export default function AdminUsersPage() {
   const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [pendingSellers, setPendingSellers] = useState<any[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== 'undefined') {
+        const storedSellers = localStorage.getItem('pendingSellers');
+        if (storedSellers) {
+            setPendingSellers(JSON.parse(storedSellers));
+        }
+    }
   }, []);
 
   if (!isMounted || loading) {
@@ -150,6 +217,48 @@ export default function AdminUsersPage() {
         </div>
     );
   }
+  
+  const handleUserRowClick = (userEmail: string) => {
+    const targetUser = allUsers.find(u => u.email === userEmail);
+    if (targetUser) {
+        if (targetUser.role === 'Seller') {
+            // In a real app, you'd use a unique ID. Here we use email as a proxy.
+            const sellerId = `seller_${userEmail}`;
+            router.push(`/seller/profile?userId=${sellerId}`);
+        } else {
+            router.push(`/profile?userId=${userEmail}`);
+        }
+    }
+  };
+
+  const handleVerificationUpdate = (email: string, status: 'verified' | 'rejected') => {
+      const allSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
+      const sellerIndex = allSellers.findIndex((s: any) => s.email === email);
+
+      if (sellerIndex > -1) {
+          allSellers[sellerIndex].verificationStatus = status;
+
+          if (status === 'rejected') {
+              allSellers[sellerIndex].rejectionReason = "Application did not meet requirements.";
+          }
+          
+          localStorage.setItem('sellerDetails', JSON.stringify(allSellers[sellerIndex]));
+          
+          // Remove from pending list
+          const updatedPending = allSellers.filter((s: any) => s.email !== email);
+          setPendingSellers(updatedPending);
+          localStorage.setItem('pendingSellers', JSON.stringify(updatedPending));
+
+          toast({
+              title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
+              description: `The application for ${email} has been updated.`,
+          });
+      }
+  };
+
+  const customers = allUsers.filter(u => u.role === 'Customer');
+  const sellers = allUsers.filter(u => u.role === 'Seller');
+  const pendingRequestCount = pendingSellers.length;
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -281,15 +390,15 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers</TabsTrigger>
+                     <TabsTrigger value="verification">
+                        Verification Requests 
+                        {pendingRequestCount > 0 && <Badge className="ml-2">{pendingRequestCount}</Badge>}
+                    </TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1">
                         <File className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
-                    </Button>
-                     <Button size="sm" className="h-8 gap-1">
-                        <PlusCircle className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add User</span>
                     </Button>
                 </div>
             </div>
@@ -300,7 +409,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} />
+                        <UserTable users={customers} onRowClick={handleUserRowClick} />
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -308,10 +417,21 @@ export default function AdminUsersPage() {
                 <Card>
                     <CardHeader className="px-7">
                         <CardTitle>Sellers</CardTitle>
-                        <CardDescription>Manage all seller accounts.</CardDescription>
+                        <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} />
+                        <UserTable users={sellers} onRowClick={handleUserRowClick}/>
+                    </CardContent>
+                </Card>
+             </TabsContent>
+            <TabsContent value="verification">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Seller Verification Requests</CardTitle>
+                        <CardDescription>Approve or reject new seller applications.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <VerificationRequestsTable requests={pendingSellers} onUpdateRequest={handleVerificationUpdate} />
                     </CardContent>
                 </Card>
              </TabsContent>
