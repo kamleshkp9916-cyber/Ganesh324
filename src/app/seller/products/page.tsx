@@ -8,7 +8,8 @@ import {
   ListFilter,
   Image as ImageIcon,
   ArrowLeft,
-  MessageSquare
+  MessageSquare,
+  HelpCircle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -63,6 +64,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Textarea } from "@/components/ui/textarea"
 
 const initialProducts: Product[] = [
     {
@@ -103,7 +106,68 @@ const initialProducts: Product[] = [
     },
 ];
 
-const ProductTable = ({ products, onEdit, onDelete }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void }) => (
+const mockQandA = [
+    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
+    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru" },
+    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru" },
+    { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null },
+    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru" },
+];
+
+const ManageQnaDialog = ({ product }: { product: Product }) => {
+    const [qna, setQna] = useState(mockQandA);
+    const { toast } = useToast();
+
+    const handleAnswerSubmit = (questionId: number, answer: string) => {
+        setQna(qna.map(item => item.id === questionId ? { ...item, answer } : item));
+        toast({ title: "Answer Submitted!", description: "Your answer has been posted." });
+    };
+
+    return (
+        <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
+            <DialogHeader>
+                <DialogTitle>Manage Q&A for {product.name}</DialogTitle>
+                <DialogDescription>View and answer questions from customers.</DialogDescription>
+            </DialogHeader>
+            <div className="flex-grow overflow-hidden">
+                <ScrollArea className="h-full pr-6">
+                    <div className="space-y-6">
+                        {qna.map(item => (
+                            <div key={item.id} className="text-sm">
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <HelpCircle className="w-4 h-4 text-primary" />
+                                    <p>{item.question}</p>
+                                </div>
+                                <div className="pl-6 mt-2">
+                                    {item.answer ? (
+                                        <p className="text-muted-foreground bg-muted/50 p-2 rounded-md"><strong>Your Answer:</strong> {item.answer}</p>
+                                    ) : (
+                                        <form className="flex items-start gap-2" onSubmit={(e) => {
+                                            e.preventDefault();
+                                            const formData = new FormData(e.currentTarget);
+                                            const answer = formData.get('answer') as string;
+                                            handleAnswerSubmit(item.id, answer);
+                                            (e.target as HTMLFormElement).reset();
+                                        }}>
+                                            <Textarea name="answer" placeholder="Type your answer..." className="flex-grow" rows={2} />
+                                            <Button type="submit" size="sm">Answer</Button>
+                                        </form>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                         {qna.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">No questions for this product yet.</p>
+                         )}
+                    </div>
+                </ScrollArea>
+            </div>
+        </DialogContent>
+    );
+};
+
+
+const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void, onManageQna: (product: Product) => void }) => (
     <Card>
       <CardContent className="p-0">
         <Table>
@@ -171,7 +235,9 @@ const ProductTable = ({ products, onEdit, onDelete }: { products: Product[], onE
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem onSelect={() => onEdit(product)}>Edit</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => onDelete(product.id as string)}>Delete</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onManageQna(product)}>Manage Q&A</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(product.id as string)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -198,6 +264,8 @@ export default function SellerProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isMounted, setIsMounted] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isQnaOpen, setIsQnaOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -292,110 +360,120 @@ export default function SellerProductsPage() {
         }
         setIsFormOpen(open);
     }
+
+    const handleManageQna = (product: Product) => {
+        setSelectedProduct(product);
+        setIsQnaOpen(true);
+    };
   
   return (
-    <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
-         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-             <Button size="icon" variant="outline" className="sm:hidden h-8 w-8" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back</span>
-             </Button>
-            <div className="hidden sm:flex items-center gap-4">
-                 <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                 <Link href="/seller/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                 <Link href="/seller/products" className="font-semibold text-foreground">Products</Link>
-                 <Link href="/seller/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                 <Link href="#" className="text-muted-foreground hover:text-foreground">Analytics</Link>
-            </div>
+    <>
+      <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
+               <Button size="icon" variant="outline" className="sm:hidden h-8 w-8" onClick={() => router.back()}>
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back</span>
+               </Button>
+              <div className="hidden sm:flex items-center gap-4">
+                   <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
+                   <Link href="/seller/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
+                   <Link href="/seller/products" className="font-semibold text-foreground">Products</Link>
+                   <Link href="/seller/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
+                   <Link href="#" className="text-muted-foreground hover:text-foreground">Analytics</Link>
+              </div>
 
-            <div className="ml-auto flex items-center gap-2">
-                <DialogTrigger asChild>
-                    <Button size="sm" className="h-8 gap-1">
-                        <PlusCircle className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Add Product
-                        </span>
-                    </Button>
-                </DialogTrigger>
-            </div>
-         </header>
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Products</CardTitle>
-                    <CardDescription>
-                    Manage your products and view their sales performance.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="all">
-                    <div className="flex items-center gap-4">
-                        <TabsList>
-                        <TabsTrigger value="all">All ({products.length})</TabsTrigger>
-                        <TabsTrigger value="active">Active ({activeProducts.length})</TabsTrigger>
-                        <TabsTrigger value="draft">Draft ({draftProducts.length})</TabsTrigger>
-                        <TabsTrigger value="archived" className="hidden sm:flex">
-                            Archived ({archivedProducts.length})
-                        </TabsTrigger>
-                        </TabsList>
-                        <div className="ml-auto flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 gap-1">
-                                <ListFilter className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Filter
-                                </span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuCheckboxItem checked>
-                                Available
-                            </DropdownMenuCheckboxItem>
-                            <DropdownMenuCheckboxItem>
-                                Out of Stock
-                            </DropdownMenuCheckboxItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" variant="outline" className="h-8 gap-1">
-                            <File className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Export
-                            </span>
-                        </Button>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <TabsContent value="all">
-                             <ProductTable products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
-                        </TabsContent>
-                        <TabsContent value="active">
-                            <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
-                        </TabsContent>
-                        <TabsContent value="draft">
-                            <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
-                        </TabsContent>
-                        <TabsContent value="archived">
-                            <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
-                        </TabsContent>
-                    </div>
-                    </Tabs>
-                </CardContent>
-            </Card>
-        </main>
-        <DialogContent className="sm:max-w-[625px]">
-            <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-                <DialogDescription>
-                    {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
-                </DialogDescription>
-            </DialogHeader>
-            <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
-        </DialogContent>
-      </div>
-    </Dialog>
+              <div className="ml-auto flex items-center gap-2">
+                  <DialogTrigger asChild>
+                      <Button size="sm" className="h-8 gap-1">
+                          <PlusCircle className="h-3.5 w-3.5" />
+                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                          Add Product
+                          </span>
+                      </Button>
+                  </DialogTrigger>
+              </div>
+           </header>
+          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+              <Card>
+                  <CardHeader>
+                      <CardTitle>Products</CardTitle>
+                      <CardDescription>
+                      Manage your products and view their sales performance.
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <Tabs defaultValue="all">
+                      <div className="flex items-center gap-4">
+                          <TabsList>
+                          <TabsTrigger value="all">All ({products.length})</TabsTrigger>
+                          <TabsTrigger value="active">Active ({activeProducts.length})</TabsTrigger>
+                          <TabsTrigger value="draft">Draft ({draftProducts.length})</TabsTrigger>
+                          <TabsTrigger value="archived" className="hidden sm:flex">
+                              Archived ({archivedProducts.length})
+                          </TabsTrigger>
+                          </TabsList>
+                          <div className="ml-auto flex items-center gap-2">
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 gap-1">
+                                  <ListFilter className="h-3.5 w-3.5" />
+                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                  Filter
+                                  </span>
+                              </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuCheckboxItem checked>
+                                  Available
+                              </DropdownMenuCheckboxItem>
+                              <DropdownMenuCheckboxItem>
+                                  Out of Stock
+                              </DropdownMenuCheckboxItem>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button size="sm" variant="outline" className="h-8 gap-1">
+                              <File className="h-3.5 w-3.5" />
+                              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                              Export
+                              </span>
+                          </Button>
+                          </div>
+                      </div>
+                      <div className="mt-4">
+                          <TabsContent value="all">
+                               <ProductTable products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                          </TabsContent>
+                          <TabsContent value="active">
+                              <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                          </TabsContent>
+                          <TabsContent value="draft">
+                              <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                          </TabsContent>
+                          <TabsContent value="archived">
+                              <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                          </TabsContent>
+                      </div>
+                      </Tabs>
+                  </CardContent>
+              </Card>
+          </main>
+          <DialogContent className="sm:max-w-[625px]">
+              <DialogHeader>
+                  <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+                  <DialogDescription>
+                      {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
+                  </DialogDescription>
+              </DialogHeader>
+              <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
+          </DialogContent>
+        </div>
+      </Dialog>
+      <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
+        {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
+      </Dialog>
+    </>
   )
 }

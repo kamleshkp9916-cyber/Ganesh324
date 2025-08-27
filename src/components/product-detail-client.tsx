@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -18,6 +18,9 @@ import Link from 'next/link';
 import { format, addDays } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
+import { ScrollArea } from './ui/scroll-area';
+import { Textarea } from './ui/textarea';
 
 
 // Mock data - in a real app this would come from a database
@@ -39,6 +42,14 @@ const mockReviews = [
     { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
     { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
     { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
+];
+
+const mockQandA = [
+    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
+    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru" },
+    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru" },
+    { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null },
+    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru" },
 ];
 
 const mockOffers = [
@@ -68,6 +79,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [pincode, setPincode] = useState("");
     const [isDeliverable, setIsDeliverable] = useState<boolean | null>(null);
     const [checkingPincode, setCheckingPincode] = useState(false);
+    const [newQuestion, setNewQuestion] = useState("");
 
 
     useEffect(() => {
@@ -162,6 +174,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const handleBuyNow = () => {
         if (product) {
             router.push(`/cart?buyNow=true&productId=${product.key}`);
+        }
+    };
+    
+    const handleAskQuestion = () => {
+        if (newQuestion.trim()) {
+            console.log("New question:", newQuestion);
+            toast({
+                title: "Question Submitted!",
+                description: "Your question has been sent to the seller. You will be notified when they answer.",
+            });
+            setNewQuestion("");
         }
     };
 
@@ -447,7 +470,81 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                 {/* Live Streams Section */}
+                {/* Q&A Section */}
+                <div className="mt-12 py-8 border-t">
+                    <CardHeader className="p-0 mb-6">
+                        <CardTitle>Questions & Answers</CardTitle>
+                    </CardHeader>
+                    <div className="space-y-6">
+                        {mockQandA.slice(0, 4).map(qna => (
+                            <div key={qna.id} className="text-sm">
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <HelpCircle className="w-4 h-4 text-primary" />
+                                    <p>{qna.question}</p>
+                                </div>
+                                <div className="flex items-start gap-2 mt-2 pl-6">
+                                    <Avatar className="w-5 h-5 mt-1">
+                                        <AvatarFallback className="text-xs">S</AvatarFallback>
+                                    </Avatar>
+                                    {qna.answer ? (
+                                        <p className="text-muted-foreground">{qna.answer}</p>
+                                    ) : (
+                                        <p className="text-muted-foreground italic">The seller has not answered this question yet.</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        <div className="flex justify-between items-center mt-6">
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="link">View all questions</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
+                                    <DialogHeader>
+                                        <DialogTitle>All Questions & Answers</DialogTitle>
+                                        <DialogDescription>Find answers to your questions or ask a new one.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex-grow overflow-hidden">
+                                        <ScrollArea className="h-full pr-6">
+                                            <div className="space-y-6">
+                                                {mockQandA.map(qna => (
+                                                    <div key={qna.id} className="text-sm">
+                                                        <div className="flex items-center gap-2 font-semibold">
+                                                            <HelpCircle className="w-4 h-4 text-primary" />
+                                                            <p>{qna.question}</p>
+                                                        </div>
+                                                        <div className="flex items-start gap-2 mt-2 pl-6">
+                                                             <Avatar className="w-5 h-5 mt-1">
+                                                                <AvatarFallback className="text-xs">S</AvatarFallback>
+                                                            </Avatar>
+                                                            {qna.answer ? (
+                                                                <p className="text-muted-foreground">{qna.answer}</p>
+                                                            ) : (
+                                                                <p className="text-muted-foreground italic">Not answered yet.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                    <div className="mt-auto pt-4 border-t">
+                                        <h4 className="font-semibold mb-2">Ask a Question</h4>
+                                        <div className="flex gap-2">
+                                            <Textarea placeholder="Type your question here..." value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} />
+                                            <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
+                                                <Send className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Live Streams Section */}
                 <div className="mt-12 py-8 border-t">
                     <h2 className="text-2xl font-bold mb-6">Related Live Streams</h2>
                     <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
