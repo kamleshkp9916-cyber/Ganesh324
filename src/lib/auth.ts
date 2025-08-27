@@ -42,7 +42,7 @@ export function useAuthActions() {
         }
     };
     
-    const signUpWithEmail = async (email: string, password: string, profileData: { firstName: string; lastName: string; }) => {
+    const signUpWithEmail = async (email: string, password: string, profileData: { firstName: string; lastName: string; }, skipRedirect = false) => {
         const auth = getFirebaseAuth();
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -55,7 +55,9 @@ export function useAuthActions() {
                 title: "Account Created!",
                 description: "A verification email has been sent. Please check your inbox.",
             });
-            router.push('/verify-email');
+            if (!skipRedirect) {
+                router.push('/verify-email');
+            }
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";

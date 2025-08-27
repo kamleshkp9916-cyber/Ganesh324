@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth.tsx";
+import { useAuthActions } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
@@ -54,6 +55,7 @@ type SellerDetails = z.infer<typeof sellerFormSchema> & { verificationStatus: st
 
 export default function SellerRegisterPage() {
     const { user, loading: authLoading } = useAuth();
+    const { signUpWithEmail } = useAuthActions();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -111,6 +113,15 @@ export default function SellerRegisterPage() {
             }
         }
     }, [router, form]);
+
+    useEffect(() => {
+        if(user) {
+            form.setValue('email', user.email || '');
+            const nameParts = user.displayName?.split(' ') || ['', ''];
+            form.setValue('firstName', nameParts[0]);
+            form.setValue('lastName', nameParts.slice(1).join(' '));
+        }
+    }, [user, form]);
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -141,25 +152,43 @@ export default function SellerRegisterPage() {
         toast({ title: "Aadhar Verified Successfully!" });
     }
 
-    function onSubmit(values: z.infer<typeof sellerFormSchema>) {
+    async function onSubmit(values: z.infer<typeof sellerFormSchema>) {
         setIsLoading(true);
-        console.log("Seller registration details:", values);
         
-        setTimeout(() => {
-            if (typeof window !== 'undefined') {
-                 const sellerData = {
-                    ...values,
-                    passportPhoto: values.passportPhoto.name, // Storing only name for mock
-                    name: `${values.firstName} ${values.lastName}`,
-                    verificationStatus: 'pending'
-                };
-                delete (sellerData as any).password;
-                delete (sellerData as any).confirmPassword;
-                localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
+        try {
+            // If the user is not logged in, create an account first
+            if (!user) {
+                if (!values.password) {
+                     toast({ variant: "destructive", title: "Password is required for new accounts."});
+                     setIsLoading(false);
+                     return;
+                }
+                await signUpWithEmail(values.email, values.password, {
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                }, true); // Pass true to skip redirection from auth hook
             }
+
+             const sellerData = {
+                ...values,
+                passportPhoto: values.passportPhoto.name, // Storing only name for mock
+                name: `${values.firstName} ${values.lastName}`,
+                verificationStatus: 'pending'
+            };
+            delete (sellerData as any).password;
+            delete (sellerData as any).confirmPassword;
+            localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
+            
             router.push('/seller/verification');
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Registration Failed",
+                description: error.message,
+            });
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     }
 
     if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting') {
@@ -257,7 +286,7 @@ export default function SellerRegisterPage() {
                            <FormItem>
                                 <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="name@example.com" {...field} />
+                                    <Input placeholder="name@example.com" {...field} disabled={!!user} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
