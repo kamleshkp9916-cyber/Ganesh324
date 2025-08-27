@@ -10,8 +10,6 @@ import {
   Share2,
   ShoppingCart,
   Star,
-  ThumbsDown,
-  ThumbsUp,
   UserPlus,
   Users,
   X,
@@ -23,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -32,6 +29,7 @@ import { productDetails } from "@/components/product-detail-client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { addToCart, isProductInCart } from "@/lib/product-history";
+import { cn } from "@/lib/utils";
 
 const liveSellers = [
     { id: 1, name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1' },
@@ -47,13 +45,35 @@ const liveSellers = [
 ];
 
 const mockChat = [
-    { id: 1, user: 'Alice', message: 'This looks amazing! What material is it?' },
-    { id: 2, user: 'Bob', message: 'Just joined, what did I miss?' },
-    { id: 3, user: 'Charlie', message: 'I bought this last week, it\'s great quality!'},
-    { id: 4, user: 'Diana', message: 'Is there a discount code?'},
-    { id: 5, user: 'Eve', message: '🔥🔥🔥'},
-    { id: 6, user: 'Frank', message: 'Can you show the back of the product?'},
+    { id: 1, type: 'chat', user: 'Alice', message: 'This looks amazing! What material is it?' },
+    { id: 2, type: 'chat', user: 'Bob', message: 'Just joined, what did I miss?' },
+    { id: 3, type: 'product', productKey: 'prod_1' },
+    { id: 4, type: 'chat', user: 'Charlie', message: 'I bought this last week, it\'s great quality!'},
+    { id: 5, type: 'chat', user: 'Diana', message: 'Is there a discount code?'},
+    { id: 6, type: 'product', productKey: 'prod_2'},
+    { id: 7, type: 'chat', user: 'Eve', message: '🔥🔥🔥'},
+    { id: 8, type: 'chat', user: 'Frank', message: 'Can you show the back of the product?'},
 ];
+
+function ProductChatMessage({ productKey, onAddToCart }: { productKey: string, onAddToCart: (productKey: string) => void }) {
+    const product = productDetails[productKey as keyof typeof productDetails];
+    if (!product) return null;
+
+    return (
+        <Card className="bg-background/80 backdrop-blur-sm border-primary/50 my-2">
+            <CardContent className="p-2 flex items-center gap-3">
+                <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md object-cover" data-ai-hint={product.hint}/>
+                <div className="flex-grow overflow-hidden">
+                    <p className="text-sm font-semibold truncate">{product.name}</p>
+                    <p className="text-sm font-bold text-primary">{product.price}</p>
+                </div>
+                <Button size="sm" onClick={() => onAddToCart(productKey)}>
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Add
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function StreamPage() {
   const router = useRouter();
@@ -62,19 +82,12 @@ export default function StreamPage() {
   const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
-  const [product, setProduct] = useState<any>(null);
-  const [inCart, setInCart] = useState(false);
 
   useEffect(() => {
     const sellerData = liveSellers.find(s => String(s.id) === streamId);
     if (sellerData) {
       setSeller(sellerData);
-      const productData = productDetails[sellerData.productId as keyof typeof productDetails];
-      setProduct(productData);
-      setInCart(isProductInCart(productData.id));
     } else {
-        // Handle case where seller is not found
-        // Maybe check for a custom seller from localstorage
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
@@ -86,17 +99,15 @@ export default function StreamPage() {
                     viewers: Math.floor(Math.random() * 5000),
                     productId: liveStreamData.product.id
                 });
-                setProduct(liveStreamData.product);
-                setInCart(isProductInCart(liveStreamData.product.id));
             }
         }
     }
   }, [streamId]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (productKey: string) => {
+    const product = productDetails[productKey as keyof typeof productDetails];
     if (product) {
         addToCart({ ...product, imageUrl: product.images[0], quantity: 1 });
-        setInCart(true);
         toast({
             title: "Added to Cart!",
             description: `${product.name} has been added to your shopping cart.`,
@@ -104,13 +115,8 @@ export default function StreamPage() {
     }
   };
 
-  const handleBuyNow = () => {
-    if (product) {
-        router.push(`/cart?buyNow=true&productId=${product.key}`);
-    }
-  };
 
-  if (!seller || !product) {
+  if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
   }
 
@@ -149,29 +155,6 @@ export default function StreamPage() {
             <div className="w-full h-full bg-gray-900 flex items-center justify-center text-muted-foreground">
                 <Video className="h-16 w-16" />
             </div>
-            
-             {/* Overlay with Product Info */}
-            <div className="absolute bottom-4 left-4 z-10 w-[calc(100%-2rem)]">
-                <Card className="bg-background/80 backdrop-blur-sm">
-                    <CardContent className="p-3 flex items-center gap-3">
-                        <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md object-cover" data-ai-hint={product.hint}/>
-                        <div className="flex-grow">
-                            <h3 className="font-semibold truncate">{product.name}</h3>
-                            <p className="text-lg font-bold">{product.price}</p>
-                        </div>
-                         {inCart ? (
-                            <Button asChild className="shrink-0">
-                                <Link href="/cart"><ShoppingCart className="mr-2 h-4 w-4" />Go to Cart</Link>
-                            </Button>
-                        ) : (
-                             <Button onClick={handleAddToCart} className="shrink-0">
-                                <ShoppingCart className="mr-2 h-4 w-4" />
-                                Add to Cart
-                            </Button>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
         </div>
       </div>
 
@@ -182,16 +165,20 @@ export default function StreamPage() {
           <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
         </div>
         <div className="flex-grow p-4 space-y-4 overflow-y-auto">
-          {mockChat.map(chat => (
-             <div key={chat.id} className="flex items-start gap-2 text-sm">
-                <Avatar className="h-8 w-8">
-                    <AvatarFallback>{chat.user.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <p className="font-semibold">{chat.user}</p>
-                    <p className="text-muted-foreground">{chat.message}</p>
+          {mockChat.map(item => (
+             item.type === 'chat' ? (
+                <div key={item.id} className="flex items-start gap-2 text-sm">
+                    <Avatar className="h-8 w-8">
+                        <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold">{item.user}</p>
+                        <p className="text-muted-foreground">{item.message}</p>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <ProductChatMessage key={item.id} productKey={item.productKey!} onAddToCart={handleAddToCart} />
+            )
           ))}
         </div>
         <div className="p-3 border-t">
