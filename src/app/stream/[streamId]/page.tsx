@@ -177,9 +177,18 @@ export default function StreamPage() {
   const [newChatMessage, setNewChatMessage] = useState("");
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
 
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+    }
+  }, [chatMessages]);
 
   useEffect(() => {
     // Check if the current user is the one broadcasting
@@ -335,7 +344,7 @@ export default function StreamPage() {
                 <div>
                   <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
                   <div className="flex items-center gap-2 text-xs">
-                    <Badge className="h-5">LIVE</Badge>
+                    <Badge variant="default" className="h-5">LIVE</Badge>
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       <span>{seller.viewers}</span>
@@ -457,7 +466,7 @@ export default function StreamPage() {
                 </DropdownMenu>
               </div>
             </div>
-            <ScrollArea className="flex-grow p-4 space-y-4">
+            <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
               {chatMessages.map(item => (
                  item.type === 'chat' ? (
                     <div key={item.id} className="flex items-start gap-2 text-sm">
