@@ -16,6 +16,11 @@ import {
   PlusCircle,
   Video,
   Zap,
+  Play,
+  Pause,
+  Settings,
+  RadioTower,
+  Hd,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +36,13 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { addToCart, isProductInCart } from "@/lib/product-history";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 const liveSellers = [
     { id: 1, name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1' },
@@ -94,6 +106,8 @@ export default function StreamPage() {
   const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [quality, setQuality] = useState('Auto');
 
   useEffect(() => {
     const sellerData = liveSellers.find(s => String(s.id) === streamId);
@@ -139,8 +153,8 @@ export default function StreamPage() {
   return (
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground">
       {/* Video Player Section */}
-      <div className="flex-grow bg-black flex flex-col">
-        <header className="p-4 flex items-center justify-between bg-black/50 z-10 text-white">
+      <div className="flex-grow bg-black flex flex-col relative group">
+        <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent z-10 text-white transition-opacity duration-300 opacity-100 group-hover:opacity-100">
           <div className="flex items-center gap-3">
              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
               <ArrowLeft />
@@ -171,6 +185,44 @@ export default function StreamPage() {
             <div className="w-full h-full bg-gray-900 flex items-center justify-center text-muted-foreground">
                 <Video className="h-16 w-16" />
             </div>
+
+             {/* Player Controls Overlay */}
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => setIsPaused(!isPaused)}>
+                    {isPaused ? <Play className="h-12 w-12" /> : <Pause className="h-12 w-12" />}
+                </Button>
+            </div>
+            
+            <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white">
+                            <Settings className="h-6 w-6" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" side="top">
+                        <DropdownMenuItem onSelect={() => setQuality('Auto')}>
+                            <RadioTower className="mr-2 h-4 w-4" />
+                            <span>Auto</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setQuality('1080p')}>
+                            <Hd className="mr-2 h-4 w-4" />
+                            <span>1080p</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => setQuality('720p')}>
+                             <Hd className="mr-2 h-4 w-4" />
+                            <span>720p</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+             {isPaused && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => setIsPaused(false)}>
+                        <Play className="h-12 w-12 fill-white" />
+                    </Button>
+                </div>
+            )}
         </div>
       </div>
 
