@@ -59,7 +59,11 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     );
   }
 
-export function LoginForm() {
+interface LoginFormProps {
+    role?: 'customer' | 'seller';
+}
+
+export function LoginForm({ role = 'customer' }: LoginFormProps) {
   const router = useRouter();
   const { signInWithGoogle, signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +78,7 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-        await signInWithEmail(values.identifier, values.password);
+        await signInWithEmail(values.identifier, values.password, role);
         // The redirection logic is now handled inside signInWithEmail
     } catch (error: any) {
         toast({
@@ -171,7 +175,7 @@ export function LoginForm() {
             </>
           )}
         </Button>
-         <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle()} disabled={isLoading}>
+         <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle(role)} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Sign In With Google
         </Button>

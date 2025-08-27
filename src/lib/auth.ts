@@ -16,9 +16,18 @@ export function useAuthActions() {
     const { setUser } = useAuth();
     
     // Helper function to handle redirection after login
-    const handleLoginSuccess = (user: User) => {
+    const handleLoginSuccess = (user: User, expectedRole?: 'customer' | 'seller') => {
         // Fetch user data which includes the role
         const userData = getUserData(user.uid);
+        const actualRole = userData.role;
+        
+        // If an expected role is provided, check for a mismatch
+        if (expectedRole && actualRole !== expectedRole) {
+            const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${actualRole}.`;
+            toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
+            signOut(); // Log the user out immediately
+            return; // Stop further execution
+        }
         
         toast({
             title: "Logged In!",
@@ -27,10 +36,9 @@ export function useAuthActions() {
 
         // Redirect based on role
         if (user.email === ADMIN_EMAIL) {
-            // Persist the mock user in session storage to survive reloads within the admin area.
             sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
             router.push('/admin/dashboard');
-        } else if (userData.role === 'seller') {
+        } else if (actualRole === 'seller') {
             router.push('/seller/dashboard');
         } else {
             router.push('/live-selling');
@@ -54,7 +62,7 @@ export function useAuthActions() {
                 role: role
             });
             
-            handleLoginSuccess(user);
+            handleLoginSuccess(user, role);
 
         } catch (error) {
             console.error("Error signing in with Google: ", error);
@@ -116,7 +124,7 @@ export function useAuthActions() {
         }
     };
     
-    const signInWithEmail = async (email: string, password: string) => {
+    const signInWithEmail = async (email: string, password: string, role: 'customer' | 'seller') => {
         // Special case for admin login
         if (email === ADMIN_EMAIL) {
             const mockAdminUser: User = {
@@ -165,7 +173,7 @@ export function useAuthActions() {
                 return;
             }
             
-            handleLoginSuccess(user);
+            handleLoginSuccess(user, role);
 
         } catch (error: any) {
             console.error("Error signing in: ", error);

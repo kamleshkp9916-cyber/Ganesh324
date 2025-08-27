@@ -28,7 +28,7 @@ export default function SellerLoginPage() {
               Enter your seller credentials to access your dashboard.
             </p>
           </div>
-          <LoginForm />
+          <LoginForm role="seller" />
           <div className="mt-4 text-center text-sm">
             Don't have a seller account?{" "}
             <Link href="/seller/register" className="font-semibold text-primary underline">

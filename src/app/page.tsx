@@ -37,7 +37,7 @@ export default function Home() {
               Enter your credentials to access your account.
             </p>
           </div>
-          <LoginForm />
+          <LoginForm role="customer" />
           <div className="mt-4 space-y-2 text-center text-sm">
             <div>
                 Don't have an account?{" "}
