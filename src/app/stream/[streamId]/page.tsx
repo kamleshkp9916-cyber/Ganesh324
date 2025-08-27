@@ -24,6 +24,7 @@ import {
   Volume2,
   VolumeX,
   List,
+  Smile,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -63,7 +65,7 @@ const liveSellers = [
     { id: 10, name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10' },
 ];
 
-const mockChat = [
+const mockInitialChat = [
     { id: 1, type: 'chat', user: 'Alice', message: 'This looks amazing! What material is it?' },
     { id: 2, type: 'chat', user: 'Bob', message: 'Just joined, what did I miss?' },
     { id: 3, type: 'product', productKey: 'prod_1', stock: 15 },
@@ -80,6 +82,19 @@ const allStreamProducts = [
     productDetails['prod_4'],
     productDetails['prod_5'],
 ].map(p => ({...p, stock: Math.floor(Math.random() * 20) + 5})); // Add mock stock
+
+const emojis = [
+    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
+    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
+    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
+    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
+    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
+    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
+    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
+];
+
 
 function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
     const product = productDetails[productKey as keyof typeof productDetails];
@@ -139,7 +154,7 @@ export default function StreamPage() {
   const { user } = useAuth();
   const streamId = params.streamId as string;
   
-  const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
+  const [seller, setSeller] = useState<any>(null);
   const [isMyStream, setIsMyStream] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -147,8 +162,10 @@ export default function StreamPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isProductListOpen, setIsProductListOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState(mockInitialChat);
+  const [newChatMessage, setNewChatMessage] = useState("");
   
-  const featuredProductIds = mockChat.filter(item => item.type === 'product').map(item => item.productKey);
+  const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
 
 
   useEffect(() => {
@@ -156,11 +173,11 @@ export default function StreamPage() {
     const liveStreamDataRaw = localStorage.getItem('liveStream');
     if (liveStreamDataRaw) {
       const liveStreamData = JSON.parse(liveStreamDataRaw);
-      if (user && liveStreamData.seller.email === user.email) {
+      if (user && liveStreamData.seller.email === user.email && streamId === liveStreamData.seller.id) {
         setIsMyStream(true);
       }
     }
-  }, [user]);
+  }, [user, streamId]);
 
   useEffect(() => {
     // Only request camera if it's the seller's stream
@@ -222,6 +239,24 @@ export default function StreamPage() {
       router.push(`/cart?buyNow=true&productId=${productKey}`);
   };
 
+  const handleSendMessage = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newChatMessage.trim()) return;
+
+      const newMessage = {
+          id: Date.now(),
+          type: 'chat',
+          user: user?.displayName || 'Guest',
+          message: newChatMessage.trim(),
+      };
+      // @ts-ignore
+      setChatMessages(prev => [...prev, newMessage]);
+      setNewChatMessage("");
+  };
+
+   const addEmoji = (emoji: string) => {
+        setNewChatMessage(prev => prev + emoji);
+    };
 
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -259,10 +294,8 @@ export default function StreamPage() {
         
         <div className="flex-1 relative flex items-center justify-center">
             {isMyStream ? (
-                // Real video player for the seller
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
             ) : (
-                // Placeholder for customers
                 <Image src="https://placehold.co/1280x720.png" alt="Live stream" layout="fill" objectFit="cover" data-ai-hint="live video stream" />
             )}
 
@@ -332,7 +365,7 @@ export default function StreamPage() {
           </div>
         </div>
         <ScrollArea className="flex-grow p-4 space-y-4">
-          {mockChat.map(item => (
+          {chatMessages.map(item => (
              item.type === 'chat' ? (
                 <div key={item.id} className="flex items-start gap-2 text-sm">
                     <Avatar className="h-8 w-8">
@@ -355,13 +388,37 @@ export default function StreamPage() {
           ))}
         </ScrollArea>
         <div className="p-3 border-t">
-          <form className="flex items-center gap-2">
-            <Button variant="ghost" size="icon"><PlusCircle className="h-5 w-5" /></Button>
-            <Input placeholder="Say something..." className="flex-grow" />
-            <Button type="submit" size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <div className="relative flex-grow">
+                    <Input 
+                        placeholder="Say something..." 
+                        className="pr-10"
+                        value={newChatMessage}
+                        onChange={(e) => setNewChatMessage(e.target.value)}
+                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                <Smile className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 h-64">
+                            <ScrollArea className="h-full">
+                                <div className="grid grid-cols-8 gap-1">
+                                    {emojis.map((emoji, index) => (
+                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                            {emoji}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <Button type="submit" size="icon" disabled={!newChatMessage.trim()}>
+                    <Send className="h-4 w-4" />
+                </Button>
+            </form>
         </div>
 
         {isProductListOpen && (
@@ -389,3 +446,4 @@ export default function StreamPage() {
     </div>
   );
 }
+
