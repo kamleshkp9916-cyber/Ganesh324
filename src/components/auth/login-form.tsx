@@ -79,7 +79,6 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
     setIsLoading(true);
     try {
         await signInWithEmail(values.identifier, values.password, role);
-        // The redirection logic is now handled inside signInWithEmail
     } catch (error: any) {
         toast({
             title: "Login Failed",

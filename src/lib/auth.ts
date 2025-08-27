@@ -16,18 +16,10 @@ export function useAuthActions() {
     const { setUser } = useAuth();
     
     // Helper function to handle redirection after login
-    const handleLoginSuccess = (user: User, expectedRole?: 'customer' | 'seller') => {
+    const handleLoginSuccess = (user: User) => {
         // Fetch user data which includes the role
         const userData = getUserData(user.uid);
         const actualRole = userData.role;
-        
-        // If an expected role is provided, check for a mismatch
-        if (expectedRole && actualRole !== expectedRole) {
-            const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${actualRole}.`;
-            toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
-            signOut(); // Log the user out immediately
-            throw new Error("Role mismatch"); // Stop further execution
-        }
         
         toast({
             title: "Logged In!",
@@ -64,7 +56,7 @@ export function useAuthActions() {
                 role: existingData.role || role
             });
             
-            handleLoginSuccess(user, role);
+            handleLoginSuccess(user);
 
         } catch (error: any) {
             if (error.message !== "Role mismatch") {
@@ -128,7 +120,7 @@ export function useAuthActions() {
         }
     };
     
-    const signInWithEmail = async (email: string, password: string, role: 'customer' | 'seller') => {
+    const signInWithEmail = async (email: string, password: string, expectedRole: 'customer' | 'seller') => {
         // Special case for admin login
         if (email === ADMIN_EMAIL) {
             const mockAdminUser: User = {
@@ -176,17 +168,18 @@ export function useAuthActions() {
                 router.push('/verify-email');
                 return;
             }
+             const userData = getUserData(user.uid);
+             if (userData.role !== expectedRole) {
+                const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${userData.role}.`;
+                toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
+                await firebaseSignOut(auth); // Sign out the user
+                return; // Stop execution
+            }
             
-            handleLoginSuccess(user, role);
+            handleLoginSuccess(user);
 
         } catch (error: any) {
-            if (error.message === "Role mismatch") {
-                // The handleLoginSuccess function already showed the toast.
-                // We just need to prevent the generic error toast from showing.
-                return;
-            }
-
-            console.error("Error signing in: ", error);
+             console.error("Error signing in: ", error);
              let errorMessage = "An unknown error occurred.";
             switch (error.code) {
                 case 'auth/user-not-found':

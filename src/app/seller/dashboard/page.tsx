@@ -207,7 +207,7 @@ const GoLiveDialog = ({ user }: { user: any }) => {
                                 onClick={() => setSelectedProduct(product)}
                             >
                                 <CardContent className="p-3 flex items-center gap-3">
-                                    <Image src={product.image?.preview} alt={product.name} width={60} height={60} className="rounded-md object-cover" />
+                                    <Image src={product.image.preview} alt={product.name} width={60} height={60} className="rounded-md object-cover" />
                                     <div className="flex-grow">
                                         <p className="font-semibold truncate text-sm">{product.name}</p>
                                         <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
@@ -249,17 +249,25 @@ export default function SellerDashboard() {
     setIsMounted(true);
     if (typeof window !== 'undefined') {
         const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (!sellerDetailsRaw) {
-            router.push('/seller/register');
-        } else {
+        if (sellerDetailsRaw) {
             const details = JSON.parse(sellerDetailsRaw);
-            setSellerDetails(details);
-            if (details.verificationStatus === 'pending') {
-                router.push('/seller/verification');
+            if (user && details.email === user.email) {
+                setSellerDetails(details);
+                if (details.verificationStatus === 'pending') {
+                    router.push('/seller/verification');
+                }
+            } else if (user) {
+                // Logged in user is not this seller, sign out and redirect
+                signOut();
+                router.push('/seller/login');
+            } else {
+                 router.push('/seller/login');
             }
+        } else if (!loading) {
+             router.push('/seller/register');
         }
     }
-  }, [router]);
+  }, [user, loading, router, signOut]);
   
   const filteredTransactions = useMemo(() => {
     let items = recentTransactions.filter(t => t.status !== 'Cancelled');
@@ -305,7 +313,7 @@ export default function SellerDashboard() {
          <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
              <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
              <p className="text-muted-foreground mb-6">Please log in to view the seller dashboard.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
+             <Button onClick={() => router.push('/seller/login')}>Go to Login</Button>
         </div>
     );
   }
