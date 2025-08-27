@@ -29,8 +29,8 @@ const sellerFormSchema = z.object({
   lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
-  password: z.string().optional(),
-  confirmPassword: z.string().optional(),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  confirmPassword: z.string(),
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
   passportPhoto: z.any().refine(file => file, `Profile photo is required.`).refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
     (file) => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file?.type),
@@ -42,12 +42,7 @@ const sellerFormSchema = z.object({
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   aadharOtp: z.string().min(6, "Please enter the 6-digit OTP.").optional(),
-}).refine((data) => {
-    if (data.password || data.confirmPassword) {
-        return data.password === data.confirmPassword;
-    }
-    return true;
-}, {
+}).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
 });
@@ -157,17 +152,9 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         
         try {
-            if (!user) {
-                if (!values.password) {
-                     toast({ variant: "destructive", title: "Password is required for new accounts."});
-                     setIsLoading(false);
-                     return;
-                }
-                await signUpWithEmail(values, 'seller', true);
-            } else {
-                // If user is already logged in, just update their role and details
-                updateUserData(user.uid, { ...values, role: 'seller' });
-            }
+            // Always try to sign up. If the email is in use, it will throw an error handled below.
+            // This ensures a password-based account is created.
+            await signUpWithEmail(values, 'seller', true);
 
              const sellerData = {
                 ...values,
@@ -318,36 +305,34 @@ export default function SellerRegisterPage() {
                         )}
                     />
                 </div>
-                {!user && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Create Password</FormLabel>
-                                <FormControl>
-                                    <Input type="password" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Confirm Password</FormLabel>
-                                <FormControl>
-                                    <Input type="password" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                     </div>
-                )}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Create Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                                <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                 </div>
 
 
                 <h3 className="text-lg font-medium pt-4 border-t">Business Details</h3>
@@ -524,3 +509,5 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
+
+    
