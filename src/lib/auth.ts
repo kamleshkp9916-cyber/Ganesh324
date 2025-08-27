@@ -26,7 +26,7 @@ export function useAuthActions() {
             const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${actualRole}.`;
             toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
             signOut(); // Log the user out immediately
-            return; // Stop further execution
+            throw new Error("Role mismatch"); // Stop further execution
         }
         
         toast({
@@ -66,13 +66,15 @@ export function useAuthActions() {
             
             handleLoginSuccess(user, role);
 
-        } catch (error) {
-            console.error("Error signing in with Google: ", error);
-            toast({
-                title: "Error",
-                description: "Failed to sign in with Google. Please try again.",
-                variant: "destructive",
-            });
+        } catch (error: any) {
+            if (error.message !== "Role mismatch") {
+                console.error("Error signing in with Google: ", error);
+                toast({
+                    title: "Error",
+                    description: "Failed to sign in with Google. Please try again.",
+                    variant: "destructive",
+                });
+            }
         }
     };
     
@@ -178,6 +180,12 @@ export function useAuthActions() {
             handleLoginSuccess(user, role);
 
         } catch (error: any) {
+            if (error.message === "Role mismatch") {
+                // The handleLoginSuccess function already showed the toast.
+                // We just need to prevent the generic error toast from showing.
+                return;
+            }
+
             console.error("Error signing in: ", error);
              let errorMessage = "An unknown error occurred.";
             switch (error.code) {
