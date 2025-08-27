@@ -58,7 +58,7 @@ export const getUserData = (uid: string): UserData => {
     const allUsers = getGlobalUserData();
     
     // Find user by UID
-    const existingUser = Object.values(allUsers).find(u => u.uid === uid);
+    const existingUser = allUsers[uid];
     if(existingUser) return existingUser;
     
     // Fallback for admin user whose UID might not be set yet
@@ -88,25 +88,19 @@ export const getUserData = (uid: string): UserData => {
 export const updateUserData = (uid: string, updates: Partial<UserData>) => {
     const allUsers = getGlobalUserData();
     
-    // Find the user by UID to get their existing key if it exists
-    let userKey: string | undefined = undefined;
-    for (const key in allUsers) {
-        if (allUsers[key].uid === uid) {
-            userKey = key;
-            break;
-        }
-    }
-
     // The primary key for our mock db is the UID.
     const keyToUpdate = uid;
-
-    // If we found the user under an old key (like the initial email key), remove it.
-    if (userKey && userKey !== keyToUpdate) {
-        delete allUsers[userKey];
-    }
     
     const existingData = allUsers[keyToUpdate] || {};
-    allUsers[keyToUpdate] = { ...existingData, ...updates, uid: uid };
+
+    const finalData = { ...existingData, ...updates, uid: uid };
+
+    // Don't downgrade a seller to a customer on google sign-in
+    if(existingData.role === 'seller' && updates.role === 'customer') {
+        finalData.role = 'seller';
+    }
+    
+    allUsers[keyToUpdate] = finalData
     
     setGlobalUserData(allUsers);
 };

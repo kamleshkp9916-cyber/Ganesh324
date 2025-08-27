@@ -9,6 +9,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { getUserData } from '@/lib/follow-data';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -16,8 +17,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-        // This is a simple check. In a real app, you'd have a more robust role management system.
-        if (localStorage.getItem('sellerDetails')) {
+        const userData = getUserData(user.uid);
+        if (userData && userData.role === 'seller') {
              router.replace('/seller/dashboard');
         } else {
             router.replace('/live-selling');

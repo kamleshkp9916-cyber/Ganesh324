@@ -54,12 +54,14 @@ export function useAuthActions() {
             const user = result.user;
 
             // Create or update user data with the specified role
+            // Only set the role if it's a new user, otherwise respect the existing role
+            const existingData = getUserData(user.uid);
             updateUserData(user.uid, {
                 uid: user.uid,
                 displayName: user.displayName || 'Google User',
                 email: user.email || '',
                 photoURL: user.photoURL || '',
-                role: role
+                role: existingData.role || role
             });
             
             handleLoginSuccess(user, role);
