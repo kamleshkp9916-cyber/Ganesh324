@@ -335,7 +335,7 @@ export default function StreamPage() {
                 <div>
                   <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
                   <div className="flex items-center gap-2 text-xs">
-                    <Badge variant="destructive" className="h-5">LIVE</Badge>
+                    <Badge className="h-5">LIVE</Badge>
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       <span>{seller.viewers}</span>
