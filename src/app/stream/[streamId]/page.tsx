@@ -23,6 +23,7 @@ import {
   Tv,
   Volume2,
   VolumeX,
+  List,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 const liveSellers = [
@@ -71,6 +73,13 @@ const mockChat = [
     { id: 7, type: 'chat', user: 'Eve', message: '🔥🔥🔥'},
     { id: 8, type: 'chat', user: 'Frank', message: 'Can you show the back of the product?'},
 ];
+
+const allStreamProducts = [
+    productDetails['prod_1'],
+    productDetails['prod_2'],
+    productDetails['prod_4'],
+    productDetails['prod_5'],
+].map(p => ({...p, stock: Math.floor(Math.random() * 20) + 5})); // Add mock stock
 
 function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
     const product = productDetails[productKey as keyof typeof productDetails];
@@ -103,6 +112,26 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { prod
     );
 }
 
+function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow }: { product: any, isBuyable: boolean, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
+     return (
+        <div className="flex items-center gap-3 py-2 border-b last:border-none">
+            <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md object-cover" data-ai-hint={product.hint}/>
+            <div className="flex-grow overflow-hidden">
+                <p className="text-sm font-semibold truncate">{product.name}</p>
+                <p className="text-xs text-muted-foreground">{product.price}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+                 <Button size="sm" variant="secondary" onClick={() => onAddToCart(product.key)} disabled={!isBuyable} className="h-7 text-xs">
+                    <ShoppingCart className="mr-1.5 h-3 w-3" /> Cart
+                </Button>
+                <Button size="sm" onClick={() => onBuyNow(product.key)} disabled={!isBuyable} className="h-7 text-xs">
+                    Buy
+                </Button>
+            </div>
+        </div>
+    )
+}
+
 export default function StreamPage() {
   const router = useRouter();
   const params = useParams();
@@ -117,6 +146,9 @@ export default function StreamPage() {
   const [quality, setQuality] = useState('Auto');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [isProductListOpen, setIsProductListOpen] = useState(false);
+  
+  const featuredProductIds = mockChat.filter(item => item.type === 'product').map(item => item.productKey);
 
 
   useEffect(() => {
@@ -289,12 +321,17 @@ export default function StreamPage() {
       </div>
 
       {/* Chat and Details Section */}
-      <aside className="w-full lg:w-96 h-1/2 lg:h-screen border-l flex flex-col">
+      <aside className="w-full lg:w-96 h-1/2 lg:h-screen border-l flex flex-col relative">
         <div className="p-4 border-b flex justify-between items-center">
           <h3 className="font-bold text-lg">Live Chat</h3>
-          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
+          <div className="flex items-center gap-1">
+             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                <List />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
+          </div>
         </div>
-        <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+        <ScrollArea className="flex-grow p-4 space-y-4">
           {mockChat.map(item => (
              item.type === 'chat' ? (
                 <div key={item.id} className="flex items-start gap-2 text-sm">
@@ -316,7 +353,7 @@ export default function StreamPage() {
                 />
             )
           ))}
-        </div>
+        </ScrollArea>
         <div className="p-3 border-t">
           <form className="flex items-center gap-2">
             <Button variant="ghost" size="icon"><PlusCircle className="h-5 w-5" /></Button>
@@ -326,6 +363,28 @@ export default function StreamPage() {
             </Button>
           </form>
         </div>
+
+        {isProductListOpen && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col">
+                <div className="p-4 border-b flex justify-between items-center">
+                    <h3 className="font-bold text-lg">Products in Stream</h3>
+                    <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                        <X />
+                    </Button>
+                </div>
+                <ScrollArea className="flex-grow p-4">
+                    {allStreamProducts.map(product => (
+                        <ProductListItem
+                            key={product.id}
+                            product={product}
+                            isBuyable={featuredProductIds.includes(product.key)}
+                            onAddToCart={handleAddToCart}
+                            onBuyNow={handleBuyNow}
+                        />
+                    ))}
+                </ScrollArea>
+            </div>
+        )}
       </aside>
     </div>
   );
