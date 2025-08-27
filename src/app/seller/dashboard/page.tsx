@@ -16,7 +16,8 @@ import {
   ListFilter,
   Video,
   MessageSquare,
-  Bell
+  Bell,
+  RadioTower,
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 
@@ -35,6 +36,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +82,9 @@ import { useAuthActions } from "@/lib/auth";
 import { Product } from "@/components/seller/product-form";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Image from 'next/image';
+
 
 const salesData = [
   { name: "Jan", sales: 400000 },
@@ -133,6 +147,90 @@ const mockNotifications = [
 
 type FilterType = "all" | "stream" | "product";
 type DateFilterType = "month" | "week" | "today";
+
+const GoLiveDialog = ({ user }: { user: any }) => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && user) {
+            const productsKey = `sellerProducts_${user.displayName}`;
+            const storedProducts = localStorage.getItem(productsKey);
+            if (storedProducts) {
+                setProducts(JSON.parse(storedProducts).filter((p: Product) => p.status === 'active'));
+            }
+        }
+    }, [user]);
+
+    const handleStartStream = () => {
+        if (!selectedProduct) return;
+        
+        // In a real app, this would involve creating a stream session on the backend.
+        // For now, we'll store it in localStorage to simulate.
+        const streamData = {
+            seller: {
+                id: `seller_${user.email}`,
+                name: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+            },
+            product: selectedProduct,
+            startTime: new Date().toISOString(),
+        };
+
+        localStorage.setItem('liveStream', JSON.stringify(streamData));
+
+        // Use a unique ID for the stream, for simplicity we use the seller's email
+        router.push(`/stream/seller_${user.email}`);
+    };
+
+    return (
+        <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Start a Live Stream</DialogTitle>
+                <DialogDescription>
+                    Select a product to feature in your live stream. Your camera will be activated for a preview.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <h4 className="font-medium mb-4">Select a Product</h4>
+                <ScrollArea className="h-72">
+                    <div className="grid grid-cols-2 gap-4 pr-4">
+                        {products.map(product => (
+                            <Card 
+                                key={product.id} 
+                                className={cn(
+                                    "cursor-pointer hover:border-primary",
+                                    selectedProduct?.id === product.id && "border-primary border-2"
+                                )}
+                                onClick={() => setSelectedProduct(product)}
+                            >
+                                <CardContent className="p-3 flex items-center gap-3">
+                                    <Image src={product.image?.preview} alt={product.name} width={60} height={60} className="rounded-md object-cover" />
+                                    <div className="flex-grow">
+                                        <p className="font-semibold truncate text-sm">{product.name}</p>
+                                        <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                         {products.length === 0 && <p className="col-span-2 text-center text-muted-foreground">You have no active products to stream.</p>}
+                    </div>
+                </ScrollArea>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleStartStream} disabled={!selectedProduct}>
+                     <RadioTower className="mr-2 h-4 w-4" /> Start Streaming
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
+
 
 export default function SellerDashboard() {
   const { user, loading } = useAuth();
@@ -306,10 +404,15 @@ export default function SellerDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <Button variant="outline" size="sm" className="ml-auto">
-             <Video className="h-4 w-4 mr-2" />
-            Go Live
-          </Button>
+            <Dialog>
+                 <DialogTrigger asChild>
+                    <Button className="ml-auto">
+                        <Video className="h-4 w-4 mr-2" />
+                        Go Live
+                    </Button>
+                </DialogTrigger>
+                <GoLiveDialog user={user} />
+            </Dialog>
           <form className="flex-1 sm:flex-initial">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
