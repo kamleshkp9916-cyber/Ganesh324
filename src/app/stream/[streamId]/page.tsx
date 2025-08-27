@@ -20,7 +20,7 @@ import {
   Pause,
   Settings,
   RadioTower,
-  Hd,
+  Tv,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -206,11 +206,11 @@ export default function StreamPage() {
                             <span>Auto</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => setQuality('1080p')}>
-                            <Hd className="mr-2 h-4 w-4" />
+                            <Tv className="mr-2 h-4 w-4" />
                             <span>1080p</span>
                         </DropdownMenuItem>
                          <DropdownMenuItem onSelect={() => setQuality('720p')}>
-                             <Hd className="mr-2 h-4 w-4" />
+                             <Tv className="mr-2 h-4 w-4" />
                             <span>720p</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
