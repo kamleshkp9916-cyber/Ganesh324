@@ -292,7 +292,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 <div className="mt-12 space-y-8">
-                    <Card>
+                    <Card className="shadow-none border-t border-b rounded-none">
                         <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold mb-2">Delivery</h3>
@@ -356,7 +356,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Collapsible>
 
                     <div>
-                        <Card>
+                         <Card className="shadow-none border-t border-b rounded-none">
                             <CardHeader>
                                 <CardTitle className="text-lg">Product Details</CardTitle>
                             </CardHeader>
@@ -374,7 +374,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                      {productHighlights.length > 0 && (
                         <div>
-                            <Card>
+                             <Card className="shadow-none border-t border-b rounded-none">
                                 <CardHeader>
                                     <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
                                 </CardHeader>
