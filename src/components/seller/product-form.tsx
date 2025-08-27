@@ -35,6 +35,7 @@ const productFormSchema = z.object({
   brand: z.string().min(2, "Brand name must be at least 2 characters."),
   category: z.string().min(1, "Please select a category."),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
+  highlights: z.string().optional(),
   price: z.coerce.number().positive("Price must be a positive number."),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   image: z.any().refine(file => file, "Image is required.").refine(file => file?.size <= 5000000, `Max image size is 5MB.`),
@@ -140,6 +141,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       brand: "",
       category: "",
       description: "",
+      highlights: "",
       price: 0,
       stock: 0,
       image: undefined,
@@ -249,6 +251,27 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="highlights"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Highlights</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Enter each highlight on a new line..."
+                    className="resize-none"
+                    rows={4}
+                    {...field}
+                  />
+                </FormControl>
+                 <FormDescription>
+                    List the key features of your product. Each line will be shown as a bullet point.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
