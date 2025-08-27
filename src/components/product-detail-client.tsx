@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -44,6 +44,14 @@ const mockReviews = [
 const mockOffers = [
     { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
+];
+
+const liveSellers = [
+    { id: 1, name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 1200, hint: 'woman posing stylish outfit' },
+    { id: 2, name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 2500, hint: 'unboxing new phone' },
+    { id: 3, name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 850, hint: 'modern living room decor' },
+    { id: 4, name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 3100, hint: 'makeup tutorial' },
+    { id: 5, name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 975, hint: 'cooking demonstration' },
 ];
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -386,31 +394,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     )}
                 </div>
                 
-                 {/* Related Products Section */}
-                <div className="mt-16">
-                     <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                        {relatedProducts.map(related => (
-                            <Link href={`/product/${related.key}`} key={related.id} className="group block">
-                                <Card className="overflow-hidden h-full flex flex-col p-2">
-                                    <div className="aspect-square bg-muted relative rounded-md overflow-hidden">
-                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
-                                    </div>
-                                    <CardContent className="p-2 flex-grow flex flex-col">
-                                        <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
-                                        <p className="font-bold text-sm mt-1">{related.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-3 h-3 fill-current" />
-                                            <span>{averageRating}</span>
-                                            <span className="text-muted-foreground text-xs">({mockReviews.length})</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-
                 {/* Reviews Section */}
                 <div className="mt-12 py-8 border-t">
                     <CardHeader className="p-0 mb-6">
@@ -439,7 +422,75 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         ))}
                     </div>
                 </div>
+
+                 {/* Live Streams Section */}
+                <div className="mt-12 py-8 border-t">
+                    <h2 className="text-2xl font-bold mb-6">Related Live Streams</h2>
+                    <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
+                        {liveSellers.map((seller) => (
+                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group block flex-shrink-0 w-48">
+                                <Card className="w-full overflow-hidden h-full flex flex-col relative">
+                                    <div className="aspect-[2/3] bg-muted relative">
+                                        <Image 
+                                            src={seller.thumbnailUrl}
+                                            alt={seller.name}
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform"
+                                            data-ai-hint={seller.hint}
+                                        />
+                                        <div className="absolute top-2 left-2 z-10">
+                                            <Badge className="bg-destructive text-destructive-foreground">LIVE</Badge>
+                                        </div>
+                                         <div className="absolute top-2 right-2 z-10">
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                                <Users className="w-3 h-3 mr-1.5" />
+                                                {seller.viewers}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                        <div className="flex items-center gap-2">
+                                            <Avatar className="h-8 w-8 border-2 border-primary">
+                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <p className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                 {/* Related Products Section */}
+                <div className="mt-16">
+                     <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                        {relatedProducts.map(related => (
+                            <Link href={`/product/${related.key}`} key={related.id} className="group block">
+                                <Card className="overflow-hidden h-full flex flex-col p-2">
+                                    <div className="aspect-square bg-muted relative rounded-md overflow-hidden">
+                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
+                                    </div>
+                                    <CardContent className="p-2 flex-grow flex flex-col">
+                                        <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
+                                        <p className="font-bold text-sm mt-1">{related.price}</p>
+                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                            <Star className="w-3 h-3 fill-current" />
+                                            <span>{averageRating}</span>
+                                            <span className="text-muted-foreground text-xs">({mockReviews.length})</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
             </main>
         </div>
     );
 }
+
+    
