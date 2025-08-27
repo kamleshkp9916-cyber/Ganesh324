@@ -25,6 +25,8 @@ import {
   VolumeX,
   List,
   Smile,
+  PanelRightClose,
+  PanelRightOpen,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +166,7 @@ export default function StreamPage() {
   const [isProductListOpen, setIsProductListOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState(mockInitialChat);
   const [newChatMessage, setNewChatMessage] = useState("");
+  const [isChatVisible, setIsChatVisible] = useState(true);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
 
@@ -286,10 +289,18 @@ export default function StreamPage() {
               </div>
             </div>
           </div>
-          <Button variant="secondary" size="sm">
-            <UserPlus className="mr-2 h-4 w-4" />
-            Follow
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isChatVisible && (
+              <Button variant="secondary" size="sm" onClick={() => setIsChatVisible(true)}>
+                <PanelRightOpen className="mr-2 h-4 w-4" />
+                Show Chat
+              </Button>
+            )}
+            <Button variant="secondary" size="sm">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Follow
+            </Button>
+          </div>
         </header>
         
         <div className="flex-1 relative flex items-center justify-center">
@@ -354,95 +365,100 @@ export default function StreamPage() {
       </div>
 
       {/* Chat and Details Section */}
-      <aside className="w-full lg:w-96 h-1/2 lg:h-screen border-l flex flex-col relative">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="font-bold text-lg">Live Chat</h3>
-          <div className="flex items-center gap-1">
-             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
-                <List />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
-          </div>
-        </div>
-        <ScrollArea className="flex-grow p-4 space-y-4">
-          {chatMessages.map(item => (
-             item.type === 'chat' ? (
-                <div key={item.id} className="flex items-start gap-2 text-sm">
-                    <Avatar className="h-8 w-8">
-                        <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-semibold">{item.user}</p>
-                        <p className="text-muted-foreground">{item.message}</p>
-                    </div>
-                </div>
-            ) : (
-                <ProductChatMessage 
-                    key={item.id} 
-                    productKey={item.productKey!}
-                    stock={item.stock!} 
-                    onAddToCart={handleAddToCart}
-                    onBuyNow={handleBuyNow}
-                />
-            )
-          ))}
-        </ScrollArea>
-        <div className="p-3 border-t">
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <div className="relative flex-grow">
-                    <Input 
-                        placeholder="Say something..." 
-                        className="pr-10"
-                        value={newChatMessage}
-                        onChange={(e) => setNewChatMessage(e.target.value)}
-                    />
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                <Smile className="h-5 w-5 text-muted-foreground" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 h-64">
-                            <ScrollArea className="h-full">
-                                <div className="grid grid-cols-8 gap-1">
-                                    {emojis.map((emoji, index) => (
-                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                            {emoji}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                <Button type="submit" size="icon" disabled={!newChatMessage.trim()}>
-                    <Send className="h-4 w-4" />
+       {isChatVisible && (
+          <aside className="w-full lg:w-96 h-1/2 lg:h-screen border-l flex flex-col relative">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="font-bold text-lg">Live Chat</h3>
+              <div className="flex items-center gap-1">
+                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                    <List />
                 </Button>
-            </form>
-        </div>
-
-        {isProductListOpen && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col">
-                <div className="p-4 border-b flex justify-between items-center">
-                    <h3 className="font-bold text-lg">Products in Stream</h3>
-                    <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                        <X />
-                    </Button>
-                </div>
-                <ScrollArea className="flex-grow p-4">
-                    {allStreamProducts.map(product => (
-                        <ProductListItem
-                            key={product.id}
-                            product={product}
-                            isBuyable={featuredProductIds.includes(product.key)}
-                            onAddToCart={handleAddToCart}
-                            onBuyNow={handleBuyNow}
-                        />
-                    ))}
-                </ScrollArea>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
+                    <PanelRightClose />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical /></Button>
+              </div>
             </div>
-        )}
-      </aside>
+            <ScrollArea className="flex-grow p-4 space-y-4">
+              {chatMessages.map(item => (
+                 item.type === 'chat' ? (
+                    <div key={item.id} className="flex items-start gap-2 text-sm">
+                        <Avatar className="h-8 w-8">
+                            <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold">{item.user}</p>
+                            <p className="text-muted-foreground">{item.message}</p>
+                        </div>
+                    </div>
+                ) : (
+                    <ProductChatMessage 
+                        key={item.id} 
+                        productKey={item.productKey!}
+                        stock={item.stock!} 
+                        onAddToCart={handleAddToCart}
+                        onBuyNow={handleBuyNow}
+                    />
+                )
+              ))}
+            </ScrollArea>
+            <div className="p-3 border-t">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                    <div className="relative flex-grow">
+                        <Input 
+                            placeholder="Say something..." 
+                            className="pr-10"
+                            value={newChatMessage}
+                            onChange={(e) => setNewChatMessage(e.target.value)}
+                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                    <Smile className="h-5 w-5 text-muted-foreground" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 h-64">
+                                <ScrollArea className="h-full">
+                                    <div className="grid grid-cols-8 gap-1">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    <Button type="submit" size="icon" disabled={!newChatMessage.trim()}>
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </form>
+            </div>
+
+            {isProductListOpen && (
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col">
+                    <div className="p-4 border-b flex justify-between items-center">
+                        <h3 className="font-bold text-lg">Products in Stream</h3>
+                        <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                            <X />
+                        </Button>
+                    </div>
+                    <ScrollArea className="flex-grow p-4">
+                        {allStreamProducts.map(product => (
+                            <ProductListItem
+                                key={product.id}
+                                product={product}
+                                isBuyable={featuredProductIds.includes(product.key)}
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                            />
+                        ))}
+                    </ScrollArea>
+                </div>
+            )}
+          </aside>
+       )}
     </div>
   );
 }
