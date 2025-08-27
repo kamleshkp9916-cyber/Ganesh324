@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,7 +18,6 @@ import {
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle } from 'lucide-react';
-import { useAuth } from "@/hooks/use-auth.tsx";
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -29,13 +28,14 @@ const FormSchema = z.object({
 const RESEND_COOLDOWN = 60; // seconds
 const MAX_ATTEMPTS = 5;
 
-export function OtpForm() {
-  const router = useRouter();
+interface OtpFormProps {
+    onVerifySuccess: () => void;
+}
+
+export function OtpForm({ onVerifySuccess }: OtpFormProps) {
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
-  const isSellerLogin = searchParams.get('seller') === 'true';
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const [otpValue, setOtpValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,40 +67,24 @@ export function OtpForm() {
     setResendCooldown(RESEND_COOLDOWN);
   };
   
-  const handleVerify = () => {
-    if (otpValue === '123456') { // Mock OTP check
-      setIsVerified(true);
-      toast({ title: "OTP Verified!", description: "You are now logged in. Redirecting..." });
-      
-      // Refresh the page after a short delay
-      // This allows the auth state to propagate and Next.js router to pick up the logged-in user
-      setTimeout(() => {
-        router.refresh();
-      }, 1500);
-
-    } else {
+  const handleVerify = async () => {
+    if (otpValue !== '123456') { // Mock OTP check
       setAttempts(attempts + 1);
       if (attempts >= MAX_ATTEMPTS - 1) {
         toast({ variant: "destructive", title: "Too Many Attempts", description: "Please try again later." });
       } else {
         toast({ variant: "destructive", title: "Invalid OTP", description: `Please try again. ${MAX_ATTEMPTS - attempts - 1} attempts remaining.` });
       }
+      return;
     }
+    
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    setIsVerified(true);
+    toast({ title: "OTP Verified!", description: "Please create your new password." });
+    onVerifySuccess();
   };
-  
-   useEffect(() => {
-    // This effect runs after a successful verification and subsequent refresh.
-    // The `user` object will be available, and we can redirect.
-    if (user && isVerified) {
-       if (email === "samael.prajapati@example.com") {
-             router.push('/admin/dashboard');
-        } else if (isSellerLogin) {
-            router.push('/seller/dashboard');
-        } else {
-            router.push('/live-selling');
-        }
-    }
-  }, [user, isVerified, router, email, isSellerLogin]);
 
   return (
     <Form {...form}>
@@ -155,7 +139,7 @@ export function OtpForm() {
         </Button>
       </form>
        <div className="mt-4 text-center text-sm">
-          Didn&apos;t receive a code?{" "}
+          Didn't receive a code?{" "}
           <Button
             variant="link"
             className="p-0 h-auto"
