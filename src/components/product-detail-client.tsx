@@ -560,7 +560,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             data-ai-hint={seller.hint}
                                         />
                                         <div className="absolute top-2 left-2 z-10">
-                                            <Badge className="bg-destructive text-destructive-foreground">LIVE</Badge>
+                                            <Badge variant="default">LIVE</Badge>
                                         </div>
                                          <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
