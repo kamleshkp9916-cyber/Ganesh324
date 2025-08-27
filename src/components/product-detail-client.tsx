@@ -16,7 +16,7 @@ import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isP
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays } from 'date-fns';
-import { Input } from './ui/input';
+import { Input } from './input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
@@ -254,17 +254,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
-                        {productHighlights.length > 0 && (
-                            <div>
-                                <h3 className="font-semibold mb-2 flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</h3>
-                                <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
-                                    {productHighlights.map((highlight, index) => (
-                                        <li key={index}>{highlight}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        
                         <div className="flex flex-col gap-2">
                              {inCart ? (
                                 <Button asChild size="lg" className="w-full">
@@ -383,6 +372,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </CardContent>
                         </Card>
                     </div>
+                     {productHighlights.length > 0 && (
+                        <div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+                                        {productHighlights.map((highlight, index) => (
+                                            <li key={index}>{highlight}</li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
                 </div>
                 
                  {/* Related Products Section */}
