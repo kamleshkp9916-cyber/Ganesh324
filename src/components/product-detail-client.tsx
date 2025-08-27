@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -322,8 +322,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                <div className="mt-12 space-y-8">
-                     <div className="py-8 border-y">
+                <div className="mt-10 space-y-6">
+                     <div className="py-6 border-y">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold mb-2">Delivery</h3>
@@ -386,7 +386,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CollapsibleContent>
                     </Collapsible>
 
-                     <div className="py-8 border-t">
+                     <div className="py-6 border-t">
                         <CardHeader className="p-0">
                             <CardTitle className="text-lg">Product Details</CardTitle>
                         </CardHeader>
@@ -402,7 +402,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CardContent>
                     </div>
                      {productHighlights.length > 0 && (
-                        <div className="py-8 border-t">
+                        <div className="py-6 border-t">
                              <CardHeader className="p-0">
                                 <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
                             </CardHeader>
@@ -417,7 +417,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     )}
                 </div>
 
-                <div className="mt-16">
+                <div className="mt-12">
                      <h2 className="text-2xl font-bold mb-6">Related Products</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {relatedProducts.map(related => (
@@ -442,7 +442,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
                 
                 {/* Reviews Section */}
-                <div className="mt-12 py-8 border-t">
+                <div className="mt-10 py-6 border-t">
                     <CardHeader className="p-0 mb-6">
                         <CardTitle>Customer Reviews</CardTitle>
                     </CardHeader>
@@ -471,7 +471,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Q&A Section */}
-                <div className="mt-12 py-8 border-t">
+                <div className="mt-10 py-6 border-t">
                     <CardHeader className="p-0 mb-6">
                         <CardTitle>Questions & Answers</CardTitle>
                     </CardHeader>
@@ -545,7 +545,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Live Streams Section */}
-                <div className="mt-12 py-8 border-t">
+                <div className="mt-10 py-6 border-t">
                     <h2 className="text-2xl font-bold mb-6">Related Live Streams</h2>
                     <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
                         {liveSellers.map((seller) => (
@@ -585,7 +585,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Similar Products Section */}
-                <div className="mt-12 py-8 border-t">
+                <div className="mt-10 py-6 border-t">
                      <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {relatedProducts.slice(0, 4).map(related => (
@@ -612,5 +612,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
-    
