@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 
@@ -13,54 +13,42 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({ user: null, loading: true, setUser: () => {} });
 
-function AuthProviderInternal({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const handleSetUser = useCallback((newUser: User | null) => {
+    setUser(newUser);
+  }, []);
+
   useEffect(() => {
-    // Attempt to load mock admin user from sessionStorage on initial load
-    try {
-        const mockAdminUser = sessionStorage.getItem('mockAdminUser');
-        if (mockAdminUser) {
-            setUser(JSON.parse(mockAdminUser));
-        }
-    } catch (e) {
-        console.error("Failed to parse mock admin user from sessionStorage", e);
-    }
-
-
     const auth = getFirebaseAuth();
+    
+    // The onAuthStateChanged listener will handle Firebase user state
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        // Check for a mock admin user in sessionStorage
         const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
-
         if (mockAdminUserRaw) {
-            // If the admin user is in session storage, prioritize it.
-             if (!user) {
-                setUser(JSON.parse(mockAdminUserRaw));
+            try {
+                const mockAdminUser = JSON.parse(mockAdminUserRaw);
+                setUser(mockAdminUser); // Prioritize admin session
+            } catch (e) {
+                 console.error("Failed to parse mock admin user from sessionStorage", e);
+                 setUser(firebaseUser); // Fallback to firebase user
             }
         } else {
-             // If not an admin, proceed with normal firebase auth state.
-            setUser(firebaseUser);
+            setUser(firebaseUser); // No admin session, use firebase state
         }
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, []); // This effect runs only once on mount
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser }}>
+    <AuthContext.Provider value={{ user, loading, setUser: handleSetUser }}>
       {children}
     </AuthContext.Provider>
-  );
-}
-
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return (
-      <AuthProviderInternal>
-        {children}
-      </AuthProviderInternal>
   );
 }
 
