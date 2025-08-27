@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { productDetails } from "@/components/product-detail-client";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 
 const liveSellers = [
@@ -108,6 +109,32 @@ export default function StreamPage() {
   const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [quality, setQuality] = useState('Auto');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setHasCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to continue.',
+        });
+      }
+    };
+
+    getCameraPermission();
+  }, [toast]);
 
   useEffect(() => {
     const sellerData = liveSellers.find(s => String(s.id) === streamId);
@@ -181,10 +208,19 @@ export default function StreamPage() {
         </header>
         
         <div className="flex-1 relative flex items-center justify-center">
-            {/* Placeholder for video player */}
-            <div className="w-full h-full bg-gray-900 flex items-center justify-center text-muted-foreground">
-                <Video className="h-16 w-16" />
-            </div>
+            {/* Real video player */}
+            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+
+             {hasCameraPermission === false && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                    <Alert variant="destructive" className="max-w-md">
+                        <AlertTitle>Camera Access Required</AlertTitle>
+                        <AlertDescription>
+                            Please allow camera access in your browser settings to use this feature.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+             )}
 
              {/* Player Controls Overlay */}
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
