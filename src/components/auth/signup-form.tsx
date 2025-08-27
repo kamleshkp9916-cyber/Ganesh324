@@ -87,10 +87,7 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await signUpWithEmail(values.email, values.password, { 
-        firstName: values.firstName, 
-        lastName: values.lastName 
-      });
+      await signUpWithEmail(values, 'customer');
     } catch (error: any) {
         toast({
             title: "Sign Up Failed",
@@ -213,7 +210,7 @@ export function SignupForm() {
         <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
-        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
+        <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle('customer')} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>

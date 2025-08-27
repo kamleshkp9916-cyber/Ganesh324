@@ -30,8 +30,6 @@ const formSchema = z.object({
   rememberMe: z.boolean().default(false).optional(),
 });
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
-
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
       <svg
@@ -63,7 +61,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function LoginForm() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmail, setMockUserSession } = useAuthActions();
+  const { signInWithGoogle, signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -75,17 +73,9 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-
-    if (values.identifier === ADMIN_EMAIL) {
-        setMockUserSession('admin');
-        toast({ title: "Admin Login Successful!", description: "Redirecting to the admin dashboard." });
-        router.push('/admin/dashboard');
-        setIsLoading(false);
-        return;
-    }
-
     try {
         await signInWithEmail(values.identifier, values.password);
+        // The redirection logic is now handled inside signInWithEmail
     } catch (error: any) {
         toast({
             title: "Login Failed",
@@ -181,7 +171,7 @@ export function LoginForm() {
             </>
           )}
         </Button>
-         <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
+         <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle()} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Sign In With Google
         </Button>

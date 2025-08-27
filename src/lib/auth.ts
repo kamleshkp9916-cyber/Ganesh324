@@ -1,50 +1,54 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, User } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { getUserData, updateUserData } from "./follow-data";
 
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
+    
+    // Helper function to handle redirection after login
+    const handleLoginSuccess = (user: User) => {
+        // Fetch user data which includes the role
+        const userData = getUserData(user.uid);
+        
+        toast({
+            title: "Logged In!",
+            description: "Welcome back!",
+        });
 
-    const setMockUserSession = (type: 'admin' | 'seller') => {
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem('mockUserSessionActive', 'true');
-            if (type === 'seller') {
-                 sessionStorage.setItem('isSellerLogin', 'true');
-            } else {
-                 sessionStorage.removeItem('isSellerLogin');
-            }
-            // Trigger a storage event to update useAuth hook
-            window.dispatchEvent(new Event('storage'));
+        // Redirect based on role
+        if (userData.role === 'admin') {
+            router.push('/admin/dashboard');
+        } else if (userData.role === 'seller') {
+            router.push('/seller/dashboard');
+        } else {
+            router.push('/live-selling');
         }
     };
 
-    const signInWithGoogle = async () => {
+
+    const signInWithGoogle = async (role: 'customer' | 'seller' = 'customer') => {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            sessionStorage.removeItem('mockUserSessionActive');
 
-            if (!user.emailVerified) {
-                await sendEmailVerification(user);
-                 toast({
-                    title: "Verification Email Sent",
-                    description: "Please check your email to verify your account before logging in.",
-                });
-                router.push('/verify-email');
-            } else {
-                 toast({
-                    title: "Signed In!",
-                    description: `Welcome back!`,
-                });
-                window.location.href = "/live-selling";
-            }
+            // Create or update user data with the specified role
+            updateUserData(user.uid, {
+                uid: user.uid,
+                displayName: user.displayName || 'Google User',
+                email: user.email || '',
+                photoURL: user.photoURL || '',
+                role: role
+            });
+            
+            handleLoginSuccess(user);
 
         } catch (error) {
             console.error("Error signing in with Google: ", error);
@@ -56,23 +60,25 @@ export function useAuthActions() {
         }
     };
     
-    const signUpWithEmail = async (email: string, password: string, profileData: { firstName: string; lastName: string; }, skipRedirect = false) => {
+    const signUpWithEmail = async (values: any, role: 'customer' | 'seller', skipRedirect = false) => {
         const auth = getFirebaseAuth();
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
-            await updateProfile(user, {
-                displayName: `${profileData.firstName} ${profileData.lastName}`,
-            });
-            await sendEmailVerification(user);
+            const displayName = `${values.firstName} ${values.lastName}`;
+            
+            await updateProfile(user, { displayName: displayName });
 
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const sellerDetails = JSON.parse(sellerDetailsRaw);
-                if (sellerDetails.email === email) {
-                    setMockUserSession('seller');
-                }
-            }
+            // Create user record in our mock DB with the correct role
+            updateUserData(user.uid, {
+                ...values,
+                uid: user.uid,
+                displayName: displayName,
+                role: role,
+                photoURL: ''
+            });
+
+            await sendEmailVerification(user);
             
              toast({
                 title: "Account Created!",
@@ -109,8 +115,6 @@ export function useAuthActions() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            sessionStorage.removeItem('mockUserSessionActive');
-
 
             if (!user.emailVerified) {
                 await sendEmailVerification(user);
@@ -122,28 +126,9 @@ export function useAuthActions() {
                 router.push('/verify-email');
                 return;
             }
-
-            toast({
-                title: "Logged In!",
-                description: "Welcome back!",
-            });
-
-            if (email === "samael.prajapati@example.com") {
-                router.push('/admin/dashboard');
-                return;
-            }
-
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const sellerDetails = JSON.parse(sellerDetailsRaw);
-                if (sellerDetails.email === email) {
-                    setMockUserSession('seller');
-                    router.push('/seller/dashboard');
-                    return;
-                }
-            }
             
-            router.push('/live-selling');
+            handleLoginSuccess(user);
+
         } catch (error: any) {
             console.error("Error signing in: ", error);
              let errorMessage = "An unknown error occurred.";
@@ -170,10 +155,7 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         try {
             await firebaseSignOut(auth);
-            sessionStorage.removeItem('mockUserSessionActive');
-            sessionStorage.removeItem('isSellerLogin');
-             window.dispatchEvent(new Event('storage'));
-
+            
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
@@ -210,7 +192,7 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, setMockUserSession };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';

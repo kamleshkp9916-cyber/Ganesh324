@@ -21,6 +21,7 @@ import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { updateUserData } from "@/lib/follow-data";
 
 
 const sellerFormSchema = z.object({
@@ -31,7 +32,7 @@ const sellerFormSchema = z.object({
   password: z.string().optional(),
   confirmPassword: z.string().optional(),
   businessName: z.string().min(2, "Business name must be at least 2 characters."),
-  passportPhoto: z.any().refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
+  passportPhoto: z.any().refine(file => file, `Profile photo is required.`).refine(file => file?.size <= 5000000, `Max image size is 5MB.`).refine(
     (file) => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file?.type),
     "Only .jpg, .jpeg, .png and .webp formats are supported."
   ),
@@ -156,22 +157,20 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         
         try {
-            // If the user is not logged in, create an account first
             if (!user) {
                 if (!values.password) {
                      toast({ variant: "destructive", title: "Password is required for new accounts."});
                      setIsLoading(false);
                      return;
                 }
-                await signUpWithEmail(values.email, values.password, {
-                    firstName: values.firstName,
-                    lastName: values.lastName,
-                }, true); // Pass true to skip redirection from auth hook
+                await signUpWithEmail(values, 'seller', true);
+            } else {
+                // If user is already logged in, just update their role and details
+                updateUserData(user.uid, { ...values, role: 'seller' });
             }
 
              const sellerData = {
                 ...values,
-                passportPhoto: values.passportPhoto.name, // Storing only name for mock
                 name: `${values.firstName} ${values.lastName}`,
                 verificationStatus: 'pending'
             };
