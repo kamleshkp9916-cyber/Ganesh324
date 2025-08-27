@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/use-auth.tsx";
 
 
 const liveSellers = [
@@ -104,9 +105,11 @@ export default function StreamPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<typeof liveSellers[0] | null>(null);
+  const [isMyStream, setIsMyStream] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [quality, setQuality] = useState('Auto');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -114,27 +117,39 @@ export default function StreamPage() {
 
 
   useEffect(() => {
-    const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        setHasCameraPermission(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to continue.',
-        });
+    // Check if the current user is the one broadcasting
+    const liveStreamDataRaw = localStorage.getItem('liveStream');
+    if (liveStreamDataRaw) {
+      const liveStreamData = JSON.parse(liveStreamDataRaw);
+      if (user && liveStreamData.seller.email === user.email) {
+        setIsMyStream(true);
       }
-    };
+    }
+  }, [user]);
 
-    getCameraPermission();
-  }, [toast]);
+  useEffect(() => {
+    // Only request camera if it's the seller's stream
+    if (isMyStream) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to continue.',
+          });
+        }
+      };
+      getCameraPermission();
+    }
+  }, [isMyStream, toast]);
 
   useEffect(() => {
     const sellerData = liveSellers.find(s => String(s.id) === streamId);
@@ -208,15 +223,20 @@ export default function StreamPage() {
         </header>
         
         <div className="flex-1 relative flex items-center justify-center">
-            {/* Real video player */}
-            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+            {isMyStream ? (
+                // Real video player for the seller
+                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+            ) : (
+                // Placeholder for customers
+                <Image src="https://placehold.co/1280x720.png" alt="Live stream" layout="fill" objectFit="cover" data-ai-hint="live video stream" />
+            )}
 
-             {hasCameraPermission === false && (
+             {isMyStream && hasCameraPermission === false && (
                 <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
                     <Alert variant="destructive" className="max-w-md">
                         <AlertTitle>Camera Access Required</AlertTitle>
                         <AlertDescription>
-                            Please allow camera access in your browser settings to use this feature.
+                            Please allow camera access in your browser settings to broadcast your stream.
                         </AlertDescription>
                     </Alert>
                 </div>
