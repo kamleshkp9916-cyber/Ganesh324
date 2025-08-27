@@ -460,7 +460,7 @@ export default function SellerProductsPage() {
                   </CardContent>
               </Card>
           </main>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col">
               <DialogHeader>
                   <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                   <DialogDescription>
