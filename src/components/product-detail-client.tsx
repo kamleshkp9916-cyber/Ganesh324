@@ -292,7 +292,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 <div className="mt-12 space-y-8">
-                     <div className="py-4 border-y">
+                     <div className="py-8 border-y">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold mb-2">Delivery</h3>
@@ -355,7 +355,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CollapsibleContent>
                     </Collapsible>
 
-                     <div className="py-4 border-y">
+                     <div className="py-8 border-t">
                         <CardHeader className="p-0">
                             <CardTitle className="text-lg">Product Details</CardTitle>
                         </CardHeader>
@@ -371,7 +371,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CardContent>
                     </div>
                      {productHighlights.length > 0 && (
-                        <div className="py-4 border-b">
+                        <div className="py-8 border-t">
                              <CardHeader className="p-0">
                                 <CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary"/> Highlights</CardTitle>
                             </CardHeader>
@@ -412,11 +412,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Reviews Section */}
-                <Card className="mt-12">
-                    <CardHeader>
+                <div className="mt-12 py-8 border-t">
+                    <CardHeader className="p-0 mb-6">
                         <CardTitle>Customer Reviews</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <div className="space-y-6">
                         {mockReviews.map(review => (
                             <div key={review.id} className="flex gap-4">
                                 <Avatar>
@@ -437,8 +437,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </main>
         </div>
     );
