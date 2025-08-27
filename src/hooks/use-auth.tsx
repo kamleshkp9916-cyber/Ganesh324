@@ -4,7 +4,6 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -19,14 +18,29 @@ function AuthProviderInternal({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Attempt to load mock admin user from sessionStorage on initial load
+    try {
+        const mockAdminUser = sessionStorage.getItem('mockAdminUser');
+        if (mockAdminUser) {
+            setUser(JSON.parse(mockAdminUser));
+        }
+    } catch (e) {
+        console.error("Failed to parse mock admin user from sessionStorage", e);
+    }
+
+
     const auth = getFirebaseAuth();
-    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        // Special handling for mocked admin user
-        if (user?.email === 'samael.prajapati@example.com' && !firebaseUser) {
-          // Don't clear the mocked admin user
+        const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
+
+        if (mockAdminUserRaw) {
+            // If the admin user is in session storage, prioritize it.
+             if (!user) {
+                setUser(JSON.parse(mockAdminUserRaw));
+            }
         } else {
-          setUser(firebaseUser);
+             // If not an admin, proceed with normal firebase auth state.
+            setUser(firebaseUser);
         }
         setLoading(false);
     });
@@ -54,5 +68,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
-
-    
