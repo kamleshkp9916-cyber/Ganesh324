@@ -30,6 +30,7 @@ import {
   Flag,
   MessageCircle,
   LifeBuoy,
+  Gavel,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -375,6 +376,9 @@ export default function StreamPage() {
               <div className="flex items-center gap-1">
                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
                     <List />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Gavel />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
                     <PanelRightClose />
