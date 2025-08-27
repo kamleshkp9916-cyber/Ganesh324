@@ -117,37 +117,34 @@ export function useAuthActions() {
 
         // Special case for admin login
         if (email === ADMIN_EMAIL) {
-            const adminData = Object.values(getUserData('')).find(u => u.role === 'admin' && u.email === ADMIN_EMAIL);
-            if(adminData) {
-                // This is a mock user object. In a real app, you'd get the actual user object.
-                const mockAdminUser: User = {
-                    uid: adminData.uid,
-                    email: adminData.email,
-                    displayName: adminData.displayName,
-                    photoURL: adminData.photoURL,
-                    emailVerified: true,
-                    isAnonymous: false,
-                    metadata: {},
-                    providerData: [],
-                    providerId: 'password',
-                    tenantId: null,
-                    delete: async () => {},
-                    getIdToken: async () => '',
-                    getIdTokenResult: async () => ({
-                        token: '',
-                        authTime: '',
-                        issuedAtTime: '',
-                        signInProvider: null,
-                        signInSecondFactor: null,
-                        expirationTime: '',
-                        claims: {},
-                    }),
-                    reload: async () => {},
-                    toJSON: () => ({}),
-                };
-                handleLoginSuccess(mockAdminUser);
-                return;
-            }
+            // This is a mock user object. In a real app, you'd get the actual user object.
+            const mockAdminUser: User = {
+                uid: 'admin_uid_placeholder', // A consistent placeholder UID
+                email: ADMIN_EMAIL,
+                displayName: 'Samael Prajapati',
+                photoURL: '',
+                emailVerified: true,
+                isAnonymous: false,
+                metadata: {},
+                providerData: [],
+                providerId: 'password',
+                tenantId: null,
+                delete: async () => {},
+                getIdToken: async () => 'mock-token',
+                getIdTokenResult: async () => ({
+                    token: 'mock-token',
+                    authTime: new Date().toISOString(),
+                    issuedAtTime: new Date().toISOString(),
+                    signInProvider: 'password',
+                    signInSecondFactor: null,
+                    expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
+                    claims: {},
+                }),
+                reload: async () => {},
+                toJSON: () => ({}),
+            };
+            handleLoginSuccess(mockAdminUser);
+            return; // IMPORTANT: This stops the function from proceeding to the real auth call.
         }
         
         try {
