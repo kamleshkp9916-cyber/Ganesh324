@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ProfileCard } from '@/components/profile-card';
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
+import { BottomNav } from '@/components/bottom-nav';
 
 
 export default function ProfilePage() {
@@ -155,7 +156,7 @@ export default function ProfilePage() {
                 </DropdownMenu>
             </header>
 
-            <main className="flex-grow">
+            <main className="flex-grow pb-20">
                 <ProfileCard 
                     key={key}
                     profileData={profileData} 
@@ -164,6 +165,7 @@ export default function ProfilePage() {
                     onFollowToggle={onFollowToggle}
                 />
             </main>
+             <BottomNav />
         </div>
 
         <DialogContent className="max-w-lg w-[95vw] h-auto max-h-[85vh] flex flex-col p-0 rounded-lg">

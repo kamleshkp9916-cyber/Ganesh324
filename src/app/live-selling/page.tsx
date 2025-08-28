@@ -81,6 +81,7 @@ import { useTheme } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
+import { BottomNav } from '@/components/bottom-nav';
 
 
 const liveSellers = [
@@ -639,7 +640,7 @@ export default function LiveSellingPage() {
 
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
+                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex">
                                         <Bell />
                                          {unreadCount > 0 && (
                                             <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -743,7 +744,7 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto p-2 md:p-4">
+            <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20">
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
@@ -1122,19 +1123,8 @@ export default function LiveSellingPage() {
                 </Tabs>
                 </div>
             </main>
-            <Footer />
+            <BottomNav />
         </div>
     </div>
   );
 }
-
-    
-
-    
-
-
-
-
-
-
-

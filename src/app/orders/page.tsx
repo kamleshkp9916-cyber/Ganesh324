@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { allOrderData, getStatusFromTimeline, Order as TimelineOrder } from '@/lib/order-data';
+import { BottomNav } from '@/components/bottom-nav';
 
 
 const mockUsers = {
@@ -455,7 +456,7 @@ export default function OrdersPage() {
               </div>
           </div>
       </header>
-      <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto">
+      <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
           <div className="bg-card p-2 sm:p-4 rounded-lg border flex flex-col h-full">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-bold">Orders</h3>
@@ -522,6 +523,7 @@ export default function OrdersPage() {
               )}
           </div>
       </main>
+      <BottomNav />
     </div>
   );
 }
