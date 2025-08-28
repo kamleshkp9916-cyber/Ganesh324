@@ -80,6 +80,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
+import { getCart } from '@/lib/product-history';
 
 
 const liveSellers = [
@@ -365,11 +366,14 @@ export default function LiveSellingPage() {
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [cartCount, setCartCount] = useState(0);
   
   useEffect(() => {
     setIsMounted(true);
 
     const loadData = () => {
+        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
+
         const storedFeed = localStorage.getItem('mockFeed');
         if (storedFeed) {
             setMockFeed(JSON.parse(storedFeed));
@@ -415,18 +419,18 @@ export default function LiveSellingPage() {
     const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
 
     // Listen for storage changes from other tabs/pages
-    window.addEventListener('storage', (event) => {
-        // Specifically listen for 'liveStream' key changes or null key which indicates clear()
-        if (event.key === 'liveStream' || event.key === null) {
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === null) {
             loadData();
         }
-    });
+    };
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
         clearTimeout(offersTimer);
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
-        // The event listener is attached to window, it will be cleaned up automatically when the component unmounts.
+        window.removeEventListener('storage', handleStorageChange);
     };
   }, [user]);
 
@@ -624,7 +628,15 @@ export default function LiveSellingPage() {
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <>
-                            
+                            <Link href="/cart" passHref>
+                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex">
+                                    <ShoppingCart />
+                                    {cartCount > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{cartCount}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
+
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex" onClick={() => handleAuthAction()}>
@@ -675,9 +687,6 @@ export default function LiveSellingPage() {
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/cart"><ShoppingCart className="mr-2 h-4 w-4" /><span>My Cart</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
@@ -1120,6 +1129,7 @@ export default function LiveSellingPage() {
     
 
     
+
 
 
 
