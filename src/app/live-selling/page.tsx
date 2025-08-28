@@ -633,6 +633,15 @@ export default function LiveSellingPage() {
                                     <Wallet />
                                 </Button>
                             </Link>
+                            
+                             <Link href="/cart" passHref>
+                                <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
+                                    <ShoppingCart />
+                                     {cartCount > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
 
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -1115,19 +1124,6 @@ export default function LiveSellingPage() {
                     </TabsContent>
                 </Tabs>
                 </div>
-                 {user && (
-                    <Link href="/cart" passHref>
-                        <Button
-                            size="icon"
-                            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-2xl z-40"
-                        >
-                            <ShoppingCart className="h-7 w-7" />
-                            {cartCount > 0 && (
-                                <Badge className="absolute -top-1 -right-1 h-6 w-6 justify-center p-0 text-sm">{cartCount}</Badge>
-                            )}
-                        </Button>
-                    </Link>
-                 )}
             </main>
             <Footer />
         </div>
