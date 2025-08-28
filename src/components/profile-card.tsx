@@ -111,6 +111,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [isFollowing, setIsFollowing] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const displayName = profileData.displayName || profileData.name || "";
+  const [activeCategory, setActiveCategory] = useState("All");
   
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
   
@@ -181,12 +182,24 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   }, [profileData.role, displayName]);
 
 
+  const productCategories = useMemo(() => {
+    const categories = new Set(sellerProducts.map(p => p.category));
+    return ["All", ...Array.from(categories)];
+  }, [sellerProducts]);
+
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return sellerProducts;
-    return sellerProducts.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, sellerProducts]);
+    let products = sellerProducts;
+    if (activeCategory !== 'All') {
+        products = products.filter(p => p.category === activeCategory);
+    }
+    if (searchTerm) {
+        products = products.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    return products;
+  }, [searchTerm, sellerProducts, activeCategory]);
+
 
   const filteredRecentlyViewed = useMemo(() => {
     if (!searchTerm) return recentlyViewedItems;
@@ -546,6 +559,18 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </ScrollArea>
 
                       <TabsContent value="products" className="mt-4">
+                          <div className="flex flex-wrap gap-2 mb-4">
+                              {productCategories.map(category => (
+                                  <Button
+                                      key={category}
+                                      variant={activeCategory === category ? 'default' : 'outline'}
+                                      size="sm"
+                                      onClick={() => setActiveCategory(category)}
+                                  >
+                                      {category}
+                                  </Button>
+                              ))}
+                          </div>
                           {isLoadingContent ? <ProductSkeletonGrid /> : (
                                   filteredProducts.length > 0 ? (
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -554,7 +579,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                               <Card className="w-full overflow-hidden h-full flex flex-col">
                                                   <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                                                       <Image 
-                                                          src={product.images[0].preview}
+                                                          src={product.images?.[0]?.preview || "https://placehold.co/200x200.png"}
                                                           alt={product.name}
                                                           fill
                                                           className="object-cover w-full h-full group-hover:scale-105 transition-transform"
@@ -580,7 +605,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                       ))}
                                   </div>
                               ) : (
-                                  <p className="text-muted-foreground text-center py-8">No products found.</p>
+                                  <p className="text-muted-foreground text-center py-8">No products found for this category.</p>
                               )
                           )}
                       </TabsContent>
