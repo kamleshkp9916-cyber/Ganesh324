@@ -81,6 +81,7 @@ import { useTheme } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
+import { Logo } from '@/components/logo';
 
 
 const liveSellers = [
@@ -600,7 +601,7 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
                 <div className="flex-1 flex items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
+                    <Logo className="h-10 w-auto" />
                 </div>
 
                 <div className="flex-shrink-0 flex items-center justify-end gap-2" ref={searchRef}>
@@ -630,14 +631,6 @@ export default function LiveSellingPage() {
                              <Link href="/wallet" passHref>
                                 <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
                                     <Wallet />
-                                </Button>
-                            </Link>
-                            <Link href="/cart" passHref>
-                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
-                                    <ShoppingCart />
-                                    {cartCount > 0 && (
-                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{cartCount}</Badge>
-                                    )}
                                 </Button>
                             </Link>
 
@@ -1122,13 +1115,22 @@ export default function LiveSellingPage() {
                     </TabsContent>
                 </Tabs>
                 </div>
+                 {user && (
+                    <Link href="/cart" passHref>
+                        <Button
+                            size="icon"
+                            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-2xl z-40"
+                        >
+                            <ShoppingCart className="h-7 w-7" />
+                            {cartCount > 0 && (
+                                <Badge className="absolute -top-1 -right-1 h-6 w-6 justify-center p-0 text-sm">{cartCount}</Badge>
+                            )}
+                        </Button>
+                    </Link>
+                 )}
             </main>
             <Footer />
         </div>
     </div>
   );
 }
-
-    
-
-    
