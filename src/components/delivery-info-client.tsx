@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -170,19 +169,9 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [isMounted, setIsMounted] = useState(false);
     const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
     
-    // This state is used to force a re-render after an update
-    const [forceRerender, setForceRerender] = useState(0);
-
     const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
     
-    const order = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-        forceRerender; 
-        return allOrderData[orderId] || null;
-    // We listen to forceRerender to trigger this useMemo
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [orderId, forceRerender]);
-
+    const [order, setOrder] = useState<Order | null>(allOrderData[orderId] || null);
 
     const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
     const [cancelStep, setCancelStep] = useState("reason");
@@ -276,8 +265,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         setIsVerifyingOtp(true);
         try {
             await updateOrderStatus(orderId, 'Cancelled by user');
-            
-            setForceRerender(val => val + 1);
+            setOrder(allOrderData[orderId]);
             
             toast({
                 title: "Order Cancelled",
@@ -314,8 +302,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         setIsVerifyingReturnOtp(true);
         try {
             await updateOrderStatus(orderId, 'Return Initiated');
-            
-            setForceRerender(val => val + 1);
+            setOrder(allOrderData[orderId]);
             
             toast({
                 title: "Return Initiated",
@@ -700,3 +687,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    
