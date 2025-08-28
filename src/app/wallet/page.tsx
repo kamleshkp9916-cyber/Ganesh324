@@ -7,9 +7,27 @@ import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins } from 'lucide-
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+
+type WalletView = 'balance' | 'deposit' | 'withdraw' | 'margin' | 'exchange';
+
+function PlaceholderView({ title }: { title: string }) {
+    return (
+        <Card className="w-full max-w-md shadow-lg md:justify-self-center">
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">
+                    Content for {title.toLowerCase()} will be displayed here.
+                </p>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export default function WalletPage() {
   const router = useRouter();
@@ -17,6 +35,8 @@ export default function WalletPage() {
   const [balance, setBalance] = useState(10500.00);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+  const [activeView, setActiveView] = useState<WalletView>('balance');
+
 
   const handleRefresh = () => {
       setIsRefreshing(true);
@@ -39,6 +59,37 @@ export default function WalletPage() {
     router.push('/');
     return null;
   }
+  
+  const renderActiveView = () => {
+    switch (activeView) {
+        case 'deposit':
+            return <PlaceholderView title="UPI Deposit" />;
+        case 'withdraw':
+            return <PlaceholderView title="Withdraw Funds" />;
+        case 'margin':
+            return <PlaceholderView title="Blocked Margin" />;
+        case 'exchange':
+            return <PlaceholderView title="Exchange to Coin" />;
+        case 'balance':
+        default:
+            return (
+                 <Card className="w-full max-w-md shadow-lg md:justify-self-center">
+                    <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <p>Available Balance</p>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh} disabled={isRefreshing}>
+                                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                        <p className="text-4xl font-extrabold tracking-tighter">
+                            {'₹' + balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                    </CardContent>
+                </Card>
+            );
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -61,37 +112,24 @@ export default function WalletPage() {
       <main className="flex-grow p-4 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="w-full max-w-md grid grid-cols-1 gap-4">
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('deposit')}>
                     <CreditCard className="h-6 w-6" />
                     <span className="font-semibold">UPI Deposit</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('withdraw')}>
                     <Download className="h-6 w-6" />
                     <span className="font-semibold">Withdraw</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('margin')}>
                     <Lock className="h-6 w-6" />
                     <span className="font-semibold">Blocked Margin</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('exchange')}>
                     <Coins className="h-6 w-6" />
                     <span className="font-semibold">Exchange to Coin</span>
                 </Button>
             </div>
-
-            <Card className="w-full max-w-md shadow-lg md:justify-self-center">
-                <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <p>Available Balance</p>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh} disabled={isRefreshing}>
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        </Button>
-                    </div>
-                    <p className="text-4xl font-extrabold tracking-tighter">
-                        {'₹' + balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                </CardContent>
-            </Card>
+            {renderActiveView()}
         </div>
       </main>
     </div>
