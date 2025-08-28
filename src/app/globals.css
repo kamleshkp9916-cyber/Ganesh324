@@ -15,7 +15,7 @@ body {
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%; /* Dark blue/black for primary buttons and active states */
+    --primary: 0 84.2% 60.2%; /* Bright Red */
     --primary-foreground: 0 0% 98%; /* white */
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -23,7 +23,7 @@ body {
     --muted-foreground: 240 3.8% 46.1%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 100% 50%;
+    --destructive: 0 84.2% 60.2%; /* Bright Red */
     --destructive-foreground: 0 0% 98%;
     --success: 142.1 76.2% 36.3%;
     --success-foreground: 0 0% 98%;
@@ -35,7 +35,7 @@ body {
     --purple-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 0 84.2% 60.2%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -52,15 +52,15 @@ body {
     --card-foreground: 0 0% 98%;
     --popover: 240 3.7% 15.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 0 72.2% 50.6%; /* Bright Red */
+    --primary-foreground: 0 0% 98%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 72.2% 50.6%;
+    --destructive: 0 72.2% 50.6%; /* Bright Red */
     --destructive-foreground: 0 0% 98%;
     --success: 142.1 70.6% 45.3%;
     --success-foreground: 0 0% 98%;
@@ -72,7 +72,7 @@ body {
     --purple-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 0 0% 98%;
+    --ring: 0 72.2% 50.6%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;

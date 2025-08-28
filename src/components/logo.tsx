@@ -13,12 +13,12 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
       <defs>
         <style>
           {`
-            .stream-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--destructive)); }
-            .cart-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--destructive)); }
+            .stream-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--primary)); }
+            .cart-text { font-family: 'Inter', sans-serif; font-size: 40px; font-weight: 800; fill: hsl(var(--primary)); }
             .brush-stroke { fill: #000; }
             .dark .brush-stroke { fill: #fff; }
-            .dark .stream-text, .dark .cart-text, .dark .cart-icon { fill: #fff; }
-            .cart-icon { fill: hsl(var(--destructive)); }
+            .dark .stream-text, .dark .cart-text, .dark .cart-icon { fill: hsl(var(--primary-foreground)); }
+            .cart-icon { fill: hsl(var(--primary)); }
           `}
         </style>
       </defs>

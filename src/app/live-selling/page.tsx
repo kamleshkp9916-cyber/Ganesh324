@@ -948,7 +948,7 @@ export default function LiveSellingPage() {
                                                     <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-grow">
-                                                    <p className="font-semibold text-destructive">{item.sellerName}</p>
+                                                    <p className="font-semibold text-primary">{item.sellerName}</p>
                                                     <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                                                 </div>
                                                 <DropdownMenu>
