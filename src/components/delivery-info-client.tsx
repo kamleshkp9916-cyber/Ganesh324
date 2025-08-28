@@ -34,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 import { HelpChat } from './help-chat';
+import { Badge } from './ui/badge';
 
 
 const getStatusIcon = (status: string) => {
@@ -407,7 +408,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                             <Link href={`/product/${productId}`} className="block hover:opacity-90 transition-opacity">
                                 <Card className="overflow-hidden">
                                     <CardContent className="p-4 flex flex-col items-center text-center">
-                                        <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4">
+                                        <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4 relative">
                                             <Image
                                                 src={order.product.imageUrl}
                                                 alt={order.product.name}
@@ -416,6 +417,11 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                                 className="object-cover w-full h-full"
                                                 data-ai-hint={order.product.hint}
                                             />
+                                            {(order as any).stock === 0 && (
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                    <Badge variant="destructive" className="text-lg">Out of Stock</Badge>
+                                                </div>
+                                            )}
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
                                         <p className="font-bold text-foreground">{order.product.price}</p>
@@ -687,5 +693,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    
 
     
