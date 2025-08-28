@@ -81,7 +81,7 @@ const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orde
         product: { 
             id: `prod-${orderId.slice(-3)}`, 
             name: orderDetails.product.name, 
-            imageUrl: orderDetails.product.imageUrl.replace('150x150', '60x60'), 
+            imageUrl: orderDetails.product.imageUrl.replace('60x60', '60x60'), 
             hint: orderDetails.product.hint 
         },
         address: { name: user.name, village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
