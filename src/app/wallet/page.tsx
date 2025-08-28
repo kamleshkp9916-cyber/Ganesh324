@@ -11,6 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
+const mockTransactions = [
+    { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Jane Doe', date: '26 July, 2024', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Monthly Savings', date: '25 July, 2024', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Alex Smith', date: '24 July, 2024', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
+];
+
 export default function WalletPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -85,6 +92,31 @@ export default function WalletPage() {
                         <span>Exchange to Coin</span>
                     </Button>
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Transactions</CardTitle>
+                        <CardDescription>A summary of your recent wallet activity.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {mockTransactions.map((transaction, index) => (
+                            <div key={index} className="flex items-center">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarImage src={transaction.avatar} alt="Avatar" />
+                                    <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="ml-4 space-y-1">
+                                    <p className="text-sm font-medium leading-none">{transaction.name}</p>
+                                    <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                                </div>
+                                <div className={`ml-auto font-medium ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
+                                    {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
             </div>
         </main>
     </div>
