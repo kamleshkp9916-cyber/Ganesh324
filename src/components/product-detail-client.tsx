@@ -65,12 +65,27 @@ const liveSellers = [
     { id: 5, name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 975, hint: 'cooking demonstration' },
 ];
 
+const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string } } = {
+    'prod_1': { name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_4': { name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_5': { name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+};
+
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     
     const product = productDetails[productId as keyof typeof productDetails] || null;
+    const seller = product ? productToSellerMapping[product.key] : null;
+
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
@@ -424,58 +439,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                <div className="mt-8">
-                     <h2 className="text-2xl font-bold mb-4">Related Products</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                        {relatedProducts.map(related => (
-                            <Link href={`/product/${related.key}`} key={related.id} className="group block">
-                                <Card className="overflow-hidden h-full flex flex-col p-2">
-                                    <div className="aspect-square bg-muted relative rounded-md overflow-hidden">
-                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
+                {/* Seller Info Section */}
+                {seller && (
+                     <div className="mt-8 py-4 border-t">
+                        <Card>
+                            <CardContent className="p-4 flex justify-between items-center">
+                                <div className="flex items-center gap-4">
+                                    <Avatar className="h-14 w-14">
+                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Sold by</p>
+                                        <h4 className="font-semibold text-lg">{seller.name}</h4>
                                     </div>
-                                    <CardContent className="p-2 flex-grow flex flex-col">
-                                        <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
-                                        <p className="font-bold text-sm mt-1">{related.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-3 h-3 fill-current" />
-                                            <span>{averageRating}</span>
-                                            <span className="text-muted-foreground text-xs">({mockReviews.length})</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-                
-                {/* Reviews Section */}
-                <div className="mt-8 py-4 border-t">
-                    <CardHeader className="p-0 mb-4">
-                        <CardTitle>Customer Reviews</CardTitle>
-                    </CardHeader>
-                    <div className="space-y-6">
-                        {mockReviews.map(review => (
-                            <div key={review.id} className="flex gap-4">
-                                <Avatar>
-                                    <AvatarImage src={review.avatar} alt={review.author} />
-                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-semibold">{review.author}</p>
-                                        <p className="text-xs text-muted-foreground">{review.date}</p>
-                                    </div>
-                                     <div className="flex items-center gap-1 mt-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                        ))}
-                                    </div>
-                                    <p className="mt-2 text-sm text-muted-foreground">{review.text}</p>
                                 </div>
-                            </div>
-                        ))}
+                                <Button asChild variant="outline">
+                                    <Link href={`/seller/profile?userId=seller_${seller.name}`}>View Profile</Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
                     </div>
-                </div>
+                )}
+                
 
                 {/* Q&A Section */}
                 <div className="mt-8 py-4 border-t">
@@ -550,6 +536,36 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     </div>
                 </div>
+                
+                {/* Reviews Section */}
+                <div className="mt-8 py-4 border-t">
+                    <CardHeader className="p-0 mb-4">
+                        <CardTitle>Customer Reviews</CardTitle>
+                    </CardHeader>
+                    <div className="space-y-6">
+                        {mockReviews.map(review => (
+                            <div key={review.id} className="flex gap-4">
+                                <Avatar>
+                                    <AvatarImage src={review.avatar} alt={review.author} />
+                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-center">
+                                        <p className="font-semibold">{review.author}</p>
+                                        <p className="text-xs text-muted-foreground">{review.date}</p>
+                                    </div>
+                                     <div className="flex items-center gap-1 mt-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                        ))}
+                                    </div>
+                                    <p className="mt-2 text-sm text-muted-foreground">{review.text}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
 
                 {/* Live Streams Section */}
                 <div className="mt-8 py-4 border-t">
