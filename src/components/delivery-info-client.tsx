@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -37,6 +38,7 @@ import { HelpChat } from './help-chat';
 import { Badge } from './ui/badge';
 import { productDetails } from '@/lib/product-data';
 import { addReview, Review, updateReview, getReviews } from '@/lib/review-data';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 
 const getStatusIcon = (status: string) => {
@@ -197,8 +199,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [returnOtp, setReturnOtp] = useState('');
     const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
-    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [myReview, setMyReview] = useState<Review | null>(null);
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
