@@ -52,6 +52,7 @@ export default function WalletPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
 
 
   const handleRefresh = () => {
@@ -116,7 +117,7 @@ export default function WalletPage() {
   };
 
   const handleWithdraw = (amount: number, bankAccountId: string) => {
-     const selectedAccount = mockBankAccounts.find(acc => String(acc.id) === bankAccountId);
+     const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
      if (amount > balance) {
         toast({
             variant: 'destructive',
@@ -161,15 +162,15 @@ export default function WalletPage() {
 
         <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-6">
              <div className="max-w-md mx-auto space-y-6">
-                <Card className="text-center">
+                <Card className="text-center bg-destructive text-destructive-foreground">
                     <CardHeader>
                         <CardTitle>Available Balance</CardTitle>
-                        <CardDescription>This is the total amount available in your wallet.</CardDescription>
+                        <CardDescription className="text-destructive-foreground/80">This is the total amount available in your wallet.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center justify-center gap-2">
                         <div className="flex items-center gap-4">
                             <p className="text-4xl font-bold">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                            <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing}>
+                            <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing} className="text-destructive-foreground hover:bg-white/20 hover:text-destructive-foreground">
                                 <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
                             </Button>
                         </div>
@@ -179,7 +180,7 @@ export default function WalletPage() {
                  <div className="grid grid-cols-4 gap-2">
                     <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                         <DialogTrigger asChild>
-                             <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                             <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
                                 <CreditCard className="h-5 w-5"/>
                                 <span>UPI Deposit</span>
                             </Button>
@@ -235,7 +236,7 @@ export default function WalletPage() {
                     </Dialog>
                     <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
                                 <Download className="h-5 w-5"/>
                                 <span>Withdraw</span>
                             </Button>
@@ -247,14 +248,18 @@ export default function WalletPage() {
                                     Enter the amount you wish to withdraw and select a bank account.
                                 </DialogDescription>
                             </DialogHeader>
-                            <WithdrawForm bankAccounts={mockBankAccounts} onWithdraw={handleWithdraw}/>
+                            <WithdrawForm 
+                                bankAccounts={bankAccounts} 
+                                onWithdraw={handleWithdraw}
+                                onAddAccount={(newAccount) => setBankAccounts(prev => [...prev, newAccount])} 
+                            />
                         </DialogContent>
                     </Dialog>
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
                         <Lock className="h-5 w-5"/>
                         <span>Blocked Margin</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
                         <Coins className="h-5 w-5"/>
                         <span>Exchange to Coin</span>
                     </Button>
