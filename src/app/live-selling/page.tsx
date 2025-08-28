@@ -1119,6 +1119,7 @@ export default function LiveSellingPage() {
                 </Tabs>
                 </div>
             </main>
+            <Footer />
         </div>
     </div>
   );
