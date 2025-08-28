@@ -600,11 +600,11 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
-                <div className="flex-1 flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <Logo className="h-10 w-auto" />
                 </div>
 
-                <div className="flex-shrink-0 flex items-center justify-end gap-2" ref={searchRef}>
+                <div className="flex-1 flex items-center justify-end gap-2" ref={searchRef}>
                      <div className="relative flex items-center">
                         <Input
                             placeholder="Search..."
@@ -634,14 +634,16 @@ export default function LiveSellingPage() {
                                 </Button>
                             </Link>
                             
-                             <Link href="/cart" passHref>
-                                <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
-                                    <ShoppingCart />
-                                     {cartCount > 0 && (
-                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
-                                    )}
-                                </Button>
-                            </Link>
+                             <div className="hidden sm:block">
+                                <Link href="/cart" passHref>
+                                    <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
+                                        <ShoppingCart />
+                                        {cartCount > 0 && (
+                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
+                                        )}
+                                    </Button>
+                                </Link>
+                            </div>
 
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -700,7 +702,7 @@ export default function LiveSellingPage() {
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
-                                            <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
+                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
                                         </DropdownMenuItem>
                                         
                                         <DropdownMenuItem asChild>
@@ -746,7 +748,7 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20">
+            <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20 relative">
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
@@ -1124,6 +1126,17 @@ export default function LiveSellingPage() {
                     </TabsContent>
                 </Tabs>
                 </div>
+                 {user && (
+                    <Link href="/cart" passHref>
+                        <Button variant="destructive" size="icon" className="fixed bottom-24 right-4 sm:hidden h-14 w-14 rounded-full shadow-lg z-50">
+                            <ShoppingCart className="h-6 w-6"/>
+                             {cartCount > 0 && (
+                                <Badge className="absolute -top-1 -right-1 h-6 w-6 justify-center p-0 text-sm">{cartCount}</Badge>
+                            )}
+                             <span className="sr-only">View Cart</span>
+                        </Button>
+                    </Link>
+                )}
             </main>
             <Footer />
         </div>
