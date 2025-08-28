@@ -838,7 +838,7 @@ export default function LiveSellingPage() {
                                 {filteredLiveSellers.map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10">
-                                            <Badge variant="default">
+                                            <Badge variant="destructive">
                                                 LIVE
                                             </Badge>
                                         </div>
@@ -1075,7 +1075,7 @@ export default function LiveSellingPage() {
                                         {topLiveStreams.slice(0, 2).map((seller) => (
                                             <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
                                                 <div className="absolute top-1.5 left-1.5 z-10">
-                                                    <Badge variant="default" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
+                                                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
                                                 </div>
                                                 <div className="absolute top-1.5 right-1.5 z-10">
                                                     <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs px-1.5 py-0.5 h-auto">
@@ -1125,5 +1125,7 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
 
     
