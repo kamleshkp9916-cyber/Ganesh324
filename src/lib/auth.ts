@@ -17,7 +17,15 @@ export function useAuthActions() {
     
     // Helper function to handle redirection after login
     const handleLoginSuccess = (user: User) => {
-        // Fetch user data which includes the role
+        // Special case for admin user
+        if (user.email === ADMIN_EMAIL) {
+             sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
+             setUser(user);
+             router.push('/admin/dashboard');
+             toast({ title: "Logged In!", description: "Welcome, Admin!" });
+             return;
+        }
+
         const userData = getUserData(user.uid);
         const actualRole = userData.role;
         
@@ -27,10 +35,7 @@ export function useAuthActions() {
         });
 
         // Redirect based on role
-        if (user.email === ADMIN_EMAIL) {
-            sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
-            router.push('/admin/dashboard');
-        } else if (actualRole === 'seller') {
+        if (actualRole === 'seller') {
             router.push('/seller/dashboard');
         } else {
             router.push('/live-selling');
@@ -148,7 +153,6 @@ export function useAuthActions() {
                 reload: async () => {},
                 toJSON: () => ({}),
             };
-            setUser(mockAdminUser);
             handleLoginSuccess(mockAdminUser);
             return;
         }
