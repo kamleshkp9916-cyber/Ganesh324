@@ -25,8 +25,22 @@ export function useAuthActions() {
              toast({ title: "Logged In!", description: "Welcome, Admin!" });
              return;
         }
+        
+        let userData;
+        // For sellers, details might be stored in localStorage during registration
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+        if (sellerDetailsRaw) {
+            const sellerDetails = JSON.parse(sellerDetailsRaw);
+            if(sellerDetails.email === user.email) {
+                userData = { role: 'seller' };
+            }
+        }
 
-        const userData = getUserData(user.uid);
+        // If not found in seller details, get from main user data store
+        if (!userData) {
+            userData = getUserData(user.uid);
+        }
+
         const actualRole = userData.role;
         
         toast({
@@ -172,9 +186,22 @@ export function useAuthActions() {
                 router.push('/verify-email');
                 return;
             }
-             const userData = getUserData(user.uid);
-             if (userData.role !== expectedRole) {
-                const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${userData.role}.`;
+
+            let userRole;
+            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+            if (sellerDetailsRaw) {
+                 const sellerDetails = JSON.parse(sellerDetailsRaw);
+                 if (sellerDetails.email === email) {
+                     userRole = 'seller';
+                 }
+            }
+            
+            if (!userRole) {
+                userRole = getUserData(user.uid).role;
+            }
+
+             if (userRole !== expectedRole) {
+                const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${userRole}.`;
                 toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
                 await firebaseSignOut(auth); // Sign out the user
                 return; // Stop execution
