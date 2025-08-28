@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
+import { WithdrawForm } from '@/components/settings-forms';
+
 
 const initialTransactions = [
     { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
@@ -30,6 +32,12 @@ const paymentMethods = [
     { name: 'Credit/Debit Card', icon: <CreditCard className="h-8 w-8 text-primary" /> },
 ];
 
+const mockBankAccounts = [
+    { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
+    { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
+];
+
+
 export default function WalletPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -42,6 +50,8 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
 
   const handleRefresh = () => {
@@ -102,6 +112,29 @@ export default function WalletPage() {
         });
     }, 2500);
   };
+
+  const handleWithdraw = (amount: number, bankAccountId: string) => {
+     const selectedAccount = mockBankAccounts.find(acc => String(acc.id) === bankAccountId);
+     if (amount > balance) {
+        toast({
+            variant: 'destructive',
+            title: 'Insufficient Balance',
+            description: 'You do not have enough funds to complete this withdrawal.'
+        });
+        return;
+     }
+
+     setBalance(prev => prev - amount);
+     const newTransaction = {
+            name: `Withdrawal to ${selectedAccount?.bankName}`,
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            amount: -amount,
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+     };
+     setTransactions(prev => [newTransaction, ...prev]);
+     setIsWithdrawOpen(false);
+  };
+
 
   if (loading) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -196,10 +229,23 @@ export default function WalletPage() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
-                        <Download className="h-5 w-5"/>
-                        <span>Withdraw</span>
-                    </Button>
+                    <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                                <Download className="h-5 w-5"/>
+                                <span>Withdraw</span>
+                            </Button>
+                        </DialogTrigger>
+                         <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Withdraw Funds</DialogTitle>
+                                <DialogDescription>
+                                    Enter the amount you wish to withdraw and select a bank account.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <WithdrawForm bankAccounts={mockBankAccounts} onWithdraw={handleWithdraw}/>
+                        </DialogContent>
+                    </Dialog>
                      <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
                         <Lock className="h-5 w-5"/>
                         <span>Blocked Margin</span>
