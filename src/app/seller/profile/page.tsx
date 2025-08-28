@@ -43,8 +43,8 @@ export default function SellerProfilePage() {
     if (isMounted && !loading) {
       let targetId: string | null | undefined = userIdFromQuery;
 
-      // If no userId in query, it must be the logged-in seller viewing their own profile
       if (!targetId) {
+        // If no user in query, it's the logged-in seller viewing their own profile
         if (user) {
           const sellerDetailsRaw = localStorage.getItem('sellerDetails');
           if (sellerDetailsRaw) {
@@ -61,7 +61,12 @@ export default function SellerProfilePage() {
       }
       
       const data = getUserData(targetId);
-      setProfileData(data);
+      if (data) {
+        setProfileData(data);
+      } else {
+        // Handle case where seller might not be in the mock DB
+        console.error("Seller not found:", targetId);
+      }
     }
   }, [user, loading, router, isMounted, key, userIdFromQuery]);
 
