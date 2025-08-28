@@ -643,7 +643,7 @@ export default function LiveSellingPage() {
 
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex">
+                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
                                         <Bell />
                                          {unreadCount > 0 && (
                                             <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
