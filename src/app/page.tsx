@@ -15,13 +15,21 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  // This useEffect was causing the incorrect redirection for the admin.
+  // The redirection logic is now fully handled within the `useAuthActions` hook.
+  // By removing this, we ensure the correct redirection path is followed for each user role.
   useEffect(() => {
     if (!loading && user) {
-        const userData = getUserData(user.uid);
-        if (userData && userData.role === 'seller') {
-             router.replace('/seller/dashboard');
-        } else {
-            router.replace('/live-selling');
+        // Admin user is handled by a separate session storage mechanism,
+        // so we only need to consider regular customer/seller roles here.
+        const mockAdminUser = sessionStorage.getItem('mockAdminUser');
+        if (!mockAdminUser) {
+             const userData = getUserData(user.uid);
+             if (userData && userData.role === 'seller') {
+                 router.replace('/seller/dashboard');
+             } else {
+                 router.replace('/live-selling');
+             }
         }
     }
   }, [user, loading, router]);
