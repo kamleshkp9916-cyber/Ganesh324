@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -696,9 +695,6 @@ export default function LiveSellingPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/wishlist"><Heart className="mr-2 h-4 w-4" /><span>Wishlist</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
                                         </DropdownMenuItem>
                                         
                                         <DropdownMenuItem asChild>
