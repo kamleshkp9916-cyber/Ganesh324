@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, LayoutGrid, SwitchHorizontal, Send as SendIcon, Settings, HelpCircle, Search, Bell, Plus, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, LayoutGrid, ArrowRightLeft, Send as SendIcon, Settings, HelpCircle, Search, Bell, Plus, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,7 +69,7 @@ export default function WalletPage() {
                 Dashboard
             </Link>
             <Link href="#" className="flex items-center gap-3 p-3 rounded-lg text-muted-foreground hover:bg-muted">
-                <SwitchHorizontal className="h-5 w-5" />
+                <ArrowRightLeft className="h-5 w-5" />
                 Transactions
             </Link>
              <Link href="#" className="flex items-center gap-3 p-3 rounded-lg text-muted-foreground hover:bg-muted">
