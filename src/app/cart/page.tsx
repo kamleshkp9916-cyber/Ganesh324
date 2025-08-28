@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { format, addDays } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
-import { productDetails } from '@/components/product-detail-client';
+import { productDetails } from '@/lib/product-data';
 
 const mockAddress = {
     name: "Samael Prajapati",
