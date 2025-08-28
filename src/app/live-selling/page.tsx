@@ -609,7 +609,7 @@ export default function LiveSellingPage() {
                      {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
-                        <div className={cn("flex items-center gap-1 sm:gap-2", isSearchExpanded && "hidden sm:flex")}>
+                        <div className="flex items-center gap-1 sm:gap-2">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
@@ -641,6 +641,16 @@ export default function LiveSellingPage() {
                                     )}
                                 </DropdownMenuContent>
                             </DropdownMenu>
+
+                             <div ref={searchRef} className="relative flex items-center">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                                <Input
+                                    placeholder="Search..."
+                                    className="bg-muted rounded-full pl-10 pr-4 h-10 w-32 sm:w-48 transition-all duration-300 ease-in-out"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -715,29 +725,6 @@ export default function LiveSellingPage() {
                             </Button>
                         </div>
                     )}
-                     <div className="relative flex items-center" ref={searchRef}>
-                        <Input
-                            placeholder="Search..."
-                            className={cn(
-                                "bg-muted rounded-full pl-8 pr-4 h-10 transition-all duration-300 ease-in-out",
-                                isSearchExpanded ? "w-32 sm:w-48" : "w-0 p-0 opacity-0"
-                            )}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onFocus={() => setIsSearchExpanded(true)}
-                        />
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                                "text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0",
-                                isSearchExpanded && "-ml-10"
-                            )}
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                          <Search className="h-5 w-5" />
-                        </Button>
-                    </div>
                 </div>
             </header>
             
@@ -1126,8 +1113,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
-
-    
-
