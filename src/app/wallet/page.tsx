@@ -14,12 +14,20 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Image from 'next/image';
 
 const initialTransactions = [
     { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
     { name: 'Jane Doe', date: '26 July, 2024', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
     { name: 'Monthly Savings', date: '25 July, 2024', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
     { name: 'Alex Smith', date: '24 July, 2024', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
+];
+
+const paymentMethods = [
+    { name: 'PhonePe', icon: 'https://cdn.worldvectorlogo.com/logos/phonepe-1.svg' },
+    { name: 'Google Pay', icon: 'https://www.vectorlogo.zone/logos/googlepay/googlepay-icon.svg' },
+    { name: 'Paytm', icon: 'https://www.vectorlogo.zone/logos/paytm/paytm-icon.svg' },
+    { name: 'Credit/Debit Card', icon: <CreditCard className="h-8 w-8 text-primary" /> },
 ];
 
 export default function WalletPage() {
@@ -33,6 +41,7 @@ export default function WalletPage() {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
 
   const handleRefresh = () => {
@@ -58,12 +67,25 @@ export default function WalletPage() {
         });
         return;
     }
+     if (!selectedPaymentMethod) {
+        toast({
+            variant: 'destructive',
+            title: 'Payment Method Required',
+            description: 'Please select a payment method to continue.'
+        });
+        return;
+    }
 
     setIsDepositing(true);
+    toast({
+        title: 'Processing Payment...',
+        description: `Redirecting to ${selectedPaymentMethod}...`
+    });
+
     setTimeout(() => {
         setBalance(prev => prev + amount);
         const newTransaction = {
-            name: 'UPI Deposit',
+            name: `${selectedPaymentMethod} Deposit`,
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
             amount: amount,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png'
@@ -73,11 +95,12 @@ export default function WalletPage() {
         setIsDepositing(false);
         setIsDepositOpen(false);
         setDepositAmount('');
+        setSelectedPaymentMethod(null);
         toast({
             title: 'Deposit Successful!',
             description: `₹${amount.toFixed(2)} has been added to your wallet.`
         });
-    }, 1500);
+    }, 2500);
   };
 
   if (loading) {
@@ -100,7 +123,7 @@ export default function WalletPage() {
         </header>
 
         <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-6">
-            <div className="max-w-md mx-auto space-y-6">
+             <div className="max-w-md mx-auto space-y-6">
                 <Card className="text-center">
                     <CardHeader>
                         <CardTitle>Available Balance</CardTitle>
@@ -119,33 +142,56 @@ export default function WalletPage() {
                  <div className="grid grid-cols-4 gap-2">
                     <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                             <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
                                 <CreditCard className="h-5 w-5"/>
                                 <span>UPI Deposit</span>
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>UPI Deposit</DialogTitle>
-                                <DialogDescription>Enter the amount you wish to add to your wallet.</DialogDescription>
+                                <DialogTitle>Add Money to Wallet</DialogTitle>
+                                <DialogDescription>Enter an amount and choose your payment method.</DialogDescription>
                             </DialogHeader>
-                            <div className="py-4">
-                                <Label htmlFor="amount">Amount</Label>
-                                <Input 
-                                    id="amount" 
-                                    type="number" 
-                                    placeholder="₹0.00" 
-                                    value={depositAmount}
-                                    onChange={(e) => setDepositAmount(e.target.value)}
-                                />
+                            <div className="py-4 space-y-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="amount" className="text-lg font-semibold">Amount</Label>
+                                     <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground">₹</span>
+                                        <Input 
+                                            id="amount" 
+                                            type="number" 
+                                            className="h-16 pl-10 text-4xl font-bold"
+                                            placeholder="0" 
+                                            value={depositAmount}
+                                            onChange={(e) => setDepositAmount(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                     <Label className="font-semibold">Select Payment Method</Label>
+                                     <div className="grid grid-cols-2 gap-4">
+                                        {paymentMethods.map((method) => (
+                                            <button
+                                                key={method.name}
+                                                onClick={() => setSelectedPaymentMethod(method.name)}
+                                                className={cn(
+                                                    "p-4 border rounded-lg flex flex-col items-center justify-center gap-2 transition-colors",
+                                                    selectedPaymentMethod === method.name ? "border-primary ring-2 ring-primary" : "hover:bg-muted"
+                                                )}
+                                            >
+                                                {typeof method.icon === 'string' ? 
+                                                    <Image src={method.icon} alt={method.name} width={32} height={32} /> : method.icon
+                                                }
+                                                <span className="text-sm font-medium">{method.name}</span>
+                                            </button>
+                                        ))}
+                                     </div>
+                                </div>
                             </div>
                             <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <Button onClick={handleDeposit} disabled={isDepositing}>
+                                <Button onClick={handleDeposit} disabled={isDepositing} className="w-full" size="lg">
                                     {isDepositing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Confirm Deposit
+                                    Proceed to Pay ₹{depositAmount || 0}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -181,7 +227,7 @@ export default function WalletPage() {
                                 <p className="text-sm font-medium leading-none">{transaction.name}</p>
                                 <p className="text-sm text-muted-foreground">{transaction.date}</p>
                             </div>
-                            <div className={cn(
+                             <div className={cn(
                                 "ml-auto font-medium",
                                 transaction.amount > 0 ? 'text-success' : 'text-foreground'
                             )}>
@@ -196,5 +242,3 @@ export default function WalletPage() {
     </div>
   );
 }
-
-    
