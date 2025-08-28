@@ -74,10 +74,9 @@ const withdrawFormSchema = z.object({
 
 interface WithdrawFormProps {
     bankAccounts: { id: number; bankName: string; accountNumber: string; }[];
-    onWithdraw: (amount: number, bankAccountId: string) => void;
 }
 
-export function WithdrawForm({ bankAccounts, onWithdraw }: WithdrawFormProps) {
+export function WithdrawForm({ bankAccounts }: WithdrawFormProps) {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const form = useForm<z.infer<typeof withdrawFormSchema>>({
@@ -90,7 +89,6 @@ export function WithdrawForm({ bankAccounts, onWithdraw }: WithdrawFormProps) {
 
         setTimeout(() => {
             setIsLoading(false);
-            onWithdraw(values.amount, values.bankAccountId);
             toast({
                 title: "Withdrawal Initiated!",
                 description: `₹${values.amount} is on its way to your account.`,
