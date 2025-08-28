@@ -601,7 +601,7 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
                 <div className="flex items-center gap-2">
-                     <h1 className="text-2xl font-bold text-primary">StreamCart</h1>
+                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
 
                 <div className="flex-1 flex items-center justify-end gap-2" ref={searchRef}>
@@ -699,7 +699,7 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
+                                        <DropdownMenuItem asChild className="md:hidden">
                                             <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
                                         </DropdownMenuItem>
                                         
