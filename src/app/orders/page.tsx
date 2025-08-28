@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { allOrderData, getStatusFromTimeline, Order as TimelineOrder } from '@/lib/order-data';
-import { BottomNav } from '@/components/bottom-nav';
 
 
 const mockUsers = {
@@ -523,7 +522,6 @@ export default function OrdersPage() {
               )}
           </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

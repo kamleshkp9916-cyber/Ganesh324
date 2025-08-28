@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -80,7 +81,6 @@ import { useTheme } from 'next-themes';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
-import { BottomNav } from '@/components/bottom-nav';
 
 
 const liveSellers = [
@@ -1119,7 +1119,6 @@ export default function LiveSellingPage() {
                 </Tabs>
                 </div>
             </main>
-            <BottomNav />
         </div>
     </div>
   );
