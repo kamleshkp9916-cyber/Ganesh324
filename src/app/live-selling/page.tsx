@@ -360,8 +360,6 @@ export default function LiveSellingPage() {
   const { theme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
@@ -509,17 +507,6 @@ export default function LiveSellingPage() {
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
   }, []);
   
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchRef]);
 
   const handleReply = (sellerName: string) => {
     handleAuthAction(() => {
@@ -601,159 +588,151 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
                 <div className="flex items-center gap-2">
-                     <div className="sm:hidden">
-                        <Logo className="h-8 w-auto" />
-                     </div>
-                     <div className="hidden sm:block">
-                        <h1 className="text-2xl font-bold text-primary">StreamCart</h1>
-                     </div>
+                    <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
 
-                <div className="flex-1 flex items-center justify-end" ref={searchRef}>
-                     <div className={cn("relative flex items-center justify-end flex-1", isSearchExpanded && "w-full")}>
-                        <div className={cn("flex items-center gap-1 sm:gap-2 transition-all", isSearchExpanded ? "opacity-0 w-0" : "opacity-100 w-auto")}>
-                             {(!isMounted || authLoading) ? (
-                                <Skeleton className="h-9 w-24 rounded-full" />
-                            ) : user ? (
-                                <>
-                                    <Link href="/wallet" passHref>
-                                        <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden md:flex">
-                                            <Wallet />
-                                        </Button>
-                                    </Link>
-                                    
-                                    <Link href="/cart" passHref>
-                                        <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
-                                            <ShoppingCart />
-                                            {cartCount > 0 && (
-                                                <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
-                                            )}
-                                        </Button>
-                                    </Link>
+                <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
+                     {(!isMounted || authLoading) ? (
+                        <Skeleton className="h-9 w-24 rounded-full" />
+                    ) : user ? (
+                        <>
+                            <Link href="/wallet" passHref>
+                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden md:flex">
+                                    <Wallet />
+                                </Button>
+                            </Link>
+                            
+                            <Link href="/cart" passHref className="hidden sm:flex">
+                                <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive">
+                                    <ShoppingCart />
+                                    {cartCount > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
 
-                                <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
-                                                <Bell />
-                                                {unreadCount > 0 && (
-                                                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                                    </span>
-                                                )}
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-80">
-                                            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            {notifications.map(n => (
-                                                <Link key={n.id} href={n.href} passHref>
-                                                    <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
-                                                        <div className="flex justify-between w-full">
-                                                            <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
-                                                            <p className="text-xs text-muted-foreground">{n.time}</p>
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground">{n.description}</p>
-                                                    </DropdownMenuItem>
-                                                </Link>
-                                            ))}
-                                            {notifications.length === 0 && (
-                                                <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Avatar className="h-9 w-9 cursor-pointer">
-                                                <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                                                <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                            </Avatar>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent className="w-64" align="end" forceMount>
-                                            <DropdownMenuLabel className="font-normal">
-                                                <div className="flex flex-col space-y-1">
-                                                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                                                    <p className="text-xs leading-none text-muted-foreground">
-                                                    {user.email}
-                                                    </p>
+                        <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
+                                        <Bell />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                            </span>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-80">
+                                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {notifications.map(n => (
+                                        <Link key={n.id} href={n.href} passHref>
+                                            <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                                <div className="flex justify-between w-full">
+                                                    <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{n.time}</p>
                                                 </div>
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuGroup>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild className="md:hidden">
-                                                    <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                                </DropdownMenuItem>
-                                                
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuGroup>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuGroup>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuGroup>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={signOut}>
-                                                <LogOut className="mr-2 h-4 w-4" />
-                                                <span>Log Out</span>
+                                                <p className="text-sm text-muted-foreground">{n.description}</p>
                                             </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <Button asChild variant="outline" size="sm">
-                                        <Link href="/">Login</Link>
-                                    </Button>
-                                    <Button asChild size="sm">
-                                            <Link href="/signup">Create Account</Link>
-                                    </Button>
-                                </div>
-                            )}
+                                        </Link>
+                                    ))}
+                                    {notifications.length === 0 && (
+                                        <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Avatar className="h-9 w-9 cursor-pointer">
+                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
+                                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                    </Avatar>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-64" align="end" forceMount>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                            {user.email}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild className="md:hidden">
+                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                        </DropdownMenuItem>
+                                        
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuGroup>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={signOut}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Log Out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Button asChild variant="outline" size="sm">
+                                <Link href="/">Login</Link>
+                            </Button>
+                            <Button asChild size="sm">
+                                    <Link href="/signup">Create Account</Link>
+                            </Button>
                         </div>
+                    )}
+                    <div className="relative">
                         <Input
                             placeholder="Search..."
-                            className={cn(
-                                "bg-muted rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
-                                isSearchExpanded ? "w-full max-w-sm" : "w-0 opacity-0"
-                            )}
+                            className="bg-muted rounded-full pl-8 pr-4 h-10 w-32 sm:w-48 md:w-64"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                         <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0"
-                            onClick={() => setIsSearchExpanded(p => !p)}
-                        >
-                            {isSearchExpanded ? <X className="h-5 w-5"/> : <Search className="h-5 w-5" />}
-                        </Button>
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     </div>
                 </div>
             </header>
             
             <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20 relative">
+                 {/* Floating cart button for mobile */}
+                <Link href="/cart" passHref className="sm:hidden">
+                    <Button variant="destructive" size="icon" className="fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg z-40 flex flex-col items-center justify-center text-destructive-foreground bg-destructive/90 hover:bg-destructive">
+                        <ShoppingCart className="h-6 w-6" />
+                        {cartCount > 0 && (
+                            <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
+                        )}
+                    </Button>
+                </Link>
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
@@ -1137,3 +1116,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
