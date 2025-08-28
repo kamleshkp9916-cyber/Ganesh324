@@ -77,6 +77,9 @@ export const updateReview = (productId: string, updatedReview: Review) => {
         productReviews[reviewIndex] = { ...updatedReview, productId };
         allReviews[productId] = productReviews;
         saveAllReviews(allReviews);
+    } else {
+        // If for some reason it doesn't exist, add it.
+        addReview(productId, updatedReview);
     }
 };
 

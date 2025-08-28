@@ -36,7 +36,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/comp
 import { HelpChat } from './help-chat';
 import { Badge } from './ui/badge';
 import { productDetails } from '@/lib/product-data';
-import { addReview, Review, updateReview } from '@/lib/review-data';
+import { addReview, Review, updateReview, getReviews } from '@/lib/review-data';
 
 
 const getStatusIcon = (status: string) => {
@@ -92,7 +92,7 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
         // Simulate API call
         setTimeout(() => {
              const reviewData = {
-                id: reviewToEdit?.id, // Keep id if editing
+                id: reviewToEdit?.id || Date.now(),
                 author: user.displayName || 'Anonymous',
                 avatar: user.photoURL,
                 rating,
@@ -198,10 +198,18 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [myReview, setMyReview] = useState<Review | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        if (user && order) {
+             const existingReviews = getReviews(order.product.productId);
+             const userReview = existingReviews.find(r => r.userId === user.uid);
+             if (userReview) {
+                 setMyReview(userReview);
+             }
+        }
+    }, [user, order]);
 
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
@@ -350,13 +358,23 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         });
     };
 
-    const handleReviewSubmit = (review: any) => {
+    const handleReviewSubmit = (review: Review) => {
         if (!order) return;
-        addReview(order.product.productId, review);
-        toast({
-            title: "Review Submitted!",
-            description: "Thank you for your feedback. It is now visible on the product page.",
-        });
+
+        if (myReview) {
+             updateReview(order.product.productId, review);
+             toast({
+                title: "Review Updated!",
+                description: "Thank you for updating your feedback.",
+            });
+        } else {
+             addReview(order.product.productId, review);
+             toast({
+                title: "Review Submitted!",
+                description: "Thank you for your feedback. It is now visible on the product page.",
+            });
+        }
+        setMyReview(review);
     };
 
     const handleShare = () => {
@@ -489,9 +507,9 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                              {showReviewButton && (
                                  <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
+                                        <Button><Star className="mr-2 h-4 w-4" /> {myReview ? "Edit Your Review" : "Write a Review"}</Button>
                                     </DialogTrigger>
-                                    <ReviewDialog order={order} user={user} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
+                                    <ReviewDialog order={order} user={user} reviewToEdit={myReview || undefined} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                                 </Dialog>
                             )}
                              <Button variant="ghost" onClick={handleHelp}><MessageSquare className="mr-2 h-4 w-4"/> Need Help?</Button>
@@ -686,6 +704,36 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         </CardFooter>
                     )}
                 </Card>
+                {myReview && (
+                    <Card className="max-w-4xl mx-auto mt-6">
+                        <CardHeader>
+                            <CardTitle>Your Review</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                             <div className="flex gap-4">
+                                <Avatar>
+                                    <AvatarImage src={myReview.avatar} alt={myReview.author} />
+                                    <AvatarFallback>{myReview.author.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-grow">
+                                    <div className="flex items-center justify-between">
+                                        <h5 className="font-semibold">{myReview.author}</h5>
+                                        <p className="text-xs text-muted-foreground">{format(new Date(myReview.date), 'dd MMM yyyy')}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 mt-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={cn("h-4 w-4", i < myReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-2">{myReview.text}</p>
+                                    {myReview.imageUrl && (
+                                        <Image src={myReview.imageUrl} alt="Review image" width={80} height={80} className="mt-2 rounded-md object-cover" />
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </main>
             {isHelpChatOpen && (
                 <HelpChat 
