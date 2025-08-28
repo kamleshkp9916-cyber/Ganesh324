@@ -67,21 +67,21 @@ export default function WalletPage() {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-4 gap-4">
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
-                        <CreditCard className="h-6 w-6"/>
+                <div className="grid grid-cols-4 gap-2">
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                        <CreditCard className="h-5 w-5"/>
                         <span>UPI Deposit</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
-                        <Download className="h-6 w-6"/>
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                        <Download className="h-5 w-5"/>
                         <span>Withdraw</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
-                        <Lock className="h-6 w-6"/>
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                        <Lock className="h-5 w-5"/>
                         <span>Blocked Margin</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
-                        <Coins className="h-6 w-6"/>
+                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                        <Coins className="h-5 w-5"/>
                         <span>Exchange to Coin</span>
                     </Button>
                 </div>
