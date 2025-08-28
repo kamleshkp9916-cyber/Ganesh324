@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const mockTransactions = [
     { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
@@ -110,7 +111,10 @@ export default function WalletPage() {
                                 <p className="text-sm font-medium leading-none">{transaction.name}</p>
                                 <p className="text-sm text-muted-foreground">{transaction.date}</p>
                             </div>
-                            <div className={`ml-auto font-medium ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
+                            <div className={cn(
+                                "ml-auto font-medium",
+                                transaction.amount > 0 ? 'text-success' : 'text-foreground'
+                            )}>
                                 {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
                             </div>
                         </div>
