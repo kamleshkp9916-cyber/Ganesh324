@@ -41,7 +41,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
-import { productDetails } from "@/components/product-detail-client";
+import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { addToCart, isProductInCart } from "@/lib/product-history";

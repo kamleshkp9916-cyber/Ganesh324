@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -55,6 +56,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast";
+import { productDetails } from "@/lib/product-data";
 
 
 const mockSellerOrders = [
@@ -113,9 +115,23 @@ const mockSellerOrders = [
         price: 4500.00,
         type: "Listed Product"
     }
-];
+].map(order => {
+    const details = productDetails[order.productId as keyof typeof productDetails];
+    if (details) {
+        return {
+            ...order,
+            product: {
+                name: details.name,
+                imageUrl: details.images[0],
+                hint: details.hint
+            },
+            price: parseFloat(details.price.replace('₹', '').replace(',', ''))
+        }
+    }
+    return order;
+});
 
-type Order = typeof mockSellerOrders[0];
+type Order = (typeof mockSellerOrders)[0];
 
 function OrderDetailCard({ order }: { order: Order }) {
     const { toast } = useToast();
