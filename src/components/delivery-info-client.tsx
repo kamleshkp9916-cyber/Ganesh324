@@ -98,6 +98,7 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
                 rating,
                 text: reviewText,
                 productName: reviewToEdit?.productName || order?.product.name,
+                productId: reviewToEdit?.productId || order?.product.productId,
                 imageUrl: imagePreview,
                 hint: reviewToEdit?.hint || order?.product.hint,
                 productInfo: reviewToEdit?.productInfo,
@@ -350,6 +351,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     };
 
     const handleReviewSubmit = (review: any) => {
+        if (!order) return;
         addReview(order.product.productId, review);
         toast({
             title: "Review Submitted!",

@@ -30,6 +30,8 @@ import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
 import { toggleFollow, getUserData, getFollowers } from '@/lib/follow-data';
+import { getUserReviews, Review } from '@/lib/review-data';
+
 
 const mockReviews = [
     { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.', paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } },
@@ -103,6 +105,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAddress, setEditingAddress] = useState(null);
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
+  const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
@@ -133,6 +136,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   useEffect(() => {
     if (user) {
        loadFollowData();
+       setMyReviews(getUserReviews(user.uid));
     }
   }, [user, profileData.uid, isOwnProfile]);
 
@@ -209,12 +213,12 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   }, [searchTerm, recentlyViewedItems]);
 
   const filteredReviews = useMemo(() => {
-    if (!searchTerm) return mockReviews;
-    return mockReviews.filter(review =>
+    if (!searchTerm) return myReviews;
+    return myReviews.filter(review =>
       review.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.review.toLowerCase().includes(searchTerm.toLowerCase())
+      review.text.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, myReviews]);
 
   const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -707,50 +711,44 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
 
-                      <TabsContent value="reviews" className="mt-4 space-y-4">
-                          {isLoadingContent ? <div className="space-y-4"><ReviewSkeleton /><ReviewSkeleton /></div> : (
-                              filteredReviews.length > 0 ? (
-                                  filteredReviews.map(review => (
-                                      <Collapsible key={review.id} asChild>
-                                          <Card>
-                                              <CollapsibleTrigger className="w-full text-left cursor-pointer">
-                                                  <div className="p-4 flex gap-4">
-                                                      {review.imageUrl && <Image src={review.imageUrl} alt={review.productName} width={80} height={80} className="rounded-md object-cover" data-ai-hint={review.hint || ''} />}
-                                                      <div className="flex-grow">
-                                                          <h4 className="font-semibold">{review.productName}</h4>
-                                                          <div className="flex items-center gap-1 mt-1">
-                                                              {[...Array(5)].map((_, i) => (
-                                                                  <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                              ))}
-                                                          </div>
-                                                          <p className="text-sm text-muted-foreground mt-2">{review.review}</p>
-                                                          <p className="text-xs text-muted-foreground mt-2 text-right">{review.date}</p>
-                                                      </div>
-                                                  </div>
-                                              </CollapsibleTrigger>
-                                              <CollapsibleContent>
-                                                  <div className="border-t p-4 space-y-3">
-                                                      <div>
-                                                          <h5 className="text-sm font-semibold mb-1">Product Information</h5>
-                                                          <p className="text-sm text-muted-foreground">{review.productInfo}</p>
-                                                      </div>
-                                                      <div>
-                                                          <h5 className="text-sm font-semibold mb-1">Payment & Delivery</h5>
-                                                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                              <PaymentIcon method={review.paymentMethod} />
-                                                              <span>{paymentLabel(review.paymentMethod)}</span>
-                                                          </div>
-                                                      </div>
-                                                  </div>
-                                              </CollapsibleContent>
-                                          </Card>
-                                      </Collapsible>
-                                  ))
-                              ) : (
-                                  <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
-                              )
-                          )}
-                      </TabsContent>
+                        <TabsContent value="reviews" className="mt-4 space-y-4">
+                            {isLoadingContent ? <div className="space-y-4"><ReviewSkeleton /><ReviewSkeleton /></div> : (
+                                filteredReviews.length > 0 ? (
+                                    filteredReviews.map(review => (
+                                        <Card key={review.id} className="overflow-hidden">
+                                            <div className="p-4 flex gap-4">
+                                                {review.imageUrl && (
+                                                    <Link href={`/product/${review.productId}`}>
+                                                        <Image
+                                                            src={review.imageUrl}
+                                                            alt={review.productName}
+                                                            width={80}
+                                                            height={80}
+                                                            className="rounded-md object-cover"
+                                                            data-ai-hint={review.hint || ''}
+                                                        />
+                                                    </Link>
+                                                )}
+                                                <div className="flex-grow">
+                                                    <Link href={`/product/${review.productId}`} className="hover:underline">
+                                                        <h4 className="font-semibold">{review.productName}</h4>
+                                                    </Link>
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                    <p className="text-xs text-muted-foreground mt-2 text-right">{new Date(review.date).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <p className="text-muted-foreground text-center py-8">You haven't written any reviews yet.</p>
+                                )
+                            )}
+                        </TabsContent>
                       
                       <TabsContent value="achievements" className="mt-4">
                         {isLoadingContent ? <ProductSkeletonGrid /> : mockAchievements.length > 0 ? (

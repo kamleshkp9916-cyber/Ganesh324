@@ -11,6 +11,7 @@ export interface Review {
     text: string;
     date: string; // ISO string
     productName: string;
+    productId: string; // Add productId to link back
     imageUrl: string | null;
     hint?: string;
     productInfo?: string;
@@ -36,6 +37,20 @@ export const getReviews = (productId: string): Review[] => {
     return allReviews[productId] || [];
 };
 
+export const getUserReviews = (userId: string): Review[] => {
+    const allReviews = getAllReviews();
+    const userReviews: Review[] = [];
+
+    for (const productId in allReviews) {
+        const productReviews = allReviews[productId];
+        const reviewsByUser = productReviews.filter(r => r.userId === userId);
+        userReviews.push(...reviewsByUser);
+    }
+    // Sort by most recent first
+    return userReviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
+
 export const addReview = (productId: string, review: Omit<Review, 'id' | 'date'>) => {
     const allReviews = getAllReviews();
     const productReviews = allReviews[productId] || [];
@@ -44,6 +59,7 @@ export const addReview = (productId: string, review: Omit<Review, 'id' | 'date'>
         ...review,
         id: Date.now(),
         date: new Date().toISOString(),
+        productId: productId,
     };
 
     const updatedProductReviews = [newReview, ...productReviews];
@@ -58,7 +74,7 @@ export const updateReview = (productId: string, updatedReview: Review) => {
     const reviewIndex = productReviews.findIndex(r => r.id === updatedReview.id);
 
     if (reviewIndex !== -1) {
-        productReviews[reviewIndex] = updatedReview;
+        productReviews[reviewIndex] = { ...updatedReview, productId };
         allReviews[productId] = productReviews;
         saveAllReviews(allReviews);
     }
