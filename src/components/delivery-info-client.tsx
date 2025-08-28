@@ -36,7 +36,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/comp
 import { HelpChat } from './help-chat';
 import { Badge } from './ui/badge';
 import { productDetails } from '@/lib/product-data';
-import { addReview } from '@/lib/review-data';
+import { addReview, Review, updateReview } from '@/lib/review-data';
 
 
 const getStatusIcon = (status: string) => {
@@ -69,11 +69,11 @@ const returnReasons = [
     "Other"
 ];
 
-const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void, user: any }) => {
-    const [rating, setRating] = useState(0);
-    const [reviewText, setReviewText] = useState('');
+export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewToEdit }: { order?: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void, user: any, reviewToEdit?: Review }) => {
+    const [rating, setRating] = useState(reviewToEdit?.rating || 0);
+    const [reviewText, setReviewText] = useState(reviewToEdit?.text || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(reviewToEdit?.imageUrl || null);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,19 +91,21 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Ord
         setIsSubmitting(true);
         // Simulate API call
         setTimeout(() => {
-            onReviewSubmit({
-                id: Date.now(),
+             const reviewData = {
+                id: reviewToEdit?.id, // Keep id if editing
                 author: user.displayName || 'Anonymous',
                 avatar: user.photoURL,
                 rating,
                 text: reviewText,
-                date: new Date().toISOString(),
-                productName: order.product.name,
+                productName: reviewToEdit?.productName || order?.product.name,
                 imageUrl: imagePreview,
-                hint: order.product.hint,
-                productInfo: `Sold by ${order.product.brand}`, // Example, can be more detailed
-                paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } // Example
-            });
+                hint: reviewToEdit?.hint || order?.product.hint,
+                productInfo: reviewToEdit?.productInfo,
+                paymentMethod: reviewToEdit?.paymentMethod,
+                userId: user.uid,
+                date: reviewToEdit?.date || new Date().toISOString(),
+            };
+            onReviewSubmit(reviewData);
             setIsSubmitting(false);
             closeDialog();
         }, 1000);
@@ -112,8 +114,8 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Ord
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Write a Review</DialogTitle>
-                <DialogDescription>Share your thoughts on the {order.product.name}.</DialogDescription>
+                <DialogTitle>{reviewToEdit ? 'Edit' : 'Write a'} Review</DialogTitle>
+                <DialogDescription>Share your thoughts on the {reviewToEdit?.productName || order?.product.name}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
                 <div className="flex items-center justify-center gap-2">
@@ -138,7 +140,7 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Ord
                     <input type="file" ref={imageInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
                     <Button variant="outline" onClick={() => imageInputRef.current?.click()}>
                         <ImageIcon className="mr-2 h-4 w-4" />
-                        Upload Image
+                        {imagePreview ? 'Change' : 'Upload'} Image
                     </Button>
                 </div>
                  {imagePreview && (
@@ -161,7 +163,7 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Ord
                 </DialogClose>
                 <Button onClick={handleSubmit} disabled={rating === 0 || !reviewText.trim() || isSubmitting}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Submit Review
+                    {reviewToEdit ? 'Update' : 'Submit'} Review
                 </Button>
             </DialogFooter>
         </DialogContent>

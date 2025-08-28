@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -22,7 +22,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
-import { getReviews, Review } from '@/lib/review-data';
+import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-data';
+import { useAuth } from '@/hooks/use-auth';
+import { ReviewDialog } from './delivery-info-client';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -53,6 +57,7 @@ const productToSellerMapping: { [key: string]: { id: string; name: string; avata
 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
+    const { user } = useAuth();
     
     const product = productDetails[productId as keyof typeof productDetails] || null;
 
@@ -65,7 +70,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [checkingPincode, setCheckingPincode] = useState(false);
     const [newQuestion, setNewQuestion] = useState("");
     const [reviews, setReviews] = useState<Review[]>([]);
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
 
+    const fetchReviews = () => {
+        if (product) {
+            setReviews(getReviews(product.key));
+        }
+    };
+    
     useEffect(() => {
         if (product) {
             setSelectedImage(product.images[0]);
@@ -83,9 +96,20 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
-            setReviews(getReviews(product.key));
+            fetchReviews();
         }
     }, [product]);
+
+    useEffect(() => {
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'streamcart_reviews') {
+                fetchReviews();
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [product]);
+
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -177,6 +201,35 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             });
             setNewQuestion("");
         }
+    };
+
+    const handleReviewSubmit = (reviewData: Review) => {
+        if (!product) return;
+        if (reviewData.id) { // Editing existing review
+            updateReview(product.key, reviewData);
+            toast({ title: "Review Updated!", description: "Your review has been successfully updated." });
+        } else { // Adding new review (this path is not used here but good practice)
+            addReview(product.key, reviewData);
+            toast({ title: "Review Submitted!", description: "Thank you for your feedback." });
+        }
+        fetchReviews(); // Re-fetch to show updated list
+    };
+
+    const handleEditReview = (review: Review) => {
+        setEditingReview(review);
+        setIsReviewDialogOpen(true);
+    };
+
+    const handleDeleteReview = (reviewId: number) => {
+        if (!product) return;
+        deleteReview(product.key, reviewId);
+        toast({ title: "Review Deleted", description: "Your review has been removed." });
+        fetchReviews();
+    };
+
+    const openReviewDialog = () => {
+        setEditingReview(undefined);
+        setIsReviewDialogOpen(true);
     };
 
     if (!product) {
@@ -559,6 +612,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <ThumbsDown className="w-4 h-4" />
                                                 Report
                                             </button>
+                                            {user && user.uid === review.userId && (
+                                                <div className="ml-auto flex items-center gap-2">
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditReview(review)}>
+                                                        <Edit className="w-4 h-4" />
+                                                    </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete Review?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Are you sure you want to delete this review? This action cannot be undone.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDeleteReview(review.id)}>Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -590,6 +669,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                  </div>
             </main>
+            
+            <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                 <ReviewDialog
+                    reviewToEdit={editingReview}
+                    onReviewSubmit={handleReviewSubmit}
+                    closeDialog={() => setIsReviewDialogOpen(false)}
+                    user={user}
+                 />
+            </Dialog>
         </div>
     );
 }

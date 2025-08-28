@@ -15,6 +15,7 @@ export interface Review {
     hint?: string;
     productInfo?: string;
     paymentMethod?: { type: string, provider?: string };
+    userId?: string; // Add userId to link review to a user
 }
 
 const REVIEWS_KEY = 'streamcart_reviews';
@@ -23,6 +24,11 @@ const getAllReviews = (): { [productId: string]: Review[] } => {
     if (typeof window === 'undefined') return {};
     const items = localStorage.getItem(REVIEWS_KEY);
     return items ? JSON.parse(items) : {};
+};
+
+const saveAllReviews = (reviews: { [productId: string]: Review[] }) => {
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+    window.dispatchEvent(new StorageEvent('storage', { key: REVIEWS_KEY }));
 };
 
 export const getReviews = (productId: string): Review[] => {
@@ -43,8 +49,32 @@ export const addReview = (productId: string, review: Omit<Review, 'id' | 'date'>
     const updatedProductReviews = [newReview, ...productReviews];
     allReviews[productId] = updatedProductReviews;
 
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(allReviews));
+    saveAllReviews(allReviews);
+};
+
+export const updateReview = (productId: string, updatedReview: Review) => {
+    const allReviews = getAllReviews();
+    const productReviews = allReviews[productId] || [];
+    const reviewIndex = productReviews.findIndex(r => r.id === updatedReview.id);
+
+    if (reviewIndex !== -1) {
+        productReviews[reviewIndex] = updatedReview;
+        allReviews[productId] = productReviews;
+        saveAllReviews(allReviews);
+    }
+};
+
+export const deleteReview = (productId: string, reviewId: number) => {
+    const allReviews = getAllReviews();
+    let productReviews = allReviews[productId] || [];
     
-    // Dispatch a storage event to notify other tabs/pages (like the product detail page)
-    window.dispatchEvent(new StorageEvent('storage', { key: REVIEWS_KEY }));
+    productReviews = productReviews.filter(r => r.id !== reviewId);
+
+    if (productReviews.length > 0) {
+        allReviews[productId] = productReviews;
+    } else {
+        delete allReviews[productId];
+    }
+    
+    saveAllReviews(allReviews);
 };
