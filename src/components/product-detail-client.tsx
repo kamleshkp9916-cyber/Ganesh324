@@ -439,30 +439,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                {/* Seller Info Section */}
-                {seller && (
-                    <div className="mt-8 py-4 border-t">
-                        <Card>
-                            <CardContent className="p-4 flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-14 w-14">
-                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Sold by</p>
-                                        <h4 className="font-semibold text-lg">{seller.name}</h4>
-                                    </div>
-                                </div>
-                                <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=${seller.id}`}>View Profile</Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-                
-
                 {/* Q&A Section */}
                 <div className="mt-8 py-4 border-t">
                     <CardHeader className="p-0 mb-4">
