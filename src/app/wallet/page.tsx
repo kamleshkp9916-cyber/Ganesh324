@@ -10,12 +10,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 
 type WalletView = 'balance' | 'deposit' | 'withdraw' | 'margin' | 'exchange';
 
 function PlaceholderView({ title }: { title: string }) {
     return (
-        <Card className="w-full max-w-md shadow-lg md:justify-self-center">
+        <Card className="w-full shadow-lg">
             <CardHeader>
                 <CardTitle>{title}</CardTitle>
             </CardHeader>
@@ -73,7 +74,7 @@ export default function WalletPage() {
         case 'balance':
         default:
             return (
-                 <Card className="w-full max-w-md shadow-lg md:justify-self-center">
+                 <Card className="w-full shadow-lg">
                     <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <p>Available Balance</p>
@@ -94,11 +95,11 @@ export default function WalletPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <div className="flex items-center gap-3">
+             <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9 border-2 border-primary/20">
                     <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                     <AvatarFallback className="text-lg">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
@@ -111,22 +112,18 @@ export default function WalletPage() {
 
       <main className="flex-grow p-4 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <div className="w-full max-w-md grid grid-cols-1 gap-4">
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('deposit')}>
+            <div className="flex justify-around md:flex-col md:justify-start gap-4">
+                 <Button variant="outline" size="icon" className="h-14 w-14" onClick={() => setActiveView('deposit')}>
                     <CreditCard className="h-6 w-6" />
-                    <span className="font-semibold">UPI Deposit</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('withdraw')}>
+                 <Button variant="outline" size="icon" className="h-14 w-14" onClick={() => setActiveView('withdraw')}>
                     <Download className="h-6 w-6" />
-                    <span className="font-semibold">Withdraw</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('margin')}>
+                 <Button variant="outline" size="icon" className="h-14 w-14" onClick={() => setActiveView('margin')}>
                     <Lock className="h-6 w-6" />
-                    <span className="font-semibold">Blocked Margin</span>
                 </Button>
-                 <Button variant="outline" className="h-14 gap-4 justify-start p-4" onClick={() => setActiveView('exchange')}>
+                 <Button variant="outline" size="icon" className="h-14 w-14" onClick={() => setActiveView('exchange')}>
                     <Coins className="h-6 w-6" />
-                    <span className="font-semibold">Exchange to Coin</span>
                 </Button>
             </div>
             {renderActiveView()}
