@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,8 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-const mockTransactions = [
+const initialTransactions = [
     { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
     { name: 'Jane Doe', date: '26 July, 2024', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
     { name: 'Monthly Savings', date: '25 July, 2024', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
@@ -25,6 +28,12 @@ export default function WalletPage() {
   const { toast } = useToast();
   const [balance, setBalance] = useState(10500.00);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [transactions, setTransactions] = useState(initialTransactions);
+
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [isDepositing, setIsDepositing] = useState(false);
+
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -37,6 +46,38 @@ export default function WalletPage() {
             description: "Your wallet balance has been refreshed.",
         });
     }, 1000);
+  };
+
+  const handleDeposit = () => {
+    const amount = parseFloat(depositAmount);
+    if (!amount || amount <= 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid Amount',
+            description: 'Please enter a valid amount to deposit.'
+        });
+        return;
+    }
+
+    setIsDepositing(true);
+    setTimeout(() => {
+        setBalance(prev => prev + amount);
+        const newTransaction = {
+            name: 'UPI Deposit',
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            amount: amount,
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+        };
+        setTransactions(prev => [newTransaction, ...prev]);
+        
+        setIsDepositing(false);
+        setIsDepositOpen(false);
+        setDepositAmount('');
+        toast({
+            title: 'Deposit Successful!',
+            description: `₹${amount.toFixed(2)} has been added to your wallet.`
+        });
+    }, 1500);
   };
 
   if (loading) {
@@ -76,10 +117,39 @@ export default function WalletPage() {
                 </Card>
 
                  <div className="grid grid-cols-4 gap-2">
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
-                        <CreditCard className="h-5 w-5"/>
-                        <span>UPI Deposit</span>
-                    </Button>
+                    <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
+                                <CreditCard className="h-5 w-5"/>
+                                <span>UPI Deposit</span>
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>UPI Deposit</DialogTitle>
+                                <DialogDescription>Enter the amount you wish to add to your wallet.</DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                                <Label htmlFor="amount">Amount</Label>
+                                <Input 
+                                    id="amount" 
+                                    type="number" 
+                                    placeholder="₹0.00" 
+                                    value={depositAmount}
+                                    onChange={(e) => setDepositAmount(e.target.value)}
+                                />
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <Button onClick={handleDeposit} disabled={isDepositing}>
+                                    {isDepositing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Confirm Deposit
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                      <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
                         <Download className="h-5 w-5"/>
                         <span>Withdraw</span>
@@ -101,7 +171,7 @@ export default function WalletPage() {
                     <CardDescription>A summary of your recent wallet activity.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {mockTransactions.map((transaction, index) => (
+                    {transactions.map((transaction, index) => (
                         <div key={index} className="flex items-center">
                             <Avatar className="h-9 w-9">
                                 <AvatarImage src={transaction.avatar} alt="Avatar" />
