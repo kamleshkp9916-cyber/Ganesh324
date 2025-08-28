@@ -52,7 +52,15 @@ export default function WalletPage() {
 
       <main className="flex-grow p-4 md:p-6 flex flex-col">
         <div className="flex flex-col items-center justify-center gap-8">
-             <Card className="w-full max-w-md shadow-lg">
+             <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 border-2 border-primary/20">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                    <AvatarFallback className="text-2xl">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                <h2 className="text-2xl font-bold">{user.displayName}</h2>
+            </div>
+            
+            <Card className="w-full max-w-md shadow-lg">
                 <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <p>Available Balance</p>
@@ -66,14 +74,6 @@ export default function WalletPage() {
                 </CardContent>
             </Card>
             
-            <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-primary/20">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                    <AvatarFallback className="text-2xl">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-                <h2 className="text-2xl font-bold">{user.displayName}</h2>
-            </div>
-
             <div className="w-full max-w-md grid grid-cols-2 gap-4">
                  <Button variant="outline" className="flex-col h-20 gap-1">
                     <CreditCard className="h-6 w-6" />
