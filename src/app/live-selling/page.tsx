@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -600,8 +601,7 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
                 <div className="flex items-center gap-2">
-                    <Logo className="h-10 w-auto hidden sm:block" />
-                    <Logo className="h-10 w-10 sm:hidden" />
+                    <h1 className="text-2xl font-bold text-destructive">StreamCart</h1>
                 </div>
 
                 <div className="flex-1 flex items-center justify-end gap-2" ref={searchRef}>
