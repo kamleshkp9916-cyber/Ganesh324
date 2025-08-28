@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -66,7 +67,7 @@ export default function WalletPage() {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                      <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
                         <CreditCard className="h-6 w-6"/>
                         <span>UPI Deposit</span>
