@@ -26,10 +26,10 @@ import { Textarea } from './ui/textarea';
 // Mock data - in a real app this would come from a database
 export const productDetails = {
     'prod_1': { id: 1, key: 'prod_1', name: 'Vintage Camera', brand: 'RetroCam', category: 'Electronics', price: '₹12,500.00', images: ['https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'vintage camera', description: 'A classic 35mm film camera from the 70s. Fully functional with a sharp 50mm f/1.8 lens. Perfect for enthusiasts and collectors. Captures authentic vintage-style photos with a distinct, nostalgic feel.', modelNumber: 'RC-1975', highlights: "Sharp 50mm f/1.8 Lens\nFully manual controls\nAuthentic vintage aesthetic\nDurable metal body" },
-    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', brand: 'SoundWave', category: 'Electronics', price: '₹4,999.00', images: ['https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmVzfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.', modelNumber: 'SW-PRO2', highlights: "Active Noise Cancellation\n20-hour battery life\nCrystal-clear microphone\nBluetooth 5.2 Connectivity" },
+    'prod_2': { id: 2, key: 'prod_2', name: 'Wireless Headphones', brand: 'SoundWave', category: 'Electronics', price: '₹4,999.00', images: ['https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoZWFkcGhvbmVzfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib_rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'headphones', description: 'Experience immersive sound with these noise-cancelling over-ear headphones. Features a 20-hour battery life, plush earcups for all-day comfort, and crystal-clear microphone for calls.', modelNumber: 'SW-PRO2', highlights: "Active Noise Cancellation\n20-hour battery life\nCrystal-clear microphone\nBluetooth 5.2 Connectivity" },
     'prod_3': { id: 3, key: 'prod_3', name: 'Handcrafted Vase', brand: 'Artisan Home', category: 'Home Goods', price: '₹2,100.00', images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'ceramic vase', description: 'A beautiful, minimalist ceramic vase, handcrafted by local artisans. Its elegant design complements any home decor style. Each piece is unique.', origin: 'India', highlights: "Handcrafted by local artisans\nMinimalist design\nMade from ethically sourced clay" },
-    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', brand: 'TimeWarp', category: 'Electronics', price: '₹8,750.00', images: ['https://images.unsplash.com/photo-1579721840641-7d0e67f1204e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzbWFydCUyMHdhdGNofGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.', modelNumber: 'TW-X1', highlights: "Vibrant AMOLED Display\nHeart Rate & SpO2 Monitoring\nBuilt-in GPS\n5-day battery life" },
-    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', brand: 'UrbanCarry', category: 'Fashion', price: '₹6,200.00', images: ['https://images.unsplash.com/photo-1622560482357-789dc8a50923?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxicm93biUyMGxlYXRoZXIlMjBiYWNrcGFja3xlbnwwfHx8fDE3NTYyODczMDh8MA&ixlib=rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.', size: 'L', color: 'Tan Brown', highlights: "Genuine Full-Grain Leather\nMultiple compartments including laptop sleeve\nHand-stitched for durability" },
+    'prod_4': { id: 4, key: 'prod_4', name: 'Smart Watch', brand: 'TimeWarp', category: 'Electronics', price: '₹8,750.00', images: ['https://images.unsplash.com/photo-1579721840641-7d0e67f1204e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzbWFydCUyMHdhdGNofGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib_rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'smart watch', description: 'Stay connected and track your fitness with this advanced smartwatch. Features a vibrant AMOLED display, heart rate monitoring, GPS, and a wide range of smart notifications.', modelNumber: 'TW-X1', highlights: "Vibrant AMOLED Display\nHeart Rate & SpO2 Monitoring\nBuilt-in GPS\n5-day battery life" },
+    'prod_5': { id: 5, key: 'prod_5', name: 'Leather Backpack', brand: 'UrbanCarry', category: 'Fashion', price: '₹6,200.00', images: ['https://images.unsplash.com/photo-1622560482357-789dc8a50923?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxicm93biUyMGxlYXRoZXIlMjBiYWNrcGFja3xlbnwwfHx8fDE3NTYyODczMDh8MA&ixlib_rb-4.1.0&q=80&w=1080', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'], hint: 'brown leather backpack', description: 'A stylish and durable handmade genuine leather backpack. With multiple compartments, it is perfect for daily use, work, or short trips. Ages beautifully over time.', size: 'L', color: 'Tan Brown', highlights: "Genuine Full-Grain Leather\nMultiple compartments including laptop sleeve\nHand-stitched for durability" },
     'prod_6': { id: 6, key: 'prod_6', name: 'Fitness Mat', brand: 'ZenFlex', category: 'Fitness', price: '₹1,500.00', images: ['https://placehold.co/600x600.png'], hint: 'fitness mat', description: 'High-density foam mat for all types of yoga, pilates, and floor exercises. Non-slip surface ensures stability.', highlights: "High-density foam\nNon-slip surface\nIncludes carrying strap" },
     'prod_7': { id: 7, key: 'prod_7', name: 'Pottery Kit', brand: 'ClayWorks', category: 'Handmade', price: '₹3,000.00', images: ['https://placehold.co/600x600.png'], hint: 'pottery kit', description: 'A complete starter kit for pottery enthusiasts, including clay, tools, and a guide.', origin: 'India', highlights: "Includes 1kg air-dry clay\n8-piece toolset\nBeginner-friendly guide book" },
     'prod_8': { id: 8, key: 'prod_8', name: 'Dog Bed', brand: 'Pawsome', category: 'Pet Supplies', price: '₹2,500.00', images: ['https://placehold.co/600x600.png'], hint: 'dog bed', description: 'An orthopedic dog bed for maximum comfort and joint support for your furry friend.', highlights: "Orthopedic memory foam\nMachine-washable cover\nAvailable in 3 sizes" },
@@ -65,17 +65,17 @@ const liveSellers = [
     { id: 5, name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 975, hint: 'cooking demonstration' },
 ];
 
-const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string } } = {
-    'prod_1': { name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_4': { name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_5': { name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+const productToSellerMapping: { [key: string]: { id: string; name: string; avatarUrl: string } } = {
+    'prod_1': { id: 'seller_retroclicks@example.com', name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_2': { id: 'seller_gadgetguru@example.com', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_3': { id: 'seller_homehaven@example.com', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_4': { id: 'seller_techwizard@example.com', name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_5': { id: 'seller_urbancarry@example.com', name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_6': { id: 'seller_fitflow@example.com', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_7': { id: 'seller_artisanalley@example.com', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_8': { id: 'seller_petpalace@example.com', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_9': { id: 'seller_booknook@example.com', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_10': { id: 'seller_gamerguild@example.com', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
 };
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -441,7 +441,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                 {/* Seller Info Section */}
                 {seller && (
-                     <div className="mt-8 py-4 border-t">
+                    <div className="mt-8 py-4 border-t">
                         <Card>
                             <CardContent className="p-4 flex justify-between items-center">
                                 <div className="flex items-center gap-4">
@@ -455,7 +455,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                                 <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=seller_${seller.name}`}>View Profile</Link>
+                                    <Link href={`/seller/profile?userId=${seller.id}`}>View Profile</Link>
                                 </Button>
                             </CardContent>
                         </Card>
@@ -526,111 +526,87 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <h4 className="font-semibold mb-2">Ask a Question</h4>
                                         <div className="flex gap-2">
                                             <Textarea placeholder="Type your question here..." value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} />
-                                            <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
-                                                <Send className="w-4 h-4" />
-                                            </Button>
+                                            <Button onClick={handleAskQuestion}>Ask</Button>
                                         </div>
                                     </div>
                                 </DialogContent>
                             </Dialog>
+                            
                         </div>
                     </div>
                 </div>
-                
-                {/* Reviews Section */}
+
+                 {/* Reviews Section */}
                 <div className="mt-8 py-4 border-t">
-                    <CardHeader className="p-0 mb-4">
-                        <CardTitle>Customer Reviews</CardTitle>
+                     <CardHeader className="p-0 mb-4">
+                        <CardTitle>Ratings & Reviews</CardTitle>
                     </CardHeader>
-                    <div className="space-y-6">
-                        {mockReviews.map(review => (
-                            <div key={review.id} className="flex gap-4">
-                                <Avatar>
-                                    <AvatarImage src={review.avatar} alt={review.author} />
-                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-semibold">{review.author}</p>
-                                        <p className="text-xs text-muted-foreground">{review.date}</p>
-                                    </div>
-                                     <div className="flex items-center gap-1 mt-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                        ))}
-                                    </div>
-                                    <p className="mt-2 text-sm text-muted-foreground">{review.text}</p>
-                                </div>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="flex flex-col items-center justify-center gap-2 p-6 bg-muted rounded-lg">
+                            <h2 className="text-5xl font-bold">{averageRating}</h2>
+                            <div className="flex items-center gap-1">
+                                 {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                ))}
                             </div>
-                        ))}
+                            <p className="text-sm text-muted-foreground">Based on {mockReviews.length} reviews</p>
+                        </div>
+                        <div className="md:col-span-2 space-y-6">
+                           {mockReviews.map(review => (
+                                <div key={review.id} className="flex gap-4">
+                                    <Avatar>
+                                        <AvatarImage src={review.avatar} alt={review.author} />
+                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow">
+                                        <div className="flex items-center justify-between">
+                                            <h5 className="font-semibold">{review.author}</h5>
+                                            <p className="text-xs text-muted-foreground">{review.date}</p>
+                                        </div>
+                                         <div className="flex items-center gap-1 mt-1">
+                                             {[...Array(5)].map((_, i) => (
+                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                        <div className="flex items-center gap-4 mt-3 text-muted-foreground">
+                                            <button className="flex items-center gap-1.5 text-xs hover:text-primary">
+                                                <ThumbsUp className="w-4 h-4" />
+                                                Helpful (12)
+                                            </button>
+                                             <button className="flex items-center gap-1.5 text-xs hover:text-destructive">
+                                                <ThumbsDown className="w-4 h-4" />
+                                                Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                           ))}
+                        </div>
                     </div>
                 </div>
 
-
-                {/* Live Streams Section */}
-                <div className="mt-8 py-4 border-t">
-                    <h2 className="text-2xl font-bold mb-4">Related Live Streams</h2>
-                    <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
-                        {liveSellers.map((seller) => (
-                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group block flex-shrink-0 w-48">
-                                <Card className="w-full overflow-hidden h-full flex flex-col relative">
-                                    <div className="aspect-[2/3] bg-muted relative">
-                                        <Image 
-                                            src={seller.thumbnailUrl}
-                                            alt={seller.name}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform"
-                                            data-ai-hint={seller.hint}
-                                        />
-                                        <div className="absolute top-2 left-2 z-10">
-                                            <Badge variant="default">LIVE</Badge>
-                                        </div>
-                                         <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                                <Users className="w-3 h-3 mr-1.5" />
-                                                {seller.viewers}
-                                            </Badge>
-                                        </div>
+                {/* Related Products Section */}
+                 <div className="mt-8 py-4 border-t">
+                    <CardHeader className="p-0 mb-4">
+                        <CardTitle>You Might Also Like</CardTitle>
+                    </CardHeader>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {relatedProducts.map(p => (
+                            <Link href={`/product/${p.key}`} key={p.id}>
+                                <Card className="overflow-hidden group">
+                                    <div className="aspect-square bg-muted relative">
+                                        <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                     </div>
-                                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="h-8 w-8 border-2 border-primary">
-                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <p className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</p>
-                                        </div>
+                                    <div className="p-3">
+                                        <h4 className="font-semibold text-sm truncate">{p.name}</h4>
+                                        <p className="text-foreground font-bold">{p.price}</p>
                                     </div>
                                 </Card>
                             </Link>
                         ))}
                     </div>
-                </div>
-
-                {/* Similar Products Section */}
-                <div className="mt-8 py-4 border-t">
-                     <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                        {relatedProducts.slice(0, 4).map(related => (
-                            <Link href={`/product/${related.key}`} key={related.id} className="group block">
-                                <Card className="overflow-hidden h-full flex flex-col p-2">
-                                    <div className="aspect-square bg-muted relative rounded-md overflow-hidden">
-                                        <Image src={related.images[0]} alt={related.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"/>
-                                    </div>
-                                    <CardContent className="p-2 flex-grow flex flex-col">
-                                        <h3 className="font-semibold truncate group-hover:underline text-xs flex-grow">{related.name}</h3>
-                                        <p className="font-bold text-sm mt-1">{related.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-3 h-3 fill-current" />
-                                            <span>{averageRating}</span>
-                                            <span className="text-muted-foreground text-xs">({mockReviews.length})</span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
+                 </div>
             </main>
         </div>
     );
