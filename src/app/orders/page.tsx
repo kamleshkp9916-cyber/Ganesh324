@@ -324,7 +324,7 @@ export default function OrdersPage() {
                 {/* Desktop and Tablet Headers */}
                 <div className="hidden md:grid grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center text-sm font-medium text-muted-foreground px-4 py-3 border-b">
                     <span>Product</span>
-                    <span>Customer</span>
+                    <span>Address</span>
                     <span className="text-center">Price</span>
                     <span className="text-center">Status</span>
                     <span className="w-8"></span>
@@ -343,7 +343,7 @@ export default function OrdersPage() {
                                 </div>
                             </div>
                             
-                            {/* Customer Info */}
+                            {/* Address Info */}
                              <div className="col-span-2 md:col-span-1">
                                 <p className="font-medium text-sm">{order.user.name}</p>
                                 <p className="text-xs text-muted-foreground">{order.address.village}, {order.address.city}</p>
