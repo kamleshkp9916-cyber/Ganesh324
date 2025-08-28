@@ -600,8 +600,7 @@ export default function LiveSellingPage() {
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
                 <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-7 w-7 text-primary" />
-                    <h1 className="text-2xl font-bold tracking-tight text-primary hidden sm:block">StreamCart</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                 </div>
 
                 <div className="flex items-center justify-end gap-2" ref={searchRef}>
@@ -628,8 +627,13 @@ export default function LiveSellingPage() {
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <>
+                             <Link href="/wallet" passHref>
+                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
+                                    <Wallet />
+                                </Button>
+                            </Link>
                             <Link href="/cart" passHref>
-                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden sm:flex">
+                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
                                     <ShoppingCart />
                                     {cartCount > 0 && (
                                         <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{cartCount}</Badge>
@@ -1124,3 +1128,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
