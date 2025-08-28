@@ -599,17 +599,17 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex-1 flex items-center gap-2">
                     <h1 className="text-2xl font-bold tracking-tight text-primary">StreamCart</h1>
                 </div>
 
-                <div className="flex items-center justify-end gap-2" ref={searchRef}>
+                <div className="flex-shrink-0 flex items-center justify-end gap-2" ref={searchRef}>
                      <div className="relative flex items-center">
                         <Input
                             placeholder="Search..."
                             className={cn(
                                 "bg-muted rounded-full transition-all duration-300 ease-in-out h-10 pl-10 pr-4",
-                                isSearchExpanded ? "w-48 sm:w-64" : "w-0 opacity-0"
+                                isSearchExpanded ? "w-36 sm:w-64" : "w-0 opacity-0"
                             )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -1128,5 +1128,7 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
 
     
