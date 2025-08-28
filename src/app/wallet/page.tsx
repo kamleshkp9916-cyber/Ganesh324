@@ -58,22 +58,8 @@ export default function WalletPage() {
         <div className="w-10"></div>
       </header>
 
-      <main className="flex-grow p-4 md:p-6 flex flex-col">
-        <div className="flex flex-col items-center justify-center gap-8">
-            <Card className="w-full max-w-md shadow-lg">
-                <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <p>Available Balance</p>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh} disabled={isRefreshing}>
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        </Button>
-                    </div>
-                    <p className="text-4xl font-extrabold tracking-tighter">
-                        {'₹' + balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                </CardContent>
-            </Card>
-            
+      <main className="flex-grow p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="w-full max-w-md grid grid-cols-1 gap-4">
                  <Button variant="outline" className="h-14 gap-4 justify-start p-4">
                     <CreditCard className="h-6 w-6" />
@@ -92,6 +78,20 @@ export default function WalletPage() {
                     <span className="font-semibold">Exchange to Coin</span>
                 </Button>
             </div>
+
+            <Card className="w-full max-w-md shadow-lg md:justify-self-center">
+                <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <p>Available Balance</p>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleRefresh} disabled={isRefreshing}>
+                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        </Button>
+                    </div>
+                    <p className="text-4xl font-extrabold tracking-tighter">
+                        {'₹' + balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                </CardContent>
+            </Card>
         </div>
       </main>
     </div>
