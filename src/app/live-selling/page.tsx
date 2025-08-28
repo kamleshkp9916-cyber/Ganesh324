@@ -60,7 +60,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Autoplay from "embla-carousel-autoplay";
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal, HoverDropdownMenu, HoverDropdownMenuTrigger, HoverDropdownMenuContent } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -642,14 +642,14 @@ export default function LiveSellingPage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
-                            <HoverDropdownMenu>
-                                <HoverDropdownMenuTrigger asChild>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
                                     <Avatar className="h-9 w-9 cursor-pointer">
                                         <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
                                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
                                     </Avatar>
-                                </HoverDropdownMenuTrigger>
-                                <HoverDropdownMenuContent className="w-64" align="end" forceMount>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-64" align="end" forceMount>
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
                                             <p className="text-sm font-medium leading-none">{user.displayName}</p>
@@ -702,8 +702,8 @@ export default function LiveSellingPage() {
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Log Out</span>
                                     </DropdownMenuItem>
-                                </HoverDropdownMenuContent>
-                            </HoverDropdownMenu>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
@@ -1129,4 +1129,3 @@ export default function LiveSellingPage() {
     
 
     
-
