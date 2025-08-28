@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -635,16 +634,14 @@ export default function LiveSellingPage() {
                                 </Button>
                             </Link>
                             
-                             <div className="hidden sm:block">
-                                <Link href="/cart" passHref>
-                                    <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
-                                        <ShoppingCart />
-                                        {cartCount > 0 && (
-                                            <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
-                                        )}
-                                    </Button>
-                                </Link>
-                            </div>
+                            <Link href="/cart" passHref>
+                                <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive flex">
+                                    <ShoppingCart />
+                                    {cartCount > 0 && (
+                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
 
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -1127,20 +1124,10 @@ export default function LiveSellingPage() {
                     </TabsContent>
                 </Tabs>
                 </div>
-                 {user && (
-                    <Link href="/cart" passHref>
-                        <Button variant="destructive" size="icon" className="fixed bottom-24 right-4 sm:hidden h-14 w-14 rounded-full shadow-lg z-50">
-                            <ShoppingCart className="h-6 w-6"/>
-                             {cartCount > 0 && (
-                                <Badge className="absolute -top-1 -right-1 h-6 w-6 justify-center p-0 text-sm">{cartCount}</Badge>
-                            )}
-                             <span className="sr-only">View Cart</span>
-                        </Button>
-                    </Link>
-                )}
             </main>
             <Footer />
         </div>
     </div>
   );
 }
+    
