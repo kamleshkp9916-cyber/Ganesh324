@@ -19,10 +19,10 @@ import { WithdrawForm } from '@/components/settings-forms';
 
 
 const initialTransactions = [
-    { name: 'Ganesh Prajapati', date: '27 July, 2024', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Jane Doe', date: '26 July, 2024', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Monthly Savings', date: '25 July, 2024', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Alex Smith', date: '24 July, 2024', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
 ];
 
 const paymentMethods = [
@@ -97,9 +97,11 @@ export default function WalletPage() {
         const newTransaction = {
             name: `${selectedPaymentMethod} Deposit`,
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             amount: amount,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png'
         };
+        // @ts-ignore
         setTransactions(prev => [newTransaction, ...prev]);
         
         setIsDepositing(false);
@@ -128,9 +130,11 @@ export default function WalletPage() {
      const newTransaction = {
             name: `Withdrawal to ${selectedAccount?.bankName}`,
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             amount: -amount,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png'
      };
+     // @ts-ignore
      setTransactions(prev => [newTransaction, ...prev]);
      setIsWithdrawOpen(false);
   };
@@ -271,7 +275,7 @@ export default function WalletPage() {
                             </Avatar>
                             <div className="ml-4 space-y-1">
                                 <p className="text-sm font-medium leading-none">{transaction.name}</p>
-                                <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                                <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
                             </div>
                              <div className={cn(
                                 "ml-auto font-medium",
