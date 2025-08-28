@@ -610,11 +610,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
                         <TabsContent value="posts" className="mt-4 space-y-4">
-                          {isOwnProfile && 
+                          {isOwnProfile && profileData.role === 'seller' && ( 
                               <div className="mb-6 sticky top-20 z-40">
                                     <CreatePostForm onCreatePost={handleCreatePost} />
                               </div>
-                          }
+                          )}
                             {sellerPosts.length > 0 ? sellerPosts.map(post => (
                               <Card key={post.id} className="overflow-hidden">
                                   <div className="p-4">
