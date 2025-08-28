@@ -18,8 +18,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 type ChatStep = 'initial' | 'waiting' | 'confirm_executive' | 'connected' | 'chatting';
 type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
 
-const INITIAL_TIMER = 60;
-const SECOND_TIMER = 30;
+const INITIAL_TIMER = 10;
+const SECOND_TIMER = 5;
 
 const defaultInitialQuickReplies = [
     "Where is my order?",
@@ -89,13 +89,19 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
             const currentStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Unknown";
             const result = await getHelpChatResponse({ message: query, orderStatus: currentStatus });
             
-            if (result.action && onExecuteAction) {
+             // The AI can suggest talking to an executive, but we let the user decide.
+            if (result.action && onExecuteAction && result.quickReplies.some(r => r.toLowerCase().includes('executive'))) {
+                 addMessageWithReplies('bot', result.response, result.quickReplies);
+            }
+            // If the AI suggests an action and NOT an executive, execute it.
+            else if (result.action && onExecuteAction) {
+                addMessageWithReplies('bot', result.response, result.quickReplies);
                 onExecuteAction(result.action);
             }
-            
-            // Always show the bot's response and quick replies.
-            // The user can then choose to talk to an executive if that option is presented.
-            addMessageWithReplies('bot', result.response, result.quickReplies);
+            // Otherwise, just show the response.
+            else {
+                addMessageWithReplies('bot', result.response, result.quickReplies);
+            }
 
         } catch (error) {
             console.error("AI response error:", error);
