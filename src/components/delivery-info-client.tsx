@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -35,6 +35,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 import { HelpChat } from './help-chat';
 import { Badge } from './ui/badge';
+import { productDetails } from '@/lib/product-data';
+import { addReview } from '@/lib/review-data';
 
 
 const getStatusIcon = (status: string) => {
@@ -67,15 +69,7 @@ const returnReasons = [
     "Other"
 ];
 
-const mockReviews = [
-    { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
-    { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
-    { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
-];
-
-const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
-
-const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void }) => {
+const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user }: { order: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void, user: any }) => {
     const [rating, setRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,7 +91,19 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, on
         setIsSubmitting(true);
         // Simulate API call
         setTimeout(() => {
-            onReviewSubmit({ rating, text: reviewText, productName: order.product.name, image: imagePreview });
+            onReviewSubmit({
+                id: Date.now(),
+                author: user.displayName || 'Anonymous',
+                avatar: user.photoURL,
+                rating,
+                text: reviewText,
+                date: new Date().toISOString(),
+                productName: order.product.name,
+                imageUrl: imagePreview,
+                hint: order.product.hint,
+                productInfo: `Sold by ${order.product.brand}`, // Example, can be more detailed
+                paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } // Example
+            });
             setIsSubmitting(false);
             closeDialog();
         }, 1000);
@@ -131,7 +137,7 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, on
                  <div>
                     <input type="file" ref={imageInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
                     <Button variant="outline" onClick={() => imageInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
+                        <ImageIcon className="mr-2 h-4 w-4" />
                         Upload Image
                     </Button>
                 </div>
@@ -144,7 +150,7 @@ const ReviewDialog = ({ order, onReviewSubmit, closeDialog }: { order: Order, on
                             className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
                             onClick={() => setImagePreview(null)}
                         >
-                            <XCircle className="h-4 w-4" />
+                            <X className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
@@ -342,10 +348,10 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     };
 
     const handleReviewSubmit = (review: any) => {
-        console.log("Review submitted:", review);
+        addReview(order.product.productId, review);
         toast({
             title: "Review Submitted!",
-            description: "Thank you for your feedback.",
+            description: "Thank you for your feedback. It is now visible on the product page.",
         });
     };
 
@@ -425,11 +431,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
                                         <p className="font-bold text-foreground">{order.product.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-4 h-4 fill-current" />
-                                            <span>{averageRating}</span>
-                                            <span className="text-muted-foreground">({mockReviews.length})</span>
-                                        </div>
                                     </CardContent>
                                 </Card>
                             </Link>
@@ -486,7 +487,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                     <DialogTrigger asChild>
                                         <Button><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
                                     </DialogTrigger>
-                                    <ReviewDialog order={order} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
+                                    <ReviewDialog order={order} user={user} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                                 </Dialog>
                             )}
                              <Button variant="ghost" onClick={handleHelp}><MessageSquare className="mr-2 h-4 w-4"/> Need Help?</Button>
@@ -693,5 +694,3 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
-
-    

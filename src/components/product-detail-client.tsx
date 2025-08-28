@@ -22,12 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
-
-const mockReviews = [
-    { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
-    { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
-    { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
-];
+import { getReviews, Review } from '@/lib/review-data';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -40,14 +35,6 @@ const mockQandA = [
 const mockOffers = [
     { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
-];
-
-const liveSellers = [
-    { id: 1, name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 1200, hint: 'woman posing stylish outfit' },
-    { id: 2, name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 2500, hint: 'unboxing new phone' },
-    { id: 3, name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 850, hint: 'modern living room decor' },
-    { id: 4, name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 3100, hint: 'makeup tutorial' },
-    { id: 5, name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', viewers: 975, hint: 'cooking demonstration' },
 ];
 
 const productToSellerMapping: { [key: string]: { id: string; name: string; avatarUrl: string } } = {
@@ -63,7 +50,6 @@ const productToSellerMapping: { [key: string]: { id: string; name: string; avata
     'prod_10': { id: 'seller_gamerguild@example.com', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
 };
 
-const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
@@ -78,7 +64,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isDeliverable, setIsDeliverable] = useState<boolean | null>(null);
     const [checkingPincode, setCheckingPincode] = useState(false);
     const [newQuestion, setNewQuestion] = useState("");
-
+    const [reviews, setReviews] = useState<Review[]>([]);
 
     useEffect(() => {
         if (product) {
@@ -97,8 +83,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
+            setReviews(getReviews(product.key));
         }
     }, [product]);
+
+    const averageRating = useMemo(() => {
+        if (reviews.length === 0) return '0.0';
+        const total = reviews.reduce((acc, review) => acc + review.rating, 0);
+        return (total / reviews.length).toFixed(1);
+    }, [reviews]);
 
     const estimatedDeliveryDate = useMemo(() => {
         const today = new Date();
@@ -195,6 +188,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         );
     }
 
+    const seller = productToSellerMapping[product.key];
+
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
     ).slice(0, 6);
@@ -272,7 +267,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
                                     ))}
                                 </div>
-                                <span className="text-muted-foreground text-sm">({averageRating} based on {mockReviews.length} reviews)</span>
+                                <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
                             </div>
                         </div>
 
@@ -422,6 +417,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
+                {/* Seller Info Section */}
+                <div className="mt-8 py-4 border-t">
+                    <Card>
+                        <CardContent className="p-4 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">Sold by</p>
+                                    <h4 className="font-semibold">{seller.name}</h4>
+                                </div>
+                            </div>
+                            <Button asChild variant="outline">
+                                <Link href={`/seller/profile?userId=${seller.id}`}>
+                                    View Profile
+                                </Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+
+
                 {/* Q&A Section */}
                 <div className="mt-8 py-4 border-t">
                     <CardHeader className="p-0 mb-4">
@@ -508,10 +527,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
                                 ))}
                             </div>
-                            <p className="text-sm text-muted-foreground">Based on {mockReviews.length} reviews</p>
+                            <p className="text-sm text-muted-foreground">Based on {reviews.length} reviews</p>
                         </div>
                         <div className="md:col-span-2 space-y-6">
-                           {mockReviews.map(review => (
+                           {reviews.map(review => (
                                 <div key={review.id} className="flex gap-4">
                                     <Avatar>
                                         <AvatarImage src={review.avatar} alt={review.author} />
@@ -520,7 +539,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="flex-grow">
                                         <div className="flex items-center justify-between">
                                             <h5 className="font-semibold">{review.author}</h5>
-                                            <p className="text-xs text-muted-foreground">{review.date}</p>
+                                            <p className="text-xs text-muted-foreground">{format(new Date(review.date), 'dd MMM yyyy')}</p>
                                         </div>
                                          <div className="flex items-center gap-1 mt-1">
                                              {[...Array(5)].map((_, i) => (
@@ -528,6 +547,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             ))}
                                         </div>
                                         <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                        {review.imageUrl && (
+                                            <Image src={review.imageUrl} alt="Review image" width={80} height={80} className="mt-2 rounded-md object-cover" />
+                                        )}
                                         <div className="flex items-center gap-4 mt-3 text-muted-foreground">
                                             <button className="flex items-center gap-1.5 text-xs hover:text-primary">
                                                 <ThumbsUp className="w-4 h-4" />
@@ -541,6 +563,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                            ))}
+                           {reviews.length === 0 && <p className="text-center text-muted-foreground py-8">No reviews yet. Be the first to write one!</p>}
                         </div>
                     </div>
                 </div>
