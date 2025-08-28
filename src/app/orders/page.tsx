@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -57,7 +57,7 @@ const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orde
     // @ts-ignore
     const userId = userOrderMapping[orderId];
     // @ts-ignore
-    const user = mockUsers[userId];
+    const user = mockUsers[userId] || { name: 'Unknown User', avatarUrl: '', email: 'unknown@example.com' };
     const status = getStatusFromTimeline(orderDetails.timeline);
     
     // Attempt to parse date and time from the first timeline entry
@@ -113,22 +113,18 @@ const statusPriority: { [key: string]: number } = {
 
 function OrderRowSkeleton() {
     return (
-        <div className='relative border-b last:border-b-0 p-2 sm:p-4'>
-            <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm">
-                <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-5 w-16 md:hidden" />
+        <div className='relative border-b last:border-b-0 p-4'>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
+                <div className="w-full md:w-2/5 flex items-center gap-4">
+                     <Skeleton className="h-16 w-16 rounded-md" />
+                     <div className="space-y-2 flex-1">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                     </div>
                 </div>
-                <div className="w-full mb-2 md:mb-0 flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-md" />
-                    <Skeleton className="h-5 w-full" />
-                </div>
-                <div className="w-full mb-2 md:mb-0"><Skeleton className="h-5 w-3/4" /></div>
-                <div className="w-full mb-2 md:mb-0"><Skeleton className="h-5 w-1/2" /></div>
-                <div className="w-full mb-2 md:mb-0 flex md:justify-center"><Skeleton className="h-5 w-20" /></div>
-                <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                </div>
+                <div className="w-full md:w-1/5"><Skeleton className="h-5 w-24" /></div>
+                <div className="w-full md:w-1/5"><Skeleton className="h-5 w-20" /></div>
+                <div className="w-full md:w-1/5"><Skeleton className="h-6 w-28 rounded-full" /></div>
             </div>
         </div>
     );
@@ -173,7 +169,7 @@ export default function OrdersPage() {
     setIsClient(true);
     if (user) {
        setTimeout(() => {
-         if (user.uid === 'mock-user-id-123') {
+         if (user.uid === 'mock-user-id-123' || user.email === 'samael.prajapati@example.com') { // For admin/mock user
            setOrders(getFullMockOrders());
          } else {
            setOrders([]);
@@ -329,89 +325,36 @@ export default function OrdersPage() {
     
     if (paginatedOrders.length > 0) {
         return (
-            <div className="space-y-2 mt-2 flex-grow">
+            <div className="space-y-4 mt-2 flex-grow">
               {paginatedOrders.map((order: Order) => (
-                  <div key={order.orderId} className='relative border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                  <div className="flex flex-col md:grid md:grid-cols-[15%_28%_20%_12%_13%_12%] items-start md:items-center text-xs md:text-sm p-2 sm:p-4">
-                          <div className="w-full font-medium mb-2 md:mb-0 flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                  <span>{order.orderId}</span>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.stopPropagation(); copyToClipboard(order.orderId)}}>
-                                      <Clipboard className="h-3 w-3" />
-                                  </Button>
-                              </div>
-                              <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize md:hidden">{order.status}</Badge>
-                          </div>
-                          <div className="w-full mb-2 md:mb-0">
-                              <Link href={`/product/${order.productId}`} className="flex items-center gap-3 group/product" onClick={(e) => e.stopPropagation()}>
-                                  <Image src={order.product.imageUrl} alt={order.product.name} width={40} height={40} className="rounded-md" data-ai-hint={order.product.hint} />
-                                  <p className="truncate flex-1 group-hover/product:underline">{order.product.name}</p>
-                              </Link>
-                          </div>
-                          <div className="w-full truncate mb-2 md:mb-0"><span>To: </span>{order.address.village}, {order.address.city}</div>
-                          <div className="w-full mb-2 md:mb-0"><span>On: </span>{order.dateTime.split(' ')[0]}</div>
-                          <div className="w-full mb-2 md:mb-0 flex md:justify-center">{order.transaction.amount}</div>
-                          <div className="w-full mb-2 md:mb-0 hidden md:flex md:justify-center">
-                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize">{order.status}</Badge>
-                          </div>
-                      </div>
-                      <div className="absolute bottom-1 right-1 md:top-1/2 md:-translate-y-1/2 md:right-2">
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                      <MoreHorizontal className="h-4 w-4 rotate-90" />
-                                  </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-64" onClick={(e) => e.stopPropagation()}>
-                                  <DropdownMenuLabel>Order Details</DropdownMenuLabel>
-                                  <DropdownMenuSeparator/>
-                                  <div className="p-2 space-y-2 text-sm">
-                                      <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1.5 font-semibold text-muted-foreground">
-                                                <CalendarClock className="h-4 w-4" />
-                                                <span>{getDeliveryDateInfo(order).label}</span>
-                                            </div>
-                                            <span>{getDeliveryDateInfo(order).date}</span>
-                                        </div>
-                                      <div className="flex items-center justify-between">
-                                          <p className="font-semibold text-muted-foreground">User ID</p>
-                                          <div className="flex items-center gap-1">
-                                              <span>{order.userId}</span>
-                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.userId)}>
-                                                  <Clipboard className="h-3 w-3" />
-                                              </Button>
-                                          </div>
-                                      </div>
-                                      <div>
-                                          <p className="font-semibold text-muted-foreground mb-1">Transaction Details</p>
-                                          <div className="flex items-center justify-between">
-                                              <p>ID: {order.transaction.id}</p>
-                                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(order.transaction.id)}>
-                                                  <Clipboard className="h-3 w-3" />
-                                              </Button>
-                                          </div>
-                                          <p>Method: {order.transaction.method}</p>
-                                      </div>
-                                      <div>
-                                          <p className="font-semibold text-muted-foreground mb-1">Delivery Address</p>
-                                          <p>{order.address.name}, {order.address.phone}</p>
-                                          <p>{order.address.village}, {order.address.district}</p>
-                                          <p>{order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                      </div>
-                                      <div>
-                                          <p className="font-semibold text-muted-foreground">Delivery Status</p>
-                                          <p>{order.deliveryStatus}</p>
-                                      </div>
-                                      <div>
-                                          <p className="font-semibold text-muted-foreground">Date & Time</p>
-                                          <p className="text-xs text-muted-foreground">{order.dateTime}</p>
-                                      </div>
-                                  </div>
-                                  <DropdownMenuSeparator/>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                      </div>
-                  </div>
+                    <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+                        <div className="p-4 flex flex-col md:flex-row md:items-center gap-4 text-sm">
+                            {/* Product Image & Info */}
+                            <div className="w-full md:w-2/5 flex items-center gap-4">
+                                <Image src={order.product.imageUrl.replace('60x60', '100x100')} alt={order.product.name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.product.hint} />
+                                <div className="flex-1">
+                                    <p className="font-semibold text-foreground group-hover:underline">{order.product.name}</p>
+                                    <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
+                                </div>
+                            </div>
+                            
+                            {/* Price */}
+                            <div className="w-full md:w-1/5">
+                                <p className="font-medium">{order.transaction.amount}</p>
+                            </div>
+
+                            {/* Delivery Date */}
+                             <div className="w-full md:w-1/5">
+                                <p className="font-medium text-muted-foreground">{getDeliveryDateInfo(order).date}</p>
+                                <p className="text-xs">{getDeliveryDateInfo(order).label}</p>
+                            </div>
+                            
+                            {/* Status */}
+                            <div className="w-full md:w-1/5 flex md:justify-end">
+                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize w-fit">{order.status}</Badge>
+                            </div>
+                        </div>
+                    </div>
               ))}
             </div>
         );
@@ -520,13 +463,12 @@ export default function OrdersPage() {
                    )}
               </div>
               
-              <div className="hidden md:grid grid-cols-[15%_28%_20%_12%_13%_12%] items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                  <span>Order ID</span>
-                  <span>Product details</span>
-                  <span>Address</span>
-                  <span>Date</span>
-                  <span className="text-center">Transaction</span>
-                  <span className="text-center">Status</span>
+                {/* Desktop Headers */}
+                <div className="hidden md:grid grid-cols-5 items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                  <span className="col-span-2">Product</span>
+                  <span>Price</span>
+                  <span>Delivery</span>
+                  <span className="text-right">Status</span>
               </div>
               
               {renderContent()}
@@ -567,3 +509,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
