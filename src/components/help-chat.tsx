@@ -93,11 +93,10 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
                 onExecuteAction(result.action);
             }
             
-            if (result.quickReplies.includes("Talk to a support executive") && result.quickReplies.length === 1) {
-                handleTalkToExecutive(result.response);
-            } else {
-                 addMessageWithReplies('bot', result.response, result.quickReplies);
-            }
+            // Always show the bot's response and quick replies.
+            // The user can then choose to talk to an executive if that option is presented.
+            addMessageWithReplies('bot', result.response, result.quickReplies);
+
         } catch (error) {
             console.error("AI response error:", error);
             addMessageWithReplies('bot', "I'm having a little trouble right now. Please try again or connect to a support executive.", ["Talk to a support executive"]);
