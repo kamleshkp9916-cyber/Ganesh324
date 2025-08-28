@@ -43,23 +43,23 @@ export default function WalletPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-xl font-bold">Wallet</h1>
+        <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9 border-2 border-primary/20">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                    <AvatarFallback className="text-lg">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                <h1 className="text-xl font-bold">{user.displayName}</h1>
+            </div>
+        </div>
         <div className="w-10"></div>
       </header>
 
       <main className="flex-grow p-4 md:p-6 flex flex-col">
         <div className="flex flex-col items-center justify-center gap-8">
-             <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-primary/20">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                    <AvatarFallback className="text-2xl">{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-                <h2 className="text-2xl font-bold">{user.displayName}</h2>
-            </div>
-            
             <Card className="w-full max-w-md shadow-lg">
                 <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -74,22 +74,22 @@ export default function WalletPage() {
                 </CardContent>
             </Card>
             
-            <div className="w-full max-w-md grid grid-cols-2 gap-4">
-                 <Button variant="outline" className="flex-col h-20 gap-1">
+            <div className="w-full max-w-md grid grid-cols-1 gap-4">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
                     <CreditCard className="h-6 w-6" />
-                    <span>UPI Deposit</span>
+                    <span className="font-semibold">UPI Deposit</span>
                 </Button>
-                 <Button variant="outline" className="flex-col h-20 gap-1">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
                     <Download className="h-6 w-6" />
-                    <span>Withdraw</span>
+                    <span className="font-semibold">Withdraw</span>
                 </Button>
-                 <Button variant="outline" className="flex-col h-20 gap-1">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
                     <Lock className="h-6 w-6" />
-                    <span>Blocked Margin</span>
+                    <span className="font-semibold">Blocked Margin</span>
                 </Button>
-                 <Button variant="outline" className="flex-col h-20 gap-1">
+                 <Button variant="outline" className="h-14 gap-4 justify-start p-4">
                     <Coins className="h-6 w-6" />
-                    <span>Exchange to Coin</span>
+                    <span className="font-semibold">Exchange to Coin</span>
                 </Button>
             </div>
         </div>
