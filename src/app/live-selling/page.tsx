@@ -610,6 +610,25 @@ export default function LiveSellingPage() {
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <div className="flex items-center gap-1 sm:gap-2">
+                            <div ref={searchRef} className="relative flex items-center">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 rounded-full flex-shrink-0"
+                                  onClick={() => setIsSearchExpanded(p => !p)}
+                                >
+                                    <Search className="h-5 w-5 text-muted-foreground" />
+                                </Button>
+                                <Input
+                                    placeholder="Search..."
+                                    className={cn(
+                                        "bg-muted rounded-full pl-4 pr-4 h-10 transition-all duration-300 ease-in-out",
+                                        isSearchExpanded ? 'w-32 sm:w-48' : 'w-0 border-transparent p-0'
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
@@ -641,16 +660,6 @@ export default function LiveSellingPage() {
                                     )}
                                 </DropdownMenuContent>
                             </DropdownMenu>
-
-                             <div ref={searchRef} className="relative flex items-center">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                                <Input
-                                    placeholder="Search..."
-                                    className="bg-muted rounded-full pl-10 pr-4 h-10 w-32 sm:w-48 transition-all duration-300 ease-in-out"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
