@@ -320,31 +320,49 @@ export default function OrdersPage() {
     
     if (paginatedOrders.length > 0) {
         return (
-            <div className="space-y-4 mt-2 flex-grow">
-              {paginatedOrders.map((order: Order) => (
-                    <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
-                        <div className="p-4 flex flex-col md:flex-row md:items-center gap-4 text-sm">
-                            <div className="w-full md:w-2/5 flex items-center gap-4">
+            <div className="flex-grow">
+                {/* Desktop and Tablet Headers */}
+                <div className="hidden md:grid grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center text-sm font-medium text-muted-foreground px-4 py-3 border-b">
+                    <span>Product</span>
+                    <span>Customer</span>
+                    <span className="text-center">Price</span>
+                    <span className="text-center">Status</span>
+                    <span className="w-8"></span>
+                </div>
+
+                <div className="divide-y">
+                    {paginatedOrders.map((order: Order) => (
+                        <div key={order.orderId} className='grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+                            {/* Product Info */}
+                            <div className="col-span-2 md:col-span-1 flex items-center gap-4">
                                 <Image src={order.product.imageUrl.replace('60x60', '100x100')} alt={order.product.name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.product.hint} />
                                 <div className="flex-1">
                                     <p className="font-semibold text-foreground group-hover:underline">{order.product.name}</p>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
+                                    <p className="text-muted-foreground text-xs md:hidden">{order.dateTime}</p>
                                 </div>
                             </div>
                             
-                            <div className="w-full md:w-1/6">
+                            {/* Customer Info */}
+                             <div className="col-span-2 md:col-span-1">
+                                <p className="font-medium text-sm">{order.user.name}</p>
+                                <p className="text-xs text-muted-foreground">{order.address.village}, {order.address.city}</p>
+                            </div>
+
+                            {/* Price */}
+                            <div className="text-left md:text-center">
+                                <p className="font-medium md:hidden text-muted-foreground text-xs">Price</p>
                                 <p className="font-medium">{order.transaction.amount}</p>
                             </div>
 
-                             <div className="w-full md:w-1/6">
-                                <p className="font-medium text-muted-foreground">{getDeliveryDateInfo(order).date}</p>
-                                <p className="text-xs">{getDeliveryDateInfo(order).label}</p>
-                            </div>
-                            
-                            <div className="w-full md:w-1/6 flex md:justify-end">
+                            {/* Status */}
+                            <div className="text-left md:text-center">
+                                <p className="font-medium md:hidden text-muted-foreground text-xs">Status</p>
                                 <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize w-fit">{order.status}</Badge>
                             </div>
-                            <div className="w-auto">
+                            
+                            {/* Actions */}
+                            <div className="col-span-2 md:col-span-1 flex justify-end">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -359,8 +377,8 @@ export default function OrdersPage() {
                                 </DropdownMenu>
                             </div>
                         </div>
-                    </div>
-              ))}
+                    ))}
+                </div>
             </div>
         );
     }
@@ -468,13 +486,6 @@ export default function OrdersPage() {
                    )}
               </div>
               
-                <div className="hidden md:grid grid-cols-[2.5fr,1fr,1fr,1fr,auto] items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                  <span className="col-span-1">Product</span>
-                  <span>Price</span>
-                  <span>Delivery</span>
-                  <span className="text-right">Status</span>
-                  <span className="w-8"></span>
-              </div>
               
               {renderContent()}
 
