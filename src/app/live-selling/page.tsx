@@ -284,9 +284,9 @@ const allSuggestedUsers = [
 ];
 
 const mockNotifications = [
-    { id: 1, title: 'Your order has shipped!', description: 'Your Vintage Camera is on its way.', time: '15m ago', read: false },
-    { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false },
-    { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true },
+    { id: 1, title: 'Your order has shipped!', description: 'Your Vintage Camera is on its way.', time: '15m ago', read: false, href: '/orders' },
+    { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false, href: '/seller/profile?userId=GadgetGuru' },
+    { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
 
 // Function to shuffle an array
@@ -653,13 +653,15 @@ export default function LiveSellingPage() {
                                     <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     {notifications.map(n => (
-                                        <DropdownMenuItem key={n.id} className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
-                                            <div className="flex justify-between w-full">
-                                                <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
-                                                <p className="text-xs text-muted-foreground">{n.time}</p>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">{n.description}</p>
-                                        </DropdownMenuItem>
+                                        <Link key={n.id} href={n.href} passHref>
+                                            <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                                <div className="flex justify-between w-full">
+                                                    <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{n.time}</p>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{n.description}</p>
+                                            </DropdownMenuItem>
+                                        </Link>
                                     ))}
                                     {notifications.length === 0 && (
                                         <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
@@ -1129,6 +1131,7 @@ export default function LiveSellingPage() {
     
 
     
+
 
 
 
