@@ -10,12 +10,17 @@ import {
   Menu,
   Package,
   Package2,
-  Users,
+  Repeat,
   Search,
-  Users2,
-  ShieldCheck
+  Users,
+  ListFilter,
+  Video,
+  MessageSquare,
+  Bell,
+  RadioTower,
+  ShieldCheck,
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import {
   Avatar,
@@ -28,9 +33,20 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +54,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -50,12 +67,84 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Link from "next/link"
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
+import { Product } from "@/components/seller/product-form";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Image from 'next/image';
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
+
+const salesData = [
+  { name: "Jan", sales: 400000 },
+  { name: "Feb", sales: 300000 },
+  { name: "Mar", sales: 500000 },
+  { name: "Apr", sales: 450000 },
+  { name: "May", sales: 600000 },
+  { name: "Jun", sales: 550000 },
+]
+
+const recentTransactions = [
+    {
+        orderId: "#ORD5896",
+        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
+        status: "Fulfilled",
+        total: 12500.00,
+        type: "Listed Product",
+        date: new Date(),
+    },
+    {
+        orderId: "#ORD5897",
+        customer: { name: "Jane Doe", email: "jane.d@example.com" },
+        status: "Fulfilled",
+        total: 4999.00,
+        type: "Live Stream",
+        date: new Date(new Date().setDate(new Date().getDate() - 1)),
+    },
+    {
+        orderId: "#ORD5902",
+        customer: { name: "David Garcia", email: "david.g@example.com" },
+        status: "Processing",
+        total: 3200.00,
+        type: "Live Stream",
+        date: new Date(new Date().setDate(new Date().getDate() - 3)),
+    },
+     {
+        orderId: "#ORD5905",
+        customer: { name: "Peter Jones", email: "peter.j@example.com" },
+        status: "Pending",
+        total: 7800.00,
+        type: "Listed Product",
+        date: new Date(new Date().setDate(new Date().getDate() - 5)),
+    },
+    {
+        orderId: "#ORD5903",
+        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
+        status: "Cancelled",
+        total: 4500.00,
+        type: "Listed Product",
+        date: new Date(new Date().setDate(new Date().getDate() - 10)),
+    }
+];
+
+const mockNotifications = [
+    { id: 1, title: 'New Order Received', description: 'Order #ORD5905 for Designer Sunglasses.', time: '5m ago', read: false },
+    { id: 2, title: 'Low Stock Warning', description: 'Vintage Camera has only 2 items left.', time: '1h ago', read: false },
+    { id: 3, title: 'New Follower', description: 'Jane Doe started following you.', time: '3h ago', read: true },
+    { id: 4, title: 'Weekly Payout Sent', description: '₹17,499.00 has been sent to your bank.', time: '1d ago', read: true },
+];
 
 const recentSignups = [
     { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2 days ago" },
@@ -64,6 +153,9 @@ const recentSignups = [
     { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "5 days ago" },
     { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "1 week ago" },
 ]
+
+const ADMIN_EMAIL = "samael.prajapati@example.com";
+
 
 export default function AdminDashboard() {
   const { user, loading, setUser } = useAuth();
@@ -123,6 +215,12 @@ export default function AdminDashboard() {
             Dashboard
           </Link>
           <Link
+            href="/admin/orders"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Orders
+          </Link>
+          <Link
             href="/admin/users"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -169,6 +267,12 @@ export default function AdminDashboard() {
               </Link>
               <Link href="/admin/dashboard" className="hover:text-foreground">
                 Dashboard
+              </Link>
+              <Link
+                href="/admin/orders"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Orders
               </Link>
               <Link
                 href="/admin/users"
@@ -260,7 +364,7 @@ export default function AdminDashboard() {
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
-              <Users2 className="h-4 w-4 text-muted-foreground" />
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">+432</div>

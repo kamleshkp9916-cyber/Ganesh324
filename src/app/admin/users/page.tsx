@@ -278,6 +278,12 @@ export default function AdminUsersPage() {
             Dashboard
           </Link>
           <Link
+            href="/admin/orders"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Orders
+          </Link>
+          <Link
             href="/admin/users"
             className="text-foreground transition-colors hover:text-foreground"
           >
@@ -324,6 +330,12 @@ export default function AdminUsersPage() {
               </Link>
               <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">
                 Dashboard
+              </Link>
+              <Link
+                href="/admin/orders"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Orders
               </Link>
               <Link
                 href="/admin/users"

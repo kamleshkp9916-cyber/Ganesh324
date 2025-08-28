@@ -14,6 +14,7 @@ import { Input } from './ui/input';
 import { Order } from '@/lib/order-data';
 import { getHelpChatResponse } from '@/ai/flows/help-chat-flow';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
+import { ScrollArea } from './ui/scroll-area';
 
 type ChatStep = 'initial' | 'waiting' | 'confirm_executive' | 'connected' | 'chatting';
 type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
@@ -43,9 +44,6 @@ const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect:
                 {reply}
             </Button>
         ))}
-         <Button size="sm" variant="outline" onClick={() => onSelect("Talk to a support executive")}>
-            Talk to a support executive
-        </Button>
     </div>
 );
 
@@ -60,6 +58,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
     const [timer, setTimer] = useState(INITIAL_TIMER);
     const [isExecutiveConnecting, setIsExecutiveConnecting] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
     const retryRef = useRef(false);
 
      useEffect(() => {
@@ -71,6 +70,15 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
         addMessageWithReplies('bot', initialState.message, initialState.quickReplies);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    
+    useEffect(() => {
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, [messages]);
 
     const addMessage = (sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar: boolean = false) => {
         setMessages(prev => [...prev, { id: Date.now() + Math.random(), sender, content, hideAvatar }]);
@@ -89,16 +97,10 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
             const currentStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Unknown";
             const result = await getHelpChatResponse({ message: query, orderStatus: currentStatus });
             
-             // The AI can suggest talking to an executive, but we let the user decide.
-            if (result.action && onExecuteAction && result.quickReplies.some(r => r.toLowerCase().includes('executive'))) {
-                 addMessageWithReplies('bot', result.response, result.quickReplies);
-            }
-            // If the AI suggests an action and NOT an executive, execute it.
-            else if (result.action && onExecuteAction) {
+            if (result.action && onExecuteAction && !result.quickReplies.some(r => r.toLowerCase().includes('executive'))) {
                 addMessageWithReplies('bot', result.response, result.quickReplies);
                 onExecuteAction(result.action);
             }
-            // Otherwise, just show the response.
             else {
                 addMessageWithReplies('bot', result.response, result.quickReplies);
             }
@@ -175,7 +177,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
         }
     }, []);
 
-    const canType = step === 'initial' || step === 'connected';
+    const canType = step === 'initial' || step === 'connected' || step === 'chatting';
 
     return (
         <div className="fixed bottom-4 right-4 z-50">
@@ -208,63 +210,58 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
                         <X className="h-5 w-5" />
                     </Button>
                 </CardHeader>
-                <CardContent className="flex-1 p-4 space-y-4 overflow-y-auto">
-                   {messages.map(msg => (
-                       <div key={msg.id} className={cn("flex items-end gap-2", 
-                           msg.sender === 'user' ? 'justify-end' : 
-                           msg.sender === 'system' ? 'justify-center' : 'justify-start'
-                       )}>
-                           {msg.sender === 'bot' && !msg.hideAvatar && <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />}
-                           {msg.sender === 'bot' && msg.hideAvatar && <div className="w-6 h-6 flex-shrink-0" />}
+                <CardContent className="flex-1 p-0 overflow-hidden">
+                   <ScrollArea className="h-full" ref={scrollAreaRef}>
+                     <div className="p-4 space-y-4">
+                        {messages.map(msg => (
+                            <div key={msg.id} className={cn("flex items-end gap-2", 
+                                msg.sender === 'user' ? 'justify-end' : 
+                                msg.sender === 'system' ? 'justify-center' : 'justify-start'
+                            )}>
+                                {msg.sender === 'bot' && !msg.hideAvatar && <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />}
+                                {msg.sender === 'bot' && msg.hideAvatar && <div className="w-6 h-6 flex-shrink-0" />}
 
-                           <div className={cn("max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                               msg.sender === 'user' ? 'bg-primary text-primary-foreground' :
-                               msg.sender === 'system' ? 'text-xs text-muted-foreground italic text-center w-full' : 
-                               typeof msg.content === 'string' ? 'bg-muted' : ''
-                           )}>
-                               {msg.content}
-                           </div>
-                       </div>
-                   ))}
-                    {isLoadingResponse && (
-                        <div className="flex items-end gap-2 justify-start">
-                             <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
-                             <div className="bg-muted rounded-lg px-3 py-2 text-sm">
-                                <LoadingMessage />
+                                <div className={cn("max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                                    msg.sender === 'user' ? 'bg-primary text-primary-foreground' :
+                                    msg.sender === 'system' ? 'text-xs text-muted-foreground italic text-center w-full' : 
+                                    typeof msg.content === 'string' ? 'bg-muted' : ''
+                                )}>
+                                    {msg.content}
+                                </div>
+                            </div>
+                        ))}
+                         {isLoadingResponse && (
+                             <div className="flex items-end gap-2 justify-start">
+                                  <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
+                                  <div className="bg-muted rounded-lg px-3 py-2 text-sm">
+                                     <LoadingMessage />
+                                  </div>
                              </div>
-                        </div>
-                    )}
-                     {isExecutiveConnecting && (
-                        <div className="flex items-end gap-2 justify-start">
-                             <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
-                             <div className="bg-muted rounded-lg px-3 py-2 text-sm">
-                                <LoadingMessage />
+                         )}
+                          {isExecutiveConnecting && (
+                             <div className="flex items-end gap-2 justify-start">
+                                  <MessageSquare className="w-6 h-6 text-primary flex-shrink-0" />
+                                  <div className="bg-muted rounded-lg px-3 py-2 text-sm">
+                                     <LoadingMessage />
+                                  </div>
                              </div>
-                        </div>
-                    )}
+                         )}
+                     </div>
+                   </ScrollArea>
                 </CardContent>
                 <CardFooter className="p-2 border-t">
-                    {step === 'waiting' ? (
-                        <div className="w-full text-center text-sm text-muted-foreground p-2">
-                           <div className="flex items-center justify-center gap-2">
-                             <Clock className="w-4 h-4 animate-spin" />
-                             <span>Connecting... {timer}s</span>
-                           </div>
-                        </div>
-                    ) : (
-                         <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
-                             <Input 
-                                placeholder="Type your message..."
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                autoComplete="off"
-                                disabled={!canType || isLoadingResponse}
-                             />
-                             <Button type="submit" size="icon" disabled={!inputValue.trim() || !canType || isLoadingResponse}>
-                                <Send className="w-4 h-4" />
-                             </Button>
-                        </form>
-                    )}
+                    <form onSubmit={handleSendMessage} className="w-full flex items-center gap-2">
+                         <Input 
+                            placeholder="Type your message..."
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            autoComplete="off"
+                            disabled={!canType || isLoadingResponse}
+                         />
+                         <Button type="submit" size="icon" disabled={!inputValue.trim() || !canType || isLoadingResponse}>
+                            <Send className="w-4 h-4" />
+                         </Button>
+                    </form>
                 </CardFooter>
             </Card>
         </div>
