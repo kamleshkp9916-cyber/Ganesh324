@@ -68,19 +68,19 @@ export default function WalletPage() {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-4">
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-primary hover:text-primary-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
                         <CreditCard className="h-6 w-6"/>
                         <span>UPI Deposit</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-primary hover:text-primary-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
                         <Download className="h-6 w-6"/>
                         <span>Withdraw</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-primary hover:text-primary-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
                         <Lock className="h-6 w-6"/>
                         <span>Blocked Margin</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-primary hover:text-primary-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
                         <Coins className="h-6 w-6"/>
                         <span>Exchange to Coin</span>
                     </Button>
