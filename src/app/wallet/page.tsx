@@ -57,7 +57,7 @@ export default function WalletPage() {
             <div className="w-10"></div>
         </header>
 
-        <main className="flex-grow p-4 md:p-6 lg:p-8">
+        <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-6">
             <div className="max-w-md mx-auto space-y-6">
                 <Card className="text-center">
                     <CardHeader>
@@ -74,7 +74,7 @@ export default function WalletPage() {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-4 gap-2">
+                 <div className="grid grid-cols-4 gap-2">
                      <Button variant="outline" className="h-20 flex-col gap-1 p-1 hover:bg-destructive hover:text-destructive-foreground text-xs text-center">
                         <CreditCard className="h-5 w-5"/>
                         <span>UPI Deposit</span>
@@ -92,32 +92,32 @@ export default function WalletPage() {
                         <span>Exchange to Coin</span>
                     </Button>
                 </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Transactions</CardTitle>
-                        <CardDescription>A summary of your recent wallet activity.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {mockTransactions.map((transaction, index) => (
-                            <div key={index} className="flex items-center">
-                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={transaction.avatar} alt="Avatar" />
-                                    <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="ml-4 space-y-1">
-                                    <p className="text-sm font-medium leading-none">{transaction.name}</p>
-                                    <p className="text-sm text-muted-foreground">{transaction.date}</p>
-                                </div>
-                                <div className={`ml-auto font-medium ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
-                                    {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardDescription>A summary of your recent wallet activity.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {mockTransactions.map((transaction, index) => (
+                        <div key={index} className="flex items-center">
+                            <Avatar className="h-9 w-9">
+                                <AvatarImage src={transaction.avatar} alt="Avatar" />
+                                <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="ml-4 space-y-1">
+                                <p className="text-sm font-medium leading-none">{transaction.name}</p>
+                                <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                            </div>
+                            <div className={`ml-auto font-medium ${transaction.amount > 0 ? 'text-success' : 'text-foreground'}`}>
+                                {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
         </main>
     </div>
   );
