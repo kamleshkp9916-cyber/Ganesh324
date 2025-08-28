@@ -361,6 +361,8 @@ export default function LiveSellingPage() {
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -432,6 +434,18 @@ export default function LiveSellingPage() {
         window.removeEventListener('storage', handleStorageChange);
     };
   }, [user]);
+
+   useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchExpanded(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchRef]);
 
   const handleCreatePost = (data: PostData) => {
     if (!user) return;
@@ -595,23 +609,8 @@ export default function LiveSellingPage() {
                      {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
-                        <>
-                            <Link href="/wallet" passHref>
-                                <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent hidden md:flex">
-                                    <Wallet />
-                                </Button>
-                            </Link>
-                            
-                            <Link href="/cart" passHref className="hidden sm:flex">
-                                <Button variant="destructive" size="icon" className="relative text-destructive-foreground rounded-full bg-destructive/90 hover:bg-destructive">
-                                    <ShoppingCart />
-                                    {cartCount > 0 && (
-                                        <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
-                                    )}
-                                </Button>
-                            </Link>
-
-                        <DropdownMenu>
+                        <div className={cn("flex items-center gap-1 sm:gap-2", isSearchExpanded && "hidden sm:flex")}>
+                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
                                         <Bell />
@@ -664,13 +663,18 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
                                         </DropdownMenuItem>
+                                         <DropdownMenuItem asChild>
+                                            <Link href="/cart" className="flex items-center justify-between">
+                                                <div className="flex items-center"><ShoppingCart className="mr-2 h-4 w-4" /><span>My Cart</span></div>
+                                                {cartCount > 0 && <Badge variant="destructive">{cartCount}</Badge>}
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem asChild className="md:hidden">
-                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                        </DropdownMenuItem>
-                                        
                                         <DropdownMenuItem asChild>
                                             <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
                                         </DropdownMenuItem>
@@ -700,7 +704,7 @@ export default function LiveSellingPage() {
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                        </>
+                        </div>
                     ) : (
                         <div className="flex items-center gap-2">
                             <Button asChild variant="outline" size="sm">
@@ -711,28 +715,33 @@ export default function LiveSellingPage() {
                             </Button>
                         </div>
                     )}
-                    <div className="relative">
+                     <div className="relative flex items-center" ref={searchRef}>
                         <Input
                             placeholder="Search..."
-                            className="bg-muted rounded-full pl-8 pr-4 h-10 w-32 sm:w-48 md:w-64"
+                            className={cn(
+                                "bg-muted rounded-full pl-8 pr-4 h-10 transition-all duration-300 ease-in-out",
+                                isSearchExpanded ? "w-32 sm:w-48" : "w-0 p-0 opacity-0"
+                            )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={() => setIsSearchExpanded(true)}
                         />
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0",
+                                isSearchExpanded && "-ml-10"
+                            )}
+                            onClick={() => setIsSearchExpanded(p => !p)}
+                        >
+                          <Search className="h-5 w-5" />
+                        </Button>
                     </div>
                 </div>
             </header>
             
             <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20 relative">
-                 {/* Floating cart button for mobile */}
-                <Link href="/cart" passHref className="sm:hidden">
-                    <Button variant="destructive" size="icon" className="fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg z-40 flex flex-col items-center justify-center text-destructive-foreground bg-destructive/90 hover:bg-destructive">
-                        <ShoppingCart className="h-6 w-6" />
-                        {cartCount > 0 && (
-                            <Badge className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0 text-xs">{cartCount}</Badge>
-                        )}
-                    </Button>
-                </Link>
               <div className="max-w-7xl mx-auto">
                 <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
