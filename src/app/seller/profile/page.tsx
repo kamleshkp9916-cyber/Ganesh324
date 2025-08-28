@@ -41,34 +41,27 @@ export default function SellerProfilePage() {
 
   useEffect(() => {
     if (isMounted && !loading) {
-        // If viewing someone else's seller profile
-        if (userIdFromQuery && user?.uid !== userIdFromQuery) {
-            const data = getUserData(userIdFromQuery);
-            setProfileData(data);
-        } 
-        // If viewing own seller profile
-        else if (user) {
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const details = JSON.parse(sellerDetailsRaw);
-                const sellerUid = `seller_${details.email}`;
-                
-                const existingData = getUserData(sellerUid, {
-                     displayName: details.name,
-                     email: details.email,
-                     photoURL: user?.photoURL || `https://placehold.co/128x128.png`,
-                     role: 'seller'
-                });
-                
-                const updatedData = { ...existingData, ...details, uid: sellerUid, displayName: details.name };
-                setProfileData(updatedData);
-                updateUserData(sellerUid, updatedData);
-            } else if (!loading) {
-                 router.push('/seller/register');
-            }
+      let targetId: string | null | undefined = userIdFromQuery;
+
+      // If no userId in query, it must be the logged-in seller viewing their own profile
+      if (!targetId) {
+        if (user) {
+          const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+          if (sellerDetailsRaw) {
+             const details = JSON.parse(sellerDetailsRaw);
+             targetId = `seller_${details.email}`;
+          } else {
+            router.push('/seller/login');
+            return;
+          }
         } else {
-             router.push('/seller/login');
+          router.push('/seller/login');
+          return;
         }
+      }
+      
+      const data = getUserData(targetId);
+      setProfileData(data);
     }
   }, [user, loading, router, isMounted, key, userIdFromQuery]);
 

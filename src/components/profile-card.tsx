@@ -125,7 +125,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
           setFollowingList(followedUsers);
         }
 
-        const followers = getFollowers(profileData.uid).filter(follower => follower.role === 'customer');
+        const followers = getFollowers(profileData.uid);
         setFollowerList(followers);
     }
   };
@@ -370,14 +370,14 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                               <div className="p-4 space-y-4">
                                   {followingList.map(followedUser => (
                                       <div key={followedUser.uid} className="flex items-center justify-between group">
-                                          <Link href={`/profile?userId=${followedUser.displayName}`} className="flex items-center gap-3">
+                                          <Link href={`/seller/profile?userId=${followedUser.uid}`} className="flex items-center gap-3">
                                               <Avatar>
                                                   <AvatarImage src={followedUser.photoURL} />
                                                   <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
                                               </Avatar>
                                               <div>
                                                   <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
-                                                  <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase()}</p>
+                                                  <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase().replace(' ', '')}</p>
                                               </div>
                                           </Link>
                                           {isOwnProfile && (
@@ -407,7 +407,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   <div className="p-4 space-y-4">
                                     {followerList.map(follower => (
                                         <div key={follower.uid} className="flex items-center justify-between group">
-                                            <Link href={`/profile?userId=${follower.displayName}`} className="flex items-center gap-3">
+                                            <Link href={`/profile?userId=${follower.uid}`} className="flex items-center gap-3">
                                                 <Avatar>
                                                     <AvatarImage src={follower.photoURL} />
                                                     <AvatarFallback>{follower.displayName.charAt(0)}</AvatarFallback>
@@ -418,7 +418,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                 </div>
                                             </Link>
                                             <Button variant="outline" size="sm" asChild>
-                                                <Link href={`/profile?userId=${follower.displayName}`}>View</Link>
+                                                <Link href={`/profile?userId=${follower.uid}`}>View</Link>
                                             </Button>
                                         </div>
                                     ))}
@@ -452,7 +452,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       <div className="p-4 sm:p-6">
           <CardContent className="p-0 space-y-6">
               
-              {isOwnProfile && (
+              {isOwnProfile && profileData.role === 'customer' && (
                   <>
                   <div>
                       <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
