@@ -162,15 +162,15 @@ export default function WalletPage() {
 
         <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-6">
              <div className="max-w-md mx-auto space-y-6">
-                <Card className="text-center bg-destructive text-destructive-foreground">
+                <Card className="text-center">
                     <CardHeader>
                         <CardTitle>Available Balance</CardTitle>
-                        <CardDescription className="text-destructive-foreground/80">This is the total amount available in your wallet.</CardDescription>
+                        <CardDescription>This is the total amount available in your wallet.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center justify-center gap-2">
                         <div className="flex items-center gap-4">
                             <p className="text-4xl font-bold">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                            <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing} className="text-destructive-foreground hover:bg-white/20 hover:text-destructive-foreground">
+                            <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing}>
                                 <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
                             </Button>
                         </div>
@@ -245,13 +245,16 @@ export default function WalletPage() {
                             <DialogHeader>
                                 <DialogTitle>Withdraw Funds</DialogTitle>
                                 <DialogDescription>
-                                    Enter the amount you wish to withdraw and select a bank account.
+                                    Select an account and enter the amount you wish to withdraw.
                                 </DialogDescription>
                             </DialogHeader>
                             <WithdrawForm 
                                 bankAccounts={bankAccounts} 
                                 onWithdraw={handleWithdraw}
-                                onAddAccount={(newAccount) => setBankAccounts(prev => [...prev, newAccount])} 
+                                onAddAccount={(newAccount) => {
+                                    setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
+                                    toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
+                                }} 
                             />
                         </DialogContent>
                     </Dialog>
