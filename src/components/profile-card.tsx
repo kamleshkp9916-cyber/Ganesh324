@@ -552,15 +552,19 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                       {filteredProducts.map((product: any) => (
                                           <Link href={`/product/${product.id}`} key={product.id} className="group block">
                                               <Card className="w-full overflow-hidden h-full flex flex-col">
-                                                  <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                                                  <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                                                       <Image 
-                                                          src={product.image.preview}
+                                                          src={product.images[0].preview}
                                                           alt={product.name}
-                                                          width={180}
-                                                          height={180}
-                                                          className="object-cover w-full h-full"
+                                                          fill
+                                                          className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                                                           data-ai-hint={product.hint || 'product image'}
                                                       />
+                                                       {product.stock === 0 && (
+                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                <Badge variant="destructive">Out of Stock</Badge>
+                                                            </div>
+                                                        )}
                                                   </div>
                                                   <div className="p-3 flex-grow flex flex-col">
                                                       <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
