@@ -958,6 +958,7 @@ export default function LiveSellingPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                         <DropdownMenuItem onClick={() => handleShare(item.id)}>
                                                             <Share2 className="mr-2 h-4 w-4" />
                                                             <span>Share</span>
@@ -1129,3 +1130,4 @@ export default function LiveSellingPage() {
     
 
     
+
