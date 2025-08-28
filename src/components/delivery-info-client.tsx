@@ -251,23 +251,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const lastCompletedIndex = order.timeline.slice().reverse().findIndex(item => item.completed);
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     
-    const getProductIdFromOrder = (orderId: OrderId): string => {
-        const orderIdMap: Record<OrderId, string> = {
-            "#STREAM5896": "prod_1",
-            "#STREAM5897": "prod_2",
-            "#STREAM5898": "prod_5", // Leather Backpack
-            "#STREAM5899": "prod_4", // Smart Watch
-            "#STREAM5902": "prod_3", // This should be a different product if possible
-            "#STREAM5905": "prod_7", // Sunglasses -> handmade
-            "#STREAM5906": "prod_10", // Keyboard -> gaming
-            "#STREAM5907": "prod_5", // Espresso Machine
-            "#STREAM5910": "prod_10" // Gaming Keyboard
-        };
-        return orderIdMap[orderId] || 'prod_1'; // Fallback
-    };
-
-    const productId = getProductIdFromOrder(orderId);
-
 
     const handleConfirmCancellation = async (otpValue: string) => {
         if (otpValue !== '123456') {
@@ -396,6 +379,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
+    const productId = order.product.productId;
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -709,7 +693,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
-
-    
 
     

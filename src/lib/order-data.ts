@@ -2,7 +2,7 @@
 
 export const allOrderData = {
     "#STREAM5896": {
-        product: { name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
+        product: { productId: "prod_1", name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
         orderDate: "Jul 27, 2024",
         isReturnable: true,
         timeline: [
@@ -15,7 +15,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5897": {
-        product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
+        product: { productId: "prod_2", name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
         orderDate: "Jul 26, 2024",
         isReturnable: true,
         timeline: [
@@ -27,7 +27,7 @@ export const allOrderData = {
         ]
     },
      "#STREAM5898": {
-        product: { name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
+        product: { productId: "prod_5", name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
         orderDate: "Jul 25, 2024",
         isReturnable: false, // Admin has disabled returns for this item
         timeline: [
@@ -36,7 +36,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5899": {
-        product: { name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch", price: "₹8,750.00" },
+        product: { productId: "prod_4", name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch", price: "₹8,750.00" },
         orderDate: "Jul 25, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 25, 2024", time: "11:45 AM", completed: true },
@@ -44,7 +44,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5902": {
-        product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/150x150.png", hint: "bluetooth speaker", price: "₹3,200.00" },
+        product: { productId: "prod_3", name: "Bluetooth Speaker", imageUrl: "https://placehold.co/150x150.png", hint: "bluetooth speaker", price: "₹3,200.00" },
         orderDate: "Jul 22, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 22, 2024", time: "07:00 PM", completed: true },
@@ -54,7 +54,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5907": {
-        product: { name: "Espresso Machine", imageUrl: "https://placehold.co/150x150.png", hint: "espresso machine", price: "₹18,500.00" },
+        product: { productId: "prod_5", name: "Espresso Machine", imageUrl: "https://placehold.co/150x150.png", hint: "espresso machine", price: "₹18,500.00" },
         orderDate: "Jul 20, 2024",
         isReturnable: true,
         timeline: [
@@ -65,7 +65,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5910": {
-        product: { name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
+        product: { productId: "prod_10", name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
         orderDate: "Jul 24, 2024",
         timeline: [
             { status: "Order Confirmed", date: "Jul 24, 2024", time: "10:00 AM", completed: true },
@@ -76,7 +76,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5905": {
-        product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/150x150.png", hint: "sunglasses", price: "₹7,800.00" },
+        product: { productId: "prod_7", name: "Designer Sunglasses", imageUrl: "https://placehold.co/150x150.png", hint: "sunglasses", price: "₹7,800.00" },
         orderDate: "Jul 28, 2024",
         timeline: [
             { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
@@ -86,7 +86,7 @@ export const allOrderData = {
         ]
     },
     "#STREAM5906": {
-        product: { name: "Mechanical Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "keyboard", price: "₹9,500.00" },
+        product: { productId: "prod_10", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "keyboard", price: "₹9,500.00" },
         orderDate: "Jul 29, 2024",
         timeline: [
             { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: true },
@@ -107,3 +107,5 @@ export function getStatusFromTimeline(timeline: Order['timeline']): string {
     if (!lastCompletedStep) return "Unknown";
     return lastCompletedStep.status.split(':')[0].trim();
 }
+
+    
