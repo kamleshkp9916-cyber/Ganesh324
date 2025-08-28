@@ -167,27 +167,22 @@ export default function OrdersPage() {
 
   useEffect(() => {
     setIsClient(true);
-    if (user) {
+  }, []);
+
+  useEffect(() => {
+    if (user && isClient) {
        setTimeout(() => {
-         if (user.uid === 'mock-user-id-123' || user.email === 'samael.prajapati@example.com') { // For admin/mock user
-           setOrders(getFullMockOrders());
-         } else {
-           setOrders([]);
-         }
+         // In a real app, you'd fetch orders for the logged-in user.
+         // Here, we show all orders for the demo.
+         setOrders(getFullMockOrders());
          setIsLoading(false);
-       }, 1500);
-    } else {
+       }, 1000);
+    } else if (!user && isClient) {
         setIsLoading(false);
         setOrders([]);
     }
-  }, [user]);
+  }, [user, isClient]);
 
-  // Re-fetch and sort orders on mount and when navigating back to the page
-  useEffect(() => {
-    if(isClient) {
-        setOrders(getFullMockOrders());
-    }
-  }, [isClient]);
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
@@ -329,7 +324,6 @@ export default function OrdersPage() {
               {paginatedOrders.map((order: Order) => (
                     <div key={order.orderId} className='border-b last:border-b-0 hover:bg-muted/50 rounded-lg cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                         <div className="p-4 flex flex-col md:flex-row md:items-center gap-4 text-sm">
-                            {/* Product Image & Info */}
                             <div className="w-full md:w-2/5 flex items-center gap-4">
                                 <Image src={order.product.imageUrl.replace('60x60', '100x100')} alt={order.product.name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.product.hint} />
                                 <div className="flex-1">
@@ -338,20 +332,31 @@ export default function OrdersPage() {
                                 </div>
                             </div>
                             
-                            {/* Price */}
-                            <div className="w-full md:w-1/5">
+                            <div className="w-full md:w-1/6">
                                 <p className="font-medium">{order.transaction.amount}</p>
                             </div>
 
-                            {/* Delivery Date */}
-                             <div className="w-full md:w-1/5">
+                             <div className="w-full md:w-1/6">
                                 <p className="font-medium text-muted-foreground">{getDeliveryDateInfo(order).date}</p>
                                 <p className="text-xs">{getDeliveryDateInfo(order).label}</p>
                             </div>
                             
-                            {/* Status */}
-                            <div className="w-full md:w-1/5 flex md:justify-end">
+                            <div className="w-full md:w-1/6 flex md:justify-end">
                                 <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize w-fit">{order.status}</Badge>
+                            </div>
+                            <div className="w-auto">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem onSelect={() => handleRowClick(order.orderId)}>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
+                                        <DropdownMenuItem>Contact Support</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </div>
                     </div>
@@ -463,12 +468,12 @@ export default function OrdersPage() {
                    )}
               </div>
               
-                {/* Desktop Headers */}
-                <div className="hidden md:grid grid-cols-5 items-center text-sm text-muted-foreground px-4 py-2 border-b">
-                  <span className="col-span-2">Product</span>
+                <div className="hidden md:grid grid-cols-[2.5fr,1fr,1fr,1fr,auto] items-center text-sm text-muted-foreground px-4 py-2 border-b">
+                  <span className="col-span-1">Product</span>
                   <span>Price</span>
                   <span>Delivery</span>
                   <span className="text-right">Status</span>
+                  <span className="w-8"></span>
               </div>
               
               {renderContent()}
