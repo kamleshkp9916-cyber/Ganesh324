@@ -7,9 +7,10 @@ import {
   CircleUser,
   CreditCard,
   DollarSign,
+  LayoutDashboard,
   Menu,
   Package,
-  Package2,
+  Settings,
   Repeat,
   Search,
   Users,
@@ -18,8 +19,11 @@ import {
   MessageSquare,
   Bell,
   RadioTower,
+  LogOut,
+  Send
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 
 import {
   Avatar,
@@ -37,26 +41,14 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   Table,
   TableBody,
@@ -67,168 +59,59 @@ import {
 } from "@/components/ui/table"
 import Link from "next/link"
 import {
-  Bar,
-  BarChart,
+  AreaChart,
+  Area,
   ResponsiveContainer,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
+  Dot
 } from "recharts"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
-import { Product } from "@/components/seller/product-form";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from 'next/image';
 
-
-const salesData = [
-  { name: "Jan", sales: 400000 },
-  { name: "Feb", sales: 300000 },
-  { name: "Mar", sales: 500000 },
-  { name: "Apr", sales: 450000 },
-  { name: "May", sales: 600000 },
-  { name: "Jun", sales: 550000 },
-]
-
-const recentTransactions = [
-    {
-        orderId: "#ORD5896",
-        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
-        status: "Fulfilled",
-        total: 12500.00,
-        type: "Listed Product",
-        date: new Date(),
-    },
-    {
-        orderId: "#ORD5897",
-        customer: { name: "Jane Doe", email: "jane.d@example.com" },
-        status: "Fulfilled",
-        total: 4999.00,
-        type: "Live Stream",
-        date: new Date(new Date().setDate(new Date().getDate() - 1)),
-    },
-    {
-        orderId: "#ORD5902",
-        customer: { name: "David Garcia", email: "david.g@example.com" },
-        status: "Processing",
-        total: 3200.00,
-        type: "Live Stream",
-        date: new Date(new Date().setDate(new Date().getDate() - 3)),
-    },
-     {
-        orderId: "#ORD5905",
-        customer: { name: "Peter Jones", email: "peter.j@example.com" },
-        status: "Pending",
-        total: 7800.00,
-        type: "Listed Product",
-        date: new Date(new Date().setDate(new Date().getDate() - 5)),
-    },
-    {
-        orderId: "#ORD5903",
-        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
-        status: "Cancelled",
-        total: 4500.00,
-        type: "Listed Product",
-        date: new Date(new Date().setDate(new Date().getDate() - 10)),
-    }
+const overviewData = [
+    { name: "Jan", value: 65000 },
+    { name: "Feb", value: 58000 },
+    { name: "Mar", value: 72000 },
+    { name: "Apr", value: 61000 },
+    { name: "May", value: 80000 },
+    { name: "Jun", value: 75000 },
+    { name: "Jul", value: 85000 },
+    { name: "Aug", value: 92000 },
+    { name: "Sep", value: 88000 },
+    { name: "Oct", value: 95000 },
+    { name: "Nov", value: 98000 },
+    { name: "Dec", value: 105000 },
 ];
 
-const mockNotifications = [
-    { id: 1, title: 'New Order Received', description: 'Order #ORD5905 for Designer Sunglasses.', time: '5m ago', read: false },
-    { id: 2, title: 'Low Stock Warning', description: 'Vintage Camera has only 2 items left.', time: '1h ago', read: false },
-    { id: 3, title: 'New Follower', description: 'Jane Doe started following you.', time: '3h ago', read: true },
-    { id: 4, title: 'Weekly Payout Sent', description: '₹17,499.00 has been sent to your bank.', time: '1d ago', read: true },
+const transactions = [
+    { name: 'Alna_M', id: '323133', amount: '+$3430', status: 'Pending', date: '22/03/23', payment: { type: 'mastercard', last4: '3010' } },
+    { name: 'Jason_A', id: '134325', amount: '+$200', status: 'Completed', date: '19/03/23', payment: { type: 'visa', last4: '4026' } },
+    { name: 'Alex_D', id: '433229', amount: '+$421', status: 'Canceled', date: '15/03/23', payment: { type: 'amex', last4: '5400' } },
+    { name: 'Milan_K', id: '632132', amount: '+$1200', status: 'Completed', date: '12/03/23', payment: { type: 'discover', last4: '4322' } },
 ];
 
-type FilterType = "all" | "stream" | "product";
-type DateFilterType = "month" | "week" | "today";
+const paymentIcons: { [key: string]: string } = {
+    mastercard: 'https://placehold.co/24x24/FF5F00/FFFFFF/png?text=M',
+    visa: 'https://placehold.co/24x24/1A1F71/FFFFFF/png?text=V',
+    amex: 'https://placehold.co/24x24/2676C2/FFFFFF/png?text=A',
+    discover: 'https://placehold.co/24x24/FF6C00/FFFFFF/png?text=D',
+};
 
-const GoLiveDialog = ({ user }: { user: any }) => {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const router = useRouter();
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && user) {
-            const productsKey = `sellerProducts_${user.displayName}`;
-            const storedProducts = localStorage.getItem(productsKey);
-            if (storedProducts) {
-                setProducts(JSON.parse(storedProducts).filter((p: Product) => p.status === 'active'));
-            }
-        }
-    }, [user]);
-
-    const handleStartStream = () => {
-        if (!selectedProduct) return;
-        
-        // In a real app, this would involve creating a stream session on the backend.
-        // For now, we'll store it in localStorage to simulate.
-        const streamData = {
-            seller: {
-                id: `seller_${user.email}`,
-                name: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-            },
-            product: selectedProduct,
-            startTime: new Date().toISOString(),
-        };
-
-        localStorage.setItem('liveStream', JSON.stringify(streamData));
-
-        // Use a unique ID for the stream, for simplicity we use the seller's email
-        router.push(`/stream/seller_${user.email}`);
-    };
-
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
     return (
-        <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-                <DialogTitle>Start a Live Stream</DialogTitle>
-                <DialogDescription>
-                    Select a product to feature in your live stream. Your camera will be activated for a preview.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-                <h4 className="font-medium mb-4">Select a Product</h4>
-                <ScrollArea className="h-72">
-                    <div className="grid grid-cols-2 gap-4 pr-4">
-                        {products.map(product => (
-                            <Card 
-                                key={product.id} 
-                                className={cn(
-                                    "cursor-pointer hover:border-primary",
-                                    selectedProduct?.id === product.id && "border-primary border-2"
-                                )}
-                                onClick={() => setSelectedProduct(product)}
-                            >
-                                <CardContent className="p-3 flex items-center gap-3">
-                                    <Image src={product.image.preview} alt={product.name} width={60} height={60} className="rounded-md object-cover" />
-                                    <div className="flex-grow">
-                                        <p className="font-semibold truncate text-sm">{product.name}</p>
-                                        <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                         {products.length === 0 && <p className="col-span-2 text-center text-muted-foreground">You have no active products to stream.</p>}
-                    </div>
-                </ScrollArea>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button onClick={handleStartStream} disabled={!selectedProduct}>
-                     <RadioTower className="mr-2 h-4 w-4" /> Start Streaming
-                </Button>
-            </DialogFooter>
-        </DialogContent>
+      <div className="bg-background border rounded-lg shadow-lg p-2">
+        <p className="font-bold text-lg">{`$${payload[0].value.toLocaleString()}`}</p>
+        <p className="text-sm text-muted-foreground">{label}</p>
+      </div>
     );
+  }
+  return null;
 };
 
 
@@ -237,70 +120,12 @@ export default function SellerDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [sellerDetails, setSellerDetails] = useState<any>(null);
-  const [typeFilter, setTypeFilter] = useState<FilterType>("all");
-  const [dateFilter, setDateFilter] = useState<DateFilterType>("month");
-  const { toast } = useToast();
-  const [notifications, setNotifications] = useState(mockNotifications);
-  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (sellerDetailsRaw) {
-            const details = JSON.parse(sellerDetailsRaw);
-            if (user && details.email === user.email) {
-                setSellerDetails(details);
-                if (details.verificationStatus === 'pending') {
-                    router.push('/seller/verification');
-                }
-            } else if (user) {
-                // Logged in user is not this seller, sign out and redirect
-                signOut();
-                router.push('/seller/login');
-            } else {
-                 router.push('/seller/login');
-            }
-        } else if (!loading) {
-             router.push('/seller/register');
-        }
-    }
-  }, [user, loading, router, signOut]);
-  
-  const filteredTransactions = useMemo(() => {
-    let items = recentTransactions.filter(t => t.status !== 'Cancelled');
-    
-    if (typeFilter === 'stream') {
-        items = items.filter(t => t.type === 'Live Stream');
-    } else if (typeFilter === 'product') {
-        items = items.filter(t => t.type === 'Listed Product');
-    }
+  }, []);
 
-    const now = new Date();
-    if (dateFilter === 'today') {
-        items = items.filter(t => t.date.toDateString() === now.toDateString());
-    } else if (dateFilter === 'week') {
-        const lastWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-        items = items.filter(t => t.date > lastWeek);
-    } else if (dateFilter === 'month') {
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        items = items.filter(t => t.date > lastMonth);
-    }
-
-    return items;
-  }, [typeFilter, dateFilter]);
-  
-  const totalRevenue = useMemo(() => {
-    return filteredTransactions.reduce((acc, curr) => acc + curr.total, 0);
-  }, [filteredTransactions]);
-
-  const markAsRead = (id: number) => {
-    setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
-  };
-
-  if (!isMounted || loading || (isMounted && !sellerDetails)) {
+  if (!isMounted || loading) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -309,343 +134,283 @@ export default function SellerDashboard() {
   }
 
   if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view the seller dashboard.</p>
-             <Button onClick={() => router.push('/seller/login')}>Go to Login</Button>
-        </div>
-    );
+     router.push('/seller/login');
+     return null;
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link
-            href="/seller/dashboard"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
-            <Package2 className="h-6 w-6" />
-            <span className="sr-only">StreamCart Seller</span>
-          </Link>
-          <Link
-            href="/seller/dashboard"
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/seller/orders"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Orders
-          </Link>
-          <Link
-            href="/seller/products"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Products
-          </Link>
-          <Link
-            href="/seller/messages"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Messages
-          </Link>
-          <Link
-            href="#"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Analytics
-          </Link>
-        </nav>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="/seller/dashboard"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
-                <Package2 className="h-6 w-6" />
-                <span className="sr-only">StreamCart</span>
-              </Link>
-              <Link href="/seller/dashboard" className="hover:text-foreground">
-                Dashboard
-              </Link>
-              <Link
-                href="/seller/orders"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Orders
-              </Link>
-              <Link
-                href="/seller/products"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Products
-              </Link>
-               <Link
-                href="/seller/messages"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Messages
-              </Link>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Analytics
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-            <Dialog>
-                 <DialogTrigger asChild>
-                    <Button className="ml-auto">
-                        <Video className="h-4 w-4 mr-2" />
-                        Go Live
-                    </Button>
-                </DialogTrigger>
-                <GoLiveDialog user={user} />
-            </Dialog>
-          <form className="flex-1 sm:flex-initial">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
+    <div className="flex min-h-screen w-full flex-row bg-background">
+      {/* Sidebar */}
+      <aside className="w-64 flex-shrink-0 bg-card p-4 flex-col justify-between hidden md:flex">
+          <div>
+            <div className="mb-10">
+                <h1 className="text-2xl font-bold">OFSPACE</h1>
             </div>
-          </form>
-           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
-                    <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-                        </span>
-                    )}
+            <nav className="space-y-2">
+                <Link href="#" className="flex items-center gap-3 bg-primary text-primary-foreground rounded-lg px-4 py-2 font-semibold">
+                    <LayoutDashboard />
+                    Dashboard
+                </Link>
+                <Link href="#" className="flex items-center gap-3 text-muted-foreground hover:text-foreground rounded-lg px-4 py-2">
+                    <CreditCard />
+                    Cards
+                </Link>
+                <Link href="#" className="flex items-center gap-3 text-muted-foreground hover:text-foreground rounded-lg px-4 py-2">
+                    <Send />
+                    Payments
+                </Link>
+                <Link href="#" className="flex items-center gap-3 text-muted-foreground hover:text-foreground rounded-lg px-4 py-2">
+                    <Activity />
+                    Statistics
+                </Link>
+                 <Link href="#" className="flex items-center gap-3 text-muted-foreground hover:text-foreground rounded-lg px-4 py-2">
+                    <Repeat />
+                    Transactions
+                </Link>
+                 <Link href="#" className="flex items-center gap-3 text-muted-foreground hover:text-foreground rounded-lg px-4 py-2">
+                    <Settings />
+                    Settings
+                </Link>
+            </nav>
+          </div>
+           <div className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg text-center">
+                    <Image src="https://placehold.co/150x100.png?text=Illustration" width={150} height={100} alt="illustration" className="mx-auto mb-2" data-ai-hint="office illustration"/>
+                </div>
+                 <Button variant="ghost" className="w-full justify-start gap-3" onClick={signOut}>
+                    <LogOut />
+                    Log out
                 </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {notifications.map(n => (
-                    <DropdownMenuItem key={n.id} className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
-                         <div className="flex justify-between w-full">
-                            <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
-                            <p className="text-xs text-muted-foreground">{n.time}</p>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{n.description}</p>
-                    </DropdownMenuItem>
-                ))}
-                 {notifications.length === 0 && (
-                     <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
-                 )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
-                    </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-               <DropdownMenuItem onSelect={() => router.push('/seller/profile')}>
-                <CircleUser className="mr-2 h-4 w-4" />
-                <span>My Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push('/setting')}>
-                <CircleUser className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <span className="text-sm text-muted-foreground">₹</span>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹4,52,31,890</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Sales
-              </CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Live Streams</CardTitle>
-              <Video className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+152</div>
-              <p className="text-xs text-muted-foreground">
-                since account creation
-              </p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                New Followers
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
-            <Card className="lg:col-span-2">
-                <CardHeader>
-                <CardTitle>Sales Overview</CardTitle>
-                <CardDescription>
-                    An overview of your sales performance.
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={salesData}>
-                    <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(value) => `₹${Number(value) / 1000}k`} />
-                    <Tooltip formatter={(value) => `₹${value.toLocaleString('en-IN')}`} />
-                    <Legend />
-                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-                </CardContent>
-            </Card>
-            <Card className="lg:col-span-2">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="flex-1">
-                    <CardTitle>Recent Transactions</CardTitle>
-                    <CardDescription>An overview of your most recent sales.</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 gap-1">
-                                <ListFilter className="h-3.5 w-3.5" />
-                                <span className="capitalize">{typeFilter}</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setTypeFilter('all')}>All</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setTypeFilter('stream')}>Live Stream</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setTypeFilter('product')}>Listed Product</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                                <ListFilter className="h-3.5 w-3.5" />
-                                <span className="capitalize">{dateFilter === 'month' ? 'This Month' : dateFilter === 'week' ? 'This Week' : 'Today'}</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by Date</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => setDateFilter('month')}>This Month</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setDateFilter('week')}>This Week</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setDateFilter('today')}>Today</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                </CardHeader>
-                <CardContent>
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {filteredTransactions.length > 0 ? filteredTransactions.map((transaction, index) => (
-                        <TableRow key={index}>
-                        <TableCell>
-                            <div className="font-medium">{transaction.customer.name}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                            <Badge variant={transaction.type === 'Live Stream' ? "destructive" : "secondary"} className="mr-2">{transaction.type}</Badge>
-                            <Badge variant={transaction.status === 'Fulfilled' ? "success" : transaction.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{transaction.status}</Badge>
+           </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+          <header className="p-4 flex justify-between items-center w-full">
+               <h1 className="text-2xl font-bold">Dashboard</h1>
+               <div className="relative w-full max-w-xs">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                 <Input placeholder="Search" className="pl-10" />
+               </div>
+          </header>
+          <main className="flex-1 p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Income</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold">$2,502.00</p>
+                            <p className="text-xs text-muted-foreground">45 Transaction <span className="text-green-500 float-right">+12%</span></p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Spending</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold">$1,143.00</p>
+                            <p className="text-xs text-muted-foreground">12 Transaction <span className="text-red-500 float-right">-4%</span></p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                             <CardTitle className="text-sm font-medium text-muted-foreground">Activity</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="w-full h-12">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={[{v:0},{v:2},{v:1},{v:3},{v:2},{v:5}]} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <Area type="monotone" dataKey="v" stroke="hsl(var(--primary))" fill="url(#activityGradient)" strokeWidth={2} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             </div>
-                        </TableCell>
-                        <TableCell className="text-right">{'₹' + transaction.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                        </TableRow>
-                    )) : (
-                        <TableRow>
-                            <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
-                                No transactions found for the selected filters.
-                            </TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Table>
-                </CardContent>
-                <CardFooter className="flex justify-between items-center bg-muted/50 p-4 rounded-b-lg">
-                    <div className="font-semibold">Total Revenue</div>
-                    <div className="font-bold text-lg text-primary">{'₹' + totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                </CardFooter>
-            </Card>
-        </div>
-      </main>
+                            <p className="text-xs text-muted-foreground">Total Profit: $12,342</p>
+                        </CardContent>
+                    </Card>
+                </div>
+                 {/* Overview Chart */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-72">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={overviewData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                               <defs>
+                                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `${value/1000}k`} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '3 3' }} />
+                                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorUv)" activeDot={{ r: 8, style: { fill: 'hsl(var(--primary))' } }} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                 {/* Transactions Table */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Transactions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Payment</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {transactions.map(t => (
+                                    <TableRow key={t.id}>
+                                        <TableCell className="flex items-center gap-2">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={`https://placehold.co/40x40.png?text=${t.name.charAt(0)}`} />
+                                                <AvatarFallback>{t.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            {t.name}
+                                        </TableCell>
+                                        <TableCell>{t.id}</TableCell>
+                                        <TableCell className="font-semibold">{t.amount}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Canceled' ? 'destructive' : 'warning'}>
+                                                {t.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{t.date}</TableCell>
+                                        <TableCell className="flex items-center gap-2">
+                                            <Image src={paymentIcons[t.payment.type]} alt={t.payment.type} width={24} height={24} />
+                                            **** {t.payment.last4}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Panel */}
+              <aside className="space-y-6">
+                <header className="flex items-center justify-end gap-4">
+                    <Button variant="ghost" size="icon">
+                        <Bell />
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={user.photoURL || `https://placehold.co/40x40.png?text=${user.displayName?.charAt(0)}`} />
+                                    <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                {user.displayName}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem>Profile</DropdownMenuItem>
+                            <DropdownMenuItem onClick={signOut}>Log Out</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </header>
+                 <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Balance</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-3xl font-bold">$23,240,000</p>
+                             <div className="grid grid-cols-2 gap-4 mt-4">
+                                <Button>
+                                    <Send className="mr-2 h-4 w-4" /> Send
+                                </Button>
+                                <Button variant="secondary">
+                                    Withdraw
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Cards</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="bg-primary text-primary-foreground p-4 rounded-lg relative overflow-hidden">
+                                 <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full"></div>
+                                <div className="absolute -left-12 bottom-2 w-32 h-32 bg-white/10 rounded-full"></div>
+                                <p className="text-lg font-mono tracking-widest">6375 8456 9825 7546</p>
+                                <div className="flex justify-between items-end mt-4">
+                                    <div>
+                                        <p className="text-xs">Name</p>
+                                        <p className="font-semibold">{user.displayName}</p>
+                                    </div>
+                                     <div>
+                                        <p className="text-xs">Exp Date</p>
+                                        <p className="font-semibold">08/28</p>
+                                    </div>
+                                    <Image src={paymentIcons['mastercard']} alt="mastercard" width={32} height={32} />
+                                </div>
+                            </div>
+                            <div className="border rounded-lg p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                     <Image src={paymentIcons['visa']} alt="visa" width={24} height={24} />
+                                     <p className="font-mono text-sm">**** 6789</p>
+                                </div>
+                                <Button variant="ghost" size="sm">View</Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Send Money</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div>
+                                <Label htmlFor="recipient">Recipient Name</Label>
+                                <Input id="recipient" placeholder="Royal Pervej" />
+                            </div>
+                            <div className="flex gap-2">
+                               <div className="flex-1">
+                                  <Label htmlFor="amount">Amount</Label>
+                                   <div className="flex items-center gap-2">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" className="w-24">USD</Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem>INR</DropdownMenuItem>
+                                                <DropdownMenuItem>EUR</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <Input id="amount" type="number" placeholder="140.00" />
+                                   </div>
+                               </div>
+                            </div>
+                             <Button className="w-full">Send Money</Button>
+                        </CardContent>
+                    </Card>
+                 </div>
+              </aside>
+          </main>
+      </div>
     </div>
   )
 }
