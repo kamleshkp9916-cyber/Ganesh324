@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -67,20 +66,20 @@ export default function WalletPage() {
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-2 gap-4">
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
                         <CreditCard className="h-6 w-6"/>
                         <span>UPI Deposit</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
                         <Download className="h-6 w-6"/>
                         <span>Withdraw</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
                         <Lock className="h-6 w-6"/>
                         <span>Blocked Margin</span>
                     </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground">
+                     <Button variant="outline" className="h-20 flex-col gap-2 hover:bg-destructive hover:text-destructive-foreground text-xs sm:text-sm">
                         <Coins className="h-6 w-6"/>
                         <span>Exchange to Coin</span>
                     </Button>
