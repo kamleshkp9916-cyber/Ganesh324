@@ -372,6 +372,10 @@ export default function LiveSellingPage() {
   
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
 
     const loadData = () => {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
@@ -434,7 +438,7 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [user]);
+  }, [isMounted, user]);
 
    useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

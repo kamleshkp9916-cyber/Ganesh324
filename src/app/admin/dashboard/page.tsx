@@ -161,15 +161,20 @@ export default function AdminDashboard() {
   const { user, loading, setUser } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || user.email !== ADMIN_EMAIL)) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !loading && (!user || user.email !== ADMIN_EMAIL)) {
       router.replace("/");
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
 
-  if (loading || !user || user.email !== ADMIN_EMAIL) {
+  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />

@@ -52,6 +52,14 @@ export default function Home() {
     );
   }
 
+  // To prevent hydration errors, we avoid rendering the main content until the component is mounted.
+  if (!isMounted) {
+     return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">

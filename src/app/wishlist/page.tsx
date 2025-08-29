@@ -37,21 +37,21 @@ export default function WishlistPage() {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!loading && isClient) {
+    if (isMounted && !loading) {
       if (user) {
         setWishlistItems(getWishlist());
       } else {
         router.replace('/');
       }
     }
-  }, [user, loading, isClient, router]);
+  }, [user, loading, isMounted, router]);
 
   const handleRemoveFromWishlist = (e: React.MouseEvent, productId: number) => {
     e.preventDefault();
@@ -64,7 +64,7 @@ export default function WishlistPage() {
     });
   };
   
-   if (loading || !isClient || !user) {
+   if (!isMounted || loading || !user) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
