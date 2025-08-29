@@ -22,7 +22,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth.tsx";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -30,7 +29,6 @@ const loginSchema = z.object({
   rememberMe: z.boolean().default(false).optional(),
 });
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -65,7 +63,6 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const { setUser } = useAuth();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -79,11 +76,11 @@ export function LoginForm() {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
-             toast({
+            // The AuthRedirector will handle redirection.
+            toast({
                 title: "Logged In!",
                 description: "Welcome back!",
             });
-            // Redirection is handled by the root page.tsx
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
             toast({
@@ -101,24 +98,6 @@ export function LoginForm() {
     setIsLoading(true);
     const auth = getFirebaseAuth();
 
-    if (values.email === ADMIN_EMAIL) {
-        // Mock admin login
-        const mockAdminUser = {
-            uid: 'admin-mock-uid',
-            email: ADMIN_EMAIL,
-            displayName: 'Samael Prajapati',
-            photoURL: '',
-            emailVerified: true,
-        };
-        sessionStorage.setItem('mockAdminUser', JSON.stringify(mockAdminUser));
-        // @ts-ignore
-        setUser(mockAdminUser);
-        toast({ title: "Logged In!", description: "Welcome, Admin!" });
-        router.replace('/admin/dashboard');
-        setIsLoading(false);
-        return;
-    }
-
     try {
         const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
         if (!userCredential.user.emailVerified) {
@@ -134,7 +113,7 @@ export function LoginForm() {
                 title: "Logged In!",
                 description: "Welcome back!",
             });
-            // Redirection is handled by the root page.tsx
+            // Redirection is handled by the AuthRedirector
         }
     } catch (error: any) {
         let errorMessage = "An unknown error occurred.";

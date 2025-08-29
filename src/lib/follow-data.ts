@@ -1,8 +1,9 @@
 
 "use client";
 
-// This is a mock database for user data, including roles and follower/following counts.
-// In a real application, this would be a proper database (e.g., Firestore).
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment } from "firebase/firestore";
+import { getFirestoreDb } from "./firebase";
+import type { User } from "firebase/auth";
 
 export interface UserData {
     uid: string;
@@ -16,165 +17,118 @@ export interface UserData {
     location: string;
     phone: string;
     addresses: any[];
+    verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
 }
 
+const db = getFirestoreDb();
 
-const getGlobalUserData = (): Record<string, UserData> => {
-    if (typeof window === 'undefined') {
-        return {};
-    }
-    const data = localStorage.getItem('globalUserData');
-    if (data) {
-        try {
-            return JSON.parse(data);
-        } catch (e) {
-            console.error("Failed to parse globalUserData from localStorage", e);
-            return {};
-        }
-    }
-    return {};
-};
+const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
+    uid,
+    displayName: defaults?.displayName || 'New User',
+    email: defaults?.email || '',
+    photoURL: defaults?.photoURL || `https://placehold.co/128x128.png?text=${(defaults?.displayName || 'U').charAt(0)}`,
+    role: 'customer',
+    followers: 0,
+    following: 0,
+    bio: "",
+    location: "",
+    phone: "",
+    addresses: []
+});
 
-const setGlobalUserData = (data: Record<string, UserData>) => {
-    if (typeof window === 'undefined') {
-        return;
-    }
-    try {
-        localStorage.setItem('globalUserData', JSON.stringify(data));
-    } catch (e) {
-        console.error("Failed to set globalUserData in localStorage", e);
-    }
-};
+export const getUserData = async (uid: string, defaults?: Partial<User>): Promise<UserData | null> => {
+    if (!uid) return null;
+    const userDocRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userDocRef);
 
-const initializeAdminUserIfNeeded = () => {
-    const allUsers = getGlobalUserData();
-    const adminExists = Object.values(allUsers).some(u => u.role === 'admin');
-
-    if (!adminExists) {
-        const initialAdmin: UserData = {
-            uid: 'admin_uid_placeholder',
-            displayName: 'Samael Prajapati',
-            email: 'samael.prajapati@example.com',
-            photoURL: `https://placehold.co/128x128.png?text=A`,
-            role: 'admin',
-            followers: 1500,
-            following: 25,
-            bio: "Overseeing the StreamCart platform.",
-            location: "Pune, India",
-            phone: "+91 9999988888",
-            addresses: []
-        };
-        allUsers[initialAdmin.email] = initialAdmin; // Use email as a temporary key
-        setGlobalUserData(allUsers);
-    }
-}
-
-
-export const getUserData = (uid: string, defaults?: Partial<UserData>): UserData => {
-    if (typeof window === 'undefined') {
-        return {
-            uid: uid,
-            displayName: defaults?.displayName || 'New User',
-            email: defaults?.email || '',
-            photoURL: defaults?.photoURL || '',
-            role: 'customer',
-            followers: 0,
-            following: 0,
-            bio: "",
-            location: "",
-            phone: "",
-            addresses: []
-        };
-    }
-    initializeAdminUserIfNeeded();
-    const allUsers = getGlobalUserData();
-    
-    // Find user by UID
-    const existingUser = allUsers[uid];
-    if(existingUser) return existingUser;
-    
-    // Fallback for admin user whose UID might not be set yet
-    if (uid === 'admin_uid_placeholder') {
-        const adminUser = Object.values(allUsers).find(u => u.role === 'admin');
-        if (adminUser) return adminUser;
-    }
-    
-    return {
-        uid,
-        displayName: defaults?.displayName || 'New User',
-        email: defaults?.email || '',
-        photoURL: defaults?.photoURL || `https://placehold.co/128x128.png?text=U`,
-        role: defaults?.role || 'customer',
-        followers: 0,
-        following: 0,
-        bio: "",
-        location: "",
-        phone: "",
-        addresses: []
-    };
-};
-
-export const updateUserData = (uid: string, updates: Partial<UserData>) => {
-    if (typeof window === 'undefined') return;
-    
-    const allUsers = getGlobalUserData();
-    const keyToUpdate = uid;
-    
-    const existingData = allUsers[keyToUpdate] || {};
-    const finalData = { ...existingData, ...updates, uid: uid };
-
-    if(existingData.role === 'seller' && updates.role === 'customer') {
-        finalData.role = 'seller';
-    }
-    
-    allUsers[keyToUpdate] = finalData
-    setGlobalUserData(allUsers);
-};
-
-
-export const toggleFollow = (currentUserId: string, targetUserId: string) => {
-    if (typeof window === 'undefined') return;
-
-    const followingKey = `following_${currentUserId}`;
-    let followingList: string[] = JSON.parse(localStorage.getItem(followingKey) || '[]');
-    const isCurrentlyFollowing = followingList.includes(targetUserId);
-
-    let currentUser = getUserData(currentUserId);
-    let targetUser = getUserData(targetUserId);
-
-    if (isCurrentlyFollowing) {
-        followingList = followingList.filter(id => id !== targetUserId);
-        currentUser.following = Math.max(0, (currentUser.following || 0) - 1);
-        targetUser.followers = Math.max(0, (targetUser.followers || 0) - 1);
+    if (userDoc.exists()) {
+        return userDoc.data() as UserData;
     } else {
-        followingList.push(targetUserId);
-        currentUser.following = (currentUser.following || 0) + 1;
-        targetUser.followers = (targetUser.followers || 0) + 1;
+        if (defaults) {
+            // If user doesn't exist, create them with defaults (e.g., on first sign-in)
+            const newUser = defaultUserData(uid, defaults);
+            await setDoc(userDocRef, newUser);
+            return newUser as UserData;
+        }
+        return null;
     }
-
-    localStorage.setItem(followingKey, JSON.stringify(followingList));
-    updateUserData(currentUserId, { following: currentUser.following });
-    updateUserData(targetUserId, { followers: targetUser.followers });
-    
-    window.dispatchEvent(new StorageEvent('storage', { key: 'globalUserData' }));
 };
 
-export const getFollowers = (targetUserId: string): UserData[] => {
-    if (typeof window === 'undefined') return [];
-    
-    const allUsers = getGlobalUserData();
-    const followerList: UserData[] = [];
+export const updateUserData = async (uid: string, updates: Partial<UserData>): Promise<void> => {
+    if (!uid) return;
+    const userDocRef = doc(db, "users", uid);
+    await updateDoc(userDocRef, updates);
+};
 
-    for (const userId in allUsers) {
-        const user = allUsers[userId];
-        if (user && user.uid) {
-             const followingKey = `following_${user.uid}`;
-             const followingList: string[] = JSON.parse(localStorage.getItem(followingKey) || '[]');
-             if (followingList.includes(targetUserId)) {
-                followerList.push(user);
-            }
+export const createUserData = async (user: User, role: 'customer' | 'seller', additionalData: Partial<UserData> = {}): Promise<void> => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userData: UserData = {
+        ...defaultUserData(user.uid, user),
+        role,
+        ...additionalData,
+    } as UserData;
+    await setDoc(userDocRef, userData);
+};
+
+
+export const toggleFollow = async (currentUserId: string, targetUserId: string) => {
+    const db = getFirestoreDb();
+    const currentUserRef = doc(db, "users", currentUserId);
+    const targetUserRef = doc(db, "users", targetUserId);
+    const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
+    
+    const followDoc = await getDoc(followDocRef);
+    const batch = writeBatch(db);
+
+    if (followDoc.exists()) {
+        // Unfollow
+        batch.delete(followDocRef);
+        batch.update(currentUserRef, { following: increment(-1) });
+        batch.update(targetUserRef, { followers: increment(-1) });
+    } else {
+        // Follow
+        batch.set(followDocRef, { followedAt: new Date() });
+        batch.update(currentUserRef, { following: increment(1) });
+        batch.update(targetUserRef, { followers: increment(1) });
+    }
+    
+    await batch.commit();
+};
+
+export const getFollowers = async (targetUserId: string): Promise<UserData[]> => {
+    // This is not efficient for large scale, but works for a demo.
+    // A real app would use a subcollection on the target user listing their followers.
+    const usersCollection = collection(db, 'users');
+    const allUsersSnapshot = await getDocs(usersCollection);
+    const followers: UserData[] = [];
+
+    for (const userDoc of allUsersSnapshot.docs) {
+        const userId = userDoc.id;
+        const followingRef = doc(db, `users/${userId}/following`, targetUserId);
+        const followingDoc = await getDoc(followingRef);
+        if (followingDoc.exists()) {
+            followers.push(userDoc.data() as UserData);
         }
     }
     
-    return followerList;
+    return followers;
+};
+
+export const getFollowing = async (userId: string): Promise<UserData[]> => {
+    const followingCollectionRef = collection(db, `users/${userId}/following`);
+    const followingSnapshot = await getDocs(followingCollectionRef);
+    const followingIds = followingSnapshot.docs.map(doc => doc.id);
+    
+    if (followingIds.length === 0) return [];
+    
+    const usersQuery = query(collection(db, 'users'), where('uid', 'in', followingIds));
+    const usersSnapshot = await getDocs(usersQuery);
+    
+    return usersSnapshot.docs.map(doc => doc.data() as UserData);
+}
+
+export const isFollowing = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
+    const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
+    const followDoc = await getDoc(followDocRef);
+    return followDoc.exists();
 };

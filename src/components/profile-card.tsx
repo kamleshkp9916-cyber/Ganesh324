@@ -29,7 +29,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData, getFollowers } from '@/lib/follow-data';
+import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
 
 
@@ -111,25 +111,22 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [sellerPosts, setSellerPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingState, setIsFollowingState] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const displayName = profileData.displayName || profileData.name || "";
   const [activeCategory, setActiveCategory] = useState("All");
   
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
   
-  const loadFollowData = () => {
+  const loadFollowData = async () => {
     if (user) {
-        const currentUserFollowingIds = JSON.parse(localStorage.getItem(`following_${user.uid}`) || '[]');
-        setIsFollowing(currentUserFollowingIds.includes(profileData.uid));
+        setIsFollowingState(await isFollowing(user.uid, profileData.uid));
         
         if (isOwnProfile) {
-          const followedUsers = currentUserFollowingIds.map((id: string) => getUserData(id));
-          setFollowingList(followedUsers);
+          setFollowingList(await getFollowing(user.uid));
         }
 
-        const followers = getFollowers(profileData.uid);
-        setFollowerList(followers);
+        setFollowerList(await getFollowers(profileData.uid));
     }
   };
 
@@ -138,6 +135,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
        loadFollowData();
        setMyReviews(getUserReviews(user.uid));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profileData.uid, isOwnProfile]);
 
   const loadSellerProducts = () => {
@@ -304,10 +302,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setIsAddressDialogOpen(true);
   }
   
-  const handleFollowToggle = (targetId: string) => {
+  const handleFollowToggle = async (targetId: string) => {
     if (!user) return;
-    toggleFollow(user.uid, targetId);
-    setIsFollowing(prev => !prev);
+    await toggleFollow(user.uid, targetId);
+    setIsFollowingState(prev => !prev);
     if (onFollowToggle) {
         onFollowToggle();
     }
@@ -439,10 +437,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                     <div className="mt-4 flex justify-center sm:justify-start gap-2">
                       <Button
                           onClick={() => handleFollowToggle(profileData.uid)}
-                          variant={isFollowing ? "outline" : "default"}
+                          variant={isFollowingState ? "outline" : "default"}
                       >
                           <UserPlus className="mr-2 h-4 w-4" />
-                          {isFollowing ? "Following" : "Follow"}
+                          {isFollowingState ? "Following" : "Follow"}
                       </Button>
                       <Button variant="outline" onClick={() => setIsChatOpen(true)}>
                           <MessageSquare className="mr-2 h-4 w-4" />

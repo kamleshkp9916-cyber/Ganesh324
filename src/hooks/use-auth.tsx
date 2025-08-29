@@ -4,18 +4,20 @@
 import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { getUserData, updateUserData } from '@/lib/follow-data';
+import { getUserData, UserData } from '@/lib/follow-data';
 
 interface AuthContextType {
   user: User | null;
+  userData: UserData | null;
   loading: boolean;
   setUser: (user: User | null) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true, setUser: () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true, setUser: () => {} });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -32,32 +34,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const auth = getFirebaseAuth();
 
-    const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
-    if (mockAdminUserRaw) {
-        try {
-            const adminUser = JSON.parse(mockAdminUserRaw);
-            setUser(adminUser);
-            setLoading(false);
-            return; 
-        } catch (e) {
-            console.error("Failed to parse mock admin user from sessionStorage", e);
-            sessionStorage.removeItem('mockAdminUser');
-        }
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         if (firebaseUser) {
-            const userData = getUserData(firebaseUser.uid, {
-                displayName: firebaseUser.displayName || 'New User',
-                email: firebaseUser.email || '',
-                photoURL: firebaseUser.photoURL || '',
-            });
-            
-            const augmentedUser = { ...firebaseUser, ...userData };
-            setUser(augmentedUser as User);
+            const data = await getUserData(firebaseUser.uid, firebaseUser);
+            setUser(firebaseUser);
+            setUserData(data);
         } else {
              setUser(null);
-             sessionStorage.removeItem('mockAdminUser');
+             setUserData(null);
         }
         setLoading(false);
     });
@@ -66,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isMounted]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser: handleSetUser }}>
+    <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
       {children}
     </AuthContext.Provider>
   );

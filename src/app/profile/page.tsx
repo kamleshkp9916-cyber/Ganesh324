@@ -46,26 +46,11 @@ export default function ProfilePage() {
       const targetId = isOwnProfile ? user?.uid : userId;
       
       if (targetId) {
-          const fetchedData = getUserData(targetId, {
-              displayName: isOwnProfile ? user?.displayName : undefined,
-              email: isOwnProfile ? user?.email : undefined,
-              photoURL: isOwnProfile ? user?.photoURL : undefined,
-              role: 'customer'
+          getUserData(targetId, isOwnProfile ? user : undefined).then(fetchedData => {
+              if (fetchedData) {
+                  setProfileData(fetchedData);
+              }
           });
-
-          if (isOwnProfile && user) {
-              const finalData = {
-                  ...fetchedData,
-                  uid: user.uid,
-                  displayName: user.displayName || 'Unnamed User',
-                  email: user.email || 'no-email@example.com',
-                  photoURL: user.photoURL || '',
-              };
-              setProfileData(finalData);
-              updateUserData(user.uid, finalData);
-          } else {
-              setProfileData(fetchedData);
-          }
       }
     }
   }, [user, userId, isOwnProfile, loading, router, key]);

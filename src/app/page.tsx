@@ -18,8 +18,7 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // Show a loading spinner while waiting for the AuthRedirector in the layout to handle redirection.
-  if (loading || (isMounted && user)) {
+  if (!isMounted || loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />
@@ -27,15 +26,14 @@ export default function Home() {
     );
   }
   
-  if (!isMounted) {
-    return (
+  if (user) {
+     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
   }
 
-  // If not loading and no user, show the login form.
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-8">

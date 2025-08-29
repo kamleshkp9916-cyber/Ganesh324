@@ -28,7 +28,7 @@ export default function SellerProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userIdFromQuery = searchParams.get('userId');
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
 
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
@@ -40,35 +40,32 @@ export default function SellerProfilePage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted && !loading) {
-      let targetId: string | null | undefined = userIdFromQuery;
+    const fetchProfileData = async () => {
+        if (loading || !isMounted) return;
 
-      if (!targetId) {
-        // If no user in query, it's the logged-in seller viewing their own profile
-        if (user) {
-          const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-          if (sellerDetailsRaw) {
-             const details = JSON.parse(sellerDetailsRaw);
-             targetId = `seller_${details.email}`;
-          } else {
-            router.push('/seller/login');
-            return;
-          }
-        } else {
-          router.push('/seller/login');
-          return;
+        let targetId: string | null | undefined = userIdFromQuery;
+
+        if (!targetId) {
+            // If no user in query, it's the logged-in seller viewing their own profile
+            if (user && userData?.role === 'seller') {
+                targetId = user.uid;
+            } else {
+                router.push('/seller/login');
+                return;
+            }
         }
-      }
-      
-      const data = getUserData(targetId);
-      if (data) {
-        setProfileData(data);
-      } else {
-        // Handle case where seller might not be in the mock DB
-        console.error("Seller not found:", targetId);
-      }
-    }
-  }, [user, loading, router, isMounted, key, userIdFromQuery]);
+        
+        const data = await getUserData(targetId);
+        if (data) {
+            setProfileData(data);
+        } else {
+            console.error("Seller not found:", targetId);
+        }
+    };
+    
+    fetchProfileData();
+
+  }, [user, userData, loading, router, isMounted, key, userIdFromQuery]);
 
 
   const handleProfileSave = (data: any) => {
@@ -77,7 +74,6 @@ export default function SellerProfilePage() {
       const updatedDetails = {
           ...profileData,
           displayName: `${data.firstName} ${data.lastName}`,
-          name: `${data.firstName} ${data.lastName}`,
           bio: data.bio,
           location: data.location,
           phone: `+91 ${data.phone}`,
@@ -85,7 +81,6 @@ export default function SellerProfilePage() {
       };
 
       updateUserData(profileData.uid, updatedDetails);
-      localStorage.setItem('sellerDetails', JSON.stringify(updatedDetails));
       setProfileData(updatedDetails);
       setProfileEditDialogOpen(false);
   };
@@ -94,7 +89,6 @@ export default function SellerProfilePage() {
     if(!profileData) return;
     const updatedDetails = { ...profileData, addresses: newAddresses };
     updateUserData(profileData.uid, updatedDetails);
-    localStorage.setItem('sellerDetails', JSON.stringify(updatedDetails));
     setProfileData(updatedDetails);
   }
   
@@ -111,7 +105,7 @@ export default function SellerProfilePage() {
       )
   }
   
-  const isOwnProfile = user?.uid === profileData.uid || (user?.email === profileData.email && profileData.role === 'seller');
+  const isOwnProfile = user?.uid === profileData.uid;
 
   return (
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>

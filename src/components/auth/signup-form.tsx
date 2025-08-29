@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { createUserData } from "@/lib/follow-data";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
@@ -84,7 +85,7 @@ export function SignupForm() {
     defaultValues: { firstName: "", lastName: "", userId: "@", email: "", phone: "+91 ", password: "" },
   });
 
-  const signInWithGoogle = async (role: 'customer' | 'seller' = 'customer') => {
+  const signInWithGoogle = async () => {
         setIsLoading(true);
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
@@ -94,7 +95,7 @@ export function SignupForm() {
                 title: "Signed Up!",
                 description: "Welcome to StreamCart!",
             });
-            // Redirection is handled by the root page.tsx
+            // Redirection is handled by the AuthRedirector
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
             toast({
@@ -113,20 +114,18 @@ export function SignupForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
-      const displayName = `${values.firstName} ${values.lastName}`;
       
-      await updateProfile(user, { displayName: displayName });
-
+      await createUserData(user, 'customer', {
+        displayName: `${values.firstName} ${values.lastName}`,
+        phone: values.phone,
+      });
+      
       await sendEmailVerification(user);
       
       toast({
         title: "Account Created!",
         description: "A verification email has been sent. Please check your inbox.",
       });
-
-      if (typeof window !== 'undefined') {
-          sessionStorage.setItem(`newUser_${user.uid}`, JSON.stringify({ ...values, role: 'customer', uid: user.uid, displayName }));
-      }
       
       router.push('/verify-email');
 
@@ -269,7 +268,7 @@ export function SignupForm() {
         <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
-        <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle('customer')} disabled={isLoading}>
+        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>
