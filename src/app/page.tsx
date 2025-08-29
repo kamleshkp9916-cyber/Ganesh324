@@ -22,24 +22,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!loading && isMounted) {
-      if (user) {
-        const userData = getUserData(user.uid);
-        if (user.email === 'samael.prajapati@example.com') {
-          router.replace('/admin/dashboard');
-        } else if (userData.role === 'seller') {
-          // @ts-ignore
-          if (userData.verificationStatus === 'verified') {
-            router.replace('/seller/dashboard');
-          // @ts-ignore
-          } else if (userData.verificationStatus === 'pending' || userData.verificationStatus === 'needs-resubmission') {
-            router.replace('/seller/verification');
-          } else {
-              router.replace('/seller/register');
-          }
+    if (!loading && isMounted && user) {
+      // This effect handles redirection after login and should only run on the client
+      const userData = getUserData(user.uid);
+      
+      if (user.email === 'samael.prajapati@example.com') {
+        router.replace('/admin/dashboard');
+      } else if (userData.role === 'seller') {
+        // @ts-ignore
+        if (userData.verificationStatus === 'verified') {
+          router.replace('/seller/dashboard');
         } else {
-          router.replace('/live-selling');
+           router.replace('/seller/verification');
         }
+      } else { // Default to customer
+        router.replace('/live-selling');
       }
     }
   }, [user, loading, isMounted, router]);
@@ -98,7 +95,7 @@ export default function Home() {
                 Sign up
                 </Link>
             </div>
-             <div className="flex items-center justify-center gap-4">
+             <div>
                 Want to become a seller?{" "}
                  <Link href="/seller/register" className="font-semibold text-primary underline">
                     Register here

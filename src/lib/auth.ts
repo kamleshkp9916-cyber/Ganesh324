@@ -15,37 +15,6 @@ export function useAuthActions() {
     const { toast } = useToast();
     const { setUser } = useAuth();
     
-    const handleLoginSuccess = (user: User) => {
-        if (user.email === ADMIN_EMAIL) {
-             sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
-             setUser(user);
-             toast({ title: "Logged In!", description: "Welcome, Admin!" });
-             router.replace('/admin/dashboard');
-             return;
-        }
-        
-        const userData = getUserData(user.uid);
-        const actualRole = userData.role || 'customer';
-        // @ts-ignore
-        const verificationStatus = userData.verificationStatus;
-        
-        toast({
-            title: "Logged In!",
-            description: "Welcome back!",
-        });
-
-        if (actualRole === 'seller') {
-            if (verificationStatus === 'verified') {
-                 router.replace('/seller/dashboard');
-            } else {
-                 router.replace('/seller/verification');
-            }
-        } else { // 'customer' or any other default role
-            router.replace('/live-selling');
-        }
-    };
-
-
     const signInWithGoogle = async (role: 'customer' | 'seller' = 'customer') => {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
@@ -64,7 +33,10 @@ export function useAuthActions() {
                 role: isNewUser ? role : existingData.role
             });
             
-            handleLoginSuccess(user);
+             toast({
+                title: "Logged In!",
+                description: "Welcome back!",
+            });
 
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
@@ -154,7 +126,9 @@ export function useAuthActions() {
                 reload: async () => {},
                 toJSON: () => ({}),
             };
-            handleLoginSuccess(mockAdminUser);
+            sessionStorage.setItem('mockAdminUser', JSON.stringify(mockAdminUser));
+            setUser(mockAdminUser); // Update auth context
+            toast({ title: "Logged In!", description: "Welcome, Admin!" });
             return;
         }
         
@@ -173,7 +147,10 @@ export function useAuthActions() {
                 return;
             }
             
-            handleLoginSuccess(user);
+            toast({
+                title: "Logged In!",
+                description: "Welcome back!",
+            });
 
         } catch (error: any) {
              console.error("Error signing in: ", error);
