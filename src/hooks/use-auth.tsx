@@ -17,12 +17,19 @@ const AuthContext = createContext<AuthContextType>({ user: null, loading: true, 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSetUser = useCallback((newUser: User | null) => {
     setUser(newUser);
   }, []);
 
   useEffect(() => {
+    if (!isMounted) return;
+
     const auth = getFirebaseAuth();
 
     const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
@@ -45,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email: firebaseUser.email || '',
                 photoURL: firebaseUser.photoURL || '',
             });
+            
             const augmentedUser = { ...firebaseUser, ...userData };
             setUser(augmentedUser as User);
         } else {
@@ -55,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isMounted]);
 
   return (
     <AuthContext.Provider value={{ user, loading, setUser: handleSetUser }}>

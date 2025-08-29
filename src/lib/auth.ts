@@ -10,20 +10,12 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
-const findSellerByPhone = (phone: string) => {
-    if (typeof window === 'undefined') return null;
-    const allUsers = JSON.parse(localStorage.getItem('globalUserData') || '{}');
-    return Object.values(allUsers).find((user: any) => user.role === 'seller' && user.phone === phone);
-}
-
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
     const { setUser } = useAuth();
     
-    // Helper function to handle redirection after login
     const handleLoginSuccess = (user: User) => {
-        // Special case for admin user
         if (user.email === ADMIN_EMAIL) {
              sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
              setUser(user);
@@ -33,7 +25,7 @@ export function useAuthActions() {
         }
         
         const userData = getUserData(user.uid);
-        const actualRole = userData.role;
+        const actualRole = userData.role || 'customer';
         // @ts-ignore
         const verificationStatus = userData.verificationStatus;
         
@@ -42,14 +34,13 @@ export function useAuthActions() {
             description: "Welcome back!",
         });
 
-        // Redirect based on role and status
         if (actualRole === 'seller') {
             if (verificationStatus === 'verified') {
                  router.replace('/seller/dashboard');
             } else {
                  router.replace('/seller/verification');
             }
-        } else {
+        } else { // 'customer' or any other default role
             router.replace('/live-selling');
         }
     };
@@ -62,15 +53,15 @@ export function useAuthActions() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Create or update user data with the specified role
-            // Only set the role if it's a new user, otherwise respect the existing role
             const existingData = getUserData(user.uid);
+            const isNewUser = !existingData.role;
+
             updateUserData(user.uid, {
                 uid: user.uid,
                 displayName: user.displayName || 'Google User',
                 email: user.email || '',
                 photoURL: user.photoURL || '',
-                role: existingData.role || role
+                role: isNewUser ? role : existingData.role
             });
             
             handleLoginSuccess(user);
@@ -94,7 +85,6 @@ export function useAuthActions() {
             
             await updateProfile(user, { displayName: displayName });
 
-            // Create user record in our mock DB with the correct role
             updateUserData(user.uid, {
                 ...values,
                 uid: user.uid,
@@ -138,7 +128,6 @@ export function useAuthActions() {
     const signInWithEmail = async (email: string, password: string) => {
         const auth = getFirebaseAuth();
 
-        // Special case for admin login
         if (email === ADMIN_EMAIL) {
             const mockAdminUser: User = {
                 uid: 'admin-mock-uid',
@@ -208,70 +197,6 @@ export function useAuthActions() {
         }
     };
     
-    const validateSellerPassword = async (phone: string, password: string): Promise<boolean> => {
-        const auth = getFirebaseAuth();
-        const seller: any = findSellerByPhone(phone);
-        if (!seller) {
-            throw new Error("No seller account found with this phone number.");
-        }
-        try {
-            // We use signInWithEmailAndPassword to validate the password, but we don't complete the login here.
-            await signInWithEmailAndPassword(auth, seller.email, password);
-            // If the above doesn't throw, password is correct. Sign out immediately.
-            await firebaseSignOut(auth);
-            return true;
-        } catch(error: any) {
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                throw new Error("Invalid password. Please try again.");
-            }
-            // Re-throw other errors
-            throw error;
-        }
-    }
-
-    const signInWithOtp = async (phone: string) => {
-        const auth = getFirebaseAuth();
-        const seller: any = findSellerByPhone(phone);
-        if (!seller) {
-            throw new Error("No seller account found with this phone number.");
-        }
-
-        // In a real app, you would sign in the user via a custom token
-        // received after successful OTP verification on your backend.
-        // For this demo, we'll find the user and log them in directly
-        // since we can't do a full custom auth flow.
-        
-        // This is a MOCK sign-in. We're finding the user and manually setting them as logged in.
-         const mockUser: User = {
-                uid: seller.uid,
-                email: seller.email,
-                displayName: seller.displayName,
-                photoURL: seller.photoURL,
-                emailVerified: true, // We assume verified for this flow
-                isAnonymous: false,
-                metadata: {},
-                providerData: [],
-                providerId: 'phone',
-                tenantId: null,
-                delete: async () => {},
-                getIdToken: async () => 'mock-seller-token',
-                getIdTokenResult: async () => ({
-                    token: 'mock-seller-token',
-                    authTime: new Date().toISOString(),
-                    issuedAtTime: new Date().toISOString(),
-                    signInProvider: 'phone',
-                    signInSecondFactor: null,
-                    expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
-                    claims: {},
-                }),
-                reload: async () => {},
-                toJSON: () => ({}),
-            };
-        
-        // This will update the auth state and trigger redirection.
-        setUser(mockUser);
-        handleLoginSuccess(mockUser);
-    };
 
     const signOut = async () => {
         const auth = getFirebaseAuth();
@@ -317,7 +242,7 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, signInWithOtp, validateSellerPassword };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';
