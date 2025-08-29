@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
 const findSellerByPhone = (phone: string) => {
+    if (typeof window === 'undefined') return null;
     const allUsers = JSON.parse(localStorage.getItem('globalUserData') || '{}');
     return Object.values(allUsers).find((user: any) => user.role === 'seller' && user.phone === phone);
 }
@@ -148,6 +149,7 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         let emailToAuth = identifier;
         
+        // This logic is now deprecated in favor of OTP, but kept for customer login
         if (expectedRole === 'seller') {
             const seller: any = findSellerByPhone(identifier);
             if (!seller) {
@@ -236,6 +238,50 @@ export function useAuthActions() {
             throw new Error(errorMessage);
         }
     };
+    
+    const signInWithOtp = async (phone: string) => {
+        const auth = getFirebaseAuth();
+        const seller: any = findSellerByPhone(phone);
+        if (!seller) {
+            throw new Error("No seller account found with this phone number.");
+        }
+
+        // In a real app, you would sign in the user via a custom token
+        // received after successful OTP verification on your backend.
+        // For this demo, we'll find the user and log them in directly
+        // since we can't do a full custom auth flow.
+        
+        // This is a MOCK sign-in. We're finding the user and manually setting them as logged in.
+         const mockUser: User = {
+                uid: seller.uid,
+                email: seller.email,
+                displayName: seller.displayName,
+                photoURL: seller.photoURL,
+                emailVerified: true, // We assume verified for this flow
+                isAnonymous: false,
+                metadata: {},
+                providerData: [],
+                providerId: 'phone',
+                tenantId: null,
+                delete: async () => {},
+                getIdToken: async () => 'mock-seller-token',
+                getIdTokenResult: async () => ({
+                    token: 'mock-seller-token',
+                    authTime: new Date().toISOString(),
+                    issuedAtTime: new Date().toISOString(),
+                    signInProvider: 'phone',
+                    signInSecondFactor: null,
+                    expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
+                    claims: {},
+                }),
+                reload: async () => {},
+                toJSON: () => ({}),
+            };
+        
+        // This will update the auth state and trigger redirection.
+        setUser(mockUser);
+        handleLoginSuccess(mockUser);
+    };
 
     const signOut = async () => {
         const auth = getFirebaseAuth();
@@ -281,7 +327,7 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, signInWithOtp };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';

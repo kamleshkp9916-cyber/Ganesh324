@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { OtpForm } from "./otp-form";
 
 const customerSchema = z.object({
   identifier: z.string().email({ message: "Please enter a valid email address." }),
@@ -30,7 +31,11 @@ const customerSchema = z.object({
   rememberMe: z.boolean().default(false).optional(),
 });
 
-const sellerSchema = z.object({
+const sellerPhoneSchema = z.object({
+    identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
+});
+
+const sellerPasswordSchema = z.object({
     identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
     password: z.string().min(1, { message: "Password is required." }),
     rememberMe: z.boolean().default(false).optional(),
@@ -72,22 +77,35 @@ interface LoginFormProps {
 
 export function LoginForm({ role = 'customer' }: LoginFormProps) {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmail } = useAuthActions();
+  const { signInWithGoogle, signInWithEmail, signInWithOtp } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
+  const [phone, setPhone] = useState("");
 
-  const formSchema = role === 'seller' ? sellerSchema : customerSchema;
+  const formSchema = role === 'seller' ? sellerPhoneSchema : customerSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { identifier: role === 'seller' ? "+91 " : "", password: "", rememberMe: false },
+    defaultValues: { identifier: role === 'seller' ? "+91 " : "" },
   });
+  
+  // Watch for changes in the identifier field
+  const identifier = form.watch("identifier");
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  // This effect ensures the phone state is updated whenever the form value changes
+  useEffect(() => {
+    if (role === 'seller') {
+      setPhone(identifier);
+    }
+  }, [identifier, role]);
+
+
+  async function onCustomerSubmit(values: z.infer<typeof customerSchema>) {
     setIsLoading(true);
     try {
-        await signInWithEmail(values.identifier, values.password, role);
+        await signInWithEmail(values.identifier, values.password, role as 'customer');
     } catch (error: any) {
         toast({
             title: "Login Failed",
@@ -99,7 +117,52 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
     }
   }
 
-  const IdentifierField = role === 'customer' ? (
+  async function onSellerSubmit(values: z.infer<typeof sellerPhoneSchema>) {
+      setIsLoading(true);
+      // In a real app, this would trigger an API call to send an OTP
+      // For this demo, we'll simulate it and move to the next step
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(false);
+      setPhone(values.identifier);
+      setStep('otp');
+      toast({
+          title: "OTP Sent!",
+          description: `A one-time password has been sent to ${values.identifier}.`
+      });
+  }
+  
+  const handleOtpSuccess = async () => {
+    setIsLoading(true);
+    try {
+      await signInWithOtp(phone);
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  
+  if (role === 'seller' && step === 'otp') {
+      return (
+        <div className="space-y-4">
+             <p className="text-center text-sm text-muted-foreground">
+                Enter the OTP sent to {phone}
+            </p>
+            <OtpForm onVerifySuccess={handleOtpSuccess} />
+             <Button variant="link" className="w-full" onClick={() => setStep('identifier')}>
+                Change phone number
+            </Button>
+        </div>
+      );
+  }
+
+  const CustomerForm = (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onCustomerSubmit as any)} className="grid gap-4">
         <FormField
           control={form.control}
           name="identifier"
@@ -113,42 +176,6 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
             </FormItem>
           )}
         />
-  ) : (
-      <FormField
-          control={form.control}
-          name="identifier"
-          render={({ field }) => (
-              <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                      <Input
-                          placeholder="+91 98765 43210"
-                          {...field}
-                          disabled={isLoading}
-                          className="bg-background"
-                          onChange={(e) => {
-                                let value = e.target.value;
-                                if (!value.startsWith('+91 ')) {
-                                    value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                                }
-                                if (value.length > 14) {
-                                    value = value.substring(0, 14);
-                                }
-                                field.onChange(value);
-                            }}
-                      />
-                  </FormControl>
-                  <FormMessage />
-              </FormItem>
-          )}
-      />
-  );
-
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-        {IdentifierField}
         <FormField
           control={form.control}
           name="password"
@@ -160,6 +187,7 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
                   <Input 
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
+                    // @ts-ignore
                     {...field} 
                     disabled={isLoading} 
                     className="bg-background pr-10"
@@ -187,6 +215,7 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
                 <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                     <FormControl>
                     <Checkbox
+                        // @ts-ignore
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         id="remember-me"
@@ -224,4 +253,52 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
       </form>
     </Form>
   );
+
+  const SellerForm = (
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSellerSubmit as any)} className="grid gap-4">
+          <FormField
+              control={form.control}
+              name="identifier"
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                          <Input
+                              placeholder="+91 98765 43210"
+                              {...field}
+                              disabled={isLoading}
+                              className="bg-background"
+                              onChange={(e) => {
+                                    let value = e.target.value;
+                                    if (!value.startsWith('+91 ')) {
+                                        value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                    }
+                                    if (value.length > 14) {
+                                        value = value.substring(0, 14);
+                                    }
+                                    field.onChange(value);
+                                }}
+                          />
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )}
+          />
+           <Button 
+            type="submit" 
+            className="w-full font-semibold"
+            disabled={isLoading}
+            >
+            {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                "Send OTP"
+            )}
+            </Button>
+        </form>
+    </Form>
+  );
+
+  return role === 'customer' ? CustomerForm : SellerForm;
 }
