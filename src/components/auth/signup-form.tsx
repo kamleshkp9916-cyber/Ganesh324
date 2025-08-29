@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +22,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
@@ -75,7 +76,6 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm() {
   const router = useRouter();
-  const { signInWithGoogle, signUpWithEmail } = useAuthActions();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -84,14 +84,73 @@ export function SignupForm() {
     defaultValues: { firstName: "", lastName: "", userId: "@", email: "", phone: "+91 ", password: "" },
   });
 
+  const signInWithGoogle = async (role: 'customer' | 'seller' = 'customer') => {
+        setIsLoading(true);
+        const auth = getFirebaseAuth();
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+             toast({
+                title: "Signed Up!",
+                description: "Welcome to StreamCart!",
+            });
+            // Redirection is handled by the root page.tsx
+        } catch (error: any) {
+            console.error("Error signing in with Google: ", error);
+            toast({
+                title: "Error",
+                description: "Failed to sign in with Google. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    const auth = getFirebaseAuth();
     try {
-      await signUpWithEmail(values, 'customer');
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+      const displayName = `${values.firstName} ${values.lastName}`;
+      
+      await updateProfile(user, { displayName: displayName });
+
+      await sendEmailVerification(user);
+      
+      toast({
+        title: "Account Created!",
+        description: "A verification email has been sent. Please check your inbox.",
+      });
+
+      if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`newUser_${user.uid}`, JSON.stringify({ ...values, role: 'customer', uid: user.uid, displayName }));
+      }
+      
+      router.push('/verify-email');
+
     } catch (error: any) {
+        let errorMessage = "An unknown error occurred.";
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                errorMessage = "This email address is already in use by another account.";
+                break;
+            case 'auth/invalid-email':
+                errorMessage = "The email address is not valid.";
+                break;
+            case 'auth/operation-not-allowed':
+                errorMessage = "Email/password accounts are not enabled.";
+                break;
+            case 'auth/weak-password':
+                errorMessage = "The password is too weak.";
+                break;
+            default:
+                errorMessage = error.message;
+        }
         toast({
             title: "Sign Up Failed",
-            description: error.message,
+            description: errorMessage,
             variant: "destructive",
         });
     } finally {

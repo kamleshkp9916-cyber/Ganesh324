@@ -7,7 +7,8 @@ import * as z from "zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Eye, EyeOff } from "lucide-react"
-
+import { sendPasswordResetEmail } from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -20,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { OtpForm } from "./otp-form"
 import { useToast } from "@/hooks/use-toast"
-import { useAuthActions } from "@/lib/auth"
 
 
 const emailSchema = z.object({
@@ -76,14 +76,27 @@ export function ForgotPasswordForm() {
 
   async function handlePasswordSubmit(values: z.infer<typeof passwordSchema>) {
       setIsLoading(true);
-      // In a real app, you would call your backend to securely reset the password.
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setIsLoading(false);
-      toast({
-          title: "Password Reset Successfully!",
-          description: "You can now log in with your new password.",
-      });
-      router.push('/');
+      const auth = getFirebaseAuth();
+      // This is a mock. In a real app, you'd need the oobCode from the email link to actually reset the password.
+      // Since we are using a mock OTP flow, we'll just show success and redirect.
+      // For a real implementation, you'd use confirmPasswordReset(auth, oobCode, newPassword).
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        toast({
+            title: "Password Reset Successfully!",
+            description: "You can now log in with your new password.",
+        });
+        router.push('/');
+
+      } catch(error: any) {
+        toast({
+            title: "Error Resetting Password",
+            description: "An error occurred. Please try again.",
+            variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
   }
 
   if (step === "otp") {
