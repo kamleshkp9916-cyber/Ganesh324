@@ -12,10 +12,12 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  Printer,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 import {
   Avatar,
@@ -32,6 +34,13 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +70,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
 import { getUserData, updateUserData } from "@/lib/follow-data";
+import { Separator } from "@/components/ui/separator";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
@@ -76,6 +86,80 @@ const allUsers = [
     { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07", verificationStatus: 'verified' },
     { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05", verificationStatus: 'verified' },
 ];
+
+const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
+    const handlePrint = () => {
+        window.print();
+    };
+
+    return (
+        <DialogContent className="max-w-3xl p-0" id="printable-area">
+             <style>
+                {`
+                @media print {
+                    body * { visibility: hidden; }
+                    #printable-area, #printable-area * { visibility: visible; }
+                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+                    .no-print { display: none; }
+                }
+                `}
+            </style>
+            <DialogHeader className="p-6 pb-4">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <DialogTitle className="text-2xl">Seller Application Details</DialogTitle>
+                        <DialogDescription>Review the information submitted by the applicant.</DialogDescription>
+                    </div>
+                     <Button onClick={handlePrint} variant="outline" size="sm" className="no-print">
+                        <Printer className="h-4 w-4 mr-2" />
+                        Print
+                    </Button>
+                </div>
+            </DialogHeader>
+            <div className="px-6 py-4 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-1">
+                        <h3 className="font-semibold text-lg mb-2 border-b pb-2">Applicant Photo</h3>
+                         <div className="mt-2 relative w-32 h-32 rounded-lg border bg-muted">
+                           {seller.passportPhoto ? <Image src={seller.passportPhoto.preview || seller.passportPhoto} alt="Applicant Photo" layout="fill" className="object-cover rounded-lg" /> : <div className="flex items-center justify-center h-full text-muted-foreground">No Photo</div>}
+                        </div>
+                    </div>
+                     <div className="md:col-span-2">
+                        <h3 className="font-semibold text-lg mb-2 border-b pb-2">Personal & Business Details</h3>
+                         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mt-2">
+                            <div><strong className="text-muted-foreground">First Name:</strong><p>{seller.firstName}</p></div>
+                            <div><strong className="text-muted-foreground">Last Name:</strong><p>{seller.lastName}</p></div>
+                            <div><strong className="text-muted-foreground">Email:</strong><p>{seller.email}</p></div>
+                            <div><strong className="text-muted-foreground">Phone:</strong><p>{seller.phone}</p></div>
+                            <div className="col-span-2"><strong className="text-muted-foreground">Business Name:</strong><p>{seller.businessName}</p></div>
+                         </div>
+                    </div>
+                </div>
+                 <Separator />
+                 <h3 className="font-semibold text-lg border-b pb-2">Identification Details</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                         <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{seller.aadhar}</p></div>
+                         <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{seller.pan}</p></div>
+                    </div>
+                    <div className="md:col-span-1">
+                         <strong className="text-muted-foreground text-sm">Signature:</strong>
+                         <div className="mt-1 p-2 border rounded-lg bg-muted aspect-video flex items-center justify-center">
+                            {seller.signature ? <Image src={seller.signature} alt="Signature" width={200} height={100} className="object-contain" /> : <p>No Signature</p>}
+                         </div>
+                    </div>
+                 </div>
+                 <Separator />
+                 <h3 className="font-semibold text-lg border-b pb-2">Bank Account Details</h3>
+                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                     <div><strong className="text-muted-foreground">Account Number:</strong><p className="font-mono">{seller.accountNumber}</p></div>
+                     <div><strong className="text-muted-foreground">IFSC Code:</strong><p className="font-mono">{seller.ifsc}</p></div>
+                </div>
+            </div>
+        </DialogContent>
+    );
+}
+
 
 const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: string) => void }) => (
     <>
@@ -124,7 +208,7 @@ const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: st
     </>
 );
 
-const VerificationRequestsTable = ({ requests, onUpdateRequest }: { requests: any[], onUpdateRequest: (email: string, status: 'verified' | 'rejected') => void }) => (
+const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (email: string, status: 'verified' | 'rejected') => void, onViewDetails: (seller: any) => void }) => (
      <>
         <Table>
             <TableHeader>
@@ -162,7 +246,7 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest }: { requests: an
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onViewDetails(req)}>View Details</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -190,6 +274,7 @@ export default function AdminUsersPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
+  const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -254,7 +339,10 @@ export default function AdminUsersPage() {
           setAllUsersState(prev => prev.map(u => u.email === email ? { ...u, verificationStatus: status } : u));
           
           // Also update sellerDetails for the user themselves
-          localStorage.setItem('sellerDetails', JSON.stringify({ ...sellerToUpdate, verificationStatus: status }));
+          const sellerDetails = JSON.parse(localStorage.getItem('sellerDetails') || '{}');
+          if (sellerDetails.email === email) {
+            localStorage.setItem('sellerDetails', JSON.stringify({ ...sellerDetails, verificationStatus: status }));
+          }
 
           toast({
               title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
@@ -262,12 +350,20 @@ export default function AdminUsersPage() {
           });
       }
   };
+  
+  const handleViewDetails = (seller: any) => {
+    setSelectedSeller(seller);
+  };
 
   const customers = allUsersState.filter(u => u.role === 'customer');
   const sellers = allUsersState.filter(u => u.role === 'seller' && u.verificationStatus === 'verified');
   const pendingRequestCount = pendingSellers.length;
 
   return (
+    <>
+    <Dialog open={!!selectedSeller} onOpenChange={(isOpen) => !isOpen && setSelectedSeller(null)}>
+        {selectedSeller && <SellerDetailDialog seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}
+    </Dialog>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -450,12 +546,15 @@ export default function AdminUsersPage() {
                         <CardDescription>Approve or reject new seller applications.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <VerificationRequestsTable requests={pendingSellers} onUpdateRequest={handleVerificationUpdate} />
+                        <VerificationRequestsTable requests={pendingSellers} onUpdateRequest={handleVerificationUpdate} onViewDetails={handleViewDetails} />
                     </CardContent>
                 </Card>
              </TabsContent>
         </Tabs>
       </main>
     </div>
+    </>
   )
 }
+
+    
