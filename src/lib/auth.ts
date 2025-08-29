@@ -28,37 +28,29 @@ export function useAuthActions() {
              sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
              setUser(user);
              toast({ title: "Logged In!", description: "Welcome, Admin!" });
-             router.push('/admin/dashboard');
+             router.replace('/admin/dashboard');
              return;
         }
         
-        let userData;
-        // For sellers, details might be stored in localStorage during registration
-        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-        if (sellerDetailsRaw) {
-            const sellerDetails = JSON.parse(sellerDetailsRaw);
-            if(sellerDetails.email === user.email) {
-                userData = { role: 'seller' };
-            }
-        }
-
-        // If not found in seller details, get from main user data store
-        if (!userData) {
-            userData = getUserData(user.uid);
-        }
-
+        const userData = getUserData(user.uid);
         const actualRole = userData.role;
+        // @ts-ignore
+        const verificationStatus = userData.verificationStatus;
         
         toast({
             title: "Logged In!",
             description: "Welcome back!",
         });
 
-        // Redirect based on role
+        // Redirect based on role and status
         if (actualRole === 'seller') {
-            router.push('/seller/dashboard');
+            if (verificationStatus === 'verified') {
+                 router.replace('/seller/dashboard');
+            } else {
+                 router.replace('/seller/verification');
+            }
         } else {
-            router.push('/live-selling');
+            router.replace('/live-selling');
         }
     };
 
@@ -353,3 +345,5 @@ export function useAuthActions() {
 
 export { useAuth } from '@/hooks/use-auth.tsx';
 export { getFirebaseAuth as getAuth };
+
+    

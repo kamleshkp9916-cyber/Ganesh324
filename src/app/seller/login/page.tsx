@@ -7,9 +7,31 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth.tsx';
+import { useEffect } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function SellerLoginPage() {
     const router = useRouter();
+    const { user, loading } = useAuth();
+
+    useEffect(() => {
+        if (!loading && user) {
+            // @ts-ignore
+            if (user.role === 'seller' && user.verificationStatus === 'verified') {
+                router.replace('/seller/dashboard');
+            }
+        }
+    }, [user, loading, router]);
+
+    if (loading || user) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
        <div className="flex items-center justify-center p-4 relative bg-background">
@@ -49,3 +71,5 @@ export default function SellerLoginPage() {
     </div>
   );
 }
+
+    
