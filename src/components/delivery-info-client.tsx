@@ -426,7 +426,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             </header>
 
             <main className="flex-grow p-4 lg:p-8">
-                <Card className="max-w-4xl mx-auto">
+                <Card className="max-w-4xl mx-auto bg-black text-primary-foreground">
                      <CardHeader>
                         <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                         <span>Order ID: {orderId}</span>
@@ -436,7 +436,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     <CardContent className="grid lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 space-y-4">
                             <Link href={`/product/${productId}`} className="block hover:opacity-90 transition-opacity">
-                                <Card className="overflow-hidden">
+                                <Card className="overflow-hidden bg-card/10">
                                     <CardContent className="p-4 flex flex-col items-center text-center">
                                         <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4 relative">
                                             <Image
@@ -454,12 +454,12 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             )}
                                         </div>
                                         <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                        <p className="font-bold text-foreground">{order.product.price}</p>
+                                        <p className="font-bold text-primary-foreground">{order.product.price}</p>
                                     </CardContent>
                                 </Card>
                             </Link>
                                 {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated', 'Return package picked up'].includes(currentStatus) && (
-                                <Card>
+                                <Card className="bg-card/10">
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
                                         <div>
@@ -473,7 +473,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         <div className="lg:col-span-2">
                             <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
                             <div className="relative">
-                                <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border -z-10" />
+                                <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border/50 -z-10" />
                                 <ul className="space-y-8">
                                     {order.timeline.map((item, index: number) => (
                                         <li key={index} className="flex items-start gap-4">
@@ -505,7 +505,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         </div>
                     </CardContent>
                     {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton || showReviewButton) && (
-                        <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t pt-6">
+                        <CardFooter className="flex flex-wrap items-center justify-end gap-2 border-t border-border/50 pt-6">
                              {showReviewButton && (
                                  <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                                     <DialogTrigger asChild>
