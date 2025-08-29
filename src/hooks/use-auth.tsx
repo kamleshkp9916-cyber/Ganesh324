@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const adminUser = JSON.parse(mockAdminUserRaw);
             setUser(adminUser);
             setLoading(false);
-            return;
+            // We still want the real auth listener to run in case the real session changes
         } catch (e) {
             console.error("Failed to parse mock admin user from sessionStorage", e);
         }
@@ -45,11 +45,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: firebaseUser.photoURL || '',
             });
             const augmentedUser = { ...firebaseUser, ...userData };
+            
+            const currentMockAdminRaw = sessionStorage.getItem('mockAdminUser');
+            // If there's a real user but also a mock admin, the real user takes precedence.
+            if(currentMockAdminRaw) {
+                sessionStorage.removeItem('mockAdminUser');
+            }
+
             setUser(augmentedUser as User);
         } else {
+             // This is the crucial part: if Firebase says no user, we ensure our state is null.
+             // This also handles signing out the mock admin user.
+             if (sessionStorage.getItem('mockAdminUser')) {
+                 sessionStorage.removeItem('mockAdminUser');
+             }
              setUser(null);
-             // Also clear mock admin session if firebase says we are logged out
-             sessionStorage.removeItem('mockAdminUser');
         }
         setLoading(false);
     });

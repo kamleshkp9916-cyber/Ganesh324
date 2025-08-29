@@ -32,6 +32,8 @@ export default function Home() {
         // @ts-ignore
         } else if (userData.verificationStatus === 'pending') {
           router.replace('/seller/verification');
+        } else {
+            router.replace('/seller/login');
         }
       } else {
         router.replace('/live-selling');
