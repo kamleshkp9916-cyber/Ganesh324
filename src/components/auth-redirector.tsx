@@ -4,51 +4,55 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
+import { LoadingSpinner } from './ui/loading-spinner';
+
+const protectedPaths = [
+    '/profile', 
+    '/cart', 
+    '/orders', 
+    '/wishlist', 
+    '/message', 
+    '/wallet',
+    '/admin',
+    '/seller'
+];
+
+const authPaths = ['/', '/signup', '/forgot-password', '/verify-email', '/seller/register'];
 
 export function AuthRedirector() {
-  const { user, userData, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (loading) {
-      return;
-    }
-    
-    const openPaths = ['/signup', '/seller/register', '/forgot-password', '/verify-email', '/live-selling'];
-    if (openPaths.some(p => pathname.startsWith(p))) {
-        return;
+      return; // Wait until the auth state is fully loaded
     }
 
-    if (user && userData) {
-      const { role, verificationStatus } = userData;
+    const isAuthPath = authPaths.includes(pathname);
+    const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
 
-      if (role === 'admin') {
-        if (!pathname.startsWith('/admin')) {
-          router.replace('/admin/dashboard');
-        }
-      } else if (role === 'seller') {
-        if (verificationStatus === 'verified') {
-          if (!pathname.startsWith('/seller/dashboard') && !pathname.startsWith('/seller/products') && !pathname.startsWith('/seller/orders')) {
-            router.replace('/seller/dashboard');
-          }
-        } else {
-          if (!pathname.startsWith('/seller/verification')) {
-            router.replace('/seller/verification');
-          }
-        }
-      } else { // Customer
-        if (pathname === '/') {
-             router.replace('/live-selling');
-        }
+    if (user) {
+      // If user is logged in and on an auth page, redirect them to the main app page
+      if (isAuthPath) {
+        router.replace('/live-selling');
       }
-    } else if (!user) {
-      const protectedPaths = ['/admin', '/seller', '/profile', '/cart', '/orders', '/wishlist', '/message', '/wallet'];
-      if (protectedPaths.some(p => pathname.startsWith(p))) {
+    } else {
+      // If user is not logged in and tries to access a protected page, redirect to login
+      if (isProtectedPath) {
         router.replace('/');
       }
     }
-  }, [user, userData, loading, router, pathname]);
+  }, [user, loading, router, pathname]);
+
+  // While loading, we can show a global spinner or nothing
+  if (loading && protectedPaths.some(p => pathname.startsWith(p))) {
+    return (
+        <div className="w-full h-screen flex items-center justify-center">
+            <LoadingSpinner />
+        </div>
+    );
+  }
 
   return null;
 }

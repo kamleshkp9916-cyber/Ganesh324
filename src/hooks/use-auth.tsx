@@ -27,36 +27,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      if (!firebaseUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const data = await getUserData(firebaseUser.uid, firebaseUser);
+        setUserData(data);
+      } else {
+        setUser(null);
         setUserData(null);
-        setLoading(false);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-      if (user) {
-        // Delay fetching user data slightly to ensure Firestore client is online.
-        const timer = setTimeout(() => {
-            getUserData(user.uid, user).then(data => {
-                setUserData(data);
-            }).catch(error => {
-                console.error("Failed to fetch user data:", error);
-            }).finally(() => {
-                setLoading(false);
-            });
-        }, 150); // A small delay is often sufficient.
-        return () => clearTimeout(timer);
-      }
-  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
-      {loading ? <div className="w-full h-screen flex items-center justify-center"><LoadingSpinner /></div> : children}
+      {children}
     </AuthContext.Provider>
   );
 }

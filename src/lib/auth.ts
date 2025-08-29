@@ -5,7 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPa
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserData } from "./follow-data";
+import { createUserData, updateUserData } from "./follow-data";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -55,7 +55,8 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            // The AuthProvider's onAuthStateChanged will handle the rest
              toast({
                 title: "Signed In!",
                 description: "Welcome back!",
@@ -87,6 +88,7 @@ export function useAuthActions() {
                     title: "Logged In!",
                     description: "Welcome back!",
                 });
+                // AuthRedirector will handle the navigation
             }
         } catch (error: any) {
              let errorMessage = "An unknown error occurred.";
@@ -113,7 +115,7 @@ export function useAuthActions() {
         }
     };
 
-    const handleEmailSignUp = async (values: any) => {
+    const handleCustomerSignUp = async (values: any) => {
          const auth = getFirebaseAuth();
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
@@ -156,8 +158,62 @@ export function useAuthActions() {
                 description: errorMessage,
                 variant: "destructive",
             });
+            throw error; // Re-throw the error so the form can handle its loading state
+        }
+    };
+    
+    const handleSellerSignUp = async (values: any) => {
+        const auth = getFirebaseAuth();
+        // If user is already logged in, we update their role. Otherwise, we create a new user.
+        if (auth.currentUser) {
+            await updateUserData(auth.currentUser.uid, {
+                role: 'seller',
+                verificationStatus: 'pending',
+                ...values,
+            });
+            toast({
+                title: "Registration Submitted!",
+                description: "Your seller application is now under review.",
+            });
+            router.push('/seller/verification');
+
+        } else {
+             try {
+                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                const user = userCredential.user;
+                
+                await createUserData(user, 'seller', {
+                    ...values,
+                    verificationStatus: 'pending',
+                });
+                
+                await sendEmailVerification(user);
+                
+                toast({
+                    title: "Account Created!",
+                    description: "Your seller application is submitted. Please verify your email.",
+                });
+                
+                router.push('/seller/verification');
+
+             } catch (error: any) {
+                 let errorMessage = "An unknown error occurred.";
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = "This email address is already in use by another account. Please log in first.";
+                        break;
+                    default:
+                        errorMessage = "Failed to create account. Please try again.";
+                }
+                toast({
+                    title: "Sign Up Failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                });
+                throw error;
+             }
         }
     };
 
-    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleEmailSignUp };
+    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp };
 }

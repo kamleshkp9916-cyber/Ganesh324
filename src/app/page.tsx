@@ -8,8 +8,10 @@ import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth.tsx';
 
 export default function Home() {
+  const { loading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ export default function Home() {
 
   // Show a loading spinner until the component is mounted on the client
   // The AuthRedirector will handle moving away from this page if the user is already logged in.
-  if (!isMounted) {
+  if (!isMounted || loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />

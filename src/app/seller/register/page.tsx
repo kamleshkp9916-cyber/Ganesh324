@@ -20,7 +20,6 @@ import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
-import { updateUserData } from "@/lib/follow-data";
 import { useAuthActions } from "@/lib/auth";
 
 
@@ -47,11 +46,10 @@ const sellerFormSchema = z.object({
     path: ["confirmPassword"],
 });
 
-type SellerDetails = z.infer<typeof sellerFormSchema> & { verificationStatus: string; rejectionReason?: string; resubmissionReason?: string };
 
 export default function SellerRegisterPage() {
-    const { user, loading: authLoading } = useAuth();
-    const { handleEmailSignUp } = useAuthActions();
+    const { user, userData, loading: authLoading } = useAuth();
+    const { handleSellerSignUp } = useAuthActions();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -61,7 +59,6 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [sellerDetails, setSellerDetails] = useState<SellerDetails | null>(null);
     const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
@@ -83,48 +80,38 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (authLoading) return; // Wait until auth state is confirmed
+        if (authLoading) return;
 
-        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-
-        if (user && sellerDetailsRaw) {
-            const details = JSON.parse(sellerDetailsRaw);
-            // Ensure the details belong to the logged-in user
-            if (details.email === user.email) {
-                setSellerDetails(details);
-                
-                if (details.verificationStatus === 'verified') {
+        if (user && userData) {
+            if (userData.role === 'seller') {
+                if (userData.verificationStatus === 'verified') {
                     setPageStatus('redirecting');
                     router.replace('/seller/dashboard');
-                } else if (details.verificationStatus === 'pending') {
+                } else if (userData.verificationStatus === 'pending') {
                     setPageStatus('redirecting');
                     router.replace('/seller/verification');
-                } else if (details.verificationStatus === 'rejected') {
+                } else if (userData.verificationStatus === 'rejected') {
                     setPageStatus('rejected');
-                } else if (details.verificationStatus === 'needs-resubmission') {
-                    form.reset(details);
-                    if(details.aadhar?.length === 12) setIsAadharEntered(true);
+                } else if (userData.verificationStatus === 'needs-resubmission') {
+                    form.reset(userData as any);
+                    if((userData as any).aadhar?.length === 12) setIsAadharEntered(true);
                     setPageStatus('form');
-                } else {
-                     setPageStatus('form');
                 }
-                return;
+            } else {
+                 // Logged in as a customer, but trying to register as seller.
+                 // Pre-fill what we can.
+                form.setValue('email', user.email || '');
+                const nameParts = user.displayName?.split(' ') || ['', ''];
+                form.setValue('firstName', nameParts[0]);
+                form.setValue('lastName', nameParts.slice(1).join(' '));
+                setPageStatus('form');
             }
+        } else {
+            // No user logged in
+            setPageStatus('form');
         }
-        
-        // If no user or details don't match, just show the form.
-        setPageStatus('form');
+    }, [router, form, authLoading, user, userData]);
 
-    }, [router, form, authLoading, user]);
-
-    useEffect(() => {
-        if(user) {
-            form.setValue('email', user.email || '');
-            const nameParts = user.displayName?.split(' ') || ['', ''];
-            form.setValue('firstName', nameParts[0]);
-            form.setValue('lastName', nameParts.slice(1).join(' '));
-        }
-    }, [user, form]);
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -157,32 +144,14 @@ export default function SellerRegisterPage() {
 
     async function onSubmit(values: z.infer<typeof sellerFormSchema>) {
         setIsLoading(true);
-        
         try {
-            await handleEmailSignUp(values);
-
-             const sellerData = {
-                ...values,
-                name: `${values.firstName} ${values.lastName}`,
-                verificationStatus: 'pending'
-            };
-            delete (sellerData as any).password;
-            delete (sellerData as any).confirmPassword;
-
-            // Store in a pending list for admin to review
-            const pendingSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
-            pendingSellers.push(sellerData);
-            localStorage.setItem('pendingSellers', JSON.stringify(pendingSellers));
-            
-            // Also save to their own key in case they come back to this page
-            localStorage.setItem('sellerDetails', JSON.stringify(sellerData));
-            
-            router.push('/seller/verification');
+            await handleSellerSignUp(values);
+            // The AuthRedirector or seller/verification page will handle the redirect.
         } catch (error: any) {
-            toast({
+             toast({
                 variant: "destructive",
                 title: "Registration Failed",
-                description: error.message,
+                description: error.message || "An unknown error occurred.",
             });
         } finally {
             setIsLoading(false);
@@ -211,7 +180,7 @@ export default function SellerRegisterPage() {
                     <AlertTitle className="text-xl font-bold">Application Rejected</AlertTitle>
                     <AlertDescription>
                        We're sorry, but your application to become a seller has been rejected. 
-                       {sellerDetails?.rejectionReason && `Reason: ${sellerDetails.rejectionReason}`}
+                       {userData?.rejectionReason && `Reason: ${userData.rejectionReason}`}
                        <br/>
                        Please contact support for more information.
                     </AlertDescription>
@@ -236,13 +205,13 @@ export default function SellerRegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {sellerDetails?.verificationStatus === 'needs-resubmission' && (
+            {userData?.verificationStatus === 'needs-resubmission' && (
                  <Alert variant="destructive" className="mb-6">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Action Required</AlertTitle>
                     <AlertDescription>
                       There was an issue with your previous submission. Please review your details and re-submit.
-                      {sellerDetails?.resubmissionReason && <p className="mt-2"><strong>Reason:</strong> {sellerDetails.resubmissionReason}</p>}
+                      {(userData as any).resubmissionReason && <p className="mt-2"><strong>Reason:</strong> {(userData as any).resubmissionReason}</p>}
                     </AlertDescription>
                 </Alert>
             )}
@@ -317,34 +286,36 @@ export default function SellerRegisterPage() {
                         )}
                     />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Create Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                                <Input type="password" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                 </div>
+                {!user && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Create Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
 
 
                 <h3 className="text-lg font-medium pt-4 border-t">Business Details</h3>
@@ -521,5 +492,3 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
-
-    

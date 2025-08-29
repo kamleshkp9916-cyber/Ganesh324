@@ -7,42 +7,42 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, XCircle, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useAuth } from "@/hooks/use-auth.tsx";
 
 type VerificationStatus = 'loading' | 'pending' | 'rejected' | 'needs-resubmission' | 'verified' | 'no-details';
 
 export default function SellerVerificationPage() {
+    const { userData, loading } = useAuth();
     const router = useRouter();
     const [status, setStatus] = useState<VerificationStatus>('loading');
     const [rejectionReason, setRejectionReason] = useState<string | null>(null);
     const [resubmissionReason, setResubmissionReason] = useState<string | null>(null);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const sellerDetails = JSON.parse(sellerDetailsRaw);
-                const currentStatus = sellerDetails.verificationStatus;
-                
-                if (currentStatus === 'verified') {
-                    router.replace('/seller/dashboard');
-                    setStatus('verified');
-                    return;
-                }
-                
-                setStatus(currentStatus);
-                if (currentStatus === 'rejected') {
-                    setRejectionReason(sellerDetails.rejectionReason || "No specific reason provided.");
-                }
-                 if (currentStatus === 'needs-resubmission') {
-                    setResubmissionReason(sellerDetails.resubmissionReason || "Please review your details carefully.");
-                }
-            } else {
-                setStatus('no-details');
+        if (!loading && userData) {
+            const currentStatus = userData.verificationStatus;
+            
+            if (currentStatus === 'verified') {
+                router.replace('/seller/dashboard');
+                setStatus('verified');
+                return;
             }
+            
+            setStatus(currentStatus || 'no-details');
+            if (currentStatus === 'rejected') {
+                setRejectionReason((userData as any).rejectionReason || "No specific reason provided.");
+            }
+             if (currentStatus === 'needs-resubmission') {
+                setResubmissionReason((userData as any).resubmissionReason || "Please review your details carefully.");
+            }
+        } else if (!loading && !userData) {
+            // This might happen if user document isn't created yet or there's an issue.
+            // Redirecting to registration seems safest.
+            router.replace('/seller/register');
         }
-    }, [router]);
+    }, [userData, loading, router]);
 
-    if (status === 'loading' || status === 'verified') {
+    if (loading || status === 'loading' || status === 'verified') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -53,7 +53,7 @@ export default function SellerVerificationPage() {
     if (status === 'no-details') {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                <p>No seller details found. Redirecting...</p>
+                <p>Could not load seller details. Redirecting...</p>
                 {/* Redirecting effect */}
                 {useEffect(() => {
                     const timer = setTimeout(() => router.replace('/seller/register'), 2000);

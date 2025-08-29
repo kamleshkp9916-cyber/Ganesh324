@@ -104,37 +104,27 @@ const recentSales = [
 ]
 
 export default function SellerDashboard() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    if (typeof window !== 'undefined') {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        if (!sellerDetails) {
-            router.push('/seller/register');
-        }
+    if (!loading) {
+      if (userData?.role !== 'seller') {
+          router.replace('/');
+      } else if (userData.verificationStatus !== 'verified') {
+          router.replace('/seller/verification');
+      }
     }
-  }, [router]);
+  }, [user, userData, loading, router]);
 
-  if (!isMounted || loading) {
+
+  if (loading || !userData || userData.role !== 'seller' || userData.verificationStatus !== 'verified') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
-  }
-
-  if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view the seller dashboard.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
 
   return (

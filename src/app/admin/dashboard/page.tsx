@@ -154,27 +154,20 @@ const recentSignups = [
     { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "1 week ago" },
 ]
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
-
 
 export default function AdminDashboard() {
-  const { user, loading, setUser } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && !loading && (!user || user.email !== ADMIN_EMAIL)) {
+    if (!loading && userData?.role !== 'admin') {
       router.replace("/");
     }
-  }, [user, loading, router, isMounted]);
+  }, [user, userData, loading, router]);
 
 
-  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
+  if (loading || userData?.role !== 'admin') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
