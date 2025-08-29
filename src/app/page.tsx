@@ -9,7 +9,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getUserData } from '@/lib/follow-data';
+import { getUserData, updateUserData } from '@/lib/follow-data';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Home() {
@@ -23,17 +23,36 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && isMounted && user) {
-      // This effect handles redirection after login and should only run on the client
       const userData = getUserData(user.uid);
+
+      if (!userData.role || (userData.role === 'customer' && !userData.displayName)) {
+        const newUserSessionData = sessionStorage.getItem(`newUser_${user.uid}`);
+        if(newUserSessionData) {
+            const newUser = JSON.parse(newUserSessionData);
+            updateUserData(user.uid, newUser);
+            sessionStorage.removeItem(`newUser_${user.uid}`);
+        } else {
+            updateUserData(user.uid, {
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                role: 'customer',
+            });
+        }
+      }
       
-      if (user.email === 'samael.prajapati@example.com') {
+      const refreshedUserData = getUserData(user.uid);
+
+      if (refreshedUserData.email === 'samael.prajapati@example.com') {
         router.replace('/admin/dashboard');
-      } else if (userData.role === 'seller') {
+      } else if (refreshedUserData.role === 'seller') {
         // @ts-ignore
-        if (userData.verificationStatus === 'verified') {
+        const verificationStatus = refreshedUserData.verificationStatus;
+        if (verificationStatus === 'verified') {
           router.replace('/seller/dashboard');
         } else {
-           router.replace('/seller/verification');
+          router.replace('/seller/verification');
         }
       } else { // Default to customer
         router.replace('/live-selling');
@@ -49,7 +68,6 @@ export default function Home() {
     );
   }
 
-  // To prevent hydration errors, we avoid rendering the main content until the component is mounted.
   if (!isMounted) {
      return (
       <div className="w-full min-h-screen flex items-center justify-center">

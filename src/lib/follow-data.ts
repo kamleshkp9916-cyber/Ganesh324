@@ -18,43 +18,75 @@ export interface UserData {
     addresses: any[];
 }
 
-const initializeGlobalUserData = (): Record<string, UserData> => {
-    if (typeof window === 'undefined') return {};
-    const data = localStorage.getItem('globalUserData');
-    if (data) return JSON.parse(data);
-
-    // If no data exists, initialize with the admin user.
-    const initialAdmin: UserData = {
-        uid: 'admin_uid_placeholder', // This will be updated on first admin login
-        displayName: 'Samael Prajapati',
-        email: 'samael.prajapati@example.com',
-        photoURL: `https://placehold.co/128x128.png?text=A`,
-        role: 'admin',
-        followers: 1500,
-        following: 25,
-        bio: "Overseeing the StreamCart platform.",
-        location: "Pune, India",
-        phone: "+91 9999988888",
-        addresses: []
-    };
-
-    const initialData = { [initialAdmin.email]: initialAdmin }; // Use email as temporary key before UID is available
-    localStorage.setItem('globalUserData', JSON.stringify(initialData));
-    return initialData;
-};
-
 
 const getGlobalUserData = (): Record<string, UserData> => {
-    if (typeof window === 'undefined') return {};
-    return initializeGlobalUserData();
+    if (typeof window === 'undefined') {
+        return {};
+    }
+    const data = localStorage.getItem('globalUserData');
+    if (data) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            console.error("Failed to parse globalUserData from localStorage", e);
+            return {};
+        }
+    }
+    return {};
 };
 
 const setGlobalUserData = (data: Record<string, UserData>) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('globalUserData', JSON.stringify(data));
+    if (typeof window === 'undefined') {
+        return;
+    }
+    try {
+        localStorage.setItem('globalUserData', JSON.stringify(data));
+    } catch (e) {
+        console.error("Failed to set globalUserData in localStorage", e);
+    }
 };
 
+const initializeAdminUserIfNeeded = () => {
+    const allUsers = getGlobalUserData();
+    const adminExists = Object.values(allUsers).some(u => u.role === 'admin');
+
+    if (!adminExists) {
+        const initialAdmin: UserData = {
+            uid: 'admin_uid_placeholder',
+            displayName: 'Samael Prajapati',
+            email: 'samael.prajapati@example.com',
+            photoURL: `https://placehold.co/128x128.png?text=A`,
+            role: 'admin',
+            followers: 1500,
+            following: 25,
+            bio: "Overseeing the StreamCart platform.",
+            location: "Pune, India",
+            phone: "+91 9999988888",
+            addresses: []
+        };
+        allUsers[initialAdmin.email] = initialAdmin; // Use email as a temporary key
+        setGlobalUserData(allUsers);
+    }
+}
+
+
 export const getUserData = (uid: string, defaults?: Partial<UserData>): UserData => {
+    if (typeof window === 'undefined') {
+        return {
+            uid: uid,
+            displayName: defaults?.displayName || 'New User',
+            email: defaults?.email || '',
+            photoURL: defaults?.photoURL || '',
+            role: 'customer',
+            followers: 0,
+            following: 0,
+            bio: "",
+            location: "",
+            phone: "",
+            addresses: []
+        };
+    }
+    initializeAdminUserIfNeeded();
     const allUsers = getGlobalUserData();
     
     // Find user by UID
@@ -67,9 +99,6 @@ export const getUserData = (uid: string, defaults?: Partial<UserData>): UserData
         if (adminUser) return adminUser;
     }
     
-    // If no user is found, it means they are new or data is missing.
-    // The creation/update should be handled by `updateUserData`.
-    // Returning a default customer profile to avoid errors.
     return {
         uid,
         displayName: defaults?.displayName || 'New User',
@@ -86,22 +115,19 @@ export const getUserData = (uid: string, defaults?: Partial<UserData>): UserData
 };
 
 export const updateUserData = (uid: string, updates: Partial<UserData>) => {
-    const allUsers = getGlobalUserData();
+    if (typeof window === 'undefined') return;
     
-    // The primary key for our mock db is the UID.
+    const allUsers = getGlobalUserData();
     const keyToUpdate = uid;
     
     const existingData = allUsers[keyToUpdate] || {};
-
     const finalData = { ...existingData, ...updates, uid: uid };
 
-    // Don't downgrade a seller to a customer on google sign-in
     if(existingData.role === 'seller' && updates.role === 'customer') {
         finalData.role = 'seller';
     }
     
     allUsers[keyToUpdate] = finalData
-    
     setGlobalUserData(allUsers);
 };
 
@@ -109,7 +135,6 @@ export const updateUserData = (uid: string, updates: Partial<UserData>) => {
 export const toggleFollow = (currentUserId: string, targetUserId: string) => {
     if (typeof window === 'undefined') return;
 
-    // --- Manage Current User's Following List ---
     const followingKey = `following_${currentUserId}`;
     let followingList: string[] = JSON.parse(localStorage.getItem(followingKey) || '[]');
     const isCurrentlyFollowing = followingList.includes(targetUserId);
@@ -118,12 +143,10 @@ export const toggleFollow = (currentUserId: string, targetUserId: string) => {
     let targetUser = getUserData(targetUserId);
 
     if (isCurrentlyFollowing) {
-        // Unfollow
         followingList = followingList.filter(id => id !== targetUserId);
         currentUser.following = Math.max(0, (currentUser.following || 0) - 1);
         targetUser.followers = Math.max(0, (targetUser.followers || 0) - 1);
     } else {
-        // Follow
         followingList.push(targetUserId);
         currentUser.following = (currentUser.following || 0) + 1;
         targetUser.followers = (targetUser.followers || 0) + 1;
@@ -133,7 +156,6 @@ export const toggleFollow = (currentUserId: string, targetUserId: string) => {
     updateUserData(currentUserId, { following: currentUser.following });
     updateUserData(targetUserId, { followers: targetUser.followers });
     
-    // Dispatch a storage event to notify other components/tabs
     window.dispatchEvent(new StorageEvent('storage', { key: 'globalUserData' }));
 };
 

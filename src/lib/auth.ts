@@ -5,8 +5,8 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, create
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { getUserData, updateUserData } from "./follow-data";
 import { useAuth } from "@/hooks/use-auth.tsx";
+import { updateUserData } from "./follow-data";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
@@ -19,25 +19,12 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            const existingData = getUserData(user.uid);
-            const isNewUser = !existingData.role;
-
-            updateUserData(user.uid, {
-                uid: user.uid,
-                displayName: user.displayName || 'Google User',
-                email: user.email || '',
-                photoURL: user.photoURL || '',
-                role: isNewUser ? role : existingData.role
-            });
-            
+            await signInWithPopup(auth, provider);
              toast({
                 title: "Logged In!",
                 description: "Welcome back!",
             });
-
+            // Redirection and user data creation is now handled in src/app/page.tsx
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
             toast({
@@ -57,13 +44,8 @@ export function useAuthActions() {
             
             await updateProfile(user, { displayName: displayName });
 
-            updateUserData(user.uid, {
-                ...values,
-                uid: user.uid,
-                displayName: displayName,
-                role: role,
-                photoURL: ''
-            });
+            // Do not call updateUserData here as it accesses localStorage and causes server errors
+            // The creation logic is now handled client-side in src/app/page.tsx's useEffect
 
             await sendEmailVerification(user);
             
@@ -74,6 +56,11 @@ export function useAuthActions() {
             if (!skipRedirect) {
                 router.push('/verify-email');
             }
+             // Store temporary data for the client-side to pick up
+            if(typeof window !== 'undefined') {
+                sessionStorage.setItem(`newUser_${user.uid}`, JSON.stringify({ ...values, role, uid: user.uid, displayName }));
+            }
+
         } catch (error: any) {
             console.error("Error signing up: ", error);
             let errorMessage = "An unknown error occurred.";
@@ -129,6 +116,7 @@ export function useAuthActions() {
             sessionStorage.setItem('mockAdminUser', JSON.stringify(mockAdminUser));
             setUser(mockAdminUser); // Update auth context
             toast({ title: "Logged In!", description: "Welcome, Admin!" });
+            router.replace('/admin/dashboard'); 
             return;
         }
         
@@ -151,7 +139,7 @@ export function useAuthActions() {
                 title: "Logged In!",
                 description: "Welcome back!",
             });
-
+            // Redirection is handled in src/app/page.tsx after user state is confirmed
         } catch (error: any) {
              console.error("Error signing in: ", error);
              let errorMessage = "An unknown error occurred.";
