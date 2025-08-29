@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth.tsx';
 import { TopLoader } from '@/components/top-loader';
 import React from 'react';
+import { AuthRedirector } from '@/components/auth-redirector';
 
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
@@ -36,6 +37,7 @@ export default function RootLayout({
             disableTransitionOnChange
         >
             <AuthProvider>
+                <AuthRedirector />
                 <React.Suspense fallback={<TopLoader />}>
                     {children}
                 </React.Suspense>
