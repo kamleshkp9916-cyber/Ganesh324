@@ -56,21 +56,12 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            const additionalInfo = getAdditionalUserInfo(result);
-            
-            if (additionalInfo?.isNewUser) {
-                 await createUserData(result.user, 'customer');
-                 toast({
-                    title: "Account Created!",
-                    description: "Welcome to StreamCart!",
-                });
-            } else {
-                toast({
-                    title: "Signed In!",
-                    description: "Welcome back!",
-                });
-            }
+            await signInWithPopup(auth, provider);
+            // The AuthProvider's onAuthStateChanged will now handle user creation
+            toast({
+                title: "Signed In!",
+                description: "Welcome!",
+            });
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
             toast({

@@ -1,10 +1,11 @@
 
+
 "use client";
 
 import { useEffect, useState, createContext, useContext, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { getUserData, UserData } from '@/lib/follow-data';
+import { createUserData, getUserData, UserData } from '@/lib/follow-data';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AuthContextType {
@@ -28,9 +29,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
       if (firebaseUser) {
         setUser(firebaseUser);
-        const data = await getUserData(firebaseUser.uid, firebaseUser);
+        let data = await getUserData(firebaseUser.uid);
+        if (!data) {
+          // This is a new user, create their document
+          await createUserData(firebaseUser, 'customer');
+          data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
+        }
         setUserData(data);
       } else {
         setUser(null);
