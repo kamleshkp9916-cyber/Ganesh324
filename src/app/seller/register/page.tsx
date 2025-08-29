@@ -514,3 +514,4 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
+
