@@ -27,8 +27,8 @@ export function useAuthActions() {
         if (user.email === ADMIN_EMAIL) {
              sessionStorage.setItem('mockAdminUser', JSON.stringify(user));
              setUser(user);
-             router.push('/admin/dashboard');
              toast({ title: "Logged In!", description: "Welcome, Admin!" });
+             router.push('/admin/dashboard');
              return;
         }
         

@@ -165,14 +165,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    // This is a workaround for the mock admin user.
-    if (!loading && !user) {
-        const potentialAdmin = sessionStorage.getItem('mockAdminUser');
-        if (potentialAdmin) {
-            setUser(JSON.parse(potentialAdmin));
-        }
-    }
-  }, [loading, user, setUser]);
+  }, []);
 
   if (!isMounted || loading) {
     return (

@@ -25,30 +25,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
     
+    // Check for a mock admin user in sessionStorage on initial load
+    const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
+    if (mockAdminUserRaw) {
+        try {
+            const adminUser = JSON.parse(mockAdminUserRaw);
+            setUser(adminUser);
+            setLoading(false);
+            return; // Don't attach firebase listener if admin is logged in
+        } catch (e) {
+            console.error("Failed to parse mock admin user from sessionStorage", e);
+        }
+    }
+
     // The onAuthStateChanged listener will handle Firebase user state
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        // Check for a mock admin user in sessionStorage
-        const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
-        let finalUser = firebaseUser;
-
-        if (mockAdminUserRaw) {
-            try {
-                finalUser = JSON.parse(mockAdminUserRaw); // Prioritize admin session
-            } catch (e) {
-                 console.error("Failed to parse mock admin user from sessionStorage", e);
-            }
-        }
-        
-        if (finalUser) {
+        if (firebaseUser) {
             // Sync with our mock user database
-            const userData = getUserData(finalUser.uid, {
-                displayName: finalUser.displayName || 'New User',
-                email: finalUser.email || '',
-                photoURL: finalUser.photoURL || '',
+            const userData = getUserData(firebaseUser.uid, {
+                displayName: firebaseUser.displayName || 'New User',
+                email: firebaseUser.email || '',
+                photoURL: firebaseUser.photoURL || '',
             });
 
             // Augment the firebase user object with our role data
-            const augmentedUser = { ...finalUser, ...userData };
+            const augmentedUser = { ...firebaseUser, ...userData };
             setUser(augmentedUser as User);
 
         } else {
