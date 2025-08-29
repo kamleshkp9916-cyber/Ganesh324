@@ -35,7 +35,7 @@ export default function Home() {
           } else if (userData.verificationStatus === 'pending' || userData.verificationStatus === 'needs-resubmission') {
             router.replace('/seller/verification');
           } else {
-              router.replace('/seller/login');
+              router.replace('/seller/register');
           }
         } else {
           router.replace('/live-selling');
