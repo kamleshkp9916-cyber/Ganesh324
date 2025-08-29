@@ -167,23 +167,19 @@ export default function AdminDashboard() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || loading) {
+  useEffect(() => {
+    if (!loading && (!user || user.email !== ADMIN_EMAIL)) {
+      router.replace("/");
+    }
+  }, [user, loading, router]);
+
+
+  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
-  }
-
-  // Check if the user is logged in AND is the designated admin.
-  if (!user || user.email !== ADMIN_EMAIL) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">You do not have permission to view this page.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
 
   const handleAdminSignOut = () => {

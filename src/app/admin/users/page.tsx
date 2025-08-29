@@ -279,34 +279,29 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-        const storedSellers = localStorage.getItem('pendingSellers');
-        if (storedSellers) {
-            setPendingSellers(JSON.parse(storedSellers));
-        }
+    if (!loading) {
+      if (user?.email !== ADMIN_EMAIL) {
+        router.replace('/');
+      } else {
+          const storedSellers = localStorage.getItem('pendingSellers');
+          if (storedSellers) {
+              setPendingSellers(JSON.parse(storedSellers));
+          }
 
-        const globalUserData = JSON.parse(localStorage.getItem('globalUserData') || '{}');
-        const usersArray = Object.values(globalUserData);
-        setAllUsersState(usersArray);
+          const globalUserData = JSON.parse(localStorage.getItem('globalUserData') || '{}');
+          const usersArray = Object.values(globalUserData);
+          setAllUsersState(usersArray);
+      }
     }
-  }, []);
+  }, [user, loading, router]);
 
-  if (!isMounted || loading) {
+
+  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
-  }
-
-  if (!user || user.email !== ADMIN_EMAIL) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">You do not have permission to view this page.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
   
   const handleUserRowClick = (userEmail: string) => {
@@ -556,5 +551,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    

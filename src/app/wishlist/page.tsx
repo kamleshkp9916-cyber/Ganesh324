@@ -41,10 +41,17 @@ export default function WishlistPage() {
 
   useEffect(() => {
     setIsClient(true);
-    if (user) {
+  }, []);
+
+  useEffect(() => {
+    if (!loading && isClient) {
+      if (user) {
         setWishlistItems(getWishlist());
+      } else {
+        router.replace('/');
+      }
     }
-  }, [user]);
+  }, [user, loading, isClient, router]);
 
   const handleRemoveFromWishlist = (e: React.MouseEvent, productId: number) => {
     e.preventDefault();
@@ -57,22 +64,12 @@ export default function WishlistPage() {
     });
   };
   
-   if (loading || !isClient) {
+   if (loading || !isClient || !user) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
-  }
-
-  if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your wishlist.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
 
   return (

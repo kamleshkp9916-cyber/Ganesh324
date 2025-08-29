@@ -105,10 +105,14 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (!loading && user?.email === ADMIN_EMAIL) {
+    if (!loading) {
+      if (user?.email === ADMIN_EMAIL) {
         setOrders(getFullMockOrders());
+      } else {
+        router.replace('/');
+      }
     }
-  }, [loading, user]);
+  }, [loading, user, router]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
@@ -118,18 +122,8 @@ export default function AdminOrdersPage() {
     );
   }, [orders, searchTerm]);
 
-  if (!isMounted || loading) {
+  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
-  }
-
-  if (!user || user.email !== ADMIN_EMAIL) {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-            <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-            <p className="text-muted-foreground mb-6">You do not have permission to view this page.</p>
-            <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
   
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {

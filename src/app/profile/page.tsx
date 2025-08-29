@@ -37,37 +37,38 @@ export default function ProfilePage() {
   const isOwnProfile = !userId || (user && user.uid === userId);
 
   useEffect(() => {
-    // Determine whose profile to load
-    const targetId = isOwnProfile ? user?.uid : userId;
-    
-    if (targetId) {
-        // Get the full user object from our mock data store
-        // Pass initial details from auth state if available, especially for new users
-        // Explicitly set the role to 'customer' for a new customer profile.
-        const fetchedData = getUserData(targetId, {
-             displayName: isOwnProfile ? user?.displayName : undefined,
-             email: isOwnProfile ? user?.email : undefined,
-             photoURL: isOwnProfile ? user?.photoURL : undefined,
-             role: 'customer' // Default to customer, seller profile will override this
-        });
+    if (!loading) {
+      if (isOwnProfile && !user) {
+        router.replace('/');
+        return;
+      }
 
-        // If it's the logged-in user's own profile, ensure the data is fresh from the auth state
-        if (isOwnProfile && user) {
-             const finalData = {
-                ...fetchedData,
-                uid: user.uid,
-                displayName: user.displayName || 'Unnamed User',
-                email: user.email || 'no-email@example.com',
-                photoURL: user.photoURL || '',
-             };
-             setProfileData(finalData);
-             updateUserData(user.uid, finalData); // Keep our mock DB in sync
-        } else {
-            // For viewing other profiles
-            setProfileData(fetchedData);
-        }
+      const targetId = isOwnProfile ? user?.uid : userId;
+      
+      if (targetId) {
+          const fetchedData = getUserData(targetId, {
+              displayName: isOwnProfile ? user?.displayName : undefined,
+              email: isOwnProfile ? user?.email : undefined,
+              photoURL: isOwnProfile ? user?.photoURL : undefined,
+              role: 'customer'
+          });
+
+          if (isOwnProfile && user) {
+              const finalData = {
+                  ...fetchedData,
+                  uid: user.uid,
+                  displayName: user.displayName || 'Unnamed User',
+                  email: user.email || 'no-email@example.com',
+                  photoURL: user.photoURL || '',
+              };
+              setProfileData(finalData);
+              updateUserData(user.uid, finalData);
+          } else {
+              setProfileData(fetchedData);
+          }
+      }
     }
-  }, [user, userId, isOwnProfile, key]);
+  }, [user, userId, isOwnProfile, loading, router, key]);
 
 
   const handleProfileSave = (data: any) => {
@@ -95,7 +96,6 @@ export default function ProfilePage() {
   }
   
   const onFollowToggle = () => {
-    // Force a re-render of the component to get fresh data
     setKey(prev => prev + 1);
   };
 
@@ -106,16 +106,6 @@ export default function ProfilePage() {
               <LoadingSpinner />
           </div>
       )
-  }
-
-  if (!user && isOwnProfile) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to your account to view your profile.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
 
   return (

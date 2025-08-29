@@ -61,22 +61,29 @@ export default function CartPage() {
 
   useEffect(() => {
     setIsClient(true);
-    if (user) {
-      if (isBuyNow && buyNowProductId) {
-        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
-        if (productData) {
-          const buyNowItem: CartProduct = {
-            ...productData,
-            quantity: 1,
-            imageUrl: productData.images[0]
-          };
-          setCartItems([buyNowItem]);
-        }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && isClient) {
+      if (!user) {
+        router.replace("/");
       } else {
-        setCartItems(getCart());
+        if (isBuyNow && buyNowProductId) {
+          const productData = productDetails[buyNowProductId as keyof typeof productDetails];
+          if (productData) {
+            const buyNowItem: CartProduct = {
+              ...productData,
+              quantity: 1,
+              imageUrl: productData.images[0]
+            };
+            setCartItems([buyNowItem]);
+          }
+        } else {
+          setCartItems(getCart());
+        }
       }
     }
-  }, [user, isBuyNow, buyNowProductId]);
+  }, [user, isBuyNow, buyNowProductId, loading, isClient, router]);
 
   const handleRemoveFromCart = (productId: number) => {
     removeFromCart(productId);
@@ -160,22 +167,12 @@ export default function CartPage() {
   };
 
 
-   if (loading || !isClient) {
+   if (loading || !isClient || !user) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
-  }
-
-  if (!user) {
-    return (
-         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-             <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-             <p className="text-muted-foreground mb-6">Please log in to view your cart.</p>
-             <Button onClick={() => router.push('/')}>Go to Login</Button>
-        </div>
-    );
   }
 
   return (
