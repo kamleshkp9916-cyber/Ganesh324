@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment } from "firebase/firestore";
@@ -34,7 +35,7 @@ const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserDat
     addresses: []
 });
 
-export const getUserData = async (uid: string, defaults?: Partial<User>): Promise<UserData | null> => {
+export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
     try {
         const db = getFirestoreDb();
@@ -44,12 +45,7 @@ export const getUserData = async (uid: string, defaults?: Partial<User>): Promis
         if (userDoc.exists()) {
             return userDoc.data() as UserData;
         } else {
-            if (defaults) {
-                // If user doesn't exist, create them with defaults (e.g., on first sign-in)
-                const newUser = defaultUserData(uid, defaults);
-                await setDoc(userDocRef, newUser);
-                return newUser as UserData;
-            }
+            console.warn(`No user document found for UID: ${uid}`);
             return null;
         }
     } catch (error) {

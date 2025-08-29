@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -56,11 +57,20 @@ export function useAuthActions() {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            // The AuthProvider's onAuthStateChanged will handle the rest
-             toast({
-                title: "Signed In!",
-                description: "Welcome back!",
-            });
+            const additionalInfo = getAdditionalUserInfo(result);
+            
+            if (additionalInfo?.isNewUser) {
+                 await createUserData(result.user, 'customer');
+                 toast({
+                    title: "Account Created!",
+                    description: "Welcome to StreamCart!",
+                });
+            } else {
+                toast({
+                    title: "Signed In!",
+                    description: "Welcome back!",
+                });
+            }
         } catch (error: any) {
             console.error("Error signing in with Google: ", error);
             toast({
