@@ -37,7 +37,6 @@ export function OtpForm({ onVerifySuccess }: OtpFormProps) {
   const email = searchParams.get('email');
   const { toast } = useToast();
 
-  const [otpValue, setOtpValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -67,14 +66,15 @@ export function OtpForm({ onVerifySuccess }: OtpFormProps) {
     setResendCooldown(RESEND_COOLDOWN);
   };
   
-  const handleVerify = async () => {
-    if (otpValue !== '123456') { // Mock OTP check
+  const handleVerify = async (pin: string) => {
+    if (pin !== '123456') { // Mock OTP check
       setAttempts(attempts + 1);
       if (attempts >= MAX_ATTEMPTS - 1) {
         toast({ variant: "destructive", title: "Too Many Attempts", description: "Please try again later." });
       } else {
         toast({ variant: "destructive", title: "Invalid OTP", description: `Please try again. ${MAX_ATTEMPTS - attempts - 1} attempts remaining.` });
       }
+      form.reset();
       return;
     }
     
@@ -87,58 +87,55 @@ export function OtpForm({ onVerifySuccess }: OtpFormProps) {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleVerify)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="pin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>One-Time Password</FormLabel>
-              <FormControl>
-                <InputOTP
-                  maxLength={6}
-                  {...field}
-                  onComplete={handleVerify}
-                  onChange={(value) => {
-                    field.onChange(value);
-                    setOtpValue(value);
-                  }}
-                  disabled={isLoading || isVerified}
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="flex flex-col items-center gap-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit((data) => handleVerify(data.pin))} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="pin"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>One-Time Password</FormLabel>
+                <FormControl>
+                  <InputOTP
+                    maxLength={6}
+                    {...field}
+                    onComplete={(pin) => handleVerify(pin)}
+                    disabled={isLoading || isVerified}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button 
-            type="button" 
-            onClick={handleVerify} 
-            className="w-full" 
-            disabled={otpValue.length !== 6 || isLoading || isVerified || attempts >= MAX_ATTEMPTS}
-        >
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : isVerified ? (
-            <CheckCircle className="mr-2 h-4 w-4" />
-          ) : null}
-          {isVerified ? "Verified!" : "Verify Account"}
-        </Button>
-      </form>
-       <div className="mt-4 text-center text-sm">
+          <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={form.watch('pin').length !== 6 || isLoading || isVerified || attempts >= MAX_ATTEMPTS}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : isVerified ? (
+              <CheckCircle className="mr-2 h-4 w-4" />
+            ) : null}
+            {isVerified ? "Verified!" : "Verify Account"}
+          </Button>
+        </form>
+      </Form>
+      <div className="text-center text-sm">
           Didn't receive a code?{" "}
           <Button
             variant="link"
@@ -148,7 +145,7 @@ export function OtpForm({ onVerifySuccess }: OtpFormProps) {
           >
             {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend"}
           </Button>
-        </div>
-    </Form>
+      </div>
+    </div>
   )
 }
