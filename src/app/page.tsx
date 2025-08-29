@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -9,7 +8,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getUserData, updateUserData } from '@/lib/follow-data';
+import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Home() {
@@ -23,38 +22,42 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && isMounted && user) {
+      // Once auth is loaded and we're on the client, check user data
       const userData = getUserData(user.uid);
 
-      if (!userData.role || (userData.role === 'customer' && !userData.displayName)) {
-        const newUserSessionData = sessionStorage.getItem(`newUser_${user.uid}`);
-        if(newUserSessionData) {
-            const newUser = JSON.parse(newUserSessionData);
-            updateUserData(user.uid, newUser);
-            sessionStorage.removeItem(`newUser_${user.uid}`);
-        } else {
-            updateUserData(user.uid, {
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                role: 'customer',
-            });
-        }
+      // If it's a new user, their data might not be in localStorage yet.
+      // We check for a session storage item created during signup.
+      const newUserSessionData = sessionStorage.getItem(`newUser_${user.uid}`);
+      if (newUserSessionData) {
+          const newUser = JSON.parse(newUserSessionData);
+          updateUserData(user.uid, newUser);
+          sessionStorage.removeItem(`newUser_${user.uid}`);
       }
-      
-      const refreshedUserData = getUserData(user.uid);
 
-      if (refreshedUserData.email === 'samael.prajapati@example.com') {
+      // Now, get the potentially updated user data.
+      const finalUserData = getUserData(user.uid, { 
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          role: 'customer' // Default to customer if no role is set
+      });
+
+      // Ensure the latest data is also stored
+      updateUserData(user.uid, finalUserData);
+
+      // Perform redirection based on the final user role and status
+      if (finalUserData.role === 'admin') {
         router.replace('/admin/dashboard');
-      } else if (refreshedUserData.role === 'seller') {
+      } else if (finalUserData.role === 'seller') {
+        const sellerDetails = JSON.parse(localStorage.getItem('sellerDetails') || '{}');
         // @ts-ignore
-        const verificationStatus = refreshedUserData.verificationStatus;
-        if (verificationStatus === 'verified') {
+        if (sellerDetails.verificationStatus === 'verified') {
           router.replace('/seller/dashboard');
         } else {
           router.replace('/seller/verification');
         }
-      } else { // Default to customer
+      } else { // Default role is 'customer'
         router.replace('/live-selling');
       }
     }
