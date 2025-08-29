@@ -15,34 +15,31 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  // This useEffect was causing the incorrect redirection for the admin.
-  // The redirection logic is now fully handled within the `useAuthActions` hook.
-  // By removing this, we ensure the correct redirection path is followed for each user role.
   useEffect(() => {
     if (!loading && user) {
-        const mockAdminUser = sessionStorage.getItem('mockAdminUser');
-        if (mockAdminUser) {
-            router.replace('/admin/dashboard');
-            return;
-        }
+      // Logic to redirect already logged-in users.
+      // This part is correct and should remain.
+      const mockAdminUser = sessionStorage.getItem('mockAdminUser');
+      if (mockAdminUser && user.email === JSON.parse(mockAdminUser).email) {
+        router.replace('/admin/dashboard');
+        return;
+      }
 
-        const userData = getUserData(user.uid);
-        
-        if (userData.role === 'seller') {
-            // Check verification status for sellers
-            // @ts-ignore
-            if (userData.verificationStatus === 'verified') {
-                router.replace('/seller/dashboard');
-            // @ts-ignore
-            } else if (userData.verificationStatus === 'pending') {
-                router.replace('/seller/verification');
-            } else {
-                 // stay on login or go to a different page for non-verified sellers
-            }
+      const userData = getUserData(user.uid);
+
+      if (userData.role === 'seller') {
+        // @ts-ignore
+        if (userData.verificationStatus === 'verified') {
+          router.replace('/seller/dashboard');
+        // @ts-ignore
+        } else if (userData.verificationStatus === 'pending') {
+          router.replace('/seller/verification');
         } else {
-            // Default customer redirection
-            router.replace('/live-selling');
+          // Stay on login for rejected or other statuses
         }
+      } else {
+        router.replace('/live-selling');
+      }
     }
   }, [user, loading, router]);
 
