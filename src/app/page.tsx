@@ -10,23 +10,22 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { getUserData } from '@/lib/follow-data';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // This effect redirects logged-in users to their respective home pages.
-    if (!loading && user) {
-      const mockAdminUser = sessionStorage.getItem('mockAdminUser');
-      if (mockAdminUser && user.email === JSON.parse(mockAdminUser).email) {
-        router.replace('/admin/dashboard');
-        return;
-      }
-      
-      const userData = getUserData(user.uid);
+    if (loading) {
+      return; 
+    }
 
-      if (userData.role === 'seller') {
+    if (user) {
+      const userData = getUserData(user.uid);
+      if (user.email === 'samael.prajapati@example.com') {
+        router.replace('/admin/dashboard');
+      } else if (userData.role === 'seller') {
         // @ts-ignore
         if (userData.verificationStatus === 'verified') {
           router.replace('/seller/dashboard');
@@ -34,14 +33,19 @@ export default function Home() {
         } else if (userData.verificationStatus === 'pending') {
           router.replace('/seller/verification');
         }
-        // For other statuses (rejected, etc.), stay on the login page
       } else {
         router.replace('/live-selling');
       }
     }
-    // The dependency array includes user and loading to re-run when auth state changes.
   }, [user, loading, router]);
-
+  
+  if (loading || user) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">

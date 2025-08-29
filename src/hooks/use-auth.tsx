@@ -25,42 +25,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
     
-    // Check for a mock admin user in sessionStorage on initial load
     const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
     if (mockAdminUserRaw) {
         try {
             const adminUser = JSON.parse(mockAdminUserRaw);
             setUser(adminUser);
             setLoading(false);
-            return; // Don't attach firebase listener if admin is logged in
+            return;
         } catch (e) {
             console.error("Failed to parse mock admin user from sessionStorage", e);
         }
     }
 
-    // The onAuthStateChanged listener will handle Firebase user state
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
-            // Sync with our mock user database
             const userData = getUserData(firebaseUser.uid, {
                 displayName: firebaseUser.displayName || 'New User',
                 email: firebaseUser.email || '',
                 photoURL: firebaseUser.photoURL || '',
             });
-
-            // Augment the firebase user object with our role data
             const augmentedUser = { ...firebaseUser, ...userData };
             setUser(augmentedUser as User);
-
         } else {
              setUser(null);
+             // Also clear mock admin session if firebase says we are logged out
+             sessionStorage.removeItem('mockAdminUser');
         }
-
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []); // This effect runs only once on mount
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, setUser: handleSetUser }}>
