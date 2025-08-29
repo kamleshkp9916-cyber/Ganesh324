@@ -11,23 +11,16 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const { user, loading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || loading) {
+  // Show a loading spinner until the component is mounted on the client
+  // The AuthRedirector will handle moving away from this page if the user is already logged in.
+  if (!isMounted) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-  
-  if (user) {
-     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />
       </div>
