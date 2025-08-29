@@ -5,6 +5,7 @@ import { useEffect, useState, createContext, useContext, useCallback } from 'rea
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { getUserData, UserData } from '@/lib/follow-data';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface AuthContextType {
   user: User | null;
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
-      {children}
+      {!isMounted ? <div className="w-full h-screen flex items-center justify-center"><LoadingSpinner /></div> : children}
     </AuthContext.Provider>
   );
 }
