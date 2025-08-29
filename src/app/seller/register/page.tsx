@@ -83,10 +83,14 @@ export default function SellerRegisterPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined') {
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                const details = JSON.parse(sellerDetailsRaw);
+        if (authLoading) return; // Wait until auth state is confirmed
+
+        const sellerDetailsRaw = localStorage.getItem('sellerDetails');
+
+        if (user && sellerDetailsRaw) {
+            const details = JSON.parse(sellerDetailsRaw);
+            // Ensure the details belong to the logged-in user
+            if (details.email === user.email) {
                 setSellerDetails(details);
                 
                 if (details.verificationStatus === 'verified') {
@@ -104,11 +108,14 @@ export default function SellerRegisterPage() {
                 } else {
                      setPageStatus('form');
                 }
-            } else {
-                 setPageStatus('form');
+                return;
             }
         }
-    }, [router, form]);
+        
+        // If no user or details don't match, just show the form.
+        setPageStatus('form');
+
+    }, [router, form, authLoading, user]);
 
     useEffect(() => {
         if(user) {
@@ -515,3 +522,4 @@ export default function SellerRegisterPage() {
   );
 }
 
+    
