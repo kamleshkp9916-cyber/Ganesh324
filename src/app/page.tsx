@@ -8,40 +8,43 @@ import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getUserData } from '@/lib/follow-data';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (loading) {
-      return; 
-    }
+    setIsMounted(true);
+  }, []);
 
-    if (user) {
-      const userData = getUserData(user.uid);
-      if (user.email === 'samael.prajapati@example.com') {
-        router.replace('/admin/dashboard');
-      } else if (userData.role === 'seller') {
-        // @ts-ignore
-        if (userData.verificationStatus === 'verified') {
-          router.replace('/seller/dashboard');
-        // @ts-ignore
-        } else if (userData.verificationStatus === 'pending') {
-          router.replace('/seller/verification');
+  useEffect(() => {
+    if (!loading && isMounted) {
+      if (user) {
+        const userData = getUserData(user.uid);
+        if (user.email === 'samael.prajapati@example.com') {
+          router.replace('/admin/dashboard');
+        } else if (userData.role === 'seller') {
+          // @ts-ignore
+          if (userData.verificationStatus === 'verified') {
+            router.replace('/seller/dashboard');
+          // @ts-ignore
+          } else if (userData.verificationStatus === 'pending') {
+            router.replace('/seller/verification');
+          } else {
+              router.replace('/seller/login');
+          }
         } else {
-            router.replace('/seller/login');
+          router.replace('/live-selling');
         }
-      } else {
-        router.replace('/live-selling');
       }
     }
-  }, [user, loading, router]);
+  }, [user, loading, isMounted, router]);
   
-  if (loading || user) {
+  if (loading || !isMounted || user) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />
