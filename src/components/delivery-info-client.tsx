@@ -472,36 +472,38 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         </div>
                         <div className="lg:col-span-2">
                             <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
-                            <div className="relative">
-                                <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-border/50 -z-10" />
-                                <ul className="space-y-8">
-                                    {order.timeline.map((item, index: number) => (
-                                        <li key={index} className="flex items-start gap-4">
+                            <ul className="space-y-2">
+                                {order.timeline.map((item, index: number) => (
+                                    <li key={index} className="flex items-start gap-4">
+                                        <div className="flex flex-col items-center">
                                             <div className={cn(
-                                                "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1",
+                                                "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 z-10",
                                                 item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                                             )}>
                                                 {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
                                             </div>
-                                            <div className="flex-grow">
-                                                <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
-                                                    {item.status.split(':')[0]}
+                                            {index < order.timeline.length - 1 && (
+                                                <div className="w-0.5 h-10 bg-border/50" />
+                                            )}
+                                        </div>
+                                        <div className="flex-grow pt-1">
+                                            <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
+                                                {item.status.split(':')[0]}
+                                            </p>
+                                            {index === currentStatusIndex && item.status.includes(':') && (
+                                                <p className="text-sm text-muted-foreground">
+                                                    {item.status.split(':')[1]}
                                                 </p>
-                                                {index === currentStatusIndex && item.status.includes(':') && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {item.status.split(':')[1]}
-                                                    </p>
-                                                )}
-                                                {item.date && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {item.date} {item.time && `- ${item.time}`}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                                            )}
+                                            {item.date && (
+                                                <p className="text-sm text-muted-foreground">
+                                                    {item.date} {item.time && `- ${item.time}`}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </CardContent>
                     {(showCancelButton || showEditAddressButton || showReturnButton || showRefundButton || showReviewButton) && (
