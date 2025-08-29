@@ -373,15 +373,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           <ScrollArea className="h-80">
                               <div className="p-4 space-y-4">
                                   {followingList.map(followedUser => (
-                                      <div key={followedUser.uid} className="flex items-center justify-between group">
-                                          <Link href={`/seller/profile?userId=${followedUser.uid}`} className="flex items-center gap-3">
+                                      <div key={followedUser?.uid} className="flex items-center justify-between group">
+                                          <Link href={`/seller/profile?userId=${followedUser?.uid}`} className="flex items-center gap-3">
                                               <Avatar>
-                                                  <AvatarImage src={followedUser.photoURL} />
-                                                  <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
+                                                  <AvatarImage src={followedUser?.photoURL} />
+                                                  <AvatarFallback>{followedUser?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                                               </Avatar>
                                               <div>
-                                                  <p className="font-semibold group-hover:underline">{followedUser.displayName}</p>
-                                                  <p className="text-sm text-muted-foreground">@{followedUser.displayName.toLowerCase().replace(' ', '')}</p>
+                                                  <p className="font-semibold group-hover:underline">{followedUser?.displayName || 'Unnamed User'}</p>
+                                                  <p className="text-sm text-muted-foreground">@{followedUser?.displayName?.toLowerCase().replace(' ', '') || 'user'}</p>
                                               </div>
                                           </Link>
                                           {isOwnProfile && (
@@ -410,19 +410,19 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             <ScrollArea className="h-80">
                                   <div className="p-4 space-y-4">
                                     {followerList.map(follower => (
-                                        <div key={follower.uid} className="flex items-center justify-between group">
-                                            <Link href={`/profile?userId=${follower.uid}`} className="flex items-center gap-3">
+                                        <div key={follower?.uid} className="flex items-center justify-between group">
+                                            <Link href={`/profile?userId=${follower?.uid}`} className="flex items-center gap-3">
                                                 <Avatar>
-                                                    <AvatarImage src={follower.photoURL} />
-                                                    <AvatarFallback>{follower.displayName.charAt(0)}</AvatarFallback>
+                                                    <AvatarImage src={follower?.photoURL} />
+                                                    <AvatarFallback>{follower?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-semibold group-hover:underline">{follower.displayName}</p>
-                                                    <p className="text-sm text-muted-foreground">@{follower.displayName.toLowerCase().replace(' ', '')}</p>
+                                                    <p className="font-semibold group-hover:underline">{follower?.displayName || 'Unnamed User'}</p>
+                                                    <p className="text-sm text-muted-foreground">@{follower?.displayName?.toLowerCase().replace(' ', '') || 'user'}</p>
                                                 </div>
                                             </Link>
                                             <Button variant="outline" size="sm" asChild>
-                                                <Link href={`/profile?userId=${follower.uid}`}>View</Link>
+                                                <Link href={`/profile?userId=${follower?.uid}`}>View</Link>
                                             </Button>
                                         </div>
                                     ))}
