@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, initializeAuth, browserLocalPersistence, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { getFirestore, Firestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -19,25 +19,30 @@ let db: Firestore;
 function initializeFirebase() {
     if (!getApps().length) {
         app = initializeApp(firebaseConfig);
-        auth = initializeAuth(app, {
-            persistence: browserLocalPersistence
-        });
-        db = getFirestore(app);
     } else {
         app = getApp();
-        auth = getAuth(app);
-        db = getFirestore(app);
+    }
+    auth = getAuth(app);
+    db = getFirestore(app);
+    
+    // Enable offline persistence
+    try {
+        enableIndexedDbPersistence(db);
+    } catch (error: any) {
+        if (error.code == 'failed-precondition') {
+            console.warn('Firestore persistence failed: Multiple tabs open.');
+        } else if (error.code == 'unimplemented') {
+            console.warn('Firestore persistence failed: Browser does not support it.');
+        }
     }
 }
 
-// Call initialization right away
+// Initialize on load
 initializeFirebase();
 
 export const getFirebaseAuth = (): Auth => {
-    if (!auth) initializeFirebase();
     return auth;
 };
 export const getFirestoreDb = (): Firestore => {
-    if (!db) initializeFirebase();
     return db;
 };

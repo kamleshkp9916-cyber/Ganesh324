@@ -36,19 +36,24 @@ const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserDat
 
 export const getUserData = async (uid: string, defaults?: Partial<User>): Promise<UserData | null> => {
     if (!uid) return null;
-    const db = getFirestoreDb();
-    const userDocRef = doc(db, "users", uid);
-    const userDoc = await getDoc(userDocRef);
+    try {
+        const db = getFirestoreDb();
+        const userDocRef = doc(db, "users", uid);
+        const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-        return userDoc.data() as UserData;
-    } else {
-        if (defaults) {
-            // If user doesn't exist, create them with defaults (e.g., on first sign-in)
-            const newUser = defaultUserData(uid, defaults);
-            await setDoc(userDocRef, newUser);
-            return newUser as UserData;
+        if (userDoc.exists()) {
+            return userDoc.data() as UserData;
+        } else {
+            if (defaults) {
+                // If user doesn't exist, create them with defaults (e.g., on first sign-in)
+                const newUser = defaultUserData(uid, defaults);
+                await setDoc(userDocRef, newUser);
+                return newUser as UserData;
+            }
+            return null;
         }
+    } catch (error) {
+        console.error("Error getting user data:", error);
         return null;
     }
 };
