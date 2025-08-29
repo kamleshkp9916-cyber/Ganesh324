@@ -456,7 +456,7 @@ export default function OrdersPage() {
           </div>
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
-          <div className="bg-card p-2 sm:p-4 rounded-lg border flex flex-col h-full">
+          <div className="bg-black p-2 sm:p-4 rounded-lg border flex flex-col h-full">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-bold">Orders</h3>
                    {orders.length > 0 && (
