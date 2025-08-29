@@ -13,46 +13,19 @@ const firebaseConfig = {
   "messagingSenderId": "658712603017"
 };
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-
-function initializeFirebase() {
-    if (typeof window !== "undefined") {
-        if (!getApps().length) {
-            app = initializeApp(firebaseConfig);
-            auth = initializeAuth(app, {
-                persistence: browserLocalPersistence,
-            });
-            db = getFirestore(app);
-        } else {
-            app = getApp();
-            auth = getAuth(app);
-            db = getFirestore(app);
-        }
-    }
+let app: FirebaseApp;
+if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
 }
 
-// Initialize Firebase on client side
-initializeFirebase();
+const auth = initializeAuth(app, {
+    persistence: browserLocalPersistence
+});
+const db = getFirestore(app);
 
-export const getFirebaseApp = (): FirebaseApp => {
-    if (!app) {
-        initializeFirebase();
-    }
-    return app!;
-}
+export { app as firebaseApp, auth as firebaseAuth, db as firestoreDb };
 
-export const getFirebaseAuth = (): Auth => {
-    if (!auth) {
-        initializeFirebase();
-    }
-    return auth!;
-};
-
-export const getFirestoreDb = (): Firestore => {
-    if (!db) {
-        initializeFirebase();
-    }
-    return db!;
-}
+export const getFirebaseAuth = (): Auth => auth;
+export const getFirestoreDb = (): Firestore => db;

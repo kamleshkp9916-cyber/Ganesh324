@@ -34,21 +34,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isMounted) return;
 
     const auth = getFirebaseAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-            const data = await getUserData(firebaseUser.uid, firebaseUser);
-            setUser(firebaseUser);
-            setUserData(data);
-        } else {
-             setUser(null);
-             setUserData(null);
-        }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      if (!firebaseUser) {
+        setUserData(null);
         setLoading(false);
+      }
     });
 
     return () => unsubscribe();
   }, [isMounted]);
+
+  useEffect(() => {
+      if (user) {
+        getUserData(user.uid, user).then(data => {
+            setUserData(data);
+            setLoading(false);
+        }).catch(error => {
+            console.error("Failed to fetch user data:", error);
+            setLoading(false);
+        });
+      }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
