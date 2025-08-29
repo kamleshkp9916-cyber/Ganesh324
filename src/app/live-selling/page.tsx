@@ -731,12 +731,6 @@ export default function LiveSellingPage() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem asChild>
-                                            <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/terms-and-conditions"><FileText className="mr-2 h-4 w-4" /><span>Term &amp; Conditions</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
                                             <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
