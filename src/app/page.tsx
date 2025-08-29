@@ -16,15 +16,14 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // This effect redirects logged-in users to their respective home pages.
     if (!loading && user) {
-      // Logic to redirect already logged-in users.
-      // This part is correct and should remain.
       const mockAdminUser = sessionStorage.getItem('mockAdminUser');
       if (mockAdminUser && user.email === JSON.parse(mockAdminUser).email) {
         router.replace('/admin/dashboard');
         return;
       }
-
+      
       const userData = getUserData(user.uid);
 
       if (userData.role === 'seller') {
@@ -34,13 +33,13 @@ export default function Home() {
         // @ts-ignore
         } else if (userData.verificationStatus === 'pending') {
           router.replace('/seller/verification');
-        } else {
-          // Stay on login for rejected or other statuses
         }
+        // For other statuses (rejected, etc.), stay on the login page
       } else {
         router.replace('/live-selling');
       }
     }
+    // The dependency array includes user and loading to re-run when auth state changes.
   }, [user, loading, router]);
 
 
