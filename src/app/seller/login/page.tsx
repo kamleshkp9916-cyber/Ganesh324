@@ -19,6 +19,7 @@ export default function SellerLoginPage() {
     useEffect(() => {
         if (!loading && user) {
             const userData = getUserData(user.uid);
+            // @ts-ignore
             if (userData.role === 'seller' && userData.verificationStatus === 'verified') {
                 router.replace('/seller/dashboard');
             }
@@ -51,7 +52,7 @@ export default function SellerLoginPage() {
               Enter your seller credentials to access your dashboard.
             </p>
           </div>
-          <LoginForm role="seller" />
+          <LoginForm />
           <div className="mt-4 text-center text-sm">
             Don't have a seller account?{" "}
             <Link href="/seller/register" className="font-semibold text-primary underline">

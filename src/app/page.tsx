@@ -32,7 +32,7 @@ export default function Home() {
           if (userData.verificationStatus === 'verified') {
             router.replace('/seller/dashboard');
           // @ts-ignore
-          } else if (userData.verificationStatus === 'pending') {
+          } else if (userData.verificationStatus === 'pending' || userData.verificationStatus === 'needs-resubmission') {
             router.replace('/seller/verification');
           } else {
               router.replace('/seller/login');
@@ -44,13 +44,14 @@ export default function Home() {
     }
   }, [user, loading, isMounted, router]);
   
-  if (loading || !isMounted || user) {
+  if (loading || (isMounted && user)) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
   }
+
 
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
@@ -81,7 +82,7 @@ export default function Home() {
               Enter your credentials to access your account.
             </p>
           </div>
-          <LoginForm role="customer" />
+          <LoginForm />
           <div className="mt-4 space-y-2 text-center text-sm">
             <div>
                 Don't have an account?{" "}
@@ -90,16 +91,10 @@ export default function Home() {
                 </Link>
             </div>
              <div className="flex items-center justify-center gap-4">
-                Are you a seller?{" "}
-                <div className="flex gap-2">
-                    <Link href="/seller/login" className="font-semibold text-primary underline">
-                        Login
-                    </Link>
-                    <span>or</span>
-                     <Link href="/seller/register" className="font-semibold text-primary underline">
-                        Become a Seller
-                    </Link>
-                </div>
+                Want to become a seller?{" "}
+                 <Link href="/seller/register" className="font-semibold text-primary underline">
+                    Register here
+                </Link>
             </div>
           </div>
         </div>

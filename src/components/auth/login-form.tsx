@@ -5,9 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,20 +20,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { OtpForm } from "./otp-form";
 
-const customerSchema = z.object({
-  identifier: z.string().email({ message: "Please enter a valid email address." }),
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
   rememberMe: z.boolean().default(false).optional(),
-});
-
-const sellerPasswordSchema = z.object({
-    identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
-    password: z.string().min(1, { message: "Password is required." }),
-    rememberMe: z.boolean().default(false).optional(),
 });
 
 
@@ -67,41 +58,21 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     );
   }
 
-interface LoginFormProps {
-    role?: 'customer' | 'seller';
-}
-
-export function LoginForm({ role = 'customer' }: LoginFormProps) {
-  const router = useRouter();
-  const { signInWithGoogle, signInWithEmail, signInWithOtp, validateSellerPassword } = useAuthActions();
+export function LoginForm() {
+  const { signInWithGoogle, signInWithEmail } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
-  const [phone, setPhone] = useState("");
 
-  const formSchema = role === 'seller' ? sellerPasswordSchema : customerSchema;
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { identifier: role === 'seller' ? "+91 " : "", password: "" },
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
   });
-  
-  // Watch for changes in the identifier field
-  const identifier = form.watch("identifier");
 
-  // This effect ensures the phone state is updated whenever the form value changes
-  useEffect(() => {
-    if (role === 'seller') {
-      setPhone(identifier);
-    }
-  }, [identifier, role]);
-
-
-  async function onCustomerSubmit(values: z.infer<typeof customerSchema>) {
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
-        await signInWithEmail(values.identifier, values.password, role as 'customer');
+        await signInWithEmail(values.email, values.password);
     } catch (error: any) {
         toast({
             title: "Login Failed",
@@ -113,64 +84,12 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
     }
   }
 
-  async function onSellerSubmit(values: z.infer<typeof sellerPasswordSchema>) {
-      setIsLoading(true);
-      try {
-        const isValid = await validateSellerPassword(values.identifier, values.password);
-        if(isValid) {
-            setPhone(values.identifier);
-            setStep('otp');
-            toast({
-                title: "OTP Sent!",
-                description: `A one-time password has been sent to ${values.identifier}.`
-            });
-        }
-      } catch (error: any) {
-         toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-  }
-  
-  const handleOtpSuccess = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithOtp(phone);
-    } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  
-  if (role === 'seller' && step === 'otp') {
-      return (
-        <div className="space-y-4">
-             <p className="text-center text-sm text-muted-foreground">
-                Enter the OTP sent to {phone}
-            </p>
-            <OtpForm onVerifySuccess={handleOtpSuccess} />
-             <Button variant="link" className="w-full" onClick={() => setStep('identifier')}>
-                Change phone number
-            </Button>
-        </div>
-      );
-  }
-
-  const CustomerForm = (
+  return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onCustomerSubmit as any)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
         <FormField
           control={form.control}
-          name="identifier"
+          name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
@@ -192,7 +111,6 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
                   <Input 
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
-                    // @ts-ignore
                     {...field} 
                     disabled={isLoading} 
                     className="bg-background pr-10"
@@ -220,7 +138,6 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
                 <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                     <FormControl>
                     <Checkbox
-                        // @ts-ignore
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         id="remember-me"
@@ -251,90 +168,11 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
             </>
           )}
         </Button>
-         <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle(role)} disabled={isLoading}>
+         <Button variant="outline" className="w-full font-semibold" type="button" onClick={() => signInWithGoogle()} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Sign In With Google
         </Button>
       </form>
     </Form>
   );
-
-  const SellerForm = (
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSellerSubmit as any)} className="grid gap-4">
-          <FormField
-              control={form.control}
-              name="identifier"
-              render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                          <Input
-                              placeholder="+91 98765 43210"
-                              {...field}
-                              disabled={isLoading}
-                              className="bg-background"
-                              onChange={(e) => {
-                                    let value = e.target.value;
-                                    if (!value.startsWith('+91 ')) {
-                                        value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                                    }
-                                    if (value.length > 14) {
-                                        value = value.substring(0, 14);
-                                    }
-                                    field.onChange(value);
-                                }}
-                          />
-                      </FormControl>
-                      <FormMessage />
-                  </FormItem>
-              )}
-          />
-           <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                    <div className="relative">
-                    <Input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="••••••••" 
-                        // @ts-ignore
-                        {...field} 
-                        disabled={isLoading} 
-                        className="bg-background pr-10"
-                    />
-                    <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
-                        onClick={() => setShowPassword(prev => !prev)}
-                    >
-                        {showPassword ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
-                    </Button>
-                    </div>
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-           <Button 
-            type="submit" 
-            className="w-full font-semibold"
-            disabled={isLoading}
-            >
-            {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-                "Continue"
-            )}
-            </Button>
-        </form>
-    </Form>
-  );
-
-  return role === 'customer' ? CustomerForm : SellerForm;
 }

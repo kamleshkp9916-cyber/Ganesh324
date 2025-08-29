@@ -76,14 +76,12 @@ export function useAuthActions() {
             handleLoginSuccess(user);
 
         } catch (error: any) {
-            if (error.message !== "Role mismatch") {
-                console.error("Error signing in with Google: ", error);
-                toast({
-                    title: "Error",
-                    description: "Failed to sign in with Google. Please try again.",
-                    variant: "destructive",
-                });
-            }
+            console.error("Error signing in with Google: ", error);
+            toast({
+                title: "Error",
+                description: "Failed to sign in with Google. Please try again.",
+                variant: "destructive",
+            });
         }
     };
     
@@ -137,21 +135,11 @@ export function useAuthActions() {
         }
     };
     
-    const signInWithEmail = async (identifier: string, password: string, expectedRole: 'customer' | 'seller') => {
+    const signInWithEmail = async (email: string, password: string) => {
         const auth = getFirebaseAuth();
-        let emailToAuth = identifier;
-        
-        // This logic is now deprecated in favor of OTP, but kept for customer login
-        if (expectedRole === 'seller') {
-            const seller: any = findSellerByPhone(identifier);
-            if (!seller) {
-                throw new Error("No seller account found with this phone number.");
-            }
-            emailToAuth = seller.email;
-        }
 
         // Special case for admin login
-        if (emailToAuth === ADMIN_EMAIL) {
+        if (email === ADMIN_EMAIL) {
             const mockAdminUser: User = {
                 uid: 'admin-mock-uid',
                 email: ADMIN_EMAIL,
@@ -180,10 +168,9 @@ export function useAuthActions() {
             handleLoginSuccess(mockAdminUser);
             return;
         }
-
         
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, emailToAuth, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             if (!user.emailVerified) {
@@ -195,16 +182,6 @@ export function useAuthActions() {
                 });
                 router.push('/verify-email');
                 return;
-            }
-
-            const userData = getUserData(user.uid);
-            const userRole = userData.role;
-
-            if (userRole !== expectedRole) {
-                const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${userRole}.`;
-                toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
-                await firebaseSignOut(auth); // Sign out the user
-                return; // Stop execution
             }
             
             handleLoginSuccess(user);
@@ -345,5 +322,3 @@ export function useAuthActions() {
 
 export { useAuth } from '@/hooks/use-auth.tsx';
 export { getFirebaseAuth as getAuth };
-
-    
