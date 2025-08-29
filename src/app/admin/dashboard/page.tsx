@@ -209,10 +209,10 @@ export default function AdminDashboard() {
             Users
           </Link>
           <Link
-            href="#"
+            href="/admin/inquiries"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
-            Sellers
+            Inquiries
           </Link>
           <Link
             href="#"
@@ -263,10 +263,10 @@ export default function AdminDashboard() {
                 Users
               </Link>
               <Link
-                href="#"
+                href="/admin/inquiries"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Sellers
+                Inquiries
               </Link>
                <Link
                 href="#"

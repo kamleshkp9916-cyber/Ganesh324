@@ -152,7 +152,7 @@ export default function AdminOrdersPage() {
                 <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
                 <Link href="/admin/orders" className="text-foreground transition-colors hover:text-foreground">Orders</Link>
                 <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
-                <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">Sellers</Link>
+                <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
                 <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
             </nav>
             <Sheet>
@@ -163,6 +163,7 @@ export default function AdminOrdersPage() {
                         <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
                         <Link href="/admin/orders" className="hover:text-foreground">Orders</Link>
                         <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
+                        <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
                     </nav>
                 </SheetContent>
             </Sheet>
@@ -218,7 +219,7 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreVertical className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => router.push(`/admin/orders/${order.orderId}`)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Details</DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

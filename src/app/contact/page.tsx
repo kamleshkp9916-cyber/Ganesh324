@@ -6,29 +6,25 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth.tsx";
+import { useEffect, useState } from "react";
+import { submitInquiry, InquirySchema } from "@/ai/flows/contact-flow";
 
-const contactFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
-});
 
 export default function ContactPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof contactFormSchema>>({
-    resolver: zodResolver(contactFormSchema),
+  const form = useForm<z.infer<typeof InquirySchema>>({
+    resolver: zodResolver(InquirySchema),
     defaultValues: {
       name: "",
       email: "",
@@ -44,13 +40,28 @@ export default function ContactPage() {
     }
   }, [user, form]);
 
-  const onSubmit = (values: z.infer<typeof contactFormSchema>) => {
-    console.log(values);
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We will get back to you shortly.",
-    });
-    form.reset();
+  const onSubmit = async (values: z.infer<typeof InquirySchema>) => {
+    setIsLoading(true);
+    try {
+        await submitInquiry(values);
+        toast({
+            title: "Message Sent!",
+            description: "Thank you for contacting us. We will get back to you shortly.",
+        });
+        form.reset();
+        if (user) {
+            form.setValue("name", user.displayName || "");
+            form.setValue("email", user.email || "");
+        }
+    } catch (error) {
+         toast({
+            title: "Something went wrong.",
+            description: "Could not send your message. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -126,8 +137,8 @@ export default function ContactPage() {
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit" className="w-full">
-                            <Send className="mr-2 h-4 w-4" />
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                             Send Message
                         </Button>
                     </form>
