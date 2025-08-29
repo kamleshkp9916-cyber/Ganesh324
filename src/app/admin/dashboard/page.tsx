@@ -161,11 +161,6 @@ export default function AdminDashboard() {
   const { user, loading, setUser } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!loading && (!user || user.email !== ADMIN_EMAIL)) {
@@ -174,7 +169,7 @@ export default function AdminDashboard() {
   }, [user, loading, router]);
 
 
-  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
+  if (loading || !user || user.email !== ADMIN_EMAIL) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
