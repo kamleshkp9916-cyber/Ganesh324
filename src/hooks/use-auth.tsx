@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
-      {!isMounted ? <div className="w-full h-screen flex items-center justify-center"><LoadingSpinner /></div> : children}
+      {!isMounted || loading ? <div className="w-full h-screen flex items-center justify-center"><LoadingSpinner /></div> : children}
     </AuthContext.Provider>
   );
 }

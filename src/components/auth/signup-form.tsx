@@ -5,11 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { createUserData } from "@/lib/follow-data";
+import { useAuthActions } from "@/lib/auth";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
@@ -76,85 +72,24 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export function SignupForm() {
-  const router = useRouter();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { handleEmailSignUp, handleGoogleSignIn } = useAuthActions();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", userId: "@", email: "", phone: "+91 ", password: "" },
   });
 
-  const signInWithGoogle = async () => {
-        setIsLoading(true);
-        const auth = getFirebaseAuth();
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-             toast({
-                title: "Signed Up!",
-                description: "Welcome to StreamCart!",
-            });
-            // Redirection is handled by the AuthRedirector
-        } catch (error: any) {
-            console.error("Error signing in with Google: ", error);
-            toast({
-                title: "Error",
-                description: "Failed to sign in with Google. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  async function onGoogleSignIn() {
+    setIsLoading(true);
+    await handleGoogleSignIn();
+    setIsLoading(false);
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    const auth = getFirebaseAuth();
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
-      
-      await createUserData(user, 'customer', {
-        displayName: `${values.firstName} ${values.lastName}`,
-        phone: values.phone,
-      });
-      
-      await sendEmailVerification(user);
-      
-      toast({
-        title: "Account Created!",
-        description: "A verification email has been sent. Please check your inbox.",
-      });
-      
-      router.push('/verify-email');
-
-    } catch (error: any) {
-        let errorMessage = "An unknown error occurred.";
-        switch (error.code) {
-            case 'auth/email-already-in-use':
-                errorMessage = "This email address is already in use by another account.";
-                break;
-            case 'auth/invalid-email':
-                errorMessage = "The email address is not valid.";
-                break;
-            case 'auth/operation-not-allowed':
-                errorMessage = "Email/password accounts are not enabled.";
-                break;
-            case 'auth/weak-password':
-                errorMessage = "The password is too weak.";
-                break;
-            default:
-                errorMessage = error.message;
-        }
-        toast({
-            title: "Sign Up Failed",
-            description: errorMessage,
-            variant: "destructive",
-        });
-    } finally {
-        setIsLoading(false);
-    }
+    await handleEmailSignUp(values);
+    setIsLoading(false);
   }
 
   return (
@@ -268,7 +203,7 @@ export function SignupForm() {
         <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
-        <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
+        <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Get Started With Google
         </Button>

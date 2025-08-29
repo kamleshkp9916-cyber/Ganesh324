@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth.tsx";
-import { useAuthActions } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
@@ -22,6 +21,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { updateUserData } from "@/lib/follow-data";
+import { useAuthActions } from "@/lib/auth";
 
 
 const sellerFormSchema = z.object({
@@ -51,7 +51,7 @@ type SellerDetails = z.infer<typeof sellerFormSchema> & { verificationStatus: st
 
 export default function SellerRegisterPage() {
     const { user, loading: authLoading } = useAuth();
-    const { signUpWithEmail } = useAuthActions();
+    const { handleEmailSignUp } = useAuthActions();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -159,7 +159,7 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         
         try {
-            await signUpWithEmail(values, 'seller', true);
+            await handleEmailSignUp(values);
 
              const sellerData = {
                 ...values,

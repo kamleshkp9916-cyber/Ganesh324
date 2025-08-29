@@ -7,9 +7,6 @@ import * as z from "zod";
 import Link from "next/link";
 import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, sendEmailVerification } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
+import { useAuthActions } from "@/lib/auth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -62,84 +59,23 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { toast } = useToast();
-  const router = useRouter();
+  const { handleEmailSignIn, handleGoogleSignIn } = useAuthActions();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-    const signInWithGoogle = async () => {
-        setIsLoading(true);
-        const auth = getFirebaseAuth();
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            // The AuthRedirector will handle redirection.
-            toast({
-                title: "Logged In!",
-                description: "Welcome back!",
-            });
-        } catch (error: any) {
-            console.error("Error signing in with Google: ", error);
-            toast({
-                title: "Error",
-                description: "Failed to sign in with Google. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
-    const auth = getFirebaseAuth();
-
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-        if (!userCredential.user.emailVerified) {
-            await sendEmailVerification(userCredential.user);
-            toast({
-                title: "Email Not Verified",
-                description: "Please verify your email address. A new verification link has been sent.",
-                variant: "destructive"
-            });
-            router.push('/verify-email');
-        } else {
-             toast({
-                title: "Logged In!",
-                description: "Welcome back!",
-            });
-            // Redirection is handled by the AuthRedirector
-        }
-    } catch (error: any) {
-        let errorMessage = "An unknown error occurred.";
-        switch (error.code) {
-            case 'auth/user-not-found':
-            case 'auth/wrong-password':
-            case 'auth/invalid-credential':
-                errorMessage = "Invalid credentials. Please try again.";
-                break;
-            case 'auth/invalid-email':
-                errorMessage = "Please enter a valid email address.";
-                break;
-            case 'auth/user-disabled':
-                errorMessage = "This account has been disabled.";
-                break;
-            default:
-                errorMessage = "Failed to sign in. Please try again later.";
-        }
-        toast({
-            title: "Login Failed",
-            description: errorMessage,
-            variant: "destructive"
-        });
-    } finally {
-        setIsLoading(false);
-    }
+    await handleEmailSignIn(values);
+    setIsLoading(false);
+  }
+  
+  async function onGoogleSignIn() {
+    setIsLoading(true);
+    await handleGoogleSignIn();
+    setIsLoading(false);
   }
 
   return (
@@ -226,7 +162,7 @@ export function LoginForm() {
             </>
           )}
         </Button>
-         <Button variant="outline" className="w-full font-semibold" type="button" onClick={signInWithGoogle} disabled={isLoading}>
+         <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
           <GoogleIcon className="mr-2" />
           Sign In With Google
         </Button>

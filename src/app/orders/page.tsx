@@ -370,6 +370,7 @@ export default function OrdersPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onSelect={() => handleRowClick(order.orderId)}>View Details</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
                                         <DropdownMenuItem>Contact Support</DropdownMenuItem>

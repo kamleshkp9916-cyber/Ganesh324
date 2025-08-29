@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -29,7 +28,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing } from '@/lib/follow-data';
+import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
 
 
@@ -93,7 +92,7 @@ const paymentLabel = (method: {type: string, provider?: string}) => {
     return `Paid with ${method.provider}`;
 }
 
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: any, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void, onFollowToggle?: () => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void, onFollowToggle?: () => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);

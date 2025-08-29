@@ -6,7 +6,6 @@ import { LoginForm } from '@/components/auth/login-form';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState } from 'react';
 

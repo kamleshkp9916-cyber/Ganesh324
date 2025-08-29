@@ -104,7 +104,7 @@ const recentSales = [
 ]
 
 export default function SellerDashboard() {
-  const { user, loading } from useAuth();
+  const { user, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
