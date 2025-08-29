@@ -91,6 +91,8 @@ const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => v
     const handlePrint = () => {
         window.print();
     };
+    
+    const photoSrc = seller.passportPhoto?.preview || seller.passportPhoto;
 
     return (
         <DialogContent className="max-w-3xl p-0" id="printable-area">
@@ -121,7 +123,7 @@ const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => v
                     <div className="md:col-span-1">
                         <h3 className="font-semibold text-lg mb-2 border-b pb-2">Applicant Photo</h3>
                          <div className="mt-2 relative w-32 h-32 rounded-lg border bg-muted">
-                           {seller.passportPhoto ? <Image src={seller.passportPhoto.preview || seller.passportPhoto} alt="Applicant Photo" layout="fill" className="object-cover rounded-lg" /> : <div className="flex items-center justify-center h-full text-muted-foreground">No Photo</div>}
+                           {photoSrc ? <Image src={photoSrc} alt="Applicant Photo" layout="fill" className="object-cover rounded-lg" /> : <div className="flex items-center justify-center h-full text-muted-foreground">No Photo</div>}
                         </div>
                     </div>
                      <div className="md:col-span-2">
