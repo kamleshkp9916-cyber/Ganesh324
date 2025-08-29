@@ -239,6 +239,27 @@ export function useAuthActions() {
         }
     };
     
+    const validateSellerPassword = async (phone: string, password: string): Promise<boolean> => {
+        const auth = getFirebaseAuth();
+        const seller: any = findSellerByPhone(phone);
+        if (!seller) {
+            throw new Error("No seller account found with this phone number.");
+        }
+        try {
+            // We use signInWithEmailAndPassword to validate the password, but we don't complete the login here.
+            await signInWithEmailAndPassword(auth, seller.email, password);
+            // If the above doesn't throw, password is correct. Sign out immediately.
+            await firebaseSignOut(auth);
+            return true;
+        } catch(error: any) {
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                throw new Error("Invalid password. Please try again.");
+            }
+            // Re-throw other errors
+            throw error;
+        }
+    }
+
     const signInWithOtp = async (phone: string) => {
         const auth = getFirebaseAuth();
         const seller: any = findSellerByPhone(phone);
@@ -327,7 +348,7 @@ export function useAuthActions() {
         }
     };
 
-    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, signInWithOtp };
+    return { signInWithGoogle, signOut, signUpWithEmail, signInWithEmail, sendPasswordResetLink, signInWithOtp, validateSellerPassword };
 }
 
 export { useAuth } from '@/hooks/use-auth.tsx';

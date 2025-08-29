@@ -31,10 +31,6 @@ const customerSchema = z.object({
   rememberMe: z.boolean().default(false).optional(),
 });
 
-const sellerPhoneSchema = z.object({
-    identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
-});
-
 const sellerPasswordSchema = z.object({
     identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
     password: z.string().min(1, { message: "Password is required." }),
@@ -77,18 +73,18 @@ interface LoginFormProps {
 
 export function LoginForm({ role = 'customer' }: LoginFormProps) {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmail, signInWithOtp } = useAuthActions();
+  const { signInWithGoogle, signInWithEmail, signInWithOtp, validateSellerPassword } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const [step, setStep] = useState<'identifier' | 'otp'>('identifier');
   const [phone, setPhone] = useState("");
 
-  const formSchema = role === 'seller' ? sellerPhoneSchema : customerSchema;
+  const formSchema = role === 'seller' ? sellerPasswordSchema : customerSchema;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { identifier: role === 'seller' ? "+91 " : "" },
+    defaultValues: { identifier: role === 'seller' ? "+91 " : "", password: "" },
   });
   
   // Watch for changes in the identifier field
@@ -117,18 +113,27 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
     }
   }
 
-  async function onSellerSubmit(values: z.infer<typeof sellerPhoneSchema>) {
+  async function onSellerSubmit(values: z.infer<typeof sellerPasswordSchema>) {
       setIsLoading(true);
-      // In a real app, this would trigger an API call to send an OTP
-      // For this demo, we'll simulate it and move to the next step
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsLoading(false);
-      setPhone(values.identifier);
-      setStep('otp');
-      toast({
-          title: "OTP Sent!",
-          description: `A one-time password has been sent to ${values.identifier}.`
-      });
+      try {
+        const isValid = await validateSellerPassword(values.identifier, values.password);
+        if(isValid) {
+            setPhone(values.identifier);
+            setStep('otp');
+            toast({
+                title: "OTP Sent!",
+                description: `A one-time password has been sent to ${values.identifier}.`
+            });
+        }
+      } catch (error: any) {
+         toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
   }
   
   const handleOtpSuccess = async () => {
@@ -285,6 +290,37 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
                   </FormItem>
               )}
           />
+           <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                    <div className="relative">
+                    <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="••••••••" 
+                        // @ts-ignore
+                        {...field} 
+                        disabled={isLoading} 
+                        className="bg-background pr-10"
+                    />
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute inset-y-0 right-0 h-full w-10 text-muted-foreground"
+                        onClick={() => setShowPassword(prev => !prev)}
+                    >
+                        {showPassword ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+                    </Button>
+                    </div>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
            <Button 
             type="submit" 
             className="w-full font-semibold"
@@ -293,7 +329,7 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
             {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-                "Send OTP"
+                "Continue"
             )}
             </Button>
         </form>
