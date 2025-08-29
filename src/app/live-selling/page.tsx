@@ -612,6 +612,14 @@ export default function LiveSellingPage() {
                     ) : user ? (
                         <div className="flex items-center gap-1 sm:gap-2">
                             <div ref={searchRef} className="relative flex items-center">
+                                 <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 rounded-full flex-shrink-0"
+                                  onClick={() => setIsSearchExpanded(p => !p)}
+                                >
+                                    <Search className="h-5 w-5 text-muted-foreground" />
+                                </Button>
                                  <Input
                                     placeholder="Search..."
                                     className={cn(
@@ -621,14 +629,6 @@ export default function LiveSellingPage() {
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-10 w-10 rounded-full flex-shrink-0"
-                                  onClick={() => setIsSearchExpanded(p => !p)}
-                                >
-                                    <Search className="h-5 w-5 text-muted-foreground" />
-                                </Button>
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -669,7 +669,7 @@ export default function LiveSellingPage() {
                                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
                                     </Avatar>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-64" align="end" forceMount>
+                                <DropdownMenuContent className="w-64 bg-background" align="end" forceMount>
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
                                             <p className="text-sm font-medium leading-none">{user.displayName}</p>
@@ -730,9 +730,6 @@ export default function LiveSellingPage() {
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Setting</span></Link>
-                                        </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/privacy-and-security"><Shield className="mr-2 h-4 w-4" /><span>Privacy And Security</span></Link>
                                         </DropdownMenuItem>
