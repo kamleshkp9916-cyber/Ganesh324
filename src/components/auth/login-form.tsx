@@ -24,11 +24,18 @@ import { useAuthActions } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const formSchema = z.object({
+const customerSchema = z.object({
   identifier: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(1, { message: "Password is required." }),
   rememberMe: z.boolean().default(false).optional(),
 });
+
+const sellerSchema = z.object({
+    identifier: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
+    password: z.string().min(1, { message: "Password is required." }),
+    rememberMe: z.boolean().default(false).optional(),
+});
+
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -70,9 +77,11 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
+  const formSchema = role === 'seller' ? sellerSchema : customerSchema;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { identifier: "", password: "", rememberMe: false },
+    defaultValues: { identifier: role === 'seller' ? "+91 " : "", password: "", rememberMe: false },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -90,9 +99,7 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
     }
   }
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+  const IdentifierField = role === 'customer' ? (
         <FormField
           control={form.control}
           name="identifier"
@@ -106,6 +113,42 @@ export function LoginForm({ role = 'customer' }: LoginFormProps) {
             </FormItem>
           )}
         />
+  ) : (
+      <FormField
+          control={form.control}
+          name="identifier"
+          render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                      <Input
+                          placeholder="+91 98765 43210"
+                          {...field}
+                          disabled={isLoading}
+                          className="bg-background"
+                          onChange={(e) => {
+                                let value = e.target.value;
+                                if (!value.startsWith('+91 ')) {
+                                    value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                }
+                                if (value.length > 14) {
+                                    value = value.substring(0, 14);
+                                }
+                                field.onChange(value);
+                            }}
+                      />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+          )}
+      />
+  );
+
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+        {IdentifierField}
         <FormField
           control={form.control}
           name="password"

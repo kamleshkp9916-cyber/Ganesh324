@@ -10,6 +10,11 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
+const findSellerByPhone = (phone: string) => {
+    const allUsers = JSON.parse(localStorage.getItem('globalUserData') || '{}');
+    return Object.values(allUsers).find((user: any) => user.role === 'seller' && user.phone === phone);
+}
+
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
@@ -139,9 +144,20 @@ export function useAuthActions() {
         }
     };
     
-    const signInWithEmail = async (email: string, password: string, expectedRole: 'customer' | 'seller') => {
+    const signInWithEmail = async (identifier: string, password: string, expectedRole: 'customer' | 'seller') => {
+        const auth = getFirebaseAuth();
+        let emailToAuth = identifier;
+        
+        if (expectedRole === 'seller') {
+            const seller: any = findSellerByPhone(identifier);
+            if (!seller) {
+                throw new Error("No seller account found with this phone number.");
+            }
+            emailToAuth = seller.email;
+        }
+
         // Special case for admin login
-        if (email === ADMIN_EMAIL) {
+        if (emailToAuth === ADMIN_EMAIL) {
             const mockAdminUser: User = {
                 uid: 'admin-mock-uid',
                 email: ADMIN_EMAIL,
@@ -171,9 +187,9 @@ export function useAuthActions() {
             return;
         }
 
-        const auth = getFirebaseAuth();
+        
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, emailToAuth, password);
             const user = userCredential.user;
 
             if (!user.emailVerified) {
@@ -187,20 +203,10 @@ export function useAuthActions() {
                 return;
             }
 
-            let userRole;
-            const sellerDetailsRaw = localStorage.getItem('sellerDetails');
-            if (sellerDetailsRaw) {
-                 const sellerDetails = JSON.parse(sellerDetailsRaw);
-                 if (sellerDetails.email === email) {
-                     userRole = 'seller';
-                 }
-            }
-            
-            if (!userRole) {
-                userRole = getUserData(user.uid).role;
-            }
+            const userData = getUserData(user.uid);
+            const userRole = userData.role;
 
-             if (userRole !== expectedRole) {
+            if (userRole !== expectedRole) {
                 const errorMessage = `You are trying to log in as a ${expectedRole}, but this account is registered as a ${userRole}.`;
                 toast({ title: "Role Mismatch", description: errorMessage, variant: "destructive" });
                 await firebaseSignOut(auth); // Sign out the user
@@ -216,7 +222,7 @@ export function useAuthActions() {
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
                 case 'auth/invalid-credential':
-                    errorMessage = "Invalid email or password. Please try again.";
+                    errorMessage = "Invalid credentials. Please try again.";
                     break;
                 case 'auth/invalid-email':
                     errorMessage = "Please enter a valid email address.";
