@@ -42,6 +42,7 @@ import {
   Search,
   LayoutDashboard,
   Repeat,
+  Laptop,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -357,7 +358,7 @@ export default function LiveSellingPage() {
   const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -611,6 +612,15 @@ export default function LiveSellingPage() {
                     ) : user ? (
                         <div className="flex items-center gap-1 sm:gap-2">
                             <div ref={searchRef} className="relative flex items-center">
+                                 <Input
+                                    placeholder="Search..."
+                                    className={cn(
+                                        "bg-muted rounded-full pl-4 pr-10 h-10 transition-all duration-300 ease-in-out",
+                                        isSearchExpanded ? 'w-32 sm:w-48' : 'w-0 border-transparent p-0'
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -619,15 +629,6 @@ export default function LiveSellingPage() {
                                 >
                                     <Search className="h-5 w-5 text-muted-foreground" />
                                 </Button>
-                                <Input
-                                    placeholder="Search..."
-                                    className={cn(
-                                        "bg-muted rounded-full pl-4 pr-4 h-10 transition-all duration-300 ease-in-out",
-                                        isSearchExpanded ? 'w-32 sm:w-48' : 'w-0 border-transparent p-0'
-                                    )}
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -700,6 +701,32 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
                                         </DropdownMenuItem>
+                                    </DropdownMenuGroup>
+                                    <DropdownMenuSeparator />
+                                     <DropdownMenuGroup>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                                                <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                                                <span>Theme</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                                                        <Sun className="mr-2 h-4 w-4" />
+                                                        <span>Light</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                                        <Moon className="mr-2 h-4 w-4" />
+                                                        <span>Dark</span>
+                                                    </DropdownMenuItem>
+                                                     <DropdownMenuItem onClick={() => setTheme("system")}>
+                                                        <Laptop className="mr-2 h-4 w-4" />
+                                                        <span>System</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>

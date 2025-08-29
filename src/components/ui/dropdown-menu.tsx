@@ -182,71 +182,6 @@ const DropdownMenuShortcut = ({
 }
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut"
 
-const HoverMenuContext = React.createContext<{
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}>({ open: false, onOpenChange: () => {} });
-
-
-const HoverDropdownMenu = ({
-  children,
-  ...props
-}: DropdownMenuPrimitive.DropdownMenuProps) => {
-  const [open, setOpen] = React.useState(false);
-  const onOpenChange = React.useCallback(
-    (value: boolean) => {
-      if (value) {
-        setOpen(true);
-      } else {
-        setTimeout(() => setOpen(false), 100);
-      }
-    },
-    [setOpen]
-  );
-  return (
-    <HoverMenuContext.Provider value={{ open, onOpenChange }}>
-        <DropdownMenu open={open} onOpenChange={onOpenChange} {...props}>
-            {children}
-        </DropdownMenu>
-    </HoverMenuContext.Provider>
-  );
-};
-
-const HoverDropdownMenuTrigger = React.forwardRef<
-  React.ElementRef<typeof DropdownMenuTrigger>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuTrigger>
->(({ children, ...props }, ref) => {
-  const { onOpenChange } = React.useContext(HoverMenuContext);
-  const onOpen = React.useCallback(
-    () => onOpenChange(true),
-    [onOpenChange]
-  );
-  return (
-    <DropdownMenuTrigger ref={ref} onMouseEnter={onOpen} {...props}>
-      {children}
-    </DropdownMenuTrigger>
-  );
-});
-HoverDropdownMenuTrigger.displayName = "HoverDropdownMenuTrigger";
-
-const HoverDropdownMenuContent = React.forwardRef<
-  React.ElementRef<typeof DropdownMenuContent>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuContent>
->(({ children, ...props }, ref) => {
-  const { onOpenChange } = React.useContext(HoverMenuContext);
-  const onClose = React.useCallback(
-    () => onOpenChange(false),
-    [onOpenChange]
-  );
-  return (
-    <DropdownMenuContent ref={ref} onMouseLeave={onClose} {...props}>
-      {children}
-    </DropdownMenuContent>
-  );
-});
-HoverDropdownMenuContent.displayName = "HoverDropdownMenuContent";
-
-
 export {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -263,7 +198,4 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
-  HoverDropdownMenu,
-  HoverDropdownMenuTrigger,
-  HoverDropdownMenuContent,
 }
