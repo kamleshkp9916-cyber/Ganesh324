@@ -60,6 +60,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
+import { getUserData, updateUserData } from "@/lib/follow-data";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
@@ -76,7 +77,7 @@ const allUsers = [
     { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05", verificationStatus: 'verified' },
 ];
 
-const UserTable = ({ users, onRowClick }: { users: typeof allUsers, onRowClick: (email: string) => void }) => (
+const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: string) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -90,10 +91,10 @@ const UserTable = ({ users, onRowClick }: { users: typeof allUsers, onRowClick: 
                 {users.map((u, index) => (
                     <TableRow key={index} onClick={() => onRowClick(u.email)} className="cursor-pointer">
                         <TableCell>
-                            <div className="font-medium">{u.name}</div>
+                            <div className="font-medium">{u.name || u.displayName}</div>
                             <div className="text-sm text-muted-foreground">{u.email}</div>
                         </TableCell>
-                         <TableCell className="hidden md:table-cell">{new Date(u.date).toLocaleDateString()}</TableCell>
+                         <TableCell className="hidden md:table-cell">{new Date(u.date || Date.now()).toLocaleDateString()}</TableCell>
                         <TableCell>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -188,6 +189,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
+  const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -197,6 +199,10 @@ export default function AdminUsersPage() {
         if (storedSellers) {
             setPendingSellers(JSON.parse(storedSellers));
         }
+
+        const globalUserData = JSON.parse(localStorage.getItem('globalUserData') || '{}');
+        const usersArray = Object.values(globalUserData);
+        setAllUsersState(usersArray);
     }
   }, []);
 
@@ -219,35 +225,36 @@ export default function AdminUsersPage() {
   }
   
   const handleUserRowClick = (userEmail: string) => {
-    const targetUser = allUsers.find(u => u.email === userEmail);
+    const targetUser: any = allUsersState.find(u => u.email === userEmail);
     if (targetUser) {
         if (targetUser.role === 'Seller') {
-            // In a real app, you'd use a unique ID. Here we use email as a proxy.
-            const sellerId = `seller_${userEmail}`;
-            router.push(`/seller/profile?userId=${sellerId}`);
+            router.push(`/seller/profile?userId=${targetUser.uid}`);
         } else {
-            router.push(`/profile?userId=${userEmail}`);
+            router.push(`/profile?userId=${targetUser.uid}`);
         }
     }
   };
 
   const handleVerificationUpdate = (email: string, status: 'verified' | 'rejected') => {
-      const allSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
-      const sellerIndex = allSellers.findIndex((s: any) => s.email === email);
+      const allPendingSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
+      const sellerToUpdate = allPendingSellers.find((s: any) => s.email === email);
 
-      if (sellerIndex > -1) {
-          allSellers[sellerIndex].verificationStatus = status;
+      if (sellerToUpdate) {
+          updateUserData(sellerToUpdate.uid, {
+              verificationStatus: status,
+              rejectionReason: status === 'rejected' ? "Application did not meet requirements." : undefined,
+          });
 
-          if (status === 'rejected') {
-              allSellers[sellerIndex].rejectionReason = "Application did not meet requirements.";
-          }
-          
-          localStorage.setItem('sellerDetails', JSON.stringify(allSellers[sellerIndex]));
-          
           // Remove from pending list
-          const updatedPending = allSellers.filter((s: any) => s.email !== email);
+          const updatedPending = allPendingSellers.filter((s: any) => s.email !== email);
           setPendingSellers(updatedPending);
           localStorage.setItem('pendingSellers', JSON.stringify(updatedPending));
+
+          // Also update the local state for the main user list to reflect verification
+          setAllUsersState(prev => prev.map(u => u.email === email ? { ...u, verificationStatus: status } : u));
+          
+          // Also update sellerDetails for the user themselves
+          localStorage.setItem('sellerDetails', JSON.stringify({ ...sellerToUpdate, verificationStatus: status }));
 
           toast({
               title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
@@ -256,8 +263,8 @@ export default function AdminUsersPage() {
       }
   };
 
-  const customers = allUsers.filter(u => u.role === 'Customer');
-  const sellers = allUsers.filter(u => u.role === 'Seller');
+  const customers = allUsersState.filter(u => u.role === 'customer');
+  const sellers = allUsersState.filter(u => u.role === 'seller' && u.verificationStatus === 'verified');
   const pendingRequestCount = pendingSellers.length;
 
   return (

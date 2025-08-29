@@ -20,16 +20,28 @@ export default function Home() {
   // By removing this, we ensure the correct redirection path is followed for each user role.
   useEffect(() => {
     if (!loading && user) {
-        // Admin user is handled by a separate session storage mechanism,
-        // so we only need to consider regular customer/seller roles here.
         const mockAdminUser = sessionStorage.getItem('mockAdminUser');
-        if (!mockAdminUser) {
-             const userData = getUserData(user.uid);
-             if (userData && userData.role === 'seller') {
-                 router.replace('/seller/dashboard');
-             } else {
-                 router.replace('/live-selling');
-             }
+        if (mockAdminUser) {
+            router.replace('/admin/dashboard');
+            return;
+        }
+
+        const userData = getUserData(user.uid);
+        
+        if (userData.role === 'seller') {
+            // Check verification status for sellers
+            // @ts-ignore
+            if (userData.verificationStatus === 'verified') {
+                router.replace('/seller/dashboard');
+            // @ts-ignore
+            } else if (userData.verificationStatus === 'pending') {
+                router.replace('/seller/verification');
+            } else {
+                 // stay on login or go to a different page for non-verified sellers
+            }
+        } else {
+            // Default customer redirection
+            router.replace('/live-selling');
         }
     }
   }, [user, loading, router]);
