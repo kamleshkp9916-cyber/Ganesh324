@@ -1,4 +1,3 @@
-
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, initializeAuth, browserLocalPersistence, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -14,18 +13,31 @@ const firebaseConfig = {
 };
 
 let app: FirebaseApp;
-if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-} else {
-    app = getApp();
+let auth: Auth;
+let db: Firestore;
+
+function initializeFirebase() {
+    if (!getApps().length) {
+        app = initializeApp(firebaseConfig);
+        auth = initializeAuth(app, {
+            persistence: browserLocalPersistence
+        });
+        db = getFirestore(app);
+    } else {
+        app = getApp();
+        auth = getAuth(app);
+        db = getFirestore(app);
+    }
 }
 
-const auth = initializeAuth(app, {
-    persistence: browserLocalPersistence
-});
-const db = getFirestore(app);
+// Call initialization right away
+initializeFirebase();
 
-export { app as firebaseApp, auth as firebaseAuth, db as firestoreDb };
-
-export const getFirebaseAuth = (): Auth => auth;
-export const getFirestoreDb = (): Firestore => db;
+export const getFirebaseAuth = (): Auth => {
+    if (!auth) initializeFirebase();
+    return auth;
+};
+export const getFirestoreDb = (): Firestore => {
+    if (!db) initializeFirebase();
+    return db;
+};

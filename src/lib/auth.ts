@@ -161,5 +161,3 @@ export function useAuthActions() {
 
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleEmailSignUp };
 }
-
-export { getFirebaseAuth as getAuth };

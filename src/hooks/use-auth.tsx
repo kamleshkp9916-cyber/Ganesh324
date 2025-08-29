@@ -47,13 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
       if (user) {
-        getUserData(user.uid, user).then(data => {
-            setUserData(data);
-            setLoading(false);
-        }).catch(error => {
-            console.error("Failed to fetch user data:", error);
-            setLoading(false);
-        });
+        // Delay fetching user data slightly to allow Firestore to connect
+        setTimeout(() => {
+            getUserData(user.uid, user).then(data => {
+                setUserData(data);
+                setLoading(false);
+            }).catch(error => {
+                console.error("Failed to fetch user data:", error);
+                setLoading(false);
+            });
+        }, 100);
       }
   }, [user]);
 

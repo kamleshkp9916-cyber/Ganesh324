@@ -20,8 +20,6 @@ export interface UserData {
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
 }
 
-const db = getFirestoreDb();
-
 const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
     uid,
     displayName: defaults?.displayName || 'New User',
@@ -38,6 +36,7 @@ const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserDat
 
 export const getUserData = async (uid: string, defaults?: Partial<User>): Promise<UserData | null> => {
     if (!uid) return null;
+    const db = getFirestoreDb();
     const userDocRef = doc(db, "users", uid);
     const userDoc = await getDoc(userDocRef);
 
@@ -56,11 +55,13 @@ export const getUserData = async (uid: string, defaults?: Partial<User>): Promis
 
 export const updateUserData = async (uid: string, updates: Partial<UserData>): Promise<void> => {
     if (!uid) return;
+    const db = getFirestoreDb();
     const userDocRef = doc(db, "users", uid);
     await updateDoc(userDocRef, updates);
 };
 
 export const createUserData = async (user: User, role: 'customer' | 'seller', additionalData: Partial<UserData> = {}): Promise<void> => {
+    const db = getFirestoreDb();
     const userDocRef = doc(db, "users", user.uid);
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
@@ -96,6 +97,7 @@ export const toggleFollow = async (currentUserId: string, targetUserId: string) 
 };
 
 export const getFollowers = async (targetUserId: string): Promise<UserData[]> => {
+    const db = getFirestoreDb();
     // This is not efficient for large scale, but works for a demo.
     // A real app would use a subcollection on the target user listing their followers.
     const usersCollection = collection(db, 'users');
@@ -115,6 +117,7 @@ export const getFollowers = async (targetUserId: string): Promise<UserData[]> =>
 };
 
 export const getFollowing = async (userId: string): Promise<UserData[]> => {
+    const db = getFirestoreDb();
     const followingCollectionRef = collection(db, `users/${userId}/following`);
     const followingSnapshot = await getDocs(followingCollectionRef);
     const followingIds = followingSnapshot.docs.map(doc => doc.id);
@@ -128,6 +131,7 @@ export const getFollowing = async (userId: string): Promise<UserData[]> => {
 }
 
 export const isFollowing = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
+    const db = getFirestoreDb();
     const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
     const followDoc = await getDoc(followDocRef);
     return followDoc.exists();
