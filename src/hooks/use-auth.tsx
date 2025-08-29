@@ -24,19 +24,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const auth = getFirebaseAuth();
-    
+
+    // First, check for a mock admin user in sessionStorage.
     const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
     if (mockAdminUserRaw) {
         try {
             const adminUser = JSON.parse(mockAdminUserRaw);
             setUser(adminUser);
             setLoading(false);
-            // We still want the real auth listener to run in case the real session changes
+            // Don't set up the onAuthStateChanged listener if we're using the mock admin.
+            // This prevents the real auth state (null) from overwriting our mock session.
+            return; 
         } catch (e) {
             console.error("Failed to parse mock admin user from sessionStorage", e);
         }
     }
 
+    // If no mock admin, proceed with real Firebase auth.
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
             const userData = getUserData(firebaseUser.uid, {
@@ -45,20 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: firebaseUser.photoURL || '',
             });
             const augmentedUser = { ...firebaseUser, ...userData };
-            
-            const currentMockAdminRaw = sessionStorage.getItem('mockAdminUser');
-            // If there's a real user but also a mock admin, the real user takes precedence.
-            if(currentMockAdminRaw) {
-                sessionStorage.removeItem('mockAdminUser');
-            }
-
             setUser(augmentedUser as User);
         } else {
-             // This is the crucial part: if Firebase says no user, we ensure our state is null.
-             // This also handles signing out the mock admin user.
-             if (sessionStorage.getItem('mockAdminUser')) {
-                 sessionStorage.removeItem('mockAdminUser');
-             }
              setUser(null);
         }
         setLoading(false);
