@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useEffect } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { getUserData } from '@/lib/follow-data';
 
 export default function SellerLoginPage() {
     const router = useRouter();
@@ -17,8 +18,8 @@ export default function SellerLoginPage() {
 
     useEffect(() => {
         if (!loading && user) {
-            // @ts-ignore
-            if (user.role === 'seller' && user.verificationStatus === 'verified') {
+            const userData = getUserData(user.uid);
+            if (userData.role === 'seller' && userData.verificationStatus === 'verified') {
                 router.replace('/seller/dashboard');
             }
         }
@@ -71,5 +72,3 @@ export default function SellerLoginPage() {
     </div>
   );
 }
-
-    

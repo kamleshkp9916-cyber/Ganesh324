@@ -25,22 +25,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
 
-    // First, check for a mock admin user in sessionStorage.
     const mockAdminUserRaw = sessionStorage.getItem('mockAdminUser');
     if (mockAdminUserRaw) {
         try {
             const adminUser = JSON.parse(mockAdminUserRaw);
             setUser(adminUser);
             setLoading(false);
-            // Don't set up the onAuthStateChanged listener if we're using the mock admin.
-            // This prevents the real auth state (null) from overwriting our mock session.
             return; 
         } catch (e) {
             console.error("Failed to parse mock admin user from sessionStorage", e);
+            sessionStorage.removeItem('mockAdminUser');
         }
     }
 
-    // If no mock admin, proceed with real Firebase auth.
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
             const userData = getUserData(firebaseUser.uid, {
@@ -52,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(augmentedUser as User);
         } else {
              setUser(null);
+             sessionStorage.removeItem('mockAdminUser');
         }
         setLoading(false);
     });
