@@ -2,7 +2,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile } from "firebase/auth";
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -121,9 +121,12 @@ export function useAuthActions() {
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
           const user = userCredential.user;
+          const displayName = `${values.firstName} ${values.lastName}`;
           
+          await updateProfile(user, { displayName: displayName });
+
           await createUserData(user, 'customer', {
-            displayName: `${values.firstName} ${values.lastName}`,
+            displayName: displayName,
             phone: values.phone,
           });
           
