@@ -346,7 +346,7 @@ export default function LiveSellingPage() {
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
   const [currentSlide, setCurrentSlide] = useState(0)
-  const { user, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [followingList, setFollowingList] = useState(initialFollowing);
   const [mockFeed, setMockFeed] = useState<(typeof initialMockFeed)>([]);
@@ -453,11 +453,11 @@ export default function LiveSellingPage() {
   }, [searchRef]);
 
   const handleCreatePost = (data: PostData) => {
-    if (!user) return;
+    if (!user || !userData) return;
     const newPost = {
         id: mockFeed.length + 1,
-        sellerName: user.displayName || 'You',
-        avatarUrl: user.photoURL || 'https://placehold.co/40x40.png',
+        sellerName: userData.displayName || 'You',
+        avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
         timestamp: 'just now',
         content: data.content,
         productImageUrl: data.media?.url || null,
@@ -669,14 +669,14 @@ export default function LiveSellingPage() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Avatar className="h-9 w-9 cursor-pointer">
-                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "User"} />
-                                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={userData?.displayName || "User"} />
+                                        <AvatarFallback>{userData?.displayName ? userData.displayName.charAt(0) : 'U'}</AvatarFallback>
                                     </Avatar>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-64 bg-background" align="end" forceMount>
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                                            <p className="text-sm font-medium leading-none">{userData?.displayName}</p>
                                             <p className="text-xs leading-none text-muted-foreground">
                                             {user.email}
                                             </p>
@@ -1022,11 +1022,11 @@ export default function LiveSellingPage() {
                                         <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
                                             <div className="flex items-center gap-4">
                                                 <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleAuthAction()}>
-                                                    <Heart className="w-4 h-4" />
+                                                    <Heart className="mr-2 h-4 w-4" />
                                                     <span>{item.likes}</span>
                                                 </button>
                                                 <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
-                                                    <MessageSquare className="w-4 h-4" />
+                                                    <MessageSquare className="mr-2 h-4 w-4" />
                                                     <span>{item.replies}</span>
                                                 </button>
                                             </div>

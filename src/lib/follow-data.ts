@@ -66,6 +66,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller', ad
     const userDocRef = doc(db, "users", user.uid);
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
+        displayName: additionalData.displayName || user.displayName || 'New User', // Prioritize passed name
         role,
         ...additionalData,
     } as UserData;
