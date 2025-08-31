@@ -96,6 +96,13 @@ export default function AdminInquiriesPage() {
     }
   };
 
+  const handleReplyToInquiry = (inquiry: Inquiry & {id: string}) => {
+    // This will open the seller message page, but we can pass params
+    // to indicate this is an executive reply.
+    // The seller message page can then handle this special case.
+    router.push(`/seller/messages?userId=${inquiry.email}&userName=${inquiry.name}&executive=true`);
+  }
+
   if (loading || userData?.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
@@ -201,10 +208,8 @@ export default function AdminInquiriesPage() {
                      <DialogClose asChild>
                         <Button type="button" variant="secondary">Close</Button>
                     </DialogClose>
-                     <Button asChild>
-                        <a href={`mailto:${selectedInquiry.email}?subject=Re: ${selectedInquiry.subject}`}>
-                            <Mail className="mr-2 h-4 w-4" /> Reply
-                        </a>
+                     <Button onClick={() => handleReplyToInquiry(selectedInquiry)}>
+                        <Mail className="mr-2 h-4 w-4" /> Reply
                     </Button>
                 </div>
             </DialogContent>

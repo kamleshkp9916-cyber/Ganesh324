@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 const MessageSchema = z.object({
   id: z.number(),
   text: z.string().optional(),
-  sender: z.enum(['me', 'them']),
+  sender: z.string(), // 'customer' or 'seller'
   timestamp: z.string(),
   image: z.string().optional(),
 });
@@ -30,6 +30,7 @@ export type Conversation = {
     lastMessage: string;
     lastMessageTimestamp: string;
     unreadCount: number;
+    isExecutive?: boolean;
 }
 
 const GetMessagesInputSchema = z.object({
@@ -59,16 +60,16 @@ const UpdateOrderStatusInputSchema = z.object({
 // Mock database
 const mockChatDatabase: Record<string, Message[]> = {
   "FashionFinds": [
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'them', timestamp: '10:00 AM' },
-    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'me', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'them', timestamp: '10:01 AM' },
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
   ],
   "GadgetGuru": [
-      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'them', timestamp: 'Yesterday' },
-      { id: 2, text: "Sure, what would you like to know?", sender: 'me', timestamp: 'Yesterday' },
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
   ],
   "HomeHaven": [
-       { id: 1, text: "Do you have the ceramic vases in blue?", sender: 'them', timestamp: 'Yesterday' },
+       { id: 1, text: "Do you have the ceramic vases in blue?", sender: 'customer', timestamp: 'Yesterday' },
   ]
 };
 
@@ -123,7 +124,6 @@ const getMessagesFlow = ai.defineFlow(
   },
   async ({ userId }) => {
     console.log(`Getting messages for userId: ${userId}`);
-    // Seller is always 'me', customer is always 'them' in this mock data structure.
     return mockChatDatabase[userId] || [];
   }
 );
@@ -141,12 +141,9 @@ const sendMessageFlow = ai.defineFlow(
     
     const currentMessages = mockChatDatabase[userId];
 
-    // Seller is always 'me', customer is always 'them'.
-    const sender = from === 'seller' ? 'me' : 'them';
-
     const newMessage: Message = {
       id: currentMessages.length + 1,
-      sender: sender,
+      sender: from,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       ...message,
     };

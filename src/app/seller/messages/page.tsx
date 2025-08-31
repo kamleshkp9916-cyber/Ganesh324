@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Send, Search, MoreVertical, Smile, Paperclip, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,15 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
+import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function ChatMessage({ msg }: { msg: Message }) {
-    // For seller, 'me' is the seller
-    const isMe = msg.sender === 'me';
+function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
+    const isMe = msg.sender === 'seller' || msg.sender === currentUserName;
     return (
         <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
             {!isMe && (
@@ -72,7 +72,8 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
 
 export default function SellerMessagePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const { user, userData, loading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -81,13 +82,39 @@ export default function SellerMessagePage() {
   const [newMessage, setNewMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  const isExecutiveReply = searchParams.get('executive') === 'true';
+
   useEffect(() => {
     if (user) {
         const fetchConversations = async () => {
             try {
                 const convos = await getConversations();
                 setConversations(convos);
-                if (convos.length > 0) {
+
+                if (isExecutiveReply) {
+                    const userId = searchParams.get('userId');
+                    const userName = searchParams.get('userName');
+                    if (userId && userName) {
+                        const executiveConvo = {
+                            userId: userId,
+                            userName: userName,
+                            avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                            lastMessage: 'New inquiry',
+                            lastMessageTimestamp: '',
+                            unreadCount: 1,
+                            isExecutive: true,
+                        };
+                        
+                        setConversations(prev => {
+                            // Avoid adding duplicates
+                            if (prev.some(c => c.userId === userId && c.isExecutive)) {
+                                return prev;
+                            }
+                            return [executiveConvo, ...prev];
+                        });
+                        handleSelectConversation(executiveConvo);
+                    }
+                } else if (convos.length > 0) {
                     handleSelectConversation(convos[0]);
                 }
             } catch (error) {
@@ -98,7 +125,7 @@ export default function SellerMessagePage() {
         };
         fetchConversations();
     }
-  }, [user]);
+  }, [user, isExecutiveReply, searchParams]);
   
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
@@ -109,7 +136,12 @@ export default function SellerMessagePage() {
     setIsChatLoading(true);
     setMessages([]);
     try {
-        const chatHistory = await getMessages(convo.userId);
+        let chatHistory;
+        if(convo.isExecutive) {
+            chatHistory = await getExecutiveMessages(convo.userId);
+        } else {
+            chatHistory = await getMessages(convo.userId);
+        }
         setMessages(chatHistory);
     } catch (error) {
         console.error("Failed to fetch messages for", convo.userId, error);
@@ -120,12 +152,14 @@ export default function SellerMessagePage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim() || !selectedConversation || !userData) return;
+    
+    const from = selectedConversation.isExecutive ? 'StreamCart' : userData.displayName;
 
     const optimisticMessage: Message = {
         id: Math.random(),
         text: newMessage,
-        sender: 'me', // Seller is 'me'
+        sender: from,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
@@ -133,7 +167,12 @@ export default function SellerMessagePage() {
     setNewMessage("");
 
     try {
-        const updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'seller');
+        let updatedMessages;
+        if (selectedConversation.isExecutive) {
+            updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, from);
+        } else {
+            updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'seller');
+        }
         setMessages(updatedMessages);
     } catch (error) {
         console.error("Failed to send message", error);
@@ -170,7 +209,7 @@ export default function SellerMessagePage() {
             <div className="p-2 flex-grow overflow-y-auto">
                 {conversations.map(convo => (
                     <ConversationItem 
-                        key={convo.userId} 
+                        key={convo.isExecutive ? `exec-${convo.userId}` : convo.userId} 
                         convo={convo} 
                         onClick={() => handleSelectConversation(convo)}
                         isSelected={selectedConversation?.userId === convo.userId}
@@ -206,7 +245,7 @@ export default function SellerMessagePage() {
                                <Skeleton className="h-8 w-1/3 ml-auto" />
                            </div>
                        ) : (
-                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} />)
+                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={selectedConversation.isExecutive ? 'StreamCart' : userData?.displayName || null} />)
                        )}
                     </div>
                     <footer className="p-4 border-t shrink-0">

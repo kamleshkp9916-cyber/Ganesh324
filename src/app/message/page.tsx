@@ -9,15 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
+import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function ChatMessage({ msg }: { msg: Message }) {
+function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     // For customer, 'them' is the seller and 'me' is the customer
-    const isMe = msg.sender === 'them';
+    const isMe = msg.sender === 'customer' || msg.sender === currentUserName;
     return (
         <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
             {!isMe && (
@@ -72,7 +73,7 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
 
 export default function MessagePage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -82,13 +83,35 @@ export default function MessagePage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && userData) {
         const fetchConversations = async () => {
             try {
-                const convos = await getConversations();
-                setConversations(convos);
-                if (convos.length > 0) {
-                    handleSelectConversation(convos[0]);
+                const sellerConvos = await getConversations();
+                
+                // Check if an executive chat exists
+                const execMessages = await getExecutiveMessages(userData.uid);
+                let executiveConversation: Conversation | null = null;
+                if (execMessages.length > 0) {
+                    const lastMessage = execMessages[execMessages.length - 1];
+                    executiveConversation = {
+                        userId: userData.uid, // Use user's UID for executive chat ID
+                        userName: 'StreamCart',
+                        avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                        lastMessage: lastMessage.text || 'Image Sent',
+                        lastMessageTimestamp: lastMessage.timestamp,
+                        unreadCount: 0,
+                        isExecutive: true,
+                    };
+                }
+
+                let allConvos = [...sellerConvos];
+                if (executiveConversation) {
+                    allConvos = [executiveConversation, ...allConvos];
+                }
+
+                setConversations(allConvos);
+                if (allConvos.length > 0) {
+                    handleSelectConversation(allConvos[0]);
                 }
             } catch (error) {
                 console.error("Failed to fetch conversations:", error);
@@ -98,7 +121,7 @@ export default function MessagePage() {
         };
         fetchConversations();
     }
-  }, [user]);
+  }, [user, userData]);
   
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
@@ -109,7 +132,12 @@ export default function MessagePage() {
     setIsChatLoading(true);
     setMessages([]);
     try {
-        const chatHistory = await getMessages(convo.userId);
+        let chatHistory;
+        if (convo.isExecutive) {
+            chatHistory = await getExecutiveMessages(convo.userId);
+        } else {
+            chatHistory = await getMessages(convo.userId);
+        }
         setMessages(chatHistory);
     } catch (error) {
         console.error("Failed to fetch messages for", convo.userId, error);
@@ -120,12 +148,12 @@ export default function MessagePage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim() || !selectedConversation || !userData) return;
 
     const optimisticMessage: Message = {
         id: Math.random(),
         text: newMessage,
-        sender: 'them', // Customer is 'them'
+        sender: userData.displayName, // Customer is the sender
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
@@ -133,7 +161,12 @@ export default function MessagePage() {
     setNewMessage("");
 
     try {
-        const updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
+        let updatedMessages;
+        if (selectedConversation.isExecutive) {
+            updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
+        } else {
+            updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
+        }
         setMessages(updatedMessages);
     } catch (error) {
         console.error("Failed to send message", error);
@@ -206,7 +239,7 @@ export default function MessagePage() {
                                <Skeleton className="h-8 w-1/3 ml-auto" />
                            </div>
                        ) : (
-                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} />)
+                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
                        )}
                     </div>
                     <footer className="p-4 border-t shrink-0">
