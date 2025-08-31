@@ -321,26 +321,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
                   <AvatarFallback className="text-4xl">{displayName.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
               </Avatar>
-                {isOwnProfile && (
-                  <>
-                      <Button
-                          size="icon"
-                          variant="outline"
-                          className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-background/70 hover:bg-background"
-                          onClick={() => profileFileInputRef.current?.click()}
-                      >
-                          <Camera className="h-4 w-4" />
-                          <span className="sr-only">Change profile image</span>
-                      </Button>
-                      <input
-                          type="file"
-                          ref={profileFileInputRef}
-                          onChange={handleProfileImageUpload}
-                          className="hidden"
-                          accept="image/*"
-                      />
-                  </>
-              )}
           </div>
           
           <div className="relative z-10 text-foreground flex-grow text-center sm:text-left">
