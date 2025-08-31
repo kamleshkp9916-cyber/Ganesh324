@@ -27,7 +27,7 @@ const sellerFormSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
   lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-   userId: z.string()
+  userId: z.string()
     .min(2, { message: "User ID must be at least 2 characters." })
     .refine((val) => val.startsWith('@'), {
       message: "User ID must start with @.",
@@ -155,7 +155,7 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         try {
             await handleSellerSignUp(values);
-            // The AuthRedirector or seller/verification page will handle the redirect.
+            // Redirection is handled by the handleSellerSignUp function on success
         } catch (error: any) {
              toast({
                 variant: "destructive",

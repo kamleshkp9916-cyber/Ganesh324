@@ -169,14 +169,16 @@ export function useAuthActions() {
     const handleSellerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
         const displayName = `${values.firstName} ${values.lastName}`;
+        const sellerData = {
+            ...values,
+            role: 'seller',
+            verificationStatus: 'pending',
+            displayName: displayName,
+        };
+
         // If user is already logged in, we update their role. Otherwise, we create a new user.
         if (auth.currentUser) {
-            await updateUserData(auth.currentUser.uid, {
-                role: 'seller',
-                verificationStatus: 'pending',
-                ...values,
-                displayName: displayName
-            });
+            await updateUserData(auth.currentUser.uid, sellerData);
             toast({
                 title: "Registration Submitted!",
                 description: "Your seller application is now under review.",
@@ -189,11 +191,7 @@ export function useAuthActions() {
                 const user = userCredential.user;
                  await updateProfile(user, { displayName: displayName });
                 
-                await createUserData(user, 'seller', {
-                    ...values,
-                    displayName: displayName,
-                    verificationStatus: 'pending',
-                });
+                await createUserData(user, 'seller', sellerData);
                 
                 await sendEmailVerification(user);
                 
@@ -229,7 +227,7 @@ export function useAuthActions() {
         
         const { id, dismiss, update } = toast({
             title: "Updating Profile...",
-            description: "Please wait.",
+            description: "Please wait while we update your details.",
         });
 
         try {
