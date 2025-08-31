@@ -16,59 +16,63 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait until authentication status AND user data are fully loaded.
+    // Wait until the initial authentication check is complete.
     if (loading) {
       return; 
     }
     
     if (user) {
-        // User is authenticated
+        // --- 1. Email Verification ---
+        // If the user's email is not verified, this is the highest priority.
+        // Force them to the verification page no matter what.
         if (!user.emailVerified) {
-            // --- REDIRECTION FOR UNVERIFIED USERS ---
-            // Force them to the verify-email page if they aren't already there.
             if (pathname !== emailVerificationPath) {
                 router.replace(emailVerificationPath);
             }
-            return; // Stop further processing
+            return;
         }
         
-        // At this point, user is authenticated and email is verified.
-        // We MUST have userData to proceed. If not, something is wrong, but we wait.
+        // --- 2. Wait for User Data ---
+        // After email verification, we MUST have their data (role, status, etc.) to proceed.
+        // If userData is still loading, do nothing and wait.
         if (!userData) {
             return;
         }
 
-        // --- REDIRECTION FOR VERIFIED, LOGGED-IN USERS ---
+        // --- 3. Role-Based Redirection ---
+        // Now that we have the user and their data, we can make a definitive redirection.
         if (userData.role === 'seller') {
             const { verificationStatus } = userData;
             
-            if (verificationStatus === 'verified') {
-                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === '/') {
-                    router.replace('/seller/dashboard');
-                }
-            } else { // 'pending', 'rejected', or 'needs-resubmission'.
+            // If the seller's status requires them to be on the verification page
+            if (['pending', 'rejected', 'needs-resubmission'].includes(verificationStatus || '')) {
                 if (pathname !== sellerVerificationPath) {
                     router.replace(sellerVerificationPath);
                 }
+            } 
+            // If the seller is verified, they should be on their dashboard or other app pages
+            else if (verificationStatus === 'verified') {
+                // If they land on a public-only page or the wrong verification page, send them to their dashboard
+                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === '/') {
+                    router.replace('/seller/dashboard');
+                }
             }
         } else if (userData.role === 'admin') {
+            // Admin redirection logic
             if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === '/') {
                 router.replace('/admin/dashboard');
             }
         } else {
-            // This is a customer.
+            // This is a customer. Redirect them away from login/signup pages.
             if (publicOnlyPaths.includes(pathname) || pathname === '/') {
                 router.replace('/live-selling');
             }
         }
         
     } else { 
-        // --- REDIRECTION FOR LOGGED-OUT USERS ---
-        // If the user is logged out, they should be redirected to the login page
-        // if they try to access any page that isn't public.
-        const isPublicPage = publicOnlyPaths.includes(pathname) || pathname === '/' || pathname === '/live-selling';
-        
-        // Allow access to product and seller profile pages for logged-out users
+        // --- Logged-Out User ---
+        // If the user is not logged in, they can only access public pages.
+        const isPublicPage = publicOnlyPaths.includes(pathname) || pathname === '/' || pathname === '/live-selling' || pathname.startsWith('/seller/register');
         const isPublicDetailView = pathname.startsWith('/product/') || pathname.startsWith('/seller/profile');
 
         if (!isPublicPage && !isPublicDetailView) {
