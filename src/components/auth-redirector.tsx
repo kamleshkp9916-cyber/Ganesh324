@@ -14,13 +14,16 @@ const protectedPaths = [
     '/message', 
     '/wallet',
     '/admin',
-    '/seller'
+    '/seller/dashboard',
+    '/seller/orders',
+    '/seller/products',
+    '/seller/verification',
 ];
 
-const authPaths = ['/', '/signup', '/forgot-password', '/verify-email', '/seller/register'];
+const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
 
 export function AuthRedirector() {
-  const { user, loading } = useAuth();
+  const { user, loading, userData } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -33,9 +36,19 @@ export function AuthRedirector() {
     const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
 
     if (user) {
-      // If user is logged in and on an auth page, redirect them to the main app page
+       // If user's email is not verified, and they are not on the verify-email page, redirect them.
+      if (!user.emailVerified && pathname !== '/verify-email') {
+        router.replace('/verify-email');
+        return;
+      }
+      
+      // If user is logged in and on an auth page, redirect them away.
       if (isAuthPath) {
-        router.replace('/live-selling');
+         if (userData?.role === 'seller') {
+            router.replace('/seller/dashboard');
+        } else {
+            router.replace('/live-selling');
+        }
       }
     } else {
       // If user is not logged in and tries to access a protected page, redirect to login
@@ -43,9 +56,9 @@ export function AuthRedirector() {
         router.replace('/');
       }
     }
-  }, [user, loading, router, pathname]);
+  }, [user, userData, loading, router, pathname]);
 
-  // While loading, we can show a global spinner or nothing
+  // While loading, show a spinner on protected routes
   if (loading && protectedPaths.some(p => pathname.startsWith(p))) {
     return (
         <div className="w-full h-screen flex items-center justify-center">
