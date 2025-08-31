@@ -41,17 +41,17 @@ const mockOffers = [
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
 
-const productToSellerMapping: { [key: string]: { uid: string; name: string; avatarUrl: string } } = {
-    'prod_1': { uid: 'FashionFinds', name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_2': { uid: 'GadgetGuru', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_3': { uid: 'HomeHaven', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_4': { uid: 'BeautyBox', name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_5': { uid: 'KitchenWiz', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_6': { uid: 'FitFlow', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_7': { uid: 'ArtisanAlley', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_8': { uid: 'PetPalace', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_9': { uid: 'BookNook', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_10': { uid: 'GamerGuild', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string } } = {
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
 };
 
 
@@ -489,7 +489,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                                 <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=${seller.uid}`}>
+                                    <Link href={`/seller/profile?userId=${seller.name}`}>
                                         View Profile
                                     </Link>
                                 </Button>

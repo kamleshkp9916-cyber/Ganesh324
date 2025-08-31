@@ -57,11 +57,15 @@ export default function SellerProfilePage() {
             }
         }
         
+        // The userIdFromQuery might not be a UID, it could be a display name from mock data
         const data = await getUserData(targetId);
+        
         if (data) {
             setProfileData(data);
         } else {
             console.error("Seller not found:", targetId);
+             // Optionally, redirect or show a "not found" page
+            // For now, we'll just log the error and the page will show a spinner
         }
     };
     
