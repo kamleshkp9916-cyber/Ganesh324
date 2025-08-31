@@ -15,7 +15,6 @@ const protectedCustomerPaths = [
     '/wallet',
 ];
 
-// More specific seller paths to allow public access to register/verification
 const protectedSellerPaths = [
     '/seller/dashboard',
     '/seller/orders',
@@ -37,9 +36,6 @@ export function AuthRedirector() {
     if (loading) {
       return; 
     }
-    
-    // Determine if the current path is public, allowing access regardless of auth state
-    const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
     
     // If the user is logged in
     if (user) {
@@ -63,8 +59,8 @@ export function AuthRedirector() {
                        router.replace('/seller/dashboard');
                    }
               } else if (status === 'pending' || status === 'rejected' || status === 'needs-resubmission') {
-                  // Sellers with non-verified status should be on the verification page
-                  if (pathname !== '/seller/verification') {
+                  // Sellers with non-verified status should be on the verification page or registration page (for resubmission)
+                  if (pathname !== '/seller/verification' && pathname !== '/seller/register') {
                       router.replace('/seller/verification');
                   }
               }

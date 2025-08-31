@@ -27,7 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         let data = await getUserData(firebaseUser.uid);
         if (!data) {
-          // This is a new user, create their document with default role 'customer'
+          // This will only be called for social logins (Google) on their very first sign-in.
+          // Email/password sign-ups now handle data creation directly.
           await createUserData(firebaseUser, 'customer');
           data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
         }

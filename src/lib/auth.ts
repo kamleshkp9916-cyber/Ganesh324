@@ -5,7 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPa
 import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserData, updateUserData, UserData } from "./follow-data";
+import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
 import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 
 export function useAuthActions() {
@@ -56,8 +56,14 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            // The AuthProvider's onAuthStateChanged will now handle user creation
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            const additionalInfo = getAdditionalUserInfo(result);
+            
+            if (additionalInfo?.isNewUser) {
+                await createUserData(user, 'customer');
+            }
+            
             toast({
                 title: "Signed In!",
                 description: "Welcome!",
@@ -125,7 +131,11 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
 
-          // User data document will be created by the onAuthStateChanged listener in useAuth
+          await createUserData(user, 'customer', {
+              userId: values.userId,
+              phone: values.phone,
+              displayName: displayName
+          });
           
           await sendEmailVerification(user);
           
@@ -166,60 +176,57 @@ export function useAuthActions() {
         const auth = getFirebaseAuth();
         const displayName = `${values.firstName} ${values.lastName}`;
         const sellerData: Partial<UserData> = {
-            ...values, // This includes all form fields like aadhar, pan, etc.
+            ...values,
             role: 'seller',
             verificationStatus: 'pending',
             displayName: displayName,
         };
         
-        // Clean up data before saving
         delete (sellerData as any).password;
         delete (sellerData as any).confirmPassword;
         delete (sellerData as any).aadharOtp;
         delete (sellerData as any).passportPhoto;
         delete (sellerData as any).signature;
 
-        if (auth.currentUser) {
-            await updateUserData(auth.currentUser.uid, sellerData);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const user = userCredential.user;
+            
+            await updateProfile(user, { displayName: displayName });
+            
+            await createUserData(user, 'seller', sellerData);
+            
+            await sendEmailVerification(user);
+            
             toast({
-                title: "Registration Submitted!",
-                description: "Your seller application is now under review.",
+                title: "Account Created!",
+                description: "Your seller application is submitted. Please verify your email.",
             });
-            router.push('/seller/verification');
-        } else {
-             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                const user = userCredential.user;
-                
-                await updateProfile(user, { displayName: displayName });
-                
-                // Firestore document will be created by onAuthStateChanged.
-                // Here we just update the newly created doc with seller info.
-                await updateUserData(user.uid, sellerData);
-                
-                await sendEmailVerification(user);
-                
-                toast({
-                    title: "Account Created!",
-                    description: "Your seller application is submitted. Please verify your email.",
-                });
-                
-             } catch (error: any) {
-                 let errorMessage = "An unknown error occurred.";
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = "This email address is already in use by another account. Please log in first.";
-                        break;
-                    default:
-                        errorMessage = "Failed to create account. Please try again.";
+            
+        } catch (error: any) {
+            let errorMessage = "An unknown error occurred.";
+            if (error.code === 'auth/email-already-in-use') {
+                const existingUser = await getUserData(auth.currentUser?.uid || '');
+                if (existingUser && existingUser.role === 'customer') {
+                    await updateUserData(auth.currentUser!.uid, sellerData);
+                    toast({
+                        title: "Registration Submitted!",
+                        description: "Your seller application is now under review.",
+                    });
+                    router.push('/seller/verification');
+                    return;
+                } else {
+                     errorMessage = "This email address is already in use by another account.";
                 }
-                toast({
-                    title: "Sign Up Failed",
-                    description: errorMessage,
-                    variant: "destructive",
-                });
-                throw error;
-             }
+            } else {
+                 errorMessage = "Failed to create account. Please try again.";
+            }
+            toast({
+                title: "Sign Up Failed",
+                description: errorMessage,
+                variant: "destructive",
+            });
+            throw error;
         }
     };
     
