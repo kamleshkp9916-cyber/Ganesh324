@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, createContext, useContext, useCallback } from 'react';
+import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { createUserData, getUserData, UserData } from '@/lib/follow-data';
@@ -11,10 +11,9 @@ interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
-  setUser: (user: User | null) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true, setUser: () => {} });
+const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -30,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let data = await getUserData(firebaseUser.uid);
         if (!data) {
           // This is a new user, create their document
-          await createUserData(firebaseUser, 'customer', { displayName: firebaseUser.displayName || 'New User' });
+          await createUserData(firebaseUser, 'customer');
           data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
         }
         setUserData(data);
@@ -44,9 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const value = useMemo(() => ({ user, userData, loading }), [user, userData, loading]);
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, setUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

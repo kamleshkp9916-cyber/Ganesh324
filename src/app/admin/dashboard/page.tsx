@@ -167,7 +167,7 @@ export default function AdminDashboard() {
   }, [user, userData, loading, router]);
 
 
-  if (loading || userData?.role !== 'admin') {
+  if (loading || !userData || userData.role !== 'admin') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
