@@ -17,7 +17,7 @@ export function useAuthActions() {
         try {
             await firebaseSignOut(auth);
             
-            router.push('/');
+            router.push('/live-selling');
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
@@ -61,7 +61,7 @@ export function useAuthActions() {
             const additionalInfo = getAdditionalUserInfo(result);
             
             if (additionalInfo?.isNewUser) {
-                // Let the useAuth hook handle the creation of the user data document.
+                await createUserData(user, 'customer');
             }
             
             toast({
@@ -121,7 +121,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
           
-          // Let useAuth hook handle the user data creation
+          await createUserData(user, 'customer');
           
           await sendEmailVerification(user);
           
@@ -160,44 +160,29 @@ export function useAuthActions() {
     const handleSellerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
         const displayName = `${values.firstName} ${values.lastName}`;
-        const sellerData: Partial<UserData> = {
-            ...values,
-            role: 'seller',
-            verificationStatus: 'pending',
-            displayName: displayName,
-        };
         
-        delete (sellerData as any).password;
-        delete (sellerData as any).confirmPassword;
-        delete (sellerData as any).aadharOtp;
-
         try {
-            let user: User;
-            let isExistingUser = false;
-            
-            try {
-                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                 user = userCredential.user;
-            } catch(error: any) {
-                if (error.code === 'auth/email-already-in-use') {
-                    // This case handles a customer upgrading to a seller.
-                    const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-                    user = userCredential.user;
-                    isExistingUser = true;
-                } else {
-                    throw error; // Re-throw other creation errors
-                }
-            }
-            
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const user = userCredential.user;
             await updateProfile(user, { displayName: displayName });
-
-            if (isExistingUser) {
-                 await updateUserData(user.uid, sellerData);
-            } else {
-                 await createUserData(user, 'seller', sellerData);
-            }
             
-            // Send verification email regardless, in case they weren't verified.
+            const sellerData: Partial<UserData> = {
+                ...values,
+                role: 'seller',
+                verificationStatus: 'pending',
+                displayName: displayName,
+                followers: 0,
+                following: 0,
+            };
+        
+            delete (sellerData as any).password;
+            delete (sellerData as any).confirmPassword;
+            delete (sellerData as any).aadharOtp;
+            delete (sellerData as any).passportPhoto;
+            delete (sellerData as any).signature;
+
+            await createUserData(user, 'seller', sellerData);
+            
             await sendEmailVerification(user);
             
             toast({
@@ -208,9 +193,7 @@ export function useAuthActions() {
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
              if (error.code === 'auth/email-already-in-use') {
-                 errorMessage = "This email address is already registered as a different account type. Please use another email or contact support.";
-            } else if(error.code === 'auth/invalid-credential') {
-                 errorMessage = "Incorrect password for existing account. Please try again.";
+                 errorMessage = "This email address is already registered. Please login as a customer and upgrade to a seller account, or use a different email.";
             } else {
                  errorMessage = "Failed to create account. Please try again.";
             }
