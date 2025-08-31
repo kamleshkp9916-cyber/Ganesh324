@@ -25,6 +25,24 @@ import { useAuthActions } from '@/lib/auth';
 import { ProfileCard } from '@/components/profile-card';
 
 
+const mockSellerProfiles: { [key: string]: UserData } = {
+    'BeautyBox': {
+        uid: 'mock_beautybox_uid',
+        displayName: 'BeautyBox',
+        email: 'beautybox@example.com',
+        photoURL: 'https://placehold.co/128x128.png?text=B',
+        role: 'seller',
+        followers: 31100,
+        following: 50,
+        bio: 'All things makeup, skincare, and beauty tutorials.',
+        location: 'Los Angeles, USA',
+        phone: '+1 123 456 7890',
+        addresses: [],
+        verificationStatus: 'verified',
+    }
+};
+
+
 export default function SellerProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,20 +69,25 @@ export default function SellerProfilePage() {
             if (user && userData?.role === 'seller') {
                 targetId = user.uid;
             } else {
-                // Not a seller or not logged in, maybe redirect or show an error
-                // For now, let's assume this page is only for viewing sellers or own seller profile
                 return;
             }
         }
         
         let data: UserData | null = null;
-        // Firebase UIDs don't contain '@', so if the ID looks like an email or name, search by it
-        if (targetId && !targetId.includes('@') && targetId.length > 20) {
-            data = await getUserData(targetId);
-        }
         
-        if (!data && targetId) {
-            data = await getUserByDisplayName(targetId);
+        if (targetId) {
+             // First, try to get by UID, which is the most reliable
+            data = await getUserData(targetId);
+
+            // If not found by UID, try by display name
+            if (!data) {
+                data = await getUserByDisplayName(targetId);
+            }
+
+            // If STILL not found (i.e., not a real user in DB), check our mock data
+            if (!data && mockSellerProfiles[targetId]) {
+                data = mockSellerProfiles[targetId];
+            }
         }
         
         if (data) {

@@ -19,6 +19,8 @@ export interface UserData {
     phone: string;
     addresses: any[];
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
+    rejectionReason?: string;
+    resubmissionReason?: string;
 }
 
 const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
@@ -129,6 +131,7 @@ export const getFollowers = async (targetUserId: string): Promise<UserData[]> =>
 
     for (const userDoc of allUsersSnapshot.docs) {
         const userId = userDoc.id;
+        if (userId === targetUserId) continue; // A user can't follow themselves in this logic
         const followingRef = doc(db, `users/${userId}/following`, targetUserId);
         const followingDoc = await getDoc(followingRef);
         if (followingDoc.exists()) {
@@ -154,6 +157,7 @@ export const getFollowing = async (userId: string): Promise<UserData[]> => {
 }
 
 export const isFollowing = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
+    if (currentUserId === targetUserId) return false;
     const db = getFirestoreDb();
     const followDocRef = doc(db, `users/${currentUserId}/following`, targetUserId);
     const followDoc = await getDoc(followDocRef);
