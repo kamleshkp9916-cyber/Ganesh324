@@ -42,16 +42,16 @@ const mockOffers = [
 ];
 
 const productToSellerMapping: { [key: string]: { id: string; name: string; avatarUrl: string } } = {
-    'prod_1': { id: 'seller_retroclicks@example.com', name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_2': { id: 'seller_gadgetguru@example.com', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_3': { id: 'seller_homehaven@example.com', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_4': { id: 'seller_techwizard@example.com', name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_5': { id: 'seller_urbancarry@example.com', name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_6': { id: 'seller_fitflow@example.com', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_7': { id: 'seller_artisanalley@example.com', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_8': { id: 'seller_petpalace@example.com', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_9': { id: 'seller_booknook@example.com', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_10': { id: 'seller_gamerguild@example.com', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_1': { id: 'SELLER_UID_1', name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_2': { id: 'SELLER_UID_2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_3': { id: 'SELLER_UID_3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_4': { id: 'SELLER_UID_4', name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_5': { id: 'SELLER_UID_5', name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_6': { id: 'SELLER_UID_6', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_7': { id: 'SELLER_UID_7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_8': { id: 'SELLER_UID_8', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_9': { id: 'SELLER_UID_9', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_10': { id: 'SELLER_UID_10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
 };
 
 
