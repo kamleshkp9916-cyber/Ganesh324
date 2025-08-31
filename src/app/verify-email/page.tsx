@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sendEmailVerification, User } from "firebase/auth";
 
 export default function VerifyEmailPage() {
-    const { user, loading } = useAuth();
+    const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const router = useRouter();
     const { toast } = useToast();
@@ -26,11 +26,15 @@ export default function VerifyEmailPage() {
                 // If no user is logged in, redirect to login
                 router.replace('/');
             } else if (user.emailVerified) {
-                // If user is already verified, redirect them
-                router.replace('/live-selling');
+                // If user is already verified, redirect them based on role
+                if (userData?.role === 'seller') {
+                    router.replace('/seller/verification');
+                } else {
+                    router.replace('/live-selling');
+                }
             }
         }
-    }, [user, loading, router]);
+    }, [user, userData, loading, router]);
 
     const handleResendVerification = async () => {
         if (!user) return;
@@ -64,7 +68,18 @@ export default function VerifyEmailPage() {
                 title: "Verification Successful!",
                 description: "Redirecting you now...",
             });
-            router.push('/live-selling');
+
+            // The useAuth hook will update userData, which might take a moment.
+            // We give it a moment to catch up before redirecting.
+            // A more robust solution might involve waiting for userData to update.
+            setTimeout(() => {
+                 if (userData?.role === 'seller') {
+                    router.push('/seller/verification');
+                } else {
+                    router.push('/live-selling');
+                }
+            }, 500);
+
         } else {
              toast({
                 title: "Email Not Verified",
