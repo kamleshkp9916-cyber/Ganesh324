@@ -69,23 +69,13 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
-import { getUserData, updateUserData } from "@/lib/follow-data";
+import { getUserData, updateUserData, UserData } from "@/lib/follow-data";
 import { Separator } from "@/components/ui/separator";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestoreDb } from "@/lib/firebase";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
 
-const allUsers = [
-    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2023-07-15", verificationStatus: 'verified' },
-    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2023-07-15", verificationStatus: 'verified' },
-    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "2023-07-14", verificationStatus: 'verified' },
-    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "2023-07-12", verificationStatus: 'verified' },
-    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "2023-07-10", verificationStatus: 'verified' },
-    { name: "Sarah Miller", email: "sarah.m@example.com", role: "Customer", date: "2023-07-09", verificationStatus: 'verified' },
-    { name: "David Garcia", email: "david.g@example.com", role: "Customer", date: "2023-07-09", verificationStatus: 'verified' },
-    { name: "Laura Williams", email: "laura.w@example.com", role: "Seller", date: "2023-07-08", verificationStatus: 'verified' },
-    { name: "Peter Jones", email: "peter.j@example.com", role: "Customer", date: "2023-07-07", verificationStatus: 'verified' },
-    { name: "Michael Chen", email: "michael.c@example.com", role: "Customer", date: "2023-07-05", verificationStatus: 'verified' },
-];
 
 const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
     const handlePrint = () => {
@@ -210,7 +200,7 @@ const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: st
     </>
 );
 
-const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (email: string, status: 'verified' | 'rejected') => void, onViewDetails: (seller: any) => void }) => (
+const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (userId: string, status: 'verified' | 'rejected') => void, onViewDetails: (seller: any) => void }) => (
      <>
         <Table>
             <TableHeader>
@@ -231,11 +221,11 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
                          <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
                          <TableCell className="hidden md:table-cell font-mono">{req.pan}</TableCell>
                         <TableCell className="flex gap-2">
-                             <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.email, 'verified')}>
+                             <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'verified')}>
                                 <CheckCircle className="h-3.5 w-3.5" />
                                 <span className="sr-only sm:not-sr-only">Approve</span>
                             </Button>
-                            <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => onUpdateRequest(req.email, 'rejected')}>
+                            <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'rejected')}>
                                 <XCircle className="h-3.5 w-3.5" />
                                 <span className="sr-only sm:not-sr-only">Reject</span>
                             </Button>
@@ -279,20 +269,29 @@ export default function AdminUsersPage() {
   const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
   const { toast } = useToast();
 
+  const fetchUsers = async () => {
+    const db = getFirestoreDb();
+    const usersRef = collection(db, "users");
+
+    // Fetch all users
+    const allUsersQuery = query(usersRef);
+    const allUsersSnapshot = await getDocs(allUsersQuery);
+    const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
+    setAllUsersState(usersList as UserData[]);
+
+    // Fetch pending sellers
+    const pendingQuery = query(usersRef, where("role", "==", "seller"), where("verificationStatus", "==", "pending"));
+    const pendingSnapshot = await getDocs(pendingQuery);
+    setPendingSellers(pendingSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id})));
+  };
+
   useEffect(() => {
     setIsMounted(true);
     if (!loading) {
       if (user?.email !== ADMIN_EMAIL) {
         router.replace('/');
       } else {
-          const storedSellers = localStorage.getItem('pendingSellers');
-          if (storedSellers) {
-              setPendingSellers(JSON.parse(storedSellers));
-          }
-
-          const globalUserData = JSON.parse(localStorage.getItem('globalUserData') || '{}');
-          const usersArray = Object.values(globalUserData);
-          setAllUsersState(usersArray);
+        fetchUsers();
       }
     }
   }, [user, loading, router]);
@@ -317,35 +316,28 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleVerificationUpdate = (email: string, status: 'verified' | 'rejected') => {
-      const allPendingSellers = JSON.parse(localStorage.getItem('pendingSellers') || '[]');
-      const sellerToUpdate = allPendingSellers.find((s: any) => s.email === email);
+  const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected') => {
+    try {
+        await updateUserData(userId, {
+            verificationStatus: status,
+            rejectionReason: status === 'rejected' ? "Application did not meet requirements." : undefined,
+        });
 
-      if (sellerToUpdate) {
-          updateUserData(sellerToUpdate.uid, {
-              verificationStatus: status,
-              rejectionReason: status === 'rejected' ? "Application did not meet requirements." : undefined,
+        toast({
+            title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
+            description: `The application has been updated.`,
+        });
+
+        // Re-fetch all data to update the UI
+        fetchUsers();
+        
+    } catch (error) {
+         toast({
+              title: "Update Failed",
+              description: "Could not update seller status. Please try again.",
+              variant: "destructive"
           });
-
-          // Remove from pending list
-          const updatedPending = allPendingSellers.filter((s: any) => s.email !== email);
-          setPendingSellers(updatedPending);
-          localStorage.setItem('pendingSellers', JSON.stringify(updatedPending));
-
-          // Also update the local state for the main user list to reflect verification
-          setAllUsersState(prev => prev.map(u => u.email === email ? { ...u, verificationStatus: status } : u));
-          
-          // Also update sellerDetails for the user themselves
-          const sellerDetails = JSON.parse(localStorage.getItem('sellerDetails') || '{}');
-          if (sellerDetails.email === email) {
-            localStorage.setItem('sellerDetails', JSON.stringify({ ...sellerDetails, verificationStatus: status }));
-          }
-
-          toast({
-              title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
-              description: `The application for ${email} has been updated.`,
-          });
-      }
+    }
   };
   
   const handleViewDetails = (seller: any) => {
@@ -553,3 +545,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    

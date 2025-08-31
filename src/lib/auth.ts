@@ -168,12 +168,14 @@ export function useAuthActions() {
     
     const handleSellerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
+        const displayName = `${values.firstName} ${values.lastName}`;
         // If user is already logged in, we update their role. Otherwise, we create a new user.
         if (auth.currentUser) {
             await updateUserData(auth.currentUser.uid, {
                 role: 'seller',
                 verificationStatus: 'pending',
                 ...values,
+                displayName: displayName
             });
             toast({
                 title: "Registration Submitted!",
@@ -185,9 +187,11 @@ export function useAuthActions() {
              try {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 const user = userCredential.user;
+                 await updateProfile(user, { displayName: displayName });
                 
                 await createUserData(user, 'seller', {
                     ...values,
+                    displayName: displayName,
                     verificationStatus: 'pending',
                 });
                 
@@ -221,3 +225,5 @@ export function useAuthActions() {
 
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp };
 }
+
+    
