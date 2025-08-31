@@ -27,6 +27,14 @@ const sellerFormSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
   lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email({ message: "Please enter a valid email." }),
+   userId: z.string()
+    .min(2, { message: "User ID must be at least 2 characters." })
+    .refine((val) => val.startsWith('@'), {
+      message: "User ID must start with @.",
+    })
+    .refine((val) => /^[a-z0-9_.]+$/.test(val.substring(1)), {
+      message: "User ID can only contain lowercase letters, numbers, periods and underscores.",
+    }),
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   confirmPassword: z.string(),
@@ -72,6 +80,7 @@ export default function SellerRegisterPage() {
             firstName: "",
             lastName: "",
             email: "",
+            userId: "@",
             phone: "+91 ",
             password: "",
             confirmPassword: "",
@@ -246,6 +255,30 @@ export default function SellerRegisterPage() {
                             </FormItem>
                         )}
                     />
+                     <FormField
+                        control={form.control}
+                        name="userId"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>User ID</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    placeholder="@johndoe" 
+                                    {...field} 
+                                    disabled={isLoading}
+                                    onChange={(e) => {
+                                        let value = e.target.value.toLowerCase();
+                                        if (!value.startsWith('@')) {
+                                            value = '@' + value.replace(/@/g, '');
+                                        }
+                                        field.onChange(value);
+                                    }}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="email"
@@ -259,33 +292,33 @@ export default function SellerRegisterPage() {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Phone Number</FormLabel>
-                                <FormControl>
-                                    <Input 
-                                        placeholder="+91 98765 43210" 
-                                        {...field}
-                                        onChange={(e) => {
-                                            let value = e.target.value;
-                                            if (!value.startsWith('+91 ')) {
-                                                value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
-                                            }
-                                            if (value.length > 14) {
-                                                value = value.substring(0, 14);
-                                            }
-                                            field.onChange(value);
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
                 </div>
+                 <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    placeholder="+91 98765 43210" 
+                                    {...field}
+                                    onChange={(e) => {
+                                        let value = e.target.value;
+                                        if (!value.startsWith('+91 ')) {
+                                            value = '+91 ' + value.replace(/\+91 /g, '').replace(/\D/g, '');
+                                        }
+                                        if (value.length > 14) {
+                                            value = value.substring(0, 14);
+                                        }
+                                        field.onChange(value);
+                                    }}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 {!user && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField

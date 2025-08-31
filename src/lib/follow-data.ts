@@ -8,6 +8,7 @@ import type { User } from "firebase/auth";
 
 export interface UserData {
     uid: string;
+    userId?: string; // The @handle
     displayName: string;
     email: string;
     photoURL: string;
