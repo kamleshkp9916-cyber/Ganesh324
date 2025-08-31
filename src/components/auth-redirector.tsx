@@ -6,22 +6,26 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
-const protectedPaths = [
+const protectedCustomerPaths = [
     '/profile', 
     '/cart', 
     '/orders', 
     '/wishlist', 
     '/message', 
     '/wallet',
-    '/admin',
+];
+
+const protectedSellerPaths = [
     '/seller/dashboard',
     '/seller/orders',
     '/seller/products',
-    //'/seller/verification', // This is a special case, handled below
     '/seller/profile',
 ];
 
-const authPaths = ['/', '/signup', '/forgot-password', '/seller/login', '/seller/register'];
+const adminPaths = ['/admin'];
+const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
+const publicSellerPaths = ['/seller/register', '/seller/verification'];
+
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -35,7 +39,9 @@ export function AuthRedirector() {
     }
 
     const isAuthPath = authPaths.includes(pathname);
-    const isProtectedPath = protectedPaths.some(p => pathname.startsWith(p));
+    const isProtectedCustomerPath = protectedCustomerPaths.some(p => pathname.startsWith(p));
+    const isProtectedSellerPath = protectedSellerPaths.some(p => pathname.startsWith(p));
+    const isAdminPath = adminPaths.some(p => pathname.startsWith(p));
 
     if (user) {
        // If user's email is not verified, and they are not on the verify-email page, redirect them.
@@ -44,31 +50,39 @@ export function AuthRedirector() {
         return;
       }
       
-      // If user is logged in and on an auth page, redirect them to their dashboard/home.
-      if (isAuthPath) {
-         if (userData?.role === 'seller') {
-            // This is the key fix: if a seller is on the homepage but should be on verification, redirect them.
-            if(userData.verificationStatus !== 'verified' && pathname === '/') {
-                 router.replace('/seller/verification');
-            } else if (userData.verificationStatus === 'verified') {
-                 router.replace('/seller/dashboard');
-            }
-        } else if (userData?.role === 'admin') {
-            router.replace('/admin/dashboard');
-        } else {
-            router.replace('/live-selling');
-        }
+      // Handle authenticated users
+      if (userData?.role === 'seller') {
+          const status = userData.verificationStatus;
+          if (status === 'verified') {
+              if (pathname !== '/seller/dashboard' && isAuthPath) {
+                  router.replace('/seller/dashboard');
+              }
+          } else if (status === 'pending' || status === 'needs-resubmission' || status === 'rejected') {
+              if (pathname !== '/seller/verification') {
+                  router.replace('/seller/verification');
+              }
+          }
+      } else if (userData?.role === 'admin') {
+          if (!isAdminPath) {
+              router.replace('/admin/dashboard');
+          }
+      } else { // Customer role
+          if (isAuthPath) {
+              router.replace('/live-selling');
+          }
       }
+
     } else {
-      // If user is not logged in and tries to access a protected page, redirect to login.
-      if (isProtectedPath) {
+      // Handle unauthenticated users
+      const isProtectedRoute = isProtectedCustomerPath || isProtectedSellerPath || isAdminPath;
+      if (isProtectedRoute) {
         router.replace('/');
       }
     }
   }, [user, userData, loading, router, pathname]);
 
   // While loading, show a spinner on protected routes to prevent content flash.
-  if (loading && protectedPaths.some(p => pathname.startsWith(p))) {
+  if (loading && (protectedCustomerPaths.some(p => pathname.startsWith(p)) || protectedSellerPaths.some(p => pathname.startsWith(p)))) {
     return (
         <div className="w-full h-screen flex items-center justify-center">
             <LoadingSpinner />

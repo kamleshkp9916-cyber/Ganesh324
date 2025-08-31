@@ -13,7 +13,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function SellerLoginPage() {
     const router = useRouter();
-    const { user, loading } = useAuth();
+    const { loading } = useAuth();
 
     // The AuthRedirector now handles all post-login redirection.
     // This page's only job is to show the login form.
