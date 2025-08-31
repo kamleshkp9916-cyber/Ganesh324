@@ -22,6 +22,7 @@ import { Loader2, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { useToast } from "@/hooks/use-toast";
 
 
 const profileFormSchema = z.object({
@@ -44,11 +45,12 @@ interface EditProfileFormProps {
     photoURL?: string;
     addresses: any;
   };
-  onSave: (data: any) => void;
+  onSave: (data: any) => Promise<void>;
   onCancel: () => void;
 }
 
 export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFormProps) {
+  const { toast } = useToast();
   const [firstName, ...lastName] = currentUser.displayName.split(" ");
   const [photoPreview, setPhotoPreview] = useState<string | null>(currentUser.photoURL || null);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,13 +123,20 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
         setIsCropperOpen(false);
     };
 
-  const handleProfileSave = (values: z.infer<typeof profileFormSchema>) => {
+  const handleProfileSave = async (values: z.infer<typeof profileFormSchema>) => {
     setIsSaving(true);
-    // Simulate async save
-    setTimeout(() => {
-        onSave({ ...values, addresses: currentUser.addresses, photoURL: photoPreview });
+    const { id, dismiss } = toast({
+      title: 'Saving Profile...',
+      description: 'Please wait while we update your details.',
+    });
+    try {
+        await onSave({ ...values, addresses: currentUser.addresses, photoURL: photoPreview });
+    } catch (error) {
+       console.error(error);
+    } finally {
         setIsSaving(false);
-    }, 1000);
+        dismiss();
+    }
   };
 
   return (
@@ -144,7 +153,7 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
               aspect={1}
               circularCrop
             >
-              <img ref={imgRef} src={imgSrc} alt="Crop preview" />
+              <img ref={imgRef} src={imgSrc} alt="Crop preview" style={{maxHeight: "70vh"}} />
             </ReactCrop>
           )}
           <DialogFooter>

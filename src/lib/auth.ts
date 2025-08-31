@@ -227,9 +227,15 @@ export function useAuthActions() {
         const { displayName } = data;
         let { photoURL } = data;
         
+        const { id, dismiss, update } = toast({
+            title: "Updating Profile...",
+            description: "Please wait.",
+        });
+
         try {
             // Check if photoURL is a new base64 upload
             if (photoURL && photoURL.startsWith('data:image')) {
+                update({ description: "Uploading image (100%)... Please wait." });
                 const storage = getFirebaseStorage();
                 const storageRef = ref(storage, `profile-pictures/${user.uid}`);
                 const uploadResult = await uploadString(storageRef, photoURL, 'data_url');
@@ -255,18 +261,24 @@ export function useAuthActions() {
             // This makes the useAuth hook update with the new info.
             await user.getIdToken(true);
 
-
-             toast({
+            update({
+                id,
                 title: "Profile Updated!",
                 description: "Your profile information has been saved.",
             });
+
         } catch (error) {
              console.error("Error updating profile: ", error);
-            toast({
+            update({
+                id,
                 title: "Update Failed",
                 description: "Could not update your profile. Please try again.",
                 variant: "destructive",
             });
+            throw error; // re-throw to be caught by the form handler
+        } finally {
+             // Dismiss the toast after a delay
+             setTimeout(() => dismiss(), 3000);
         }
     };
 
