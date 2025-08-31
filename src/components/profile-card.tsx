@@ -49,6 +49,14 @@ const mockAchievements = [
     { id: 6, name: 'Deal Hunter', icon: <Search />, description: 'Snagged 10+ flash sale items' },
 ];
 
+const mockBeautyBoxProducts = [
+    { id: 'bb_prod_1', name: 'Vitamin C Serum', category: "Beauty", price: 2500, stock: 50, images: [{ preview: "https://placehold.co/200x200.png?text=Serum" }], hint: "skincare serum" },
+    { id: 'bb_prod_2', name: 'Matte Lipstick', category: "Beauty", price: 1200, stock: 100, images: [{ preview: "https://placehold.co/200x200.png?text=Lipstick" }], hint: "red lipstick" },
+    { id: 'bb_prod_3', name: 'Eyeshadow Palette', category: "Beauty", price: 3500, stock: 30, images: [{ preview: "https://placehold.co/200x200.png?text=Palette" }], hint: "eyeshadow palette" },
+    { id: 'bb_prod_4', name: 'Hydrating Face Mask', category: "Beauty", price: 800, stock: 75, images: [{ preview: "https://placehold.co/200x200.png?text=Mask" }], hint: "face mask" },
+];
+
+
 function ProductSkeletonGrid() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -112,7 +120,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [followerList, setFollowerList] = useState<any[]>([]);
   const [isFollowingState, setIsFollowingState] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const displayName = profileData.displayName || profileData.name || "";
+  const displayName = profileData.displayName || (profileData as any).name || "";
   const [activeCategory, setActiveCategory] = useState("All");
   
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
@@ -141,13 +149,18 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     if (profileData.role === 'seller') {
       const productsKey = getProductsKey(displayName);
       const storedProducts = localStorage.getItem(productsKey);
+      
+      let productsToShow = [];
       if (storedProducts) {
-        setSellerProducts(JSON.parse(storedProducts));
-      } else {
-        setSellerProducts([]);
+        productsToShow = JSON.parse(storedProducts);
+      } else if (displayName === 'BeautyBox') {
+        // Fallback for demo user
+        productsToShow = mockBeautyBoxProducts;
       }
+      setSellerProducts(productsToShow);
     }
   };
+
 
   // Load data from localStorage on mount and add storage listener
   useEffect(() => {
