@@ -65,28 +65,27 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { getInquiries, markInquiryRead, Inquiry } from "@/ai/flows/contact-flow"
 import { cn } from "@/lib/utils"
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
 
 export default function AdminInquiriesPage() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
   const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
 
   useEffect(() => {
-    setIsMounted(true);
-    if (!loading && user?.email === ADMIN_EMAIL) {
-      const fetchInquiries = async () => {
-        const data = await getInquiries();
-        setInquiries(data);
-      };
-      fetchInquiries();
-    } else if (!loading && user?.email !== ADMIN_EMAIL) {
-      router.replace('/');
+    if (!loading) {
+        if (userData?.role !== 'admin') {
+            router.replace('/');
+            return;
+        }
+        const fetchInquiries = async () => {
+            const data = await getInquiries();
+            setInquiries(data);
+        };
+        fetchInquiries();
     }
-  }, [loading, user, router]);
+  }, [loading, user, userData, router]);
 
   const handleViewInquiry = (inquiry: Inquiry & { id: string }) => {
     setSelectedInquiry(inquiry);
@@ -97,7 +96,7 @@ export default function AdminInquiriesPage() {
     }
   };
 
-  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
+  if (loading || userData?.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 
@@ -129,7 +128,7 @@ export default function AdminInquiriesPage() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="secondary" size="icon" className="rounded-full">
-                                <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback></Avatar>
+                                <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
