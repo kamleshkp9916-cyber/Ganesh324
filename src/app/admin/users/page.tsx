@@ -308,7 +308,7 @@ export default function AdminUsersPage() {
   const handleUserRowClick = (userEmail: string) => {
     const targetUser: any = allUsersState.find(u => u.email === userEmail);
     if (targetUser) {
-        if (targetUser.role === 'Seller') {
+        if (targetUser.role === 'seller') {
             router.push(`/seller/profile?userId=${targetUser.uid}`);
         } else {
             router.push(`/profile?userId=${targetUser.uid}`);
@@ -388,7 +388,7 @@ export default function AdminUsersPage() {
             Inquiries
           </Link>
           <Link
-            href="#"
+            href="/admin/products"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Products
@@ -442,7 +442,7 @@ export default function AdminUsersPage() {
                 Inquiries
               </Link>
                <Link
-                href="#"
+                href="/admin/products"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
@@ -545,5 +545,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    

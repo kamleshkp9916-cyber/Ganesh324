@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for handling contact form submissions.
@@ -12,8 +13,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 
 // Initialize Firebase Admin SDK
-getFirebaseAdminApp();
-const db = getFirestore();
+// getFirebaseAdminApp();
+// const db = getFirestore();
 
 export const InquirySchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -39,9 +40,9 @@ const submitInquiryFlow = ai.defineFlow(
       isRead: false,
     };
 
-    const docRef = await db.collection('inquiries').add(inquiryWithTimestamp);
+    // const docRef = await db.collection('inquiries').add(inquiryWithTimestamp);
     
-    return { id: docRef.id };
+    return { id: 'mock_inquiry_id' };
   }
 );
 
@@ -57,11 +58,12 @@ const getInquiriesFlow = ai.defineFlow(
     outputSchema: z.array(z.custom<Inquiry & { id: string }>()),
   },
   async () => {
-    const snapshot = await db.collection('inquiries').orderBy('createdAt', 'desc').get();
-    if (snapshot.empty) {
-      return [];
-    }
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Inquiry & { id: string }));
+    // const snapshot = await db.collection('inquiries').orderBy('createdAt', 'desc').get();
+    // if (snapshot.empty) {
+    //   return [];
+    // }
+    // return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Inquiry & { id: string }));
+    return [];
   }
 );
 
@@ -77,7 +79,7 @@ const markInquiryReadFlow = ai.defineFlow(
         outputSchema: z.void(),
     },
     async ({ id }) => {
-        await db.collection('inquiries').doc(id).update({ isRead: true });
+        // await db.collection('inquiries').doc(id).update({ isRead: true });
     }
 );
 

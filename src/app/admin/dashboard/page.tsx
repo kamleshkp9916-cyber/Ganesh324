@@ -215,7 +215,7 @@ export default function AdminDashboard() {
             Inquiries
           </Link>
           <Link
-            href="#"
+            href="/admin/products"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Products
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
                 Inquiries
               </Link>
                <Link
-                href="#"
+                href="/admin/products"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
