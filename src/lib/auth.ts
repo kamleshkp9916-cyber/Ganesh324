@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile } from "firebase/auth";
@@ -251,6 +250,11 @@ export function useAuthActions() {
                 firestoreUpdates.photoURL = photoURL;
             }
             await updateUserData(user.uid, firestoreUpdates);
+            
+            // Force a refresh of the user's token to get the latest profile data
+            // This makes the useAuth hook update with the new info.
+            await user.getIdToken(true);
+
 
              toast({
                 title: "Profile Updated!",

@@ -29,58 +29,53 @@ export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { updateUserProfile } = useAuthActions();
 
+  // The profileData state will now hold data for OTHER users being viewed
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
-  const [key, setKey] = useState(0); // Add a key to force re-renders
+  const [key, setKey] = useState(0);
 
   const isOwnProfile = !userId || (user && user.uid === userId);
 
   useEffect(() => {
-    if (!loading) {
-      if (isOwnProfile && !user) {
-        router.replace('/');
-        return;
-      }
-
-      const targetId = isOwnProfile ? user?.uid : userId;
-      
-      if (targetId) {
-          getUserData(targetId).then(fetchedData => {
-              if (fetchedData) {
-                  setProfileData(fetchedData);
-              }
-          });
-      }
+    // If we're viewing someone else's profile, fetch their data
+    if (!isOwnProfile && userId) {
+      getUserData(userId).then(fetchedData => {
+          if (fetchedData) {
+              setProfileData(fetchedData);
+          }
+      });
+    } else {
+      // If it's our own profile, use the data from the auth context
+      setProfileData(userData);
     }
-  }, [user, userId, isOwnProfile, loading, router, key]);
+  }, [user, userData, userId, isOwnProfile, key]);
 
 
   const handleProfileSave = async (data: any) => {
-      if (profileData && user) {
+      // We only save if it's the currently logged-in user
+      if (user) {
           const updatedData: Partial<UserData> = {
               displayName: `${data.firstName} ${data.lastName}`,
               bio: data.bio,
               location: data.location,
               phone: `+91 ${data.phone}`,
-              addresses: data.addresses || profileData.addresses,
-              photoURL: data.photoURL, // This is the corrected line
+              photoURL: data.photoURL,
           };
           
           await updateUserProfile(user, updatedData);
-          const newProfileData = await getUserData(profileData.uid);
-          setProfileData(newProfileData);
+          // The useAuth hook will automatically update with fresh data
       }
       setProfileEditDialogOpen(false);
   };
   
   const handleAddressesUpdate = (newAddresses: any) => {
-    if(profileData){
-      const updatedData = { ...profileData, addresses: newAddresses };
-      updateUserData(profileData.uid, updatedData);
-      setProfileData(updatedData);
+    if(profileData && isOwnProfile){
+      updateUserData(profileData.uid, { addresses: newAddresses });
+      // Re-trigger useEffect to get fresh data
+      setKey(prev => prev + 1);
     }
   }
   
@@ -96,6 +91,13 @@ export default function ProfilePage() {
           </div>
       )
   }
+
+  // Final check to ensure we don't render a page for a logged-out user on their own profile
+  if (isOwnProfile && !user) {
+    router.replace('/');
+    return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
+  }
+
 
   return (
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
