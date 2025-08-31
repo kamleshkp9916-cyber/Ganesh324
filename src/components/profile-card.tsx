@@ -28,7 +28,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData } from '@/lib/follow-data';
+import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData, updateUserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
 
 
@@ -247,14 +247,24 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     toast({ title: 'Address saved successfully!' });
   };
 
-  const handleDeleteAddress = (addressId: number) => {
+  const handleDeleteAddress = async (addressId: number) => {
     const newAddresses = addresses.filter((addr: any) => addr.id !== addressId);
     setAddresses(newAddresses);
-    onAddressesUpdate(newAddresses);
     if (defaultAddressId === addressId) {
-        setDefaultAddressId(newAddresses[0]?.id || null);
+      setDefaultAddressId(newAddresses[0]?.id || null);
     }
-    toast({ title: 'Address removed.' });
+    
+    if (user) {
+      try {
+        await updateUserData(user.uid, { addresses: newAddresses });
+        toast({ title: 'Address removed.' });
+      } catch (error) {
+        console.error("Failed to delete address:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not remove address.' });
+        // Revert UI change on failure if necessary
+        setAddresses(profileData.addresses);
+      }
+    }
   };
 
   const handleWishlistToggle = (product: Product) => {

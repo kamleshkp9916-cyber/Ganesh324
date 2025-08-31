@@ -5,8 +5,8 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPa
 import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserData, updateUserData, UserData } from "./follow-data";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
+import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -111,7 +111,7 @@ export function useAuthActions() {
             toast({
                 title: "Login Failed",
                 description: errorMessage,
-                variant: "destructive"
+                variant: "destructive",
             });
         }
     };
@@ -233,26 +233,40 @@ export function useAuthActions() {
         });
 
         try {
+            const storage = getFirebaseStorage();
+            const oldUserData = await getUserData(user.uid);
+            const oldPhotoURL = oldUserData?.photoURL;
+
+            // Check if there's an old photo to delete and it's not a default placeholder
+            if (oldPhotoURL && oldPhotoURL.includes('firebasestorage.googleapis.com') && oldPhotoURL !== photoURL) {
+                try {
+                    const oldStorageRef = ref(storage, oldPhotoURL);
+                    await deleteObject(oldStorageRef);
+                } catch (error: any) {
+                    // It's okay if deletion fails (e.g., file not found), just log it
+                    console.warn("Could not delete old profile picture:", error.message);
+                }
+            }
+            
             // Check if photoURL is a new base64 upload
             if (photoURL && photoURL.startsWith('data:image')) {
-                update({ description: "Uploading image (100%)... Please wait." });
-                const storage = getFirebaseStorage();
+                update({ description: "Uploading image... Please wait." });
                 const storageRef = ref(storage, `profile-pictures/${user.uid}`);
                 const uploadResult = await uploadString(storageRef, photoURL, 'data_url');
                 photoURL = await getDownloadURL(uploadResult.ref);
             }
 
-            const authUpdates: {displayName?: string, photoURL?: string} = {};
+            const authUpdates: {displayName?: string, photoURL?: string | null} = {};
             if(displayName) authUpdates.displayName = displayName;
-            if(photoURL) authUpdates.photoURL = photoURL;
+            if(photoURL !== undefined) authUpdates.photoURL = photoURL;
 
             if (Object.keys(authUpdates).length > 0) {
-                await updateProfile(user, authUpdates);
+                await updateProfile(user, authUpdates as any);
             }
 
             // Update Firestore with all data, including the new URL
             const firestoreUpdates = { ...data };
-            if(photoURL) {
+            if(photoURL !== undefined) {
                 firestoreUpdates.photoURL = photoURL;
             }
             await updateUserData(user.uid, firestoreUpdates);

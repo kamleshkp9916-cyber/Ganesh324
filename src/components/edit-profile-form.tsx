@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -61,6 +61,8 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState<Crop>();
   const imgRef = useRef<HTMLImageElement>(null);
+
+  const defaultPhotoURL = `https://placehold.co/128x128.png?text=${(currentUser.displayName || 'U').charAt(0)}`;
 
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
@@ -123,9 +125,14 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
         setIsCropperOpen(false);
     };
 
+    const handleRemovePhoto = () => {
+        setPhotoPreview(defaultPhotoURL);
+        profileForm.setValue('photoURL', defaultPhotoURL);
+    };
+
   const handleProfileSave = async (values: z.infer<typeof profileFormSchema>) => {
     setIsSaving(true);
-    const { id, dismiss } = toast({
+    const { id, dismiss, update } = toast({
       title: 'Saving Profile...',
       description: 'Please wait while we update your details.',
     });
@@ -172,13 +179,16 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
                         <AvatarImage src={photoPreview || undefined} />
                         <AvatarFallback>{firstName?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
-                     <div>
+                     <div className="space-y-2">
                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                             <Upload className="mr-2 h-4 w-4" />
                             Upload new picture
                         </Button>
                          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoChange} />
-                        <p className="text-xs text-muted-foreground mt-2">Recommended: 200x200px, PNG or JPG</p>
+                         <Button type="button" variant="ghost" className="text-destructive" onClick={handleRemovePhoto}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Photo
+                        </Button>
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
