@@ -7,7 +7,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
 // Define paths that are accessible only when logged out.
-const publicOnlyPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
+const publicOnlyPaths = ['/', '/signup', '/forgot-password'];
+const sellerLoginPath = '/seller/login';
 
 // Seller-specific flow paths
 const sellerFlowPaths = ['/seller/register', '/seller/verification'];
@@ -27,25 +28,24 @@ export function AuthRedirector() {
         // User is logged in.
 
         if (!userData) {
-            // This case can happen for a brief moment while userData is being fetched.
-            // We wait to prevent incorrect redirects.
+            // This case can happen for a brief moment while userData is being fetched
+            // after initial login. We wait to prevent incorrect redirects.
             return;
         }
 
         if (user.emailVerified) {
             // --- REDIRECTION FOR VERIFIED USERS ---
 
-            // Handle role-specific logic
             if (userData.role === 'seller') {
                 const { verificationStatus } = userData;
 
                 if (verificationStatus === 'verified') {
                     // Verified sellers should be on their dashboard or other app pages,
                     // but not on public-only or initial seller flow pages.
-                    if (publicOnlyPaths.includes(pathname) || sellerFlowPaths.includes(pathname)) {
+                    if (publicOnlyPaths.includes(pathname) || sellerFlowPaths.includes(pathname) || pathname === sellerLoginPath) {
                          router.replace('/seller/dashboard');
                     }
-                } else {
+                } else if (verificationStatus === 'pending' || verificationStatus === 'needs-resubmission' || verificationStatus === 'rejected') {
                     // Sellers who are pending, rejected, or need resubmission
                     // MUST be on the verification page.
                     if (pathname !== '/seller/verification') {
@@ -53,12 +53,12 @@ export function AuthRedirector() {
                     }
                 }
             } else if (userData.role === 'admin') {
-                 if (publicOnlyPaths.includes(pathname)) {
+                 if (publicOnlyPaths.includes(pathname) || pathname === sellerLoginPath) {
                     router.replace('/admin/dashboard');
                 }
             } else {
                 // This is a customer.
-                if (publicOnlyPaths.includes(pathname)) {
+                if (publicOnlyPaths.includes(pathname) || pathname === sellerLoginPath) {
                     router.replace('/live-selling');
                 }
             }
@@ -84,15 +84,17 @@ export function AuthRedirector() {
     }
   }, [user, userData, loading, router, pathname]);
 
-  // While loading, show a spinner to prevent page flicker
+  // While loading, show a spinner to prevent page flicker and incorrect renders.
+  // This is the key to fixing the race condition.
   if (loading) {
     return (
-        <div className="w-full h-screen flex items-center justify-center">
+        <div className="w-full h-screen flex items-center justify-center bg-background">
             <LoadingSpinner />
         </div>
     );
   }
 
   // Once loading is complete, the redirect logic will have been executed.
+  // This component doesn't render anything itself, it only handles redirects.
   return null;
 }
