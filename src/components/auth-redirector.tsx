@@ -17,11 +17,11 @@ const protectedPaths = [
     '/seller/dashboard',
     '/seller/orders',
     '/seller/products',
-    '/seller/verification',
+    //'/seller/verification', // This is a special case, handled below
     '/seller/profile',
 ];
 
-const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
+const authPaths = ['/', '/signup', '/forgot-password', '/seller/login', '/seller/register'];
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -47,10 +47,11 @@ export function AuthRedirector() {
       // If user is logged in and on an auth page, redirect them to their dashboard/home.
       if (isAuthPath) {
          if (userData?.role === 'seller') {
-            if(userData.verificationStatus === 'verified'){
-                 router.replace('/seller/dashboard');
-            } else {
+            // This is the key fix: if a seller is on the homepage but should be on verification, redirect them.
+            if(userData.verificationStatus !== 'verified' && pathname === '/') {
                  router.replace('/seller/verification');
+            } else if (userData.verificationStatus === 'verified') {
+                 router.replace('/seller/dashboard');
             }
         } else if (userData?.role === 'admin') {
             router.replace('/admin/dashboard');
