@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -19,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getUserData, updateUserData, UserData, toggleFollow, isFollowing } from '@/lib/follow-data';
+import { getUserData, updateUserData, UserData, toggleFollow, isFollowing, getUserByDisplayName } from '@/lib/follow-data';
 import { useAuthActions } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
@@ -62,7 +63,7 @@ export default function SellerProfilePage() {
         if (loading || !isMounted) return;
 
         let targetId: string | null | undefined = userIdFromQuery;
-
+        
         if (!targetId) {
             if (user && userData?.role === 'seller') {
                 targetId = user.uid;
@@ -72,7 +73,11 @@ export default function SellerProfilePage() {
             }
         }
         
-        const data = await getUserData(targetId);
+        // Attempt to get user by UID first, then fall back to display name for mock data linking
+        let data = await getUserData(targetId);
+        if (!data) {
+            data = await getUserByDisplayName(targetId);
+        }
         
         if (data) {
             setProfileData(data);
@@ -144,7 +149,7 @@ export default function SellerProfilePage() {
   const isOwnProfile = user?.uid === profileData.uid;
 
   return (
-    <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
+    <Dialog open={isProfileEditDialogOpen} onOpenChange={setIsProfileEditDialogOpen}>
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>

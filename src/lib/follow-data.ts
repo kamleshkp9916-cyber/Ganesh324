@@ -2,7 +2,7 @@
 
 "use client";
 
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit } from "firebase/firestore";
 import { getFirestoreDb } from "./firebase";
 import type { User } from "firebase/auth";
 
@@ -53,6 +53,27 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
         return null;
     }
 };
+
+export const getUserByDisplayName = async (displayName: string): Promise<UserData | null> => {
+    if (!displayName) return null;
+    try {
+        const db = getFirestoreDb();
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("displayName", "==", displayName), limit(1));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            return querySnapshot.docs[0].data() as UserData;
+        } else {
+            console.warn(`No user found with displayName: ${displayName}`);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting user by display name:", error);
+        return null;
+    }
+};
+
 
 export const updateUserData = async (uid: string, updates: Partial<UserData>): Promise<void> => {
     if (!uid) return;
