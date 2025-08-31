@@ -19,81 +19,20 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { allOrderData, getStatusFromTimeline, Order as TimelineOrder } from '@/lib/order-data';
+import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase';
 
 
-const mockUsers = {
-    "USER8432": { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png", email: "ganesh@example.com" },
-    "USER8443": { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png", email: "olivia.m@example.com" },
-    "USER8438": { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png", email: "peter.j@example.com" },
-    "USER8442": { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png", email: "michael.c@example.com" },
-    "USER8437": { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png", email: "laura.w@example.com" },
-    "USER8433": { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png", email: "jane.doe@example.com" },
-    "USER8434": { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png", email: "alex.smith@example.com" },
-    "USER8435": { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png", email: "emily.brown@example.com" },
-    "USER8436": { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png", email: "chris.wilson@example.com" },
-    "USER8439": { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png", email: "sarah.m@example.com" },
-    "USER8440": { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png", email: "david.g@example.com" },
-    "USER8441": { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png", email: "jessica.r@example.com" },
-    "USER8450": { name: "Kevin Scott", avatarUrl: "https://placehold.co/40x40.png", email: "kevin.s@example.com" },
+type Order = {
+    orderId: string;
+    userId: string;
+    products: any[];
+    address: any;
+    total: number;
+    orderDate: string;
+    isReturnable: boolean;
+    timeline: any[];
 };
-
-const userOrderMapping = {
-    "#STREAM5896": "USER8432",
-    "#STREAM5907": "USER8443",
-    "#STREAM5905": "USER8438",
-    "#STREAM5906": "USER8442",
-    "#STREAM5904": "USER8437",
-    "#STREAM5897": "USER8433",
-    "#STREAM5898": "USER8434",
-    "#STREAM5899": "USER8435",
-    "#STREAM5900": "USER8436",
-    "#STREAM5901": "USER8439",
-    "#STREAM5902": "USER8440",
-    "#STREAM5903": "USER8441",
-    "#STREAM5910": "USER8450"
-};
-
-const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orderDetails]) => {
-    // @ts-ignore
-    const userId = userOrderMapping[orderId];
-    // @ts-ignore
-    const user = mockUsers[userId] || { name: 'Unknown User', avatarUrl: '', email: 'unknown@example.com' };
-    const status = getStatusFromTimeline(orderDetails.timeline);
-    
-    // Attempt to parse date and time from the first timeline entry
-    const firstStep = orderDetails.timeline[0];
-    let dateTime = orderDetails.orderDate;
-    if (firstStep && firstStep.date && firstStep.time) {
-        try {
-            const parsedDate = parse(`${firstStep.date} ${firstStep.time}`, 'MMM dd, yyyy hh:mm a', new Date());
-            dateTime = format(parsedDate, 'dd/MM/yyyy hh:mm a');
-        } catch (e) {
-            // fallback to orderDate
-            dateTime = orderDetails.orderDate;
-        }
-    }
-
-    return {
-        orderId: orderId,
-        productId: `prod-${orderId.slice(-3)}`,
-        userId: userId,
-        user: user,
-        product: { 
-            id: `prod-${orderId.slice(-3)}`, 
-            name: orderDetails.product.name, 
-            imageUrl: orderDetails.product.imageUrl.replace('60x60', '60x60'), 
-            hint: orderDetails.product.hint 
-        },
-        address: { name: user.name, village: "Koregaon Park", district: "Pune", city: "Pune", state: "Maharashtra", country: "India", pincode: "411001", phone: "+91 9876543210" },
-        dateTime: dateTime,
-        status: status,
-        transaction: { id: `TRN${orderId.slice(-4)}`, amount: orderDetails.product.price, method: "Credit Card" },
-        deliveryStatus: getStatusFromTimeline(orderDetails.timeline),
-        deliveryDate: status === "Delivered" ? orderDetails.timeline[orderDetails.timeline.length - 1].date : null,
-    };
-});
-
-type Order = ReturnType<typeof getFullMockOrders>[0];
 
 
 const statusPriority: { [key: string]: number } = {
@@ -153,7 +92,7 @@ function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -170,31 +109,55 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
+    const fetchOrders = async () => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        };
+
+        setIsLoading(true);
+        const db = getFirestoreDb();
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, where("userId", "==", user.uid), orderBy("orderDate", "desc"));
+
+        try {
+            const querySnapshot = await getDocs(q);
+            const fetchedOrders: Order[] = [];
+            querySnapshot.forEach((doc) => {
+                fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
+            });
+            setOrders(fetchedOrders);
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            toast({
+                title: "Error",
+                description: "Could not fetch your orders.",
+                variant: "destructive"
+            })
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     if (user && isClient) {
-       setTimeout(() => {
-         // In a real app, you'd fetch orders for the logged-in user.
-         // Here, we show all orders for the demo.
-         setOrders(getFullMockOrders());
-         setIsLoading(false);
-       }, 1000);
+       fetchOrders();
     } else if (!user && isClient) {
         setIsLoading(false);
         setOrders([]);
     }
-  }, [user, isClient]);
-
+  }, [user, isClient, toast]);
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
-        const priorityA = statusPriority[a.status] || 99;
-        const priorityB = statusPriority[b.status] || 99;
+        const statusA = getStatusFromTimeline(a.timeline);
+        const statusB = getStatusFromTimeline(b.timeline);
+        const priorityA = statusPriority[statusA] || 99;
+        const priorityB = statusPriority[statusB] || 99;
         if (priorityA !== priorityB) {
             return priorityA - priorityB;
         }
         try {
-             const dateA = parse(a.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
-             const dateB = parse(b.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
-             return dateB.getTime() - dateA.getTime();
+             return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
         } catch {
             return 0;
         }
@@ -204,13 +167,13 @@ export default function OrdersPage() {
   const filteredOrders = useMemo(() => {
     let currentOrders = [...sortedOrders];
     if (statusFilter !== "all") {
-        currentOrders = currentOrders.filter(order => order.status.toLowerCase().replace(/ /g, '-') === statusFilter);
+        currentOrders = currentOrders.filter(order => getStatusFromTimeline(order.timeline).toLowerCase().replace(/ /g, '-') === statusFilter);
     }
     if (searchTerm) {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
         currentOrders = currentOrders.filter(order =>
             order.orderId.toLowerCase().includes(lowercasedSearchTerm) ||
-            order.product.name.toLowerCase().includes(lowercasedSearchTerm) ||
+            order.products.some(p => p.name.toLowerCase().includes(lowercasedSearchTerm)) ||
             (order.address.village + ", " + order.address.city).toLowerCase().includes(lowercasedSearchTerm)
         );
     }
@@ -291,23 +254,6 @@ export default function OrdersPage() {
       const encodedOrderId = encodeURIComponent(orderId);
       router.push(`/delivery-information/${encodedOrderId}`);
   }
-  
-  const getDeliveryDateInfo = (order: Order) => {
-     try {
-        if (order.status === 'Delivered' && order.deliveryDate) {
-            const parsedDate = parse(order.deliveryDate, 'MMM dd, yyyy', new Date());
-            return { label: 'Delivered on', date: format(parsedDate, 'dd MMM yyyy')};
-        }
-        if (['Cancelled by user', 'Pending', 'Returned'].includes(order.status)) {
-            return { label: 'Delivery Status', date: "N/A" };
-        }
-        const parsedDate = parse(order.dateTime, 'dd/MM/yyyy hh:mm a', new Date());
-        const deliveryDate = addDays(parsedDate, 5);
-        return { label: 'Est. Delivery', date: format(deliveryDate, 'dd MMM yyyy') };
-    } catch {
-        return { label: 'Est. Delivery', date: "N/A" };
-    }
-  }
 
   const renderContent = () => {
     if (isLoading) {
@@ -335,30 +281,30 @@ export default function OrdersPage() {
                         <div key={order.orderId} className='grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
                             {/* Product Info */}
                             <div className="col-span-2 md:col-span-1 flex items-center gap-4">
-                                <Image src={order.product.imageUrl.replace('60x60', '100x100')} alt={order.product.name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.product.hint} />
+                                <Image src={order.products[0].imageUrl.replace('60x60', '100x100')} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
                                 <div className="flex-1">
-                                    <p className="font-semibold text-foreground group-hover:underline">{order.product.name}</p>
+                                    <p className="font-semibold text-foreground group-hover:underline">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
-                                    <p className="text-muted-foreground text-xs md:hidden">{order.dateTime}</p>
+                                    <p className="text-muted-foreground text-xs md:hidden">{order.orderDate}</p>
                                 </div>
                             </div>
                             
                             {/* Address Info */}
                              <div className="col-span-2 md:col-span-1">
-                                <p className="font-medium text-sm">{order.user.name}</p>
+                                <p className="font-medium text-sm">{order.address.name}</p>
                                 <p className="text-xs text-muted-foreground">{order.address.village}, {order.address.city}</p>
                             </div>
 
                             {/* Price */}
                             <div className="text-left md:text-center">
                                 <p className="font-medium md:hidden text-muted-foreground text-xs">Price</p>
-                                <p className="font-medium">{order.transaction.amount}</p>
+                                <p className="font-medium">₹{order.total.toFixed(2)}</p>
                             </div>
 
                             {/* Status */}
                             <div className="text-left md:text-center">
                                 <p className="font-medium md:hidden text-muted-foreground text-xs">Status</p>
-                                <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize w-fit">{order.status}</Badge>
+                                <Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))} className="capitalize w-fit">{getStatusFromTimeline(order.timeline)}</Badge>
                             </div>
                             
                             {/* Actions */}
@@ -422,7 +368,7 @@ export default function OrdersPage() {
                       <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-xs md:text-base whitespace-nowrap">{user.displayName}</h3>
+                          <h3 className="font-semibold text-xs md:text-base whitespace-nowrap">{userData?.displayName}</h3>
                           <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden md:inline">
                               / Orders
                           </Link>

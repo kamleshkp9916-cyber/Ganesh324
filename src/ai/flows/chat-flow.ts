@@ -10,8 +10,15 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { allOrderData, OrderId } from '@/lib/order-data';
+import { allOrderData, Order, OrderId } from '@/lib/order-data';
 import { format } from 'date-fns';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+import type { CartProduct } from '@/lib/product-history';
+
+getFirebaseAdminApp();
+const db = getFirestore();
+
 
 const MessageSchema = z.object({
   id: z.number(),
@@ -55,6 +62,13 @@ export type SendMessageOutput = z.infer<typeof SendMessageOutputSchema>;
 const UpdateOrderStatusInputSchema = z.object({
     orderId: z.string(),
     status: z.string(),
+});
+
+const CreateOrderInputSchema = z.object({
+    userId: z.string(),
+    cartItems: z.array(z.any()),
+    address: z.any(),
+    total: z.number(),
 });
 
 // Mock database
@@ -182,39 +196,34 @@ const updateOrderStatusFlow = ai.defineFlow(
         outputSchema: z.void(),
     },
     async ({ orderId, status }) => {
-        const order = allOrderData[orderId as OrderId];
-        if (order) {
-            // If the order is being returned, add the full return sequence.
+        // This flow now needs to update Firestore
+        const orderRef = db.collection('orders').doc(orderId);
+        const orderDoc = await orderRef.get();
+
+        if (orderDoc.exists) {
+            const orderData = orderDoc.data() as Order;
+            let newTimeline = orderData.timeline;
+
             if (status === 'Return Initiated') {
-                 // Remove any non-completed steps from the timeline before adding the return sequence
-                order.timeline = order.timeline.filter(step => step.completed);
-                order.timeline.push({
+                newTimeline = newTimeline.filter(step => step.completed);
+                newTimeline.push({
                     status: "Return Initiated: The recipient has initiated a return of the package.",
                     date: format(new Date(), 'MMM dd, yyyy'),
                     time: format(new Date(), 'hh:mm a'),
                     completed: true
                 });
-                 order.timeline.push({
-                    status: "Return package picked up",
-                    date: null,
-                    time: null,
-                    completed: false
-                });
-                order.timeline.push({
-                    status: "Returned",
-                    date: null,
-                    time: null,
-                    completed: false
-                });
+                newTimeline.push({ status: "Return package picked up", date: null, time: null, completed: false });
+                newTimeline.push({ status: "Returned", date: null, time: null, completed: false });
             } else {
-                 // For other status updates like cancellation, just add a single step.
-                order.timeline.push({
+                newTimeline.push({
                     status: status,
                     date: format(new Date(), 'MMM dd, yyyy'),
                     time: format(new Date(), 'hh:mm a'),
                     completed: true
                 });
             }
+
+            await orderRef.update({ timeline: newTimeline });
             console.log(`Updated status for order ${orderId} to ${status}`);
         } else {
             console.error(`Order with ID ${orderId} not found.`);
@@ -223,6 +232,38 @@ const updateOrderStatusFlow = ai.defineFlow(
     }
 );
 
+const createOrderFlow = ai.defineFlow(
+  {
+    name: 'createOrderFlow',
+    inputSchema: CreateOrderInputSchema,
+    outputSchema: z.object({ orderId: z.string() }),
+  },
+  async ({ userId, cartItems, address, total }) => {
+    const orderId = `#STREAM${Math.floor(1000 + Math.random() * 9000)}`;
+    const now = new Date();
+    
+    const orderData = {
+        orderId,
+        userId,
+        products: cartItems,
+        address,
+        total,
+        orderDate: format(now, 'MMM dd, yyyy'),
+        isReturnable: true,
+        timeline: [
+            { status: "Order Confirmed", date: format(now, 'MMM dd, yyyy'), time: format(now, 'hh:mm a'), completed: true },
+            { status: "Packed", date: null, time: null, completed: false },
+            { status: "Shipped", date: null, time: null, completed: false },
+            { status: "Out for Delivery", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
+        ]
+    };
+
+    await db.collection('orders').doc(orderId).set(orderData);
+    
+    return { orderId };
+  }
+);
 
 export async function getMessages(userId: string): Promise<GetMessagesOutput> {
     return getMessagesFlow({ userId });
@@ -242,4 +283,13 @@ export async function getConversations(): Promise<Conversation[]> {
 
 export async function updateOrderStatus(orderId: string, status: string): Promise<void> {
     return updateOrderStatusFlow({ orderId, status });
+}
+
+export async function createOrder(
+    userId: string, 
+    cartItems: CartProduct[], 
+    address: any, 
+    total: number
+): Promise<{orderId: string}> {
+  return createOrderFlow({ userId, cartItems, address, total });
 }

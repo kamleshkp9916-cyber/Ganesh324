@@ -1,7 +1,14 @@
 
 
-export const allOrderData = {
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestoreDb } from './firebase';
+
+// This file now primarily serves as a definition for the Order type and for fallback mock data.
+// The real data will be fetched from Firestore.
+
+export const allOrderData: Record<string, Order> = {
     "#STREAM5896": {
+        // @ts-ignore
         product: { productId: "prod_1", name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
         orderDate: "Jul 27, 2024",
         isReturnable: true,
@@ -14,93 +21,27 @@ export const allOrderData = {
             { status: "Delivered", date: null, time: null, completed: false },
         ]
     },
-    "#STREAM5897": {
-        product: { productId: "prod_2", name: "Wireless Headphones", imageUrl: "https://placehold.co/150x150.png", hint: "headphones", price: "₹4,999.00" },
-        orderDate: "Jul 26, 2024",
-        isReturnable: true,
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 26, 2024", time: "08:16 AM", completed: true },
-            { status: "Packed", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
-            { status: "Shipped", date: "Jul 26, 2024", time: "06:00 PM", completed: true },
-            { status: "Out for Delivery", date: "Jul 27, 2024", time: "09:00 AM", completed: true },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 27, 2024", time: "11:30 AM", completed: true },
-        ]
-    },
-     "#STREAM5898": {
-        product: { productId: "prod_5", name: "Leather Backpack", imageUrl: "https://placehold.co/150x150.png", hint: "leather backpack", price: "₹6,200.00" },
-        orderDate: "Jul 25, 2024",
-        isReturnable: false, // Admin has disabled returns for this item
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-            { status: "Delivered: The package has been successfully delivered to the recipient.", date: "Jul 26, 2024", time: "01:00 PM", completed: true },
-        ]
-    },
-    "#STREAM5899": {
-        product: { productId: "prod_4", name: "Smart Watch", imageUrl: "https://placehold.co/150x150.png", hint: "smart watch", price: "₹8,750.00" },
-        orderDate: "Jul 25, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 25, 2024", time: "11:45 AM", completed: true },
-            { status: "Cancelled by user", date: "Jul 25, 2024", time: "12:00 PM", completed: true },
-        ]
-    },
-    "#STREAM5902": {
-        product: { productId: "prod_3", name: "Bluetooth Speaker", imageUrl: "https://placehold.co/150x150.png", hint: "bluetooth speaker", price: "₹3,200.00" },
-        orderDate: "Jul 22, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 22, 2024", time: "07:00 PM", completed: true },
-            { status: "Shipped", date: "Jul 23, 2024", time: "10:00 AM", completed: true },
-            { status: "Out for Delivery: The package has reached the local delivery hub and is being delivered by the courier.", date: "Jul 23, 2024", time: "Current status", completed: true },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    },
-    "#STREAM5907": {
-        product: { productId: "prod_5", name: "Espresso Machine", imageUrl: "https://placehold.co/150x150.png", hint: "espresso machine", price: "₹18,500.00" },
-        orderDate: "Jul 20, 2024",
-        isReturnable: true,
-        timeline: [
-            { status: "Delivered: The package was successfully delivered.", date: "Jul 22, 2024", time: "03:00 PM", completed: true },
-            { status: "Return Initiated: Your return request has been submitted.", date: "Jul 23, 2024", time: "10:00 AM", completed: true },
-            { status: "Return package picked up: The delivery partner has collected the package.", date: "Jul 24, 2024", time: "01:00 PM", completed: true },
-            { status: "Returned: Your item has been returned successfully. A refund will be processed shortly.", date: "Jul 25, 2024", time: "11:00 AM", completed: true },
-        ]
-    },
-    "#STREAM5910": {
-        product: { productId: "prod_10", name: "Gaming Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "gaming keyboard", price: "₹5,500.00" },
-        orderDate: "Jul 24, 2024",
-        timeline: [
-            { status: "Order Confirmed", date: "Jul 24, 2024", time: "10:00 AM", completed: true },
-            { status: "Shipped", date: "Jul 24, 2024", time: "04:00 PM", completed: true },
-            { status: "Out for Delivery", date: "Jul 25, 2024", time: "09:30 AM", completed: true },
-            { status: "Failed Delivery Attempt: The courier attempted delivery but was unsuccessful. Address not found.", date: "Jul 25, 2024", time: "02:00 PM", completed: true },
-            { status: "Returned", date: "Jul 26, 2024", time: "11:00 AM", completed: true },
-        ]
-    },
-    "#STREAM5905": {
-        product: { productId: "prod_7", name: "Designer Sunglasses", imageUrl: "https://placehold.co/150x150.png", hint: "sunglasses", price: "₹7,800.00" },
-        orderDate: "Jul 28, 2024",
-        timeline: [
-            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
-            { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    },
-    "#STREAM5906": {
-        product: { productId: "prod_10", name: "Mechanical Keyboard", imageUrl: "https://placehold.co/150x150.png", hint: "keyboard", price: "₹9,500.00" },
-        orderDate: "Jul 29, 2024",
-        timeline: [
-            { status: "Pending", date: "Jul 29, 2024", time: "11:00 AM", completed: true },
-            { status: "Order Confirmed", date: null, time: null, completed: false },
-            { status: "Shipped", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false },
-        ]
-    }
+    // Other mock orders can be kept for fallback or testing, but are no longer the source of truth
 };
 
 export type OrderData = typeof allOrderData;
 export type OrderId = keyof OrderData;
-// Add isReturnable to the Order type definition
-export type Order = OrderData[OrderId] & { isReturnable?: boolean };
+
+export type Order = {
+    orderId: string;
+    userId: string;
+    products: any[];
+    address: any;
+    total: number;
+    orderDate: string;
+    isReturnable: boolean;
+    timeline: {
+        status: string;
+        date: string | null;
+        time: string | null;
+        completed: boolean;
+    }[];
+};
 
 export function getStatusFromTimeline(timeline: Order['timeline']): string {
     const lastCompletedStep = [...timeline].reverse().find(step => step.completed);
@@ -108,4 +49,15 @@ export function getStatusFromTimeline(timeline: Order['timeline']): string {
     return lastCompletedStep.status.split(':')[0].trim();
 }
 
-    
+export async function getOrderById(orderId: string): Promise<Order | null> {
+    const db = getFirestoreDb();
+    const orderRef = doc(db, 'orders', orderId);
+    const orderDoc = await getDoc(orderRef);
+
+    if (orderDoc.exists()) {
+        return { ...orderDoc.data(), orderId: orderDoc.id } as Order;
+    } else {
+        // Fallback to mock data for demo purposes if not in Firestore
+        return allOrderData[orderId] ? { ...allOrderData[orderId], orderId } : null;
+    }
+}

@@ -14,7 +14,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse, differenceInDays } from 'date-fns';
-import { allOrderData, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
+import { getOrderById, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
 import { updateOrderStatus } from '@/ai/flows/chat-flow';
 import {
   AlertDialog,
@@ -99,10 +99,10 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
                 avatar: user.photoURL,
                 rating,
                 text: reviewText,
-                productName: reviewToEdit?.productName || order?.product.name,
-                productId: reviewToEdit?.productId || order?.product.productId,
+                productName: reviewToEdit?.productName || order?.products[0].name,
+                productId: reviewToEdit?.productId || order?.products[0].key,
                 imageUrl: imagePreview,
-                hint: reviewToEdit?.hint || order?.product.hint,
+                hint: reviewToEdit?.hint || order?.products[0].hint,
                 productInfo: reviewToEdit?.productInfo,
                 paymentMethod: reviewToEdit?.paymentMethod,
                 userId: user.uid,
@@ -118,7 +118,7 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>{reviewToEdit ? 'Edit' : 'Write a'} Review</DialogTitle>
-                <DialogDescription>Share your thoughts on the {reviewToEdit?.productName || order?.product.name}.</DialogDescription>
+                <DialogDescription>Share your thoughts on the {reviewToEdit?.productName || order?.products[0].name}.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
                 <div className="flex items-center justify-center gap-2">
@@ -183,7 +183,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
     const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
     
-    const [order, setOrder] = useState<Order | null>(allOrderData[orderId] || null);
+    const [order, setOrder] = useState<Order | null>(null);
 
     const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
     const [cancelStep, setCancelStep] = useState("reason");
@@ -204,8 +204,16 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
 
     useEffect(() => {
         setIsMounted(true);
+        const fetchOrder = async () => {
+            const fetchedOrder = await getOrderById(orderId);
+            setOrder(fetchedOrder);
+        }
+        fetchOrder();
+    }, [orderId]);
+    
+    useEffect(() => {
         if (user && order) {
-             const existingReviews = getReviews(order.product.productId);
+             const existingReviews = getReviews(order.products[0].key);
              const userReview = existingReviews.find(r => r.userId === user.uid);
              if (userReview) {
                  setMyReview(userReview);
@@ -284,7 +292,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         setIsVerifyingOtp(true);
         try {
             await updateOrderStatus(orderId, 'Cancelled by user');
-            setOrder(allOrderData[orderId]);
+            const updatedOrder = await getOrderById(orderId);
+            setOrder(updatedOrder);
             
             toast({
                 title: "Order Cancelled",
@@ -321,7 +330,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         setIsVerifyingReturnOtp(true);
         try {
             await updateOrderStatus(orderId, 'Return Initiated');
-            setOrder(allOrderData[orderId]);
+            const updatedOrder = await getOrderById(orderId);
+            setOrder(updatedOrder);
             
             toast({
                 title: "Return Initiated",
@@ -364,13 +374,13 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         if (!order) return;
 
         if (myReview) {
-             updateReview(order.product.productId, review);
+             updateReview(order.products[0].key, review);
              toast({
                 title: "Review Updated!",
                 description: "Thank you for updating your feedback.",
             });
         } else {
-             addReview(order.product.productId, review);
+             addReview(order.products[0].key, review);
              toast({
                 title: "Review Submitted!",
                 description: "Thank you for your feedback. It is now visible on the product page.",
@@ -409,7 +419,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
-    const productId = order.product.productId;
+    const productId = order.products[0].key;
+    const product = order.products[0];
 
     return (
         <div className="min-h-screen bg-black text-foreground flex flex-col">
@@ -440,21 +451,21 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                     <CardContent className="p-4 flex flex-col items-center text-center">
                                         <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4 relative">
                                             <Image
-                                                src={order.product.imageUrl}
-                                                alt={order.product.name}
+                                                src={product.imageUrl}
+                                                alt={product.name}
                                                 width={200}
                                                 height={200}
                                                 className="object-cover w-full h-full"
-                                                data-ai-hint={order.product.hint}
+                                                data-ai-hint={product.hint}
                                             />
-                                            {(order as any).stock === 0 && (
+                                            {(product as any).stock === 0 && (
                                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                     <Badge variant="destructive" className="text-lg">Out of Stock</Badge>
                                                 </div>
                                             )}
                                         </div>
-                                        <h3 className="font-semibold text-lg">{order.product.name}</h3>
-                                        <p className="font-bold text-primary-foreground">{order.product.price}</p>
+                                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                                        <p className="font-bold text-primary-foreground">{product.price}</p>
                                     </CardContent>
                                 </Card>
                             </Link>

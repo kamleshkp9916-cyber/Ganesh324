@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { format, addDays } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
+import { createOrder } from '@/ai/flows/chat-flow';
 
 const mockAddress = {
     name: "Samael Prajapati",
@@ -55,6 +56,7 @@ export default function CartPage() {
   const [address, setAddress] = useState(mockAddress);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<typeof mockCoupons[0] | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const buyNowProductId = searchParams.get('productId');
   const isBuyNow = searchParams.get('buyNow') === 'true';
@@ -164,6 +166,35 @@ export default function CartPage() {
         title: "Coupon Removed",
         description: "The coupon has been removed from your order."
     });
+  };
+
+  const handleCheckout = async () => {
+    if (!user) return;
+    setIsCheckingOut(true);
+    try {
+        const { orderId } = await createOrder(user.uid, cartItems, address, total);
+        
+        // Clear cart from local storage
+        if (!isBuyNow) {
+            localStorage.removeItem('streamcart_cart');
+        }
+
+        toast({
+            title: "Order Placed!",
+            description: `Your order ${orderId} has been successfully placed.`,
+        });
+
+        router.push(`/delivery-information/${orderId}`);
+
+    } catch (error) {
+        console.error("Failed to create order:", error);
+        toast({
+            variant: "destructive",
+            title: "Checkout Failed",
+            description: "Could not place your order. Please try again.",
+        });
+        setIsCheckingOut(false);
+    }
   };
 
 
@@ -277,7 +308,10 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" size="lg">Proceed to Checkout</Button>
+                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                                    {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Proceed to Checkout
+                                </Button>
                             </CardFooter>
                         </Card>
 
