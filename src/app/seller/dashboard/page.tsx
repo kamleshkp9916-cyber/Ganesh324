@@ -11,6 +11,7 @@ import {
   Package2,
   Search,
   Users,
+  Sparkles,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -28,6 +29,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,10 +112,13 @@ const recentSales = [
   },
 ]
 
+const SELLER_WELCOME_KEY = 'streamcart_seller_welcome_shown';
+
 export default function SellerDashboard() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -114,6 +126,13 @@ export default function SellerDashboard() {
           router.replace('/');
       } else if (userData.verificationStatus !== 'verified') {
           router.replace('/seller/verification');
+      } else {
+          // Check if the welcome message has been shown before
+          const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
+          if (!welcomeShown) {
+              setShowWelcomeDialog(true);
+              localStorage.setItem(SELLER_WELCOME_KEY, 'true');
+          }
       }
     }
   }, [user, userData, loading, router]);
@@ -128,6 +147,30 @@ export default function SellerDashboard() {
   }
 
   return (
+    <>
+      <Dialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="text-primary h-6 w-6" />
+                    Welcome to Your Seller Dashboard!
+                </DialogTitle>
+                <DialogDescription className="pt-2">
+                    Congratulations on becoming a StreamCart seller! Here are a few tips to get you started on the right foot.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+                <p><strong>1. List Your Products:</strong> Head over to the "Products" tab to start adding your inventory. Clear photos and detailed descriptions are key!</p>
+                <p><strong>2. Go Live:</strong> Use live streams to showcase your products in real-time. Engage with your audience, answer their questions, and drive sales.</p>
+                <p><strong>3. Fulfill Orders Promptly:</strong> Keep an eye on the "Orders" tab. Fast shipping and good communication lead to happy customers and great reviews.</p>
+                <p><strong>4. Be Professional:</strong> Always be respectful and honest in your interactions. Your reputation is your most valuable asset.</p>
+                <p>We're excited to have you here. Happy selling!</p>
+            </div>
+            <DialogFooter>
+                <Button onClick={() => setShowWelcomeDialog(false)}>Let's Get Started</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -341,5 +384,6 @@ export default function SellerDashboard() {
         </div>
       </main>
     </div>
+    </>
   )
 }

@@ -13,8 +13,9 @@ import {
   XCircle,
   Clock,
   Printer,
+  Edit,
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -40,6 +41,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -73,9 +76,9 @@ import { getUserData, updateUserData, UserData } from "@/lib/follow-data";
 import { Separator } from "@/components/ui/separator";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
+import { Textarea } from "@/components/ui/textarea";
 
 const ADMIN_EMAIL = "samael.prajapati@example.com";
-
 
 const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
     const handlePrint = () => {
@@ -152,6 +155,46 @@ const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => v
     );
 }
 
+const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onOpenChange: (open: boolean) => void, onConfirm: (reason: string, type: 'rejected' | 'needs-resubmission') => void }) => {
+    const [reason, setReason] = useState("");
+    const [type, setType] = useState<'rejected' | 'needs-resubmission'>('rejected');
+
+    const handleConfirm = () => {
+        if (!reason.trim()) {
+            alert("Reason is required."); // Or use a toast
+            return;
+        }
+        onConfirm(reason, type);
+    }
+    
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Application Review</DialogTitle>
+                    <DialogDescription>Provide a reason for rejecting or requesting resubmission for this application.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <Textarea 
+                        placeholder="Explain why the application is being rejected or what needs to be fixed..."
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button variant="secondary" onClick={() => { setType('needs-resubmission'); handleConfirm(); }} disabled={!reason.trim()}>
+                        <Edit className="h-4 w-4 mr-2" /> Request Resubmission
+                    </Button>
+                    <Button variant="destructive" onClick={() => { setType('rejected'); handleConfirm(); }} disabled={!reason.trim()}>
+                        <XCircle className="h-4 w-4 mr-2" /> Reject Permanently
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+};
+
 
 const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: string) => void }) => (
     <>
@@ -200,63 +243,86 @@ const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: st
     </>
 );
 
-const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (userId: string, status: 'verified' | 'rejected') => void, onViewDetails: (seller: any) => void }) => (
-     <>
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Seller Applicant</TableHead>
-                    <TableHead className="hidden md:table-cell">Business Name</TableHead>
-                    <TableHead className="hidden md:table-cell">PAN</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {requests.length > 0 ? requests.map((req, index) => (
-                    <TableRow key={index}>
-                        <TableCell>
-                            <div className="font-medium">{req.firstName} {req.lastName}</div>
-                            <div className="text-sm text-muted-foreground">{req.email}</div>
-                        </TableCell>
-                         <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
-                         <TableCell className="hidden md:table-cell font-mono">{req.pan}</TableCell>
-                        <TableCell className="flex gap-2">
-                             <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'verified')}>
-                                <CheckCircle className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only">Approve</span>
-                            </Button>
-                            <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'rejected')}>
-                                <XCircle className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only">Reject</span>
-                            </Button>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onViewDetails(req)}>View Details</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                )) : (
+const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => void, onViewDetails: (seller: any) => void }) => {
+    const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+    const [currentUserForRejection, setCurrentUserForRejection] = useState<string | null>(null);
+
+    const handleRejectClick = (userId: string) => {
+        setCurrentUserForRejection(userId);
+        setRejectionDialogOpen(true);
+    };
+    
+    const handleRejectionConfirm = (reason: string, type: 'rejected' | 'needs-resubmission') => {
+        if (currentUserForRejection) {
+            onUpdateRequest(currentUserForRejection, type, reason);
+        }
+        setRejectionDialogOpen(false);
+        setCurrentUserForRejection(null);
+    };
+
+    return (
+        <>
+            <RejectionDialog 
+                open={rejectionDialogOpen}
+                onOpenChange={setRejectionDialogOpen}
+                onConfirm={handleRejectionConfirm}
+            />
+            <Table>
+                <TableHeader>
                     <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
+                        <TableHead>Seller Applicant</TableHead>
+                        <TableHead className="hidden md:table-cell">Business Name</TableHead>
+                        <TableHead className="hidden md:table-cell">PAN</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
-                )}
-            </TableBody>
-        </Table>
-        <CardFooter className="px-0 pt-4">
-            <div className="text-xs text-muted-foreground">
-                Showing <strong>1-{requests.length > 10 ? 10 : requests.length}</strong> of <strong>{requests.length}</strong> requests
-            </div>
-        </CardFooter>
-    </>
-);
+                </TableHeader>
+                <TableBody>
+                    {requests.length > 0 ? requests.map((req, index) => (
+                        <TableRow key={index}>
+                            <TableCell>
+                                <div className="font-medium">{req.firstName} {req.lastName}</div>
+                                <div className="text-sm text-muted-foreground">{req.email}</div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
+                            <TableCell className="hidden md:table-cell font-mono">{req.pan}</TableCell>
+                            <TableCell className="flex gap-2">
+                                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'verified')}>
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only">Approve</span>
+                                </Button>
+                                <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleRejectClick(req.uid)}>
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only">Review</span>
+                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem onSelect={() => onViewDetails(req)}>View Details</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+             <CardFooter className="px-0 pt-4">
+                <div className="text-xs text-muted-foreground">
+                    Showing <strong>1-{requests.length > 10 ? 10 : requests.length}</strong> of <strong>{requests.length}</strong> requests
+                </div>
+            </CardFooter>
+        </>
+    );
+};
 
 
 export default function AdminUsersPage() {
@@ -316,19 +382,27 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected') => {
+  const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
     try {
-        await updateUserData(userId, {
-            verificationStatus: status,
-            rejectionReason: status === 'rejected' ? "Application did not meet requirements." : undefined,
-        });
+        let updateData: Partial<UserData> = { verificationStatus: status };
+        
+        if (status === 'rejected') {
+            updateData.rejectionReason = reason;
+        } else if (status === 'needs-resubmission') {
+            updateData.resubmissionReason = reason;
+        }
+
+        await updateUserData(userId, updateData);
+
+        let toastTitle = "Seller Approved";
+        if (status === 'rejected') toastTitle = "Seller Rejected";
+        if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
 
         toast({
-            title: `Seller ${status === 'verified' ? 'Approved' : 'Rejected'}`,
+            title: toastTitle,
             description: `The application has been updated.`,
         });
 
-        // Re-fetch all data to update the UI
         fetchUsers();
         
     } catch (error) {
@@ -532,7 +606,7 @@ export default function AdminUsersPage() {
                 <Card>
                     <CardHeader className="px-7">
                         <CardTitle>Seller Verification Requests</CardTitle>
-                        <CardDescription>Approve or reject new seller applications.</CardDescription>
+                        <CardDescription>Approve, reject, or request resubmission for new seller applications.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <VerificationRequestsTable requests={pendingSellers} onUpdateRequest={handleVerificationUpdate} onViewDetails={handleViewDetails} />
