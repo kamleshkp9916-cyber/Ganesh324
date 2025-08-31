@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -41,17 +40,17 @@ const mockOffers = [
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
 
-const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string } } = {
-    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FashionFinds' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GadgetGuru' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'HomeHaven' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BeautyBox' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'KitchenWiz' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FitFlow' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'ArtisanAlley' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'PetPalace' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BookNook' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GamerGuild' },
 };
 
 
@@ -478,18 +477,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-3">
+                                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group">
                                     <Avatar>
                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="text-xs text-muted-foreground">Sold by</p>
-                                        <h4 className="font-semibold">{seller.name}</h4>
+                                        <h4 className="font-semibold group-hover:underline">{seller.name}</h4>
                                     </div>
-                                </div>
+                                </Link>
                                 <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=${seller.name}`}>
+                                    <Link href={`/seller/profile?userId=${seller.uid}`}>
                                         View Profile
                                     </Link>
                                 </Button>

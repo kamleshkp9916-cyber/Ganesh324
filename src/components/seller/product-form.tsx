@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -29,6 +28,7 @@ import { Loader2, UploadCloud, X } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const productFormSchema = z.object({
   id: z.string().optional(),
@@ -43,6 +43,7 @@ const productFormSchema = z.object({
       file: z.any().refine(file => file, "Image is required."),
       preview: z.string()
   })).min(1, "Please upload at least one image."),
+  listingType: z.enum(['live-stream', 'general']).default('general'),
   status: z.enum(["draft", "active", "archived"]),
   // Category specific fields
   size: z.string().optional(),
@@ -155,6 +156,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       price: 0,
       stock: 0,
       images: [],
+      listingType: "general",
       status: "draft",
       size: "",
       color: "",
@@ -372,6 +374,42 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                         </FormItem>
                     )}
                 />
+
+                 <FormField
+                    control={form.control}
+                    name="listingType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>Listing Type</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                            >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="general" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                General Listing <span className="text-xs text-muted-foreground">- Available for everyone to purchase anytime.</span>
+                                </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="live-stream" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                Live Stream Only <span className="text-xs text-muted-foreground">- Product is only available for purchase during a live stream.</span>
+                                </FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
 
                <FormField
                 control={form.control}

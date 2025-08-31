@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -886,19 +885,19 @@ export default function LiveSellingPage() {
                                         </Link>
                                         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                                             <div className="flex items-start gap-2">
-                                                <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
                                                     <Avatar className="h-8 w-8 border-2 border-primary">
                                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                 </Link>
                                                 <div className="flex-1">
-                                                    <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
                                                         <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                     </Link>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                     {seller.rating > 0 && (
-                                                         <Link href={`/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                         <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
                                                             <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
                                                                 <Star className="w-3 h-3 fill-current" />
                                                                 <span>{seller.rating.toFixed(1)}</span>
