@@ -41,17 +41,17 @@ const mockOffers = [
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
 
-const productToSellerMapping: { [key: string]: { id: string; name: string; avatarUrl: string } } = {
-    'prod_1': { id: 'SELLER_UID_1', name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_2': { id: 'SELLER_UID_2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_3': { id: 'SELLER_UID_3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_4': { id: 'SELLER_UID_4', name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_5': { id: 'SELLER_UID_5', name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_6': { id: 'SELLER_UID_6', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_7': { id: 'SELLER_UID_7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_8': { id: 'SELLER_UID_8', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_9': { id: 'SELLER_UID_9', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
-    'prod_10': { id: 'SELLER_UID_10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
+const productToSellerMapping: { [key: string]: { uid: string; name: string; avatarUrl: string } } = {
+    'prod_1': { uid: 'seller_retroclicks_uid', name: 'RetroClicks', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_2': { uid: 'seller_gadgetguru_uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_3': { uid: 'seller_homehaven_uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_4': { uid: 'seller_techwizard_uid', name: 'TechWizard', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_5': { uid: 'seller_urbancarry_uid', name: 'UrbanCarry', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_6': { uid: 'seller_fitflow_uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_7': { uid: 'seller_artisanalley_uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_8': { uid: 'seller_petpalace_uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_9': { uid: 'seller_booknook_uid', name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png' },
+    'prod_10': { uid: 'seller_gamerguild_uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png' },
 };
 
 
@@ -242,6 +242,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }
 
     const seller = productToSellerMapping[product.key];
+    const sellerProducts = Object.values(productDetails)
+        .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.id !== product.id)
+        .slice(0, 10);
 
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
@@ -471,24 +474,48 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Seller Info Section */}
-                <div className="mt-8 py-4 border-t">
+                 <div className="mt-8 py-4 border-t">
                     <Card>
-                        <CardContent className="p-4 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <Avatar>
-                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Sold by</p>
-                                    <h4 className="font-semibold">{seller.name}</h4>
+                        <CardHeader>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="text-xs text-muted-foreground">Sold by</p>
+                                        <h4 className="font-semibold">{seller.name}</h4>
+                                    </div>
                                 </div>
+                                <Button asChild variant="outline">
+                                    <Link href={`/seller/profile?userId=${seller.uid}`}>
+                                        View Profile
+                                    </Link>
+                                </Button>
                             </div>
-                            <Button asChild variant="outline">
-                                <Link href={`/seller/profile?userId=${seller.id}`}>
-                                    View Profile
-                                </Link>
-                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <h5 className="font-semibold text-sm mb-2">More from this seller</h5>
+                             <div className="relative">
+                                <ScrollArea>
+                                    <div className="flex gap-4 pb-4">
+                                        {sellerProducts.map(p => (
+                                            <Link href={`/product/${p.key}`} key={p.id} className="w-32 flex-shrink-0">
+                                                <Card className="overflow-hidden group">
+                                                    <div className="aspect-square bg-muted relative">
+                                                        <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                                    </div>
+                                                    <div className="p-2">
+                                                        <h4 className="font-semibold text-xs truncate">{p.name}</h4>
+                                                        <p className="text-foreground text-sm font-bold">{p.price}</p>
+                                                    </div>
+                                                </Card>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
