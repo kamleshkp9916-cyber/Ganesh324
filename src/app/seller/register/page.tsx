@@ -204,9 +204,11 @@ export default function SellerRegisterPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
          <div className="absolute top-4 left-4">
-          <Button variant="ghost" onClick={() => router.back()} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back
+          <Button asChild variant="ghost" className="flex items-center gap-2">
+            <Link href="/">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+            </Link>
           </Button>
         </div>
       <Card className="w-full max-w-2xl my-8">
