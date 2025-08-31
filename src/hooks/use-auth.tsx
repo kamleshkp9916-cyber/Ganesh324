@@ -25,13 +25,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setLoading(true);
       if (firebaseUser) {
-        setUser(firebaseUser);
         let data = await getUserData(firebaseUser.uid);
         if (!data) {
-          // This is a new user, create their document
+          // This is a new user, create their document with default role 'customer'
           await createUserData(firebaseUser, 'customer');
           data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
         }
+        setUser(firebaseUser);
         setUserData(data);
       } else {
         setUser(null);

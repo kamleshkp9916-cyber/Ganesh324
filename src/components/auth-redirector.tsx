@@ -15,16 +15,16 @@ const protectedCustomerPaths = [
     '/wallet',
 ];
 
+// More specific seller paths to allow public access to register/verification
 const protectedSellerPaths = [
     '/seller/dashboard',
     '/seller/orders',
     '/seller/products',
-    '/seller/profile',
 ];
 
 const adminPaths = ['/admin'];
 const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
-const publicSellerPaths = ['/seller/register', '/seller/verification'];
+const publicPaths = ['/live-selling', '/seller/register', '/seller/verification', '/verify-email', '/about', '/contact', '/terms-and-conditions', '/privacy-and-security', '/faq', '/help', '/product'];
 
 
 export function AuthRedirector() {
@@ -37,47 +37,54 @@ export function AuthRedirector() {
     if (loading) {
       return; 
     }
-
-    const isAuthPath = authPaths.includes(pathname);
-    const isProtectedCustomerPath = protectedCustomerPaths.some(p => pathname.startsWith(p));
-    const isProtectedSellerPath = protectedSellerPaths.some(p => pathname.startsWith(p));
-    const isAdminPath = adminPaths.some(p => pathname.startsWith(p));
-
+    
+    // Determine if the current path is public, allowing access regardless of auth state
+    const isPublicPath = publicPaths.some(p => pathname.startsWith(p));
+    
+    // If the user is logged in
     if (user) {
-       // If user's email is not verified, and they are not on the verify-email page, redirect them.
+      // If user's email is not verified, they should only be on the verify-email page
       if (!user.emailVerified && pathname !== '/verify-email') {
         router.replace('/verify-email');
         return;
       }
       
-      // Handle authenticated users
-      if (userData?.role === 'seller') {
-          const status = userData.verificationStatus;
-          if (status === 'verified') {
-              if (pathname !== '/seller/dashboard' && isAuthPath) {
-                  router.replace('/seller/dashboard');
+      // If email is verified, proceed with role-based redirection
+      if (user.emailVerified) {
+          if (userData?.role === 'admin') {
+              if (!adminPaths.some(p => pathname.startsWith(p))) {
+                  router.replace('/admin/dashboard');
               }
-          } else if (status === 'pending' || status === 'needs-resubmission' || status === 'rejected') {
-              if (pathname !== '/seller/verification') {
-                  router.replace('/seller/verification');
+          } else if (userData?.role === 'seller') {
+              const status = userData.verificationStatus;
+              if (status === 'verified') {
+                  // Verified sellers should be on seller pages or public pages, but not auth pages
+                   if (authPaths.includes(pathname)) {
+                       router.replace('/seller/dashboard');
+                   }
+              } else if (status === 'pending' || status === 'rejected' || status === 'needs-resubmission') {
+                  // Sellers with non-verified status should be on the verification page
+                  if (pathname !== '/seller/verification') {
+                      router.replace('/seller/verification');
+                  }
               }
-          }
-      } else if (userData?.role === 'admin') {
-          if (!isAdminPath) {
-              router.replace('/admin/dashboard');
-          }
-      } else { // Customer role
-          if (isAuthPath) {
-              router.replace('/live-selling');
+          } else { // Customer role
+              // Customers should be redirected from auth pages to the main app
+              if (authPaths.includes(pathname)) {
+                  router.replace('/live-selling');
+              }
           }
       }
 
-    } else {
-      // Handle unauthenticated users
-      const isProtectedRoute = isProtectedCustomerPath || isProtectedSellerPath || isAdminPath;
-      if (isProtectedRoute) {
-        router.replace('/');
-      }
+    } else { // If the user is not logged in
+        const isProtectedRoute = protectedCustomerPaths.some(p => pathname.startsWith(p)) ||
+                                 protectedSellerPaths.some(p => pathname.startsWith(p)) ||
+                                 adminPaths.some(p => pathname.startsWith(p));
+        
+        // If they try to access a protected route, send them to login
+        if (isProtectedRoute) {
+            router.replace('/');
+        }
     }
   }, [user, userData, loading, router, pathname]);
 

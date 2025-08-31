@@ -125,11 +125,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
 
-          await createUserData(user, 'customer', {
-            displayName: displayName,
-            phone: values.phone,
-            userId: values.userId,
-          });
+          // User data document will be created by the onAuthStateChanged listener in useAuth
           
           await sendEmailVerification(user);
           
@@ -138,8 +134,7 @@ export function useAuthActions() {
             description: "A verification email has been sent. Please check your inbox.",
           });
           
-          router.push('/verify-email');
-
+          // Let onAuthStateChanged handle the redirect
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
             switch (error.code) {
@@ -176,23 +171,31 @@ export function useAuthActions() {
             verificationStatus: 'pending',
             displayName: displayName,
         };
+        
+        // Clean up data before saving
+        delete (sellerData as any).password;
+        delete (sellerData as any).confirmPassword;
+        delete (sellerData as any).aadharOtp;
+        delete (sellerData as any).passportPhoto;
+        delete (sellerData as any).signature;
 
-        // If user is already logged in, we update their role. Otherwise, we create a new user.
         if (auth.currentUser) {
             await updateUserData(auth.currentUser.uid, sellerData);
             toast({
                 title: "Registration Submitted!",
                 description: "Your seller application is now under review.",
             });
-            // The redirection will be handled by the component.
+            router.push('/seller/verification');
         } else {
              try {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 const user = userCredential.user;
+                
                 await updateProfile(user, { displayName: displayName });
                 
-                // Now create the full user document in Firestore
-                await createUserData(user, 'seller', sellerData);
+                // Firestore document will be created by onAuthStateChanged.
+                // Here we just update the newly created doc with seller info.
+                await updateUserData(user.uid, sellerData);
                 
                 await sendEmailVerification(user);
                 
@@ -201,7 +204,6 @@ export function useAuthActions() {
                     description: "Your seller application is submitted. Please verify your email.",
                 });
                 
-                // Redirection is handled by the component after state update
              } catch (error: any) {
                  let errorMessage = "An unknown error occurred.";
                 switch (error.code) {
