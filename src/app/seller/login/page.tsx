@@ -7,26 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth.tsx';
-import { useEffect } from 'react';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function SellerLoginPage() {
     const router = useRouter();
-    const { loading } = useAuth();
 
     // The AuthRedirector now handles all post-login redirection.
     // This page's only job is to show the login form.
-    // If a user is already logged in, the redirector will move them away from this page.
     
-    if (loading) {
-        return (
-            <div className="w-full min-h-screen flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
-        );
-    }
-
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
        <div className="flex items-center justify-center p-4 relative bg-background">

@@ -61,7 +61,7 @@ export function useAuthActions() {
             const additionalInfo = getAdditionalUserInfo(result);
             
             if (additionalInfo?.isNewUser) {
-                await createUserData(user, 'customer');
+                // Let the useAuth hook handle the creation of the user data document.
             }
             
             toast({
@@ -81,22 +81,12 @@ export function useAuthActions() {
     const handleEmailSignIn = async (values: any) => {
         const auth = getFirebaseAuth();
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-             if (!userCredential.user.emailVerified) {
-                await sendEmailVerification(userCredential.user);
-                toast({
-                    title: "Email Not Verified",
-                    description: "Please verify your email address. A new verification link has been sent.",
-                    variant: "destructive"
-                });
-                router.push('/verify-email');
-            } else {
-                 toast({
-                    title: "Logged In!",
-                    description: "Welcome back!",
-                });
-                // AuthRedirector will handle the navigation
-            }
+            await signInWithEmailAndPassword(auth, values.email, values.password);
+             toast({
+                title: "Logged In!",
+                description: "Welcome back!",
+            });
+            // AuthRedirector will handle the navigation
         } catch (error: any) {
              let errorMessage = "An unknown error occurred.";
             switch (error.code) {
@@ -130,12 +120,8 @@ export function useAuthActions() {
           const displayName = `${values.firstName} ${values.lastName}`;
           
           await updateProfile(user, { displayName: displayName });
-
-          await createUserData(user, 'customer', {
-              userId: values.userId,
-              phone: values.phone,
-              displayName: displayName
-          });
+          
+          // Let useAuth hook handle the user data creation
           
           await sendEmailVerification(user);
           
@@ -144,7 +130,6 @@ export function useAuthActions() {
             description: "A verification email has been sent. Please check your inbox.",
           });
           
-          // Let onAuthStateChanged handle the redirect
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
             switch (error.code) {
@@ -168,7 +153,7 @@ export function useAuthActions() {
                 description: errorMessage,
                 variant: "destructive",
             });
-            throw error; // Re-throw the error so the form can handle its loading state
+            throw error;
         }
     };
     
@@ -185,39 +170,47 @@ export function useAuthActions() {
         delete (sellerData as any).password;
         delete (sellerData as any).confirmPassword;
         delete (sellerData as any).aadharOtp;
-        delete (sellerData as any).passportPhoto;
-        delete (sellerData as any).signature;
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const user = userCredential.user;
+            let user: User;
+            let isExistingUser = false;
+            
+            try {
+                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                 user = userCredential.user;
+            } catch(error: any) {
+                if (error.code === 'auth/email-already-in-use') {
+                    // This case handles a customer upgrading to a seller.
+                    const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+                    user = userCredential.user;
+                    isExistingUser = true;
+                } else {
+                    throw error; // Re-throw other creation errors
+                }
+            }
             
             await updateProfile(user, { displayName: displayName });
+
+            if (isExistingUser) {
+                 await updateUserData(user.uid, sellerData);
+            } else {
+                 await createUserData(user, 'seller', sellerData);
+            }
             
-            await createUserData(user, 'seller', sellerData);
-            
+            // Send verification email regardless, in case they weren't verified.
             await sendEmailVerification(user);
             
             toast({
-                title: "Account Created!",
-                description: "Your seller application is submitted. Please verify your email.",
+                title: "Application Submitted!",
+                description: "Your seller application is under review. Please verify your email.",
             });
             
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
-            if (error.code === 'auth/email-already-in-use') {
-                const existingUser = await getUserData(auth.currentUser?.uid || '');
-                if (existingUser && existingUser.role === 'customer') {
-                    await updateUserData(auth.currentUser!.uid, sellerData);
-                    toast({
-                        title: "Registration Submitted!",
-                        description: "Your seller application is now under review.",
-                    });
-                    router.push('/seller/verification');
-                    return;
-                } else {
-                     errorMessage = "This email address is already in use by another account.";
-                }
+             if (error.code === 'auth/email-already-in-use') {
+                 errorMessage = "This email address is already registered as a different account type. Please use another email or contact support.";
+            } else if(error.code === 'auth/invalid-credential') {
+                 errorMessage = "Incorrect password for existing account. Please try again.";
             } else {
                  errorMessage = "Failed to create account. Please try again.";
             }
