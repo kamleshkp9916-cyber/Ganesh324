@@ -108,6 +108,16 @@ export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAdd
     resolver: zodResolver(formSchema),
     defaultValues: {
         selectedAddressId: addresses.length > 0 ? String(addresses[0].id) : undefined,
+        newAddress: {
+            name: '',
+            village: '',
+            district: '',
+            city: '',
+            state: '',
+            pincode: '',
+            phone: '+91 ',
+            country: 'India',
+        }
     }
   });
 
