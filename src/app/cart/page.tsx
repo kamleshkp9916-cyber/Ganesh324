@@ -18,21 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { createOrder } from '@/ai/flows/chat-flow';
-
-const mockAddress = {
-    name: "Samael Prajapati",
-    village: "Koregaon Park",
-    district: "Pune",
-    city: "Pune",
-    state: "Maharashtra",
-    pincode: "411001",
-    phone: "+91 9876543210"
-};
-
-const mockCoupons = [
-    { code: 'STREAM10', description: '10% off on all orders', discount: 0.10, type: 'percentage' },
-    { code: 'SAVE100', description: '₹100 off on orders above ₹1000', discount: 100, type: 'fixed' },
-];
+import { UserData, updateUserData } from '@/lib/follow-data';
 
 function EmptyCart() {
     const router = useRouter();
@@ -49,13 +35,13 @@ function EmptyCart() {
 export default function CartPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const [address, setAddress] = useState(mockAddress);
+  const [address, setAddress] = useState(userData?.addresses?.[0] || null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<typeof mockCoupons[0] | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const buyNowProductId = searchParams.get('productId');
@@ -70,6 +56,10 @@ export default function CartPage() {
       if (!user) {
         router.replace("/");
       } else {
+        if (userData?.addresses && userData.addresses.length > 0) {
+          setAddress(userData.addresses[0]);
+        }
+
         if (isBuyNow && buyNowProductId) {
           const productData = productDetails[buyNowProductId as keyof typeof productDetails];
           if (productData) {
@@ -85,7 +75,8 @@ export default function CartPage() {
         }
       }
     }
-  }, [user, isBuyNow, buyNowProductId, loading, isClient, router]);
+  }, [user, userData, isBuyNow, buyNowProductId, loading, isClient, router]);
+
 
   const handleRemoveFromCart = (productId: number) => {
     removeFromCart(productId);
@@ -113,10 +104,19 @@ export default function CartPage() {
     setAddress(newAddress);
     setIsAddressDialogOpen(false);
     toast({
-        title: "Address Updated!",
-        description: "Your delivery address has been changed."
+        title: "Address Selected!",
+        description: "Your delivery address has been set."
     })
   };
+  
+  const handleAddressesUpdate = (newAddresses: any[]) => {
+    if(user){
+      updateUserData(user.uid, { addresses: newAddresses });
+      // The useAuth hook will propagate this change, no need to set state here
+      // We might need to select the new/edited address though
+    }
+  }
+
 
   const subtotal = useMemo(() => {
       return cartItems.reduce((acc, item) => {
@@ -128,6 +128,11 @@ export default function CartPage() {
   const totalItems = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.quantity, 0);
   }, [cartItems]);
+
+  const mockCoupons = [
+    { code: 'STREAM10', description: '10% off on all orders', discount: 0.10, type: 'percentage' },
+    { code: 'SAVE100', description: '₹100 off on orders above ₹1000', discount: 100, type: 'fixed' },
+];
 
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) return 0;
@@ -170,6 +175,15 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (!user) return;
+     if (!address) {
+        toast({
+            variant: 'destructive',
+            title: 'No Address Selected',
+            description: 'Please add or select a delivery address to continue.',
+        });
+        setIsAddressDialogOpen(true);
+        return;
+    }
     setIsCheckingOut(true);
     try {
         const { orderId } = await createOrder(user.uid, cartItems, address, total);
@@ -345,28 +359,34 @@ export default function CartPage() {
                                     </CardTitle>
                                      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> Change</Button>
+                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
                                         </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Change Delivery Address</DialogTitle>
                                             </DialogHeader>
-                                            <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
+                                            <EditAddressForm 
+                                                onSave={handleAddressSave} 
+                                                onCancel={() => setIsAddressDialogOpen(false)}
+                                                onAddressesUpdate={handleAddressesUpdate}
+                                            />
                                         </DialogContent>
                                     </Dialog>
                                 </div>
-                                 <CardDescription>Your order will be delivered to this address. Select any address it will reach to that destination with {address.pincode}</CardDescription>
+                                 <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
                             </CardHeader>
-                            <CardContent className="text-sm space-y-2">
-                                <div className="flex items-start gap-3">
-                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
-                                    <div>
-                                        <p className="font-semibold">{address.name}</p>
-                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
-                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
+                            {address && (
+                                <CardContent className="text-sm space-y-2">
+                                    <div className="flex items-start gap-3">
+                                        <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                        <div>
+                                            <p className="font-semibold">{address.name}</p>
+                                            <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                            <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
+                                </CardContent>
+                            )}
                         </Card>
                      </div>
                 </div>

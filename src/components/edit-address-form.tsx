@@ -63,39 +63,13 @@ const formSchema = z.object({
 interface EditAddressFormProps {
   onSave: (data: z.infer<typeof addressSchema>) => void;
   onCancel: () => void;
-  // Let's also accept onAddressesUpdate to handle deletions from parent
   onAddressesUpdate?: (addresses: any[]) => void;
 }
 
-const mockAddresses = [
-    {
-        id: 1,
-        name: "Samael Prajapati (Home)",
-        village: "Koregaon Park",
-        district: "Pune",
-        city: "Pune",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "411001",
-        phone: "+91 9876543210"
-    },
-    {
-        id: 2,
-        name: "Samael Prajapati (Work)",
-        village: "Bandra West",
-        district: "Mumbai",
-        city: "Mumbai",
-        state: "Maharashtra",
-        country: "India",
-        pincode: "400050",
-        phone: "+91 9876543211"
-    }
-];
-
 export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAddressFormProps) {
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-  const [addresses, setAddresses] = useState(mockAddresses);
   const { user, userData } = useAuth();
+  const [addresses, setAddresses] = useState(userData?.addresses || []);
   const { toast } = useToast();
 
    useEffect(() => {
@@ -167,7 +141,7 @@ export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAdd
                             <FormLabel className="text-base font-semibold">Select an Address</FormLabel>
                             <FormControl>
                                 <RadioGroup onValueChange={(value) => { field.onChange(value); setShowNewAddressForm(false); }} defaultValue={field.value} className="mt-2 space-y-2">
-                                    {addresses.map(address => (
+                                    {addresses.map((address: any) => (
                                         <div key={address.id} className="flex items-start gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                                             <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
                                             <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
