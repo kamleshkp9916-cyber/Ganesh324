@@ -3,10 +3,11 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile } from "firebase/auth";
-import { getFirebaseAuth } from "./firebase";
+import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData } from "./follow-data";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -224,13 +225,33 @@ export function useAuthActions() {
     };
     
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
-        const { displayName, photoURL } = data;
+        const { displayName } = data;
+        let { photoURL } = data;
+        const storage = getFirebaseStorage();
         
         try {
-            if (displayName || photoURL) {
-                await updateProfile(user, { displayName, photoURL });
+            // Check if photoURL is a new base64 upload
+            if (photoURL && photoURL.startsWith('data:image')) {
+                const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+                const uploadResult = await uploadString(storageRef, photoURL, 'data_url');
+                photoURL = await getDownloadURL(uploadResult.ref);
             }
-            await updateUserData(user.uid, data);
+
+            const authUpdates: {displayName?: string, photoURL?: string} = {};
+            if(displayName) authUpdates.displayName = displayName;
+            if(photoURL) authUpdates.photoURL = photoURL;
+
+            if (Object.keys(authUpdates).length > 0) {
+                await updateProfile(user, authUpdates);
+            }
+
+            // Update Firestore with all data, including the new URL
+            const firestoreUpdates = { ...data };
+            if(photoURL) {
+                firestoreUpdates.photoURL = photoURL;
+            }
+            await updateUserData(user.uid, firestoreUpdates);
+
              toast({
                 title: "Profile Updated!",
                 description: "Your profile information has been saved.",

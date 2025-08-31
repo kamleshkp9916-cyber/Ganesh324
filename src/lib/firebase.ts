@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, initializeAuth, browserLocalPersistence, Auth } from "firebase/auth";
 import { getFirestore, Firestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -15,6 +16,7 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
+let storage: FirebaseStorage;
 
 function initializeFirebase() {
     if (!getApps().length) {
@@ -24,6 +26,7 @@ function initializeFirebase() {
     }
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
     
     // Enable offline persistence
     try {
@@ -46,3 +49,6 @@ export const getFirebaseAuth = (): Auth => {
 export const getFirestoreDb = (): Firestore => {
     return db;
 };
+export const getFirebaseStorage = (): FirebaseStorage => {
+    return storage;
+}
