@@ -67,14 +67,17 @@ interface EditAddressFormProps {
 }
 
 export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAddressFormProps) {
-  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const { user, userData } = useAuth();
   const [addresses, setAddresses] = useState(userData?.addresses || []);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(() => !userData?.addresses || userData.addresses.length === 0);
   const { toast } = useToast();
 
    useEffect(() => {
     if (userData?.addresses) {
       setAddresses(userData.addresses);
+      if (userData.addresses.length === 0) {
+        setShowNewAddressForm(true);
+      }
     }
   }, [userData]);
   
@@ -133,52 +136,54 @@ export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAdd
       <form onSubmit={form.handleSubmit(handleSave)}>
         <ScrollArea className="h-[65vh]">
             <div className="p-6">
-                <FormField
-                    control={form.control}
-                    name="selectedAddressId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-base font-semibold">Select an Address</FormLabel>
-                            <FormControl>
-                                <RadioGroup onValueChange={(value) => { field.onChange(value); setShowNewAddressForm(false); }} defaultValue={field.value} className="mt-2 space-y-2">
-                                    {addresses.map((address: any) => (
-                                        <div key={address.id} className="flex items-start gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                                            <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
-                                            <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
-                                                <p className="font-semibold text-foreground">{address.name}</p>
-                                                <p>{address.village}, {address.district}</p>
-                                                <p>{address.city}, {address.state} - {address.pincode}</p>
-                                                <p>Phone: {address.phone}</p>
-                                            </Label>
-                                             <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Delete Address?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Are you sure you want to delete this address? This action cannot be undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDelete(address.id)} className={cn(buttonVariants({ variant: "destructive" }))}>
-                                                            Delete
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    ))}
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {addresses.length > 0 && (
+                     <FormField
+                        control={form.control}
+                        name="selectedAddressId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-base font-semibold">Select an Address</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={(value) => { field.onChange(value); setShowNewAddressForm(false); }} defaultValue={field.value} className="mt-2 space-y-2">
+                                        {addresses.map((address: any) => (
+                                            <div key={address.id} className="flex items-start gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                                                <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
+                                                <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
+                                                    <p className="font-semibold text-foreground">{address.name}</p>
+                                                    <p>{address.village}, {address.district}</p>
+                                                    <p>{address.city}, {address.state} - {address.pincode}</p>
+                                                    <p>Phone: {address.phone}</p>
+                                                </Label>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Delete Address?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Are you sure you want to delete this address? This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(address.id)} className={cn(buttonVariants({ variant: "destructive" }))}>
+                                                                Delete
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
                  <Button type="button" variant="link" className="p-0 h-auto mt-4" onClick={() => {
                      setShowNewAddressForm(prev => !prev);
                      if (!showNewAddressForm) {
