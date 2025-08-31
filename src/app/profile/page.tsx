@@ -66,7 +66,7 @@ export default function ProfilePage() {
               location: data.location,
               phone: `+91 ${data.phone}`,
               addresses: data.addresses || profileData.addresses,
-              photoURL: data.photoURL || profileData.photoURL,
+              photoURL: data.photoURL, // This is the corrected line
           };
           
           await updateUserProfile(user, updatedData);

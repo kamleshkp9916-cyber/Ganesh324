@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ProfileCard } from '@/components/profile-card';
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
+import { useAuthActions } from '@/lib/auth';
 
 
 export default function SellerProfilePage() {
@@ -29,6 +30,7 @@ export default function SellerProfilePage() {
   const searchParams = useSearchParams();
   const userIdFromQuery = searchParams.get('userId');
   const { user, userData, loading } = useAuth();
+  const { updateUserProfile } = useAuthActions();
 
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
@@ -68,20 +70,20 @@ export default function SellerProfilePage() {
   }, [user, userData, loading, router, isMounted, key, userIdFromQuery]);
 
 
-  const handleProfileSave = (data: any) => {
-      if(!profileData) return;
+  const handleProfileSave = async (data: any) => {
+      if(!profileData || !user) return;
 
-      const updatedDetails = {
-          ...profileData,
+      const updatedDetails: Partial<UserData> = {
           displayName: `${data.firstName} ${data.lastName}`,
           bio: data.bio,
           location: data.location,
           phone: `+91 ${data.phone}`,
-          addresses: data.addresses,
+          photoURL: data.photoURL
       };
 
-      updateUserData(profileData.uid, updatedDetails);
-      setProfileData(updatedDetails);
+      await updateUserProfile(user, updatedDetails);
+      const newProfileData = await getUserData(profileData.uid);
+      setProfileData(newProfileData);
       setProfileEditDialogOpen(false);
   };
   

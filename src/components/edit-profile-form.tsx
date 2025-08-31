@@ -16,11 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Upload } from "lucide-react";
-import Image from "next/image";
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
