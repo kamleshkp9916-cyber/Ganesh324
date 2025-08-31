@@ -18,6 +18,7 @@ const protectedPaths = [
     '/seller/orders',
     '/seller/products',
     '/seller/verification',
+    '/seller/profile',
 ];
 
 const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
@@ -28,8 +29,9 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Wait until authentication state and user data are fully loaded
     if (loading) {
-      return; // Wait until the auth state is fully loaded
+      return; 
     }
 
     const isAuthPath = authPaths.includes(pathname);
@@ -42,23 +44,29 @@ export function AuthRedirector() {
         return;
       }
       
-      // If user is logged in and on an auth page, redirect them away.
+      // If user is logged in and on an auth page, redirect them to their dashboard/home.
       if (isAuthPath) {
          if (userData?.role === 'seller') {
-            router.replace('/seller/dashboard');
+            if(userData.verificationStatus === 'verified'){
+                 router.replace('/seller/dashboard');
+            } else {
+                 router.replace('/seller/verification');
+            }
+        } else if (userData?.role === 'admin') {
+            router.replace('/admin/dashboard');
         } else {
             router.replace('/live-selling');
         }
       }
     } else {
-      // If user is not logged in and tries to access a protected page, redirect to login
+      // If user is not logged in and tries to access a protected page, redirect to login.
       if (isProtectedPath) {
         router.replace('/');
       }
     }
   }, [user, userData, loading, router, pathname]);
 
-  // While loading, show a spinner on protected routes
+  // While loading, show a spinner on protected routes to prevent content flash.
   if (loading && protectedPaths.some(p => pathname.startsWith(p))) {
     return (
         <div className="w-full h-screen flex items-center justify-center">

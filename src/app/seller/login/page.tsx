@@ -10,23 +10,16 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useEffect } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { getUserData } from '@/lib/follow-data';
 
 export default function SellerLoginPage() {
     const router = useRouter();
     const { user, loading } = useAuth();
 
-    useEffect(() => {
-        if (!loading && user) {
-            const userData = getUserData(user.uid);
-            // @ts-ignore
-            if (userData.role === 'seller' && userData.verificationStatus === 'verified') {
-                router.replace('/seller/dashboard');
-            }
-        }
-    }, [user, loading, router]);
-
-    if (loading || user) {
+    // The AuthRedirector now handles all post-login redirection.
+    // This page's only job is to show the login form.
+    // If a user is already logged in, the redirector will move them away from this page.
+    
+    if (loading) {
         return (
             <div className="w-full min-h-screen flex items-center justify-center">
                 <LoadingSpinner />
