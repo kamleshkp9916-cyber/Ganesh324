@@ -81,7 +81,9 @@ export default function SellerProfilePage() {
 
             // If not found by UID, try by display name
             if (!data) {
-                data = await getUserByDisplayName(targetId);
+                // The URL might contain a display name instead of a UID
+                const targetName = decodeURIComponent(targetId);
+                data = await getUserByDisplayName(targetName);
             }
 
             // If STILL not found (i.e., not a real user in DB), check our mock data
