@@ -6,16 +6,10 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
-// Define paths that require a user to be logged out.
-const publicOnlyPaths = ['/', '/signup', '/forgot-password', '/seller/login', '/seller/register'];
+// Define paths that are accessible only when logged out.
+const publicOnlyPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
 
-// Define paths that are exclusive to certain user roles.
-const protectedPaths = {
-    admin: '/admin',
-    seller: '/seller/dashboard',
-    customer: '/live-selling'
-};
-
+// Seller-specific flow paths
 const sellerFlowPaths = ['/seller/register', '/seller/verification'];
 
 export function AuthRedirector() {
@@ -24,64 +18,73 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Wait until authentication status and user data are fully loaded.
     if (loading) {
       return; 
     }
     
-    if (user && user.emailVerified) {
-        if (!userData) return; // Wait for userData to be loaded
+    if (user) {
+        // User is logged in.
 
-        // If user is on a page meant for logged-out users, redirect them.
-        if (publicOnlyPaths.includes(pathname)) {
-            if (userData.role === 'admin') {
-                router.replace(protectedPaths.admin);
-            } else if (userData.role === 'seller' && userData.verificationStatus === 'verified') {
-                router.replace(protectedPaths.seller);
-            } else if (userData.role === 'seller') {
-                 router.replace('/seller/verification');
-            } else {
-                router.replace(protectedPaths.customer);
-            }
+        if (!userData) {
+            // This case can happen for a brief moment while userData is being fetched.
+            // We wait to prevent incorrect redirects.
             return;
         }
 
-        // Handle role-specific logic for users on other pages
-        if (userData.role === 'seller') {
-            const { verificationStatus } = userData;
-            if (verificationStatus === 'pending' || verificationStatus === 'rejected' || verificationStatus === 'needs-resubmission') {
-                // This seller MUST be on the verification page.
-                if (pathname !== '/seller/verification') {
-                    router.replace('/seller/verification');
+        if (user.emailVerified) {
+            // --- REDIRECTION FOR VERIFIED USERS ---
+
+            // Handle role-specific logic
+            if (userData.role === 'seller') {
+                const { verificationStatus } = userData;
+
+                if (verificationStatus === 'verified') {
+                    // Verified sellers should be on their dashboard or other app pages,
+                    // but not on public-only or initial seller flow pages.
+                    if (publicOnlyPaths.includes(pathname) || sellerFlowPaths.includes(pathname)) {
+                         router.replace('/seller/dashboard');
+                    }
+                } else {
+                    // Sellers who are pending, rejected, or need resubmission
+                    // MUST be on the verification page.
+                    if (pathname !== '/seller/verification') {
+                        router.replace('/seller/verification');
+                    }
                 }
-            } else if (verificationStatus === 'verified') {
-                // A verified seller should not be on the initial registration/verification pages.
-                if (sellerFlowPaths.includes(pathname)) {
-                    router.replace(protectedPaths.seller);
+            } else if (userData.role === 'admin') {
+                 if (publicOnlyPaths.includes(pathname)) {
+                    router.replace('/admin/dashboard');
                 }
+            } else {
+                // This is a customer.
+                if (publicOnlyPaths.includes(pathname)) {
+                    router.replace('/live-selling');
+                }
+            }
+        } else {
+            // --- REDIRECTION FOR UNVERIFIED USERS ---
+            // User is logged in but email is not verified. Force them to the verify-email page.
+            if (pathname !== '/verify-email') {
+                router.replace('/verify-email');
             }
         }
         
-    } else if (user && !user.emailVerified) {
-        // If user's email is not verified, they must be on the verification page.
-        if (pathname !== '/verify-email') {
-            router.replace('/verify-email');
-        }
     } else { 
-        // User is not logged in.
-        // If they try to access a page that is NOT public, redirect them to login.
-        const isPublicRoute = publicOnlyPaths.includes(pathname) ||
-                              pathname.startsWith('/live-selling') ||
-                              pathname.startsWith('/product') ||
-                              pathname === '/verify-email' || // Allow access for the email link
-                              pathname === '/terms-and-conditions' ||
-                              pathname === '/privacy-and-security';
+        // --- REDIRECTION FOR LOGGED-OUT USERS ---
+        const isProtectedRoute = pathname.startsWith('/admin') ||
+                                 pathname.startsWith('/seller/dashboard') ||
+                                 pathname === '/profile' ||
+                                 pathname === '/orders' ||
+                                 pathname === '/cart';
 
-        if (!isPublicRoute) {
+        if (isProtectedRoute) {
             router.replace('/');
         }
     }
   }, [user, userData, loading, router, pathname]);
 
+  // While loading, show a spinner to prevent page flicker
   if (loading) {
     return (
         <div className="w-full h-screen flex items-center justify-center">
@@ -90,5 +93,6 @@ export function AuthRedirector() {
     );
   }
 
+  // Once loading is complete, the redirect logic will have been executed.
   return null;
 }

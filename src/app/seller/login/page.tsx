@@ -18,8 +18,10 @@ export default function SellerLoginPage() {
     <div className="w-full min-h-screen grid lg:grid-cols-2">
        <div className="flex items-center justify-center p-4 relative bg-background">
          <div className="absolute left-4 top-4 z-10">
-            <Button variant="ghost" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            <Button asChild variant="ghost">
+              <Link href="/" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Link>
             </Button>
         </div>
         <div className="mx-auto w-full max-w-sm space-y-8">
