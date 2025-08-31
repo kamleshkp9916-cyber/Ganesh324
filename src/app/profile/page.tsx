@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ProfileCard } from '@/components/profile-card';
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
+import { useAuthActions } from '@/lib/auth';
 
 
 export default function ProfilePage() {
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
   const { user, loading } = useAuth();
+  const { updateUserProfile } = useAuthActions();
 
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function ProfilePage() {
       const targetId = isOwnProfile ? user?.uid : userId;
       
       if (targetId) {
-          getUserData(targetId, isOwnProfile ? user : undefined).then(fetchedData => {
+          getUserData(targetId).then(fetchedData => {
               if (fetchedData) {
                   setProfileData(fetchedData);
               }
@@ -56,18 +58,20 @@ export default function ProfilePage() {
   }, [user, userId, isOwnProfile, loading, router, key]);
 
 
-  const handleProfileSave = (data: any) => {
-      if (profileData) {
-          const updatedData = {
-              ...profileData,
+  const handleProfileSave = async (data: any) => {
+      if (profileData && user) {
+          const updatedData: Partial<UserData> = {
               displayName: `${data.firstName} ${data.lastName}`,
               bio: data.bio,
               location: data.location,
               phone: `+91 ${data.phone}`,
               addresses: data.addresses || profileData.addresses,
+              photoURL: data.photoURL || profileData.photoURL,
           };
-          updateUserData(profileData.uid, updatedData);
-          setProfileData(updatedData);
+          
+          await updateUserProfile(user, updatedData);
+          const newProfileData = await getUserData(profileData.uid);
+          setProfileData(newProfileData);
       }
       setProfileEditDialogOpen(false);
   };

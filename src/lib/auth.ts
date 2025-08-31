@@ -6,7 +6,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPa
 import { getFirebaseAuth } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserData, updateUserData } from "./follow-data";
+import { createUserData, updateUserData, UserData } from "./follow-data";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -222,8 +222,28 @@ export function useAuthActions() {
              }
         }
     };
-
-    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp };
-}
-
     
+    const updateUserProfile = async (user: User, data: Partial<UserData>) => {
+        const { displayName, photoURL } = data;
+        
+        try {
+            if (displayName || photoURL) {
+                await updateProfile(user, { displayName, photoURL });
+            }
+            await updateUserData(user.uid, data);
+             toast({
+                title: "Profile Updated!",
+                description: "Your profile information has been saved.",
+            });
+        } catch (error) {
+             console.error("Error updating profile: ", error);
+            toast({
+                title: "Update Failed",
+                description: "Could not update your profile. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp, updateUserProfile };
+}

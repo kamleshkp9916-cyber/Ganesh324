@@ -17,7 +17,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Upload } from "lucide-react";
+import Image from "next/image";
 
 const profileFormSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required." }),
@@ -26,6 +29,7 @@ const profileFormSchema = z.object({
   bio: z.string().max(160, { message: "Bio cannot be longer than 160 characters." }).optional(),
   location: z.string().optional(),
   phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
+  photoURL: z.string().optional(),
 });
 
 interface EditProfileFormProps {
@@ -35,6 +39,7 @@ interface EditProfileFormProps {
     bio: string;
     location: string;
     phone: string;
+    photoURL?: string;
     addresses: any;
   };
   onSave: (data: any) => void;
@@ -43,6 +48,8 @@ interface EditProfileFormProps {
 
 export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFormProps) {
   const [firstName, ...lastName] = currentUser.displayName.split(" ");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(currentUser.photoURL || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -53,18 +60,45 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
       bio: currentUser.bio,
       location: currentUser.location,
       phone: (currentUser.phone || "").replace('+91 ', ''),
+      photoURL: currentUser.photoURL,
     },
   });
 
   const handleProfileSave = (values: z.infer<typeof profileFormSchema>) => {
-    onSave({...values, addresses: currentUser.addresses});
+    onSave({...values, addresses: currentUser.addresses, photoURL: photoPreview });
   };
+  
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const dataUrl = reader.result as string;
+                setPhotoPreview(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
   return (
     <Form {...profileForm}>
     <form onSubmit={profileForm.handleSubmit(handleProfileSave)}>
         <ScrollArea className="h-[55vh] max-h-[55vh]">
         <div className="p-6 space-y-4">
+             <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                    <AvatarImage src={photoPreview || undefined} />
+                    <AvatarFallback>{firstName?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+                 <div>
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload new picture
+                    </Button>
+                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                    <p className="text-xs text-muted-foreground mt-2">Recommended: 200x200px, PNG or JPG</p>
+                </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                     control={profileForm.control}
