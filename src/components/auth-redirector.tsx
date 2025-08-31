@@ -6,12 +6,9 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
-// Define paths that are accessible only when logged out.
-const publicOnlyPaths = ['/', '/signup', '/forgot-password'];
-const sellerLoginPath = '/seller/login';
-
-// Seller-specific flow paths
-const sellerFlowPaths = ['/seller/register', '/seller/verification'];
+const publicOnlyPaths = ['/', '/signup', '/forgot-password', '/seller/login', '/seller/register'];
+const sellerVerificationPath = '/seller/verification';
+const emailVerificationPath = '/verify-email';
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -19,54 +16,55 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait until authentication status and user data are fully loaded.
+    // Wait until authentication status AND user data are fully loaded.
     if (loading) {
       return; 
     }
     
     if (user) {
-        // User is logged in.
-
+        // User is authenticated
+        if (!user.emailVerified) {
+            // --- REDIRECTION FOR UNVERIFIED USERS ---
+            // Force them to the verify-email page if they aren't already there.
+            if (pathname !== emailVerificationPath) {
+                router.replace(emailVerificationPath);
+            }
+            return; // Stop further processing
+        }
+        
+        // At this point, user is authenticated and email is verified.
+        // We MUST have userData to proceed. If not, something is wrong, but we wait.
         if (!userData) {
-            // This case can happen for a brief moment while userData is being fetched
-            // after initial login. We wait to prevent incorrect redirects.
             return;
         }
 
-        if (user.emailVerified) {
-            // --- REDIRECTION FOR VERIFIED USERS ---
-
-            if (userData.role === 'seller') {
-                const { verificationStatus } = userData;
-
-                if (verificationStatus === 'verified') {
-                    // Verified sellers should be on their dashboard or other app pages,
-                    // but not on public-only or initial seller flow pages.
-                    if (publicOnlyPaths.includes(pathname) || sellerFlowPaths.includes(pathname) || pathname === sellerLoginPath) {
-                         router.replace('/seller/dashboard');
-                    }
-                } else if (verificationStatus === 'pending' || verificationStatus === 'needs-resubmission' || verificationStatus === 'rejected') {
-                    // Sellers who are pending, rejected, or need resubmission
-                    // MUST be on the verification page.
-                    if (pathname !== '/seller/verification') {
-                        router.replace('/seller/verification');
-                    }
-                }
-            } else if (userData.role === 'admin') {
-                 if (publicOnlyPaths.includes(pathname) || pathname === sellerLoginPath) {
-                    router.replace('/admin/dashboard');
+        // --- REDIRECTION FOR VERIFIED, LOGGED-IN USERS ---
+        if (userData.role === 'seller') {
+            const { verificationStatus } = userData;
+            
+            if (verificationStatus === 'verified') {
+                // Verified sellers should be on their dashboard or other app pages,
+                // but not on public-only or initial seller flow pages.
+                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath) {
+                    router.replace('/seller/dashboard');
                 }
             } else {
-                // This is a customer.
-                if (publicOnlyPaths.includes(pathname) || pathname === sellerLoginPath) {
-                    router.replace('/live-selling');
+                // Seller is 'pending', 'rejected', or 'needs-resubmission'.
+                // They MUST be on the verification page.
+                if (pathname !== sellerVerificationPath) {
+                    router.replace(sellerVerificationPath);
                 }
             }
+        } else if (userData.role === 'admin') {
+            // Admin redirection
+             if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath) {
+                router.replace('/admin/dashboard');
+            }
         } else {
-            // --- REDIRECTION FOR UNVERIFIED USERS ---
-            // User is logged in but email is not verified. Force them to the verify-email page.
-            if (pathname !== '/verify-email') {
-                router.replace('/verify-email');
+            // This is a customer.
+            // If they are on a public-only page, redirect to the main app experience.
+            if (publicOnlyPaths.includes(pathname)) {
+                router.replace('/live-selling');
             }
         }
         
@@ -76,7 +74,9 @@ export function AuthRedirector() {
                                  pathname.startsWith('/seller/dashboard') ||
                                  pathname === '/profile' ||
                                  pathname === '/orders' ||
-                                 pathname === '/cart';
+                                 pathname === '/cart' ||
+                                 pathname === sellerVerificationPath ||
+                                 pathname === emailVerificationPath;
 
         if (isProtectedRoute) {
             router.replace('/');
@@ -84,8 +84,7 @@ export function AuthRedirector() {
     }
   }, [user, userData, loading, router, pathname]);
 
-  // While loading, show a spinner to prevent page flicker and incorrect renders.
-  // This is the key to fixing the race condition.
+
   if (loading) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
@@ -94,7 +93,5 @@ export function AuthRedirector() {
     );
   }
 
-  // Once loading is complete, the redirect logic will have been executed.
-  // This component doesn't render anything itself, it only handles redirects.
   return null;
 }
