@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { indianStates } from "@/lib/data";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,9 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { updateUserData } from "@/lib/follow-data";
 
 const addressSchema = z.object({
   id: z.number().optional(),
@@ -60,6 +63,8 @@ const formSchema = z.object({
 interface EditAddressFormProps {
   onSave: (data: z.infer<typeof addressSchema>) => void;
   onCancel: () => void;
+  // Let's also accept onAddressesUpdate to handle deletions from parent
+  onAddressesUpdate?: (addresses: any[]) => void;
 }
 
 const mockAddresses = [
@@ -87,9 +92,17 @@ const mockAddresses = [
     }
 ];
 
-export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
+export function EditAddressForm({ onSave, onCancel, onAddressesUpdate }: EditAddressFormProps) {
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [addresses, setAddresses] = useState(mockAddresses);
+  const { user, userData } = useAuth();
+  const { toast } = useToast();
+
+   useEffect(() => {
+    if (userData?.addresses) {
+      setAddresses(userData.addresses);
+    }
+  }, [userData]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,8 +112,17 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
   });
 
   const handleSave = (values: z.infer<typeof formSchema>) => {
+    let newAddressList = [...addresses];
     if (showNewAddressForm && values.newAddress) {
-        onSave(values.newAddress);
+        const newAddress = { ...values.newAddress, id: Date.now() };
+        newAddressList.push(newAddress);
+        if (onAddressesUpdate) {
+            onAddressesUpdate(newAddressList);
+        } else if (user) {
+            updateUserData(user.uid, { addresses: newAddressList });
+        }
+        onSave(newAddress);
+
     } else if (values.selectedAddressId) {
         const selectedAddress = addresses.find(addr => String(addr.id) === values.selectedAddressId);
         if (selectedAddress) {
@@ -108,6 +130,17 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
         }
     }
     document.getElementById('edit-address-close')?.click();
+  };
+  
+  const handleDelete = async (addressId: number) => {
+    const newAddresses = addresses.filter(a => a.id !== addressId);
+    setAddresses(newAddresses);
+    if (onAddressesUpdate) {
+      onAddressesUpdate(newAddresses);
+    } else if (user) {
+      await updateUserData(user.uid, { addresses: newAddresses });
+    }
+    toast({ title: "Address Deleted", description: "The address has been removed successfully." });
   };
 
 
@@ -123,9 +156,9 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                         <FormItem>
                             <FormLabel className="text-base font-semibold">Select an Address</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="mt-2 space-y-2">
+                                <RadioGroup onValueChange={(value) => { field.onChange(value); setShowNewAddressForm(false); }} defaultValue={field.value} className="mt-2 space-y-2">
                                     {addresses.map(address => (
-                                        <div key={address.id} className="flex items-center gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                                        <div key={address.id} className="flex items-start gap-2 p-3 rounded-lg border has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                                             <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
                                             <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
                                                 <p className="font-semibold text-foreground">{address.name}</p>
@@ -133,6 +166,27 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                                                 <p>{address.city}, {address.state} - {address.pincode}</p>
                                                 <p>Phone: {address.phone}</p>
                                             </Label>
+                                             <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Delete Address?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to delete this address? This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDelete(address.id)} className={cn(buttonVariants({ variant: "destructive" }))}>
+                                                            Delete
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
                                     ))}
                                 </RadioGroup>
@@ -141,7 +195,12 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                         </FormItem>
                     )}
                 />
-                 <Button type="button" variant="link" className="p-0 h-auto mt-4" onClick={() => setShowNewAddressForm(!showNewAddressForm)}>
+                 <Button type="button" variant="link" className="p-0 h-auto mt-4" onClick={() => {
+                     setShowNewAddressForm(prev => !prev);
+                     if (!showNewAddressForm) {
+                         form.setValue('selectedAddressId', undefined);
+                     }
+                 }}>
                     <Plus className="mr-2 h-4 w-4" />
                     {showNewAddressForm ? 'Cancel' : 'Add a new address'}
                 </Button>
@@ -183,11 +242,14 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                             <FormField control={form.control} name="newAddress.city" render={({ field }) => (
                                 <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
-                            <FormField control={form.control} name="newAddress.pincode" render={({ field }) => (
-                                <FormItem><FormLabel>Pincode</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                             <FormField control={form.control} name="newAddress.district" render={({ field }) => (
+                                <FormItem><FormLabel>District</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="newAddress.pincode" render={({ field }) => (
+                                <FormItem><FormLabel>Pincode</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
                              <FormField control={form.control} name="newAddress.state" render={({ field }) => (
                                  <FormItem>
                                      <FormLabel>State</FormLabel>
@@ -198,10 +260,10 @@ export function EditAddressForm({ onSave, onCancel }: EditAddressFormProps) {
                                      <FormMessage />
                                  </FormItem>
                              )}/>
-                              <FormField control={form.control} name="newAddress.country" render={({ field }) => (
-                                <FormItem><FormLabel>Country</FormLabel><FormControl><Input disabled {...field} value="India" /></FormControl><FormMessage /></FormItem>
-                            )}/>
                          </div>
+                         <FormField control={form.control} name="newAddress.country" render={({ field }) => (
+                            <FormItem><FormLabel>Country</FormLabel><FormControl><Input disabled {...field} value="India" /></FormControl><FormMessage /></FormItem>
+                        )}/>
                     </div>
                 )}
 

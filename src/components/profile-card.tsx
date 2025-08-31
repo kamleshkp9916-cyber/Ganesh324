@@ -92,7 +92,7 @@ const paymentLabel = (method: {type: string, provider?: string}) => {
     return `Paid with ${method.provider}`;
 }
 
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any) => void, onFollowToggle?: () => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -216,57 +216,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       review.text.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, myReviews]);
-
-  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
   
-  const handleAddressSave = (data: any) => {
-    const newAddresses = [...addresses];
-    if (editingAddress) {
-        const index = newAddresses.findIndex(addr => addr.id === (editingAddress as any).id);
-        newAddresses[index] = { ...data, id: (editingAddress as any).id };
-    } else {
-        const newAddress = { ...data, id: Date.now() };
-        newAddresses.push(newAddress);
-        if (newAddresses.length === 1) {
-            setDefaultAddressId(newAddress.id);
-        }
-    }
-    setAddresses(newAddresses);
-    onAddressesUpdate(newAddresses);
-    setIsAddressDialogOpen(false);
-    setEditingAddress(null);
-    toast({ title: 'Address saved successfully!' });
-  };
-
-  const handleDeleteAddress = async (addressId: number) => {
-    const newAddresses = addresses.filter((addr: any) => addr.id !== addressId);
-    setAddresses(newAddresses);
-    if (defaultAddressId === addressId) {
-      setDefaultAddressId(newAddresses[0]?.id || null);
-    }
-    
-    if (user) {
-      try {
-        await updateUserData(user.uid, { addresses: newAddresses });
-        toast({ title: 'Address removed.' });
-      } catch (error) {
-        console.error("Failed to delete address:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not remove address.' });
-        // Revert UI change on failure if necessary
-        setAddresses(profileData.addresses);
-      }
-    }
-  };
-
   const handleWishlistToggle = (product: Product) => {
     addToWishlist(product);
     setWishlist(getWishlist().map(p => p.id));
@@ -305,11 +255,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         description: "Your post has been successfully shared on the main feed.",
     });
   };
-
-  const openAddressDialog = (address: any = null) => {
-    setEditingAddress(address);
-    setIsAddressDialogOpen(true);
-  }
   
   const handleFollowToggle = async (targetId: string) => {
     if (!user) return;
@@ -466,55 +411,45 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <div>
                       <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold">Delivery Addresses</h3>
-                          <Button variant="outline" size="sm" onClick={() => openAddressDialog()}>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add New
-                          </Button>
+                          <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                            <DialogTrigger asChild>
+                               <Button variant="outline" size="sm">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add/Manage
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                <DialogHeader>
+                                    <DialogTitle>Manage Delivery Addresses</DialogTitle>
+                                </DialogHeader>
+                                <EditAddressForm 
+                                    onSave={(addr) => {
+                                        const newAddresses = profileData.addresses ? [...profileData.addresses] : [];
+                                        const existingIndex = newAddresses.findIndex(a => a.id === addr.id);
+                                        if (existingIndex > -1) {
+                                            newAddresses[existingIndex] = addr;
+                                        } else {
+                                            newAddresses.push({ ...addr, id: Date.now() });
+                                        }
+                                        onAddressesUpdate(newAddresses);
+                                        setIsAddressDialogOpen(false);
+                                    }}
+                                    onCancel={() => setIsAddressDialogOpen(false)}
+                                    onAddressesUpdate={onAddressesUpdate}
+                                />
+                            </DialogContent>
+                          </Dialog>
                       </div>
                       {addresses && addresses.length > 0 ? (
-                        <RadioGroup value={String(defaultAddressId)} onValueChange={(val) => setDefaultAddressId(Number(val))} className="space-y-2">
+                        <div className="space-y-2">
                             {addresses.map((address: any) => (
-                                <div key={address.id} className="flex items-center gap-2 p-2 rounded-lg border has-[:checked]:bg-muted/50">
-                                    <RadioGroupItem value={String(address.id)} id={`addr-${address.id}`} />
-                                    <Label htmlFor={`addr-${address.id}`} className="flex-grow cursor-pointer text-sm">
-                                        <div className="flex justify-between items-start">
-                                            <div className="text-muted-foreground">
-                                                <p className="font-semibold text-foreground">{address.name}</p>
-                                                <p>{address.village}, {address.district}</p>
-                                                <p>{address.city}, {address.state} - {address.pincode}</p>
-                                                <p>Phone: {address.phone}</p>
-                                            </div>
-                                        </div>
-                                    </Label>
-                                    <div className="flex gap-1">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAddressDialog(address)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This action cannot be undone. This will permanently delete this address.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDeleteAddress(address.id)} className={cn(buttonVariants({variant: "destructive"}))}>
-                                                        Delete
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
+                                <div key={address.id} className="p-3 rounded-lg border bg-muted/50">
+                                    <p className="font-semibold text-foreground">{address.name}</p>
+                                    <p className="text-sm text-muted-foreground">{address.village}, {address.district}, {address.city}, {address.state} - {address.pincode}</p>
+                                    <p className="text-sm text-muted-foreground">Phone: {address.phone}</p>
                                 </div>
                             ))}
-                        </RadioGroup>
+                        </div>
                       ) : (
                          <div className="text-center py-8 text-muted-foreground">No addresses added yet.</div>
                       )}
@@ -768,17 +703,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               onClose={() => setIsChatOpen(false)} 
           />
       )}
-      <Dialog open={isAddressDialogOpen} onOpenChange={(isOpen) => { if(!isOpen) setEditingAddress(null); setIsAddressDialogOpen(isOpen);}}>
-        <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-            <DialogHeader>
-                <DialogTitle>{editingAddress ? 'Edit' : 'Add New'} Delivery Address</DialogTitle>
-            </DialogHeader>
-            <EditAddressForm 
-                onSave={handleAddressSave} 
-                onCancel={() => setIsAddressDialogOpen(false)}
-            />
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
