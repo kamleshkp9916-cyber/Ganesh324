@@ -4,15 +4,17 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Clock, XCircle, AlertTriangle, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useAuth } from "@/hooks/use-auth.tsx";
+import { useAuthActions } from "@/lib/auth";
 
 type VerificationStatus = 'loading' | 'pending' | 'rejected' | 'needs-resubmission' | 'verified' | 'no-details';
 
 export default function SellerVerificationPage() {
     const { userData, loading } = useAuth();
+    const { signOut } = useAuthActions();
     const router = useRouter();
     const [status, setStatus] = useState<VerificationStatus>('loading');
     const [rejectionReason, setRejectionReason] = useState<string | null>(null);
@@ -116,22 +118,27 @@ export default function SellerVerificationPage() {
         }
     }
 
+    const handleBackAction = () => {
+        if (status === 'needs-resubmission') {
+            router.push('/seller/register');
+        } else {
+            signOut();
+        }
+    };
+    
+    const backButtonText = status === 'needs-resubmission' ? 'Back to Form' : 'Sign Out';
+    const backButtonIcon = status === 'needs-resubmission' ? <ArrowLeft className="h-4 w-4" /> : <LogOut className="h-4 w-4" />;
+
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
              <div className="absolute top-4 left-4">
                 <Button 
                     variant="ghost" 
-                    onClick={() => {
-                         if (status === 'needs-resubmission') {
-                            router.push('/seller/register');
-                         } else {
-                            router.push('/');
-                         }
-                    }} 
+                    onClick={handleBackAction} 
                     className="flex items-center gap-2"
                 >
-                    <ArrowLeft className="h-4 w-4" />
-                    {status === 'needs-resubmission' ? 'Back to Form' : 'Back to Home'}
+                    {backButtonIcon}
+                    {backButtonText}
                 </Button>
             </div>
             {renderContent()}
