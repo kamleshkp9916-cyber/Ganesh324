@@ -23,6 +23,7 @@ const protectedSellerPaths = [
 
 const adminPaths = ['/admin'];
 const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
+const publicSellerPaths = ['/seller/register', '/seller/verification'];
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -54,7 +55,7 @@ export function AuthRedirector() {
               
               if (status === 'verified') {
                   // Verified sellers should be on seller pages or public pages, but not on auth or verification pages.
-                   if (authPaths.includes(pathname) || pathname.startsWith('/seller/verification')) {
+                   if (authPaths.includes(pathname) || publicSellerPaths.includes(pathname)) {
                        router.replace('/seller/dashboard');
                    }
               } else if (status === 'pending' || status === 'rejected' || status === 'needs-resubmission') {
@@ -69,6 +70,10 @@ export function AuthRedirector() {
                   router.replace('/live-selling');
               }
           }
+      } else if (user.emailVerified && !userData) {
+          // This is a brief state where user is verified but userData hasn't loaded yet.
+          // We can show a loader or just wait. The hook re-triggers when userData is available.
+          return;
       }
 
     } else { // If the user is not logged in
@@ -84,7 +89,7 @@ export function AuthRedirector() {
   }, [user, userData, loading, router, pathname]);
 
   // While loading, show a spinner on protected routes to prevent content flash.
-  if (loading && !authPaths.includes(pathname)) {
+  if (loading && !authPaths.includes(pathname) && !publicSellerPaths.includes(pathname)) {
     return (
         <div className="w-full h-screen flex items-center justify-center">
             <LoadingSpinner />

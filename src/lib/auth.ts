@@ -60,7 +60,9 @@ export function useAuthActions() {
             const user = result.user;
             const additionalInfo = getAdditionalUserInfo(result);
             
-            if (additionalInfo?.isNewUser) {
+            // Check if user document exists before creating
+            const existingUser = await getUserData(user.uid);
+            if (!existingUser) {
                 await createUserData(user, 'customer');
             }
             
@@ -121,7 +123,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
           
-          await createUserData(user, 'customer');
+          await createUserData(user, 'customer', { userId: values.userId });
           
           await sendEmailVerification(user);
           
