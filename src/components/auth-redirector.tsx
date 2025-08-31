@@ -15,6 +15,7 @@ const protectedCustomerPaths = [
     '/wallet',
 ];
 
+// More specific paths to avoid overly broad rules
 const protectedSellerPaths = [
     '/seller/dashboard',
     '/seller/orders',
@@ -23,7 +24,8 @@ const protectedSellerPaths = [
 
 const adminPaths = ['/admin'];
 const authPaths = ['/', '/signup', '/forgot-password', '/seller/login'];
-const publicSellerPaths = ['/seller/register', '/seller/verification'];
+// The verification page is where sellers with certain statuses should be.
+const sellerFlowPaths = ['/seller/register', '/seller/verification'];
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -31,20 +33,16 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait until authentication state and user data are fully loaded
     if (loading) {
       return; 
     }
     
-    // If the user is logged in
     if (user) {
-      // If user's email is not verified, they must be on the verify-email page.
       if (!user.emailVerified && pathname !== '/verify-email') {
         router.replace('/verify-email');
         return;
       }
       
-      // Once email is verified, proceed with role-based redirection.
       if (user.emailVerified && userData) {
           if (userData.role === 'admin') {
               if (!pathname.startsWith('/admin')) {
@@ -53,27 +51,22 @@ export function AuthRedirector() {
           } else if (userData.role === 'seller') {
               const status = userData.verificationStatus;
               
-              if (status === 'verified') {
-                  // Verified sellers should be on seller pages or public pages, but not on auth or verification pages.
-                   if (authPaths.includes(pathname) || publicSellerPaths.includes(pathname)) {
-                       router.replace('/seller/dashboard');
-                   }
-              } else if (status === 'pending' || status === 'rejected' || status === 'needs-resubmission') {
-                  // Sellers with a non-verified status should be locked to the verification/registration flow.
-                  if (pathname !== '/seller/verification' && pathname !== '/seller/register') {
+              if (status === 'pending' || status === 'rejected' || status === 'needs-resubmission') {
+                  // If seller is in any of these states, they should ONLY be on the verification page.
+                  if (pathname !== '/seller/verification') {
                       router.replace('/seller/verification');
                   }
+              } else if (status === 'verified') {
+                   // A verified seller should not be on the auth or initial seller flow pages.
+                   if (authPaths.includes(pathname) || sellerFlowPaths.includes(pathname)) {
+                       router.replace('/seller/dashboard');
+                   }
               }
           } else { // Customer role
-              // Customers should be redirected from auth pages to the main app.
               if (authPaths.includes(pathname)) {
                   router.replace('/live-selling');
               }
           }
-      } else if (user.emailVerified && !userData) {
-          // This is a brief state where user is verified but userData hasn't loaded yet.
-          // We can show a loader or just wait. The hook re-triggers when userData is available.
-          return;
       }
 
     } else { // If the user is not logged in
@@ -81,7 +74,6 @@ export function AuthRedirector() {
                                  protectedSellerPaths.some(p => pathname.startsWith(p)) ||
                                  adminPaths.some(p => pathname.startsWith(p));
         
-        // If they try to access a protected route, send them to login.
         if (isProtectedRoute) {
             router.replace('/');
         }
@@ -89,7 +81,7 @@ export function AuthRedirector() {
   }, [user, userData, loading, router, pathname]);
 
   // While loading, show a spinner on protected routes to prevent content flash.
-  if (loading && !authPaths.includes(pathname) && !publicSellerPaths.includes(pathname)) {
+  if (loading && !authPaths.includes(pathname) && !sellerFlowPaths.includes(pathname)) {
     return (
         <div className="w-full h-screen flex items-center justify-center">
             <LoadingSpinner />
