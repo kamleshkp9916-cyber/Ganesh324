@@ -155,7 +155,10 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         try {
             await handleSellerSignUp(values);
-            // Redirection is handled by the handleSellerSignUp function on success
+            // This is a temp flag to let the verification page know a new user just signed up
+            // and it should wait for the user data to be available.
+            sessionStorage.setItem('isNewSellerRegistration', 'true');
+            router.push('/seller/verification');
         } catch (error: any) {
              toast({
                 variant: "destructive",

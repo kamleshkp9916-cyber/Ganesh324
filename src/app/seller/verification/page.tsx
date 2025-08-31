@@ -19,7 +19,19 @@ export default function SellerVerificationPage() {
     const [resubmissionReason, setResubmissionReason] = useState<string | null>(null);
 
     useEffect(() => {
+        const isNewRegistration = sessionStorage.getItem('isNewSellerRegistration') === 'true';
+        
+        if (loading && isNewRegistration) {
+            // If it's a new registration, we deliberately wait for the auth state to settle.
+            return;
+        }
+
         if (!loading && userData) {
+            if (isNewRegistration) {
+                // Clear the flag after reading it
+                sessionStorage.removeItem('isNewSellerRegistration');
+            }
+
             const currentStatus = userData.verificationStatus;
             
             if (currentStatus === 'verified') {
@@ -35,14 +47,13 @@ export default function SellerVerificationPage() {
              if (currentStatus === 'needs-resubmission') {
                 setResubmissionReason((userData as any).resubmissionReason || "Please review your details carefully.");
             }
-        } else if (!loading && !userData) {
-            // This might happen if user document isn't created yet or there's an issue.
-            // Redirecting to registration seems safest.
+        } else if (!loading && !userData && !isNewRegistration) {
+            // This might happen if user is not logged in and lands here.
             router.replace('/seller/register');
         }
     }, [userData, loading, router]);
 
-    if (loading || status === 'loading' || status === 'verified') {
+    if (status === 'loading' || status === 'verified') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -50,11 +61,10 @@ export default function SellerVerificationPage() {
         );
     }
     
-    if (status === 'no-details') {
+    if (status === 'no-details' && !loading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
                 <p>Could not load seller details. Redirecting...</p>
-                {/* Redirecting effect */}
                 {useEffect(() => {
                     const timer = setTimeout(() => router.replace('/seller/register'), 2000);
                     return () => clearTimeout(timer);
@@ -102,7 +112,7 @@ export default function SellerVerificationPage() {
                     </Alert>
                 );
             default:
-                return null;
+                return <LoadingSpinner />;
         }
     }
 

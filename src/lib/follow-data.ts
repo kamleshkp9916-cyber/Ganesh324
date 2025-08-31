@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit } from "firebase/firestore";
@@ -22,6 +21,12 @@ export interface UserData {
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
     rejectionReason?: string;
     resubmissionReason?: string;
+    // seller specific fields
+    businessName?: string;
+    aadhar?: string;
+    pan?: string;
+    accountNumber?: string;
+    ifsc?: string;
 }
 
 const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
@@ -90,10 +95,18 @@ export const createUserData = async (user: User, role: 'customer' | 'seller', ad
     const userDocRef = doc(db, "users", user.uid);
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        displayName: additionalData.displayName || user.displayName || 'New User', // Prioritize passed name
         role,
         ...additionalData,
     } as UserData;
+    
+    // Explicitly remove password fields before saving to Firestore
+    delete (userData as any).password;
+    delete (userData as any).confirmPassword;
+    delete (userData as any).aadharOtp;
+    delete (userData as any).passportPhoto;
+    delete (userData as any).signature;
+
+
     await setDoc(userDocRef, userData);
 };
 

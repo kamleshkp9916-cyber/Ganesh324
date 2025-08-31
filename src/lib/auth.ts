@@ -5,7 +5,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPa
 import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
+import { createUserData, updateUserData, UserData } from "./follow-data";
 import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 
 export function useAuthActions() {
@@ -128,6 +128,7 @@ export function useAuthActions() {
           await createUserData(user, 'customer', {
             displayName: displayName,
             phone: values.phone,
+            userId: values.userId,
           });
           
           await sendEmailVerification(user);
@@ -169,8 +170,8 @@ export function useAuthActions() {
     const handleSellerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
         const displayName = `${values.firstName} ${values.lastName}`;
-        const sellerData = {
-            ...values,
+        const sellerData: Partial<UserData> = {
+            ...values, // This includes all form fields like aadhar, pan, etc.
             role: 'seller',
             verificationStatus: 'pending',
             displayName: displayName,
@@ -183,14 +184,14 @@ export function useAuthActions() {
                 title: "Registration Submitted!",
                 description: "Your seller application is now under review.",
             });
-            router.push('/seller/verification');
-
+            // The redirection will be handled by the component.
         } else {
              try {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 const user = userCredential.user;
-                 await updateProfile(user, { displayName: displayName });
+                await updateProfile(user, { displayName: displayName });
                 
+                // Now create the full user document in Firestore
                 await createUserData(user, 'seller', sellerData);
                 
                 await sendEmailVerification(user);
@@ -200,8 +201,7 @@ export function useAuthActions() {
                     description: "Your seller application is submitted. Please verify your email.",
                 });
                 
-                router.push('/seller/verification');
-
+                // Redirection is handled by the component after state update
              } catch (error: any) {
                  let errorMessage = "An unknown error occurred.";
                 switch (error.code) {
