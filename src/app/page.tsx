@@ -18,7 +18,6 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // Show a loading spinner until the component is mounted on the client
   // The AuthRedirector will handle moving away from this page if the user is already logged in.
   if (!isMounted || loading) {
     return (

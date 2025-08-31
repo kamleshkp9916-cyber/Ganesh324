@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
-const publicOnlyPaths = ['/', '/signup', '/forgot-password', '/seller/login', '/seller/register'];
+const publicOnlyPaths = ['/signup', '/forgot-password', '/seller/login'];
 const sellerVerificationPath = '/seller/verification';
 const emailVerificationPath = '/verify-email';
 
@@ -43,42 +43,35 @@ export function AuthRedirector() {
             const { verificationStatus } = userData;
             
             if (verificationStatus === 'verified') {
-                // Verified sellers should be on their dashboard or other app pages,
-                // but not on public-only or initial seller flow pages.
-                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath) {
+                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === '/') {
                     router.replace('/seller/dashboard');
                 }
-            } else {
-                // Seller is 'pending', 'rejected', or 'needs-resubmission'.
-                // They MUST be on the verification page.
+            } else { // 'pending', 'rejected', or 'needs-resubmission'.
                 if (pathname !== sellerVerificationPath) {
                     router.replace(sellerVerificationPath);
                 }
             }
         } else if (userData.role === 'admin') {
-            // Admin redirection
-             if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath) {
+            if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === '/') {
                 router.replace('/admin/dashboard');
             }
         } else {
             // This is a customer.
-            // If they are on a public-only page, redirect to the main app experience.
-            if (publicOnlyPaths.includes(pathname)) {
+            if (publicOnlyPaths.includes(pathname) || pathname === '/') {
                 router.replace('/live-selling');
             }
         }
         
     } else { 
         // --- REDIRECTION FOR LOGGED-OUT USERS ---
-        const isProtectedRoute = pathname.startsWith('/admin') ||
-                                 pathname.startsWith('/seller/dashboard') ||
-                                 pathname === '/profile' ||
-                                 pathname === '/orders' ||
-                                 pathname === '/cart' ||
-                                 pathname === sellerVerificationPath ||
-                                 pathname === emailVerificationPath;
+        // If the user is logged out, they should be redirected to the login page
+        // if they try to access any page that isn't public.
+        const isPublicPage = publicOnlyPaths.includes(pathname) || pathname === '/' || pathname === '/live-selling';
+        
+        // Allow access to product and seller profile pages for logged-out users
+        const isPublicDetailView = pathname.startsWith('/product/') || pathname.startsWith('/seller/profile');
 
-        if (isProtectedRoute) {
+        if (!isPublicPage && !isPublicDetailView) {
             router.replace('/');
         }
     }
