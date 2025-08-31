@@ -226,11 +226,11 @@ export function useAuthActions() {
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
         const { displayName } = data;
         let { photoURL } = data;
-        const storage = getFirebaseStorage();
         
         try {
             // Check if photoURL is a new base64 upload
             if (photoURL && photoURL.startsWith('data:image')) {
+                const storage = getFirebaseStorage();
                 const storageRef = ref(storage, `profile-pictures/${user.uid}`);
                 const uploadResult = await uploadString(storageRef, photoURL, 'data_url');
                 photoURL = await getDownloadURL(uploadResult.ref);
