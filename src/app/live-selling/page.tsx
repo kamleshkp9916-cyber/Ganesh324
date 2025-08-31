@@ -406,12 +406,12 @@ export default function LiveSellingPage() {
                     reviews: Math.floor(Math.random() * 50),
                     hint: liveStreamData.product.name.toLowerCase(),
                     productId: liveStreamData.product.id,
-                    isMyStream: user?.email === liveStreamData.seller.email,
+                    isMyStream: true,
                 };
                 setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
             }
         } else {
-             // If liveStream data is gone, remove the stream card
+             // If liveStream data is gone, remove the stream card that was marked as our own
              setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
         }
     };
@@ -438,7 +438,7 @@ export default function LiveSellingPage() {
         clearTimeout(feedTimer);
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isMounted, user]);
+  }, [isMounted]);
 
    useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
