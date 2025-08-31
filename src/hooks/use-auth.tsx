@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEffect, useState, createContext, useContext, useCallback } from 'react';
@@ -22,10 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleSetUser = useCallback((newUser: User | null) => {
-    setUser(newUser);
-  }, []);
-
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -35,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let data = await getUserData(firebaseUser.uid);
         if (!data) {
           // This is a new user, create their document
-          await createUserData(firebaseUser, 'customer');
+          await createUserData(firebaseUser, 'customer', { displayName: firebaseUser.displayName || 'New User' });
           data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
         }
         setUserData(data);
@@ -51,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, setUser: handleSetUser }}>
+    <AuthContext.Provider value={{ user, userData, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );
