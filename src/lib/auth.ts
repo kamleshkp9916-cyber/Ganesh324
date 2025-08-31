@@ -58,7 +58,6 @@ export function useAuthActions() {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            const additionalInfo = getAdditionalUserInfo(result);
             
             // Check if user document exists before creating
             const existingUser = await getUserData(user.uid);
