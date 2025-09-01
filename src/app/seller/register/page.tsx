@@ -61,13 +61,12 @@ export default function SellerRegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const [isMounted, setIsMounted] = useState(false);
+    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const sigPadRef = useRef<SignatureCanvas>(null);
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -88,7 +87,6 @@ export default function SellerRegisterPage() {
     });
 
     useEffect(() => {
-        setIsMounted(true);
         if (authLoading) return;
 
         if (user && userData) { // User is logged in
@@ -102,6 +100,7 @@ export default function SellerRegisterPage() {
                 } else if (userData.verificationStatus === 'rejected') {
                     setPageStatus('rejected');
                 } else if (userData.verificationStatus === 'needs-resubmission') {
+                    // Pre-fill form for resubmission
                     form.reset(userData as any);
                     if((userData as any).aadhar?.length === 12) setIsAadharEntered(true);
                     setPageStatus('form');
@@ -119,7 +118,6 @@ export default function SellerRegisterPage() {
             setPageStatus('form');
         }
     }, [router, form, authLoading, user, userData]);
-
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -167,7 +165,7 @@ export default function SellerRegisterPage() {
         }
     }
 
-    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting') {
+    if (pageStatus === 'loading' || pageStatus === 'redirecting') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -527,3 +525,5 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
+
+    
