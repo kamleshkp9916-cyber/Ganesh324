@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
@@ -23,73 +23,74 @@ export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Wait until both authentication and user data loading are fully complete.
+    // Wait until all user data is fully loaded to prevent premature decisions.
     if (loading || (user && !userData)) {
       return; 
     }
     
+    let targetPath: string | null = null;
+    
     if (user) {
-        // --- User is fully loaded, proceed with redirection logic ---
+        // --- User is logged in, determine where they should be ---
 
         if (!user.emailVerified) {
             if (pathname !== emailVerificationPath) {
-                router.replace(emailVerificationPath);
+                targetPath = emailVerificationPath;
             }
-            return;
-        }
+        } else {
+            const { role, verificationStatus } = userData;
 
-        const { role, verificationStatus } = userData;
-
-        if (role === 'seller') {
-            const isVerificationIncomplete = verificationStatus !== 'verified';
-            
-            if (isVerificationIncomplete) {
-                if (pathname !== sellerVerificationPath) {
-                    router.replace(sellerVerificationPath);
+            if (role === 'seller') {
+                if (verificationStatus !== 'verified') {
+                    if (pathname !== sellerVerificationPath) {
+                        targetPath = sellerVerificationPath;
+                    }
+                } else { // Verified seller
+                    if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
+                        targetPath = '/seller/dashboard';
+                    }
                 }
-                return;
-            }
-            
-            if (verificationStatus === 'verified') {
-                if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname === emailVerificationPath) {
-                    router.replace('/seller/dashboard');
+            } else if (role === 'admin') {
+                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
+                    targetPath = '/admin/dashboard';
                 }
-                return;
-            }
-        }
-        
-        else if (role === 'admin') {
-             if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
-                router.replace('/admin/dashboard');
-            }
-        }
-        
-        else { // This is a 'customer'.
-            if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
-                router.replace('/live-selling');
+            } else { // Customer
+                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
+                    targetPath = '/live-selling';
+                }
             }
         }
     } 
     else { 
-        // No user is logged in.
+        // --- No user is logged in ---
         const isPublicAllowed = 
             publicOnlyPaths.includes(pathname) || 
             publicAllowedPaths.includes(pathname) ||
             pathname.startsWith('/product/') ||
+            pathname.startsWith('/stream/') ||
             pathname.startsWith('/seller/profile');
                                 
         if (!isPublicAllowed) {
-            router.replace('/');
+            targetPath = '/';
         }
     }
+
+    // If a redirect is needed, set the flag and perform the redirect.
+    if (targetPath && targetPath !== pathname) {
+        setIsRedirecting(true);
+        router.replace(targetPath);
+    } else {
+        setIsRedirecting(false);
+    }
+
   }, [user, userData, loading, router, pathname]);
 
-  // Show a full-screen loader whenever the auth state is loading OR when we have a user
-  // but are still waiting for their detailed profile from the database.
-  // This is the key fix to prevent the "flash" of incorrect pages.
-  if (loading || (user && !userData)) {
+  // This is the key change: Show a full-screen loader if auth is loading,
+  // or if a redirect has been initiated. This prevents the "flash".
+  if (loading || (user && !userData) || isRedirecting) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
             <LoadingSpinner />
@@ -97,5 +98,6 @@ export function AuthRedirector() {
     );
   }
 
+  // If no loading and no redirect, render the children (the actual page).
   return null;
 }
