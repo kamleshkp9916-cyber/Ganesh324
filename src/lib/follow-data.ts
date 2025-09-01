@@ -4,8 +4,6 @@
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit } from "firebase/firestore";
 import { getFirestoreDb } from "./firebase";
 import type { User } from "firebase/auth";
-import { getFirebaseAdminApp } from "./firebase-server";
-import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
 
 export interface UserData {
     uid: string;
@@ -95,16 +93,9 @@ export const getUserByDisplayName = async (displayName: string): Promise<UserDat
 
 export const updateUserData = async (uid: string, updates: Partial<UserData>): Promise<void> => {
     if (!uid) return;
-    try { // Check if we are in a server environment (like a Genkit flow)
-        getFirebaseAdminApp();
-        const db = getAdminFirestore();
-        const userDocRef = db.collection("users").doc(uid);
-        await userDocRef.update(updates);
-    } catch (e) { // Otherwise, use the client SDK
-        const db = getFirestoreDb();
-        const userDocRef = doc(db, "users", uid);
-        await updateDoc(userDocRef, updates);
-    }
+    const db = getFirestoreDb();
+    const userDocRef = doc(db, "users", uid);
+    await updateDoc(userDocRef, updates);
 };
 
 export const createUserData = async (user: User, role: 'customer' | 'seller', additionalData: Partial<UserData> = {}): Promise<void> => {

@@ -72,7 +72,8 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
-import { getUserData, updateUserData, UserData } from "@/lib/follow-data";
+import { getUserData, UserData } from "@/lib/follow-data";
+import { updateUserDataOnServer } from "@/lib/firebase-server-utils";
 import { Separator } from "@/components/ui/separator";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
@@ -384,7 +385,7 @@ export default function AdminUsersPage() {
             updateData.resubmissionReason = reason;
         }
 
-        await updateUserData(userId, updateData);
+        await updateUserDataOnServer(userId, updateData);
 
         let toastTitle = "Seller Approved";
         if (status === 'rejected') toastTitle = "Seller Rejected";
