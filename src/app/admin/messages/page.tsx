@@ -16,7 +16,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toPng } from 'html-to-image';
@@ -263,58 +263,59 @@ export default function AdminMessagePage() {
                         </div>
                     ) : <div/>}
 
-                    <div className="flex items-center gap-2">
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="secondary" size="icon" className="rounded-full">
-                                    <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </header>
-
-                <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
-                    {isChatLoading ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-12 w-2/3" />
-                            <Skeleton className="h-12 w-1/2 ml-auto" />
-                            <Skeleton className="h-16 w-3/4" />
-                            <Skeleton className="h-8 w-1/3 ml-auto" />
-                        </div>
-                    ) : messages.length > 0 ? (
-                        messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName="StreamCart" />)
-                    ) : (
-                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                            <MessageSquare className="h-16 w-16 mb-4"/>
-                            <h2 className="text-xl font-semibold">{selectedConversation ? `Start a conversation with ${selectedConversation.userName}` : 'No messages yet'}</h2>
-                         </div>
-                    )}
                 </div>
+                <div className="flex items-center gap-2">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="secondary" size="icon" className="rounded-full">
+                                <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
+                            <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
 
-                 <footer className="p-4 border-t shrink-0">
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" type="button"><Smile className="h-5 w-5" /></Button>
-                            <Button variant="ghost" size="icon" type="button"><Paperclip className="h-5 w-5" /></Button>
-                        <Input 
-                            placeholder="Type a message" 
-                            className="flex-grow" 
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            disabled={!selectedConversation}
-                        />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim() || !selectedConversation}>
-                            <Send className="h-5 w-5"/>
-                        </Button>
-                    </form>
-                </footer>
+            <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
+                {isChatLoading ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-2/3" />
+                        <Skeleton className="h-12 w-1/2 ml-auto" />
+                        <Skeleton className="h-16 w-3/4" />
+                        <Skeleton className="h-8 w-1/3 ml-auto" />
+                    </div>
+                ) : messages.length > 0 ? (
+                    messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName="StreamCart" />)
+                ) : (
+                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                        <MessageSquare className="h-16 w-16 mb-4"/>
+                        <h2 className="text-xl font-semibold">{selectedConversation ? `Start a conversation with ${selectedConversation.userName}` : 'No messages yet'}</h2>
+                     </div>
+                )}
+            </div>
+
+             <footer className="p-4 border-t shrink-0">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" type="button"><Smile className="h-5 w-5" /></Button>
+                        <Button variant="ghost" size="icon" type="button"><Paperclip className="h-5 w-5" /></Button>
+                    <Input 
+                        placeholder="Type a message" 
+                        className="flex-grow" 
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        disabled={!selectedConversation}
+                    />
+                    <Button type="submit" size="icon" disabled={!newMessage.trim() || !selectedConversation}>
+                        <Send className="h-5 w-5"/>
+                    </Button>
+                </form>
+            </footer>
         </main>
     </div>
   );
 }
-
