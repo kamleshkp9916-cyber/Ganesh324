@@ -42,9 +42,9 @@ const mockReviews = [
 ];
 
 const mockUserOrders = [
-    { id: "#STREAM5896", products: [{}, {}], timeline: [{ status: 'Delivered', completed: true }], total: 12500.00 },
-    { id: "#STREAM5897", products: [{}], timeline: [{ status: 'Shipped', completed: true }], total: 4999.00 },
-    { id: "#STREAM5902", products: [{}, {}, {}], timeline: [{ status: 'Cancelled by user', completed: true }], total: 3200.00 },
+    { id: "#STREAM5896", products: [{name: 'Vintage Camera', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Delivered', completed: true }], total: 12500.00, orderDate: 'Jul 27, 2024' },
+    { id: "#STREAM5897", products: [{name: 'Wireless Headphones', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Shipped', completed: true }], total: 4999.00, orderDate: 'Jul 26, 2024' },
+    { id: "#STREAM5902", products: [{name: 'Leather Backpack', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Cancelled by user', completed: true }], total: 3200.00, orderDate: 'Jul 22, 2024' },
 ]
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -532,13 +532,21 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                         <div className="divide-y">
                                             {userOrders.map((order: any) => (
                                                 <Link href={`/delivery-information/${order.id}`} key={order.id} className="block p-3 hover:bg-muted/50 rounded-lg">
-                                                    <div className="flex justify-between items-center">
+                                                    <div className="flex justify-between items-center text-sm">
                                                         <p className="font-semibold">{order.id}</p>
                                                         <Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge>
                                                     </div>
-                                                    <div className="flex justify-between items-end text-sm text-muted-foreground mt-1">
-                                                        <p>{order.products.length} item(s)</p>
-                                                        <p>Total: ₹{order.total.toFixed(2)}</p>
+                                                    <div className="flex items-center gap-4 mt-2">
+                                                        <div className="w-16 h-16 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                                                            <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={64} height={64} className="object-cover" />
+                                                        </div>
+                                                        <div className="flex-grow">
+                                                            <p className="font-medium text-sm leading-tight">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
+                                                            <p className="text-xs text-muted-foreground">Order Date: {order.orderDate}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-semibold text-sm">₹{order.total.toFixed(2)}</p>
+                                                        </div>
                                                     </div>
                                                 </Link>
                                             ))}
