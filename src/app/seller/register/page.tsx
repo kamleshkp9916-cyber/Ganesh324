@@ -88,17 +88,16 @@ export default function SellerRegisterPage() {
     useEffect(() => {
         if (authLoading) return;
 
-        // If a customer is logged in, pre-fill their info.
-        if (user && userData && userData.role === 'customer') {
+        if (user && userData) {
+            // User is logged in, pre-fill form
             form.setValue('email', user.email || '');
             const nameParts = user.displayName?.split(' ') || ['', ''];
             form.setValue('firstName', nameParts[0]);
             form.setValue('lastName', nameParts.slice(1).join(' '));
             form.setValue('phone', userData.phone || '+91 ');
             form.setValue('userId', userData.userId || '@');
-        } else if (user && userData && userData.role === 'seller') {
-            // The AuthRedirector will handle moving verified/pending sellers away.
-            // But if they have to resubmit, pre-fill their data.
+            
+            // If resubmitting, fill all data
             if (userData.verificationStatus === 'needs-resubmission') {
                 form.reset({
                     ...userData,
@@ -157,8 +156,7 @@ export default function SellerRegisterPage() {
         }
     }
     
-    // The AuthRedirector handles routing away for logged-in sellers, so we just show a spinner until it decides.
-    if (authLoading || (user && userData?.role === 'seller' && userData.verificationStatus !== 'needs-resubmission')) {
+    if (authLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
