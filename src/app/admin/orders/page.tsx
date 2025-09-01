@@ -113,7 +113,7 @@ export default function AdminOrdersPage() {
     return orders.filter(order =>
         order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.address.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.products.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (order.products && order.products.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())))
     );
   }, [orders, searchTerm]);
 
