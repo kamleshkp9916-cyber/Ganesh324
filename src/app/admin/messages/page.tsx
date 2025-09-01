@@ -97,8 +97,9 @@ export default function AdminMessagePage() {
     return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [conversations, searchTerm]);
 
-  // This param comes from the inquiries page
-  const inquiryUserId = searchParams.get('userId');
+  // This param comes from the inquiries page or the help chat
+  const preselectUserId = searchParams.get('userId');
+  const preselectUserName = searchParams.get('userName');
 
   useEffect(() => {
     if (user && userData?.role === 'admin') {
@@ -107,31 +108,36 @@ export default function AdminMessagePage() {
                 // In a real app, you would fetch all conversations an executive is a part of.
                 // For this mock, we will just use the general conversations list.
                 const convos = await getConversations();
-                setConversations(convos);
+                let allConvos = [...convos];
+                let convoToSelect: Conversation | null = null;
 
-                if (inquiryUserId) {
-                    const userName = searchParams.get('userName') || 'Inquiry';
-                    const executiveConvo = {
-                        userId: inquiryUserId,
-                        userName: userName,
-                        avatarUrl: `https://placehold.co/40x40.png?text=${userName.charAt(0)}`,
-                        lastMessage: 'New inquiry from contact form.',
-                        lastMessageTimestamp: 'now',
-                        unreadCount: 1,
-                        isExecutive: true,
-                    };
-                    
-                    setConversations(prev => {
-                        if (prev.some(c => c.userId === inquiryUserId)) {
-                           return prev;
-                        }
-                        return [executiveConvo, ...prev];
-                    });
-                    handleSelectConversation(executiveConvo);
-
-                } else if (convos.length > 0) {
-                    handleSelectConversation(convos[0]);
+                if (preselectUserId) {
+                    const existingConvo = allConvos.find(c => c.userId === preselectUserId);
+                    if (existingConvo) {
+                        convoToSelect = existingConvo;
+                    } else {
+                         const executiveConvo = {
+                            userId: preselectUserId,
+                            userName: preselectUserName || 'Live Chat User',
+                            avatarUrl: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                            lastMessage: 'New live chat request.',
+                            lastMessageTimestamp: 'now',
+                            unreadCount: 1,
+                            isExecutive: true,
+                        };
+                        allConvos = [executiveConvo, ...allConvos];
+                        convoToSelect = executiveConvo;
+                    }
+                } else if (allConvos.length > 0) {
+                    convoToSelect = allConvos[0];
                 }
+                
+                setConversations(allConvos);
+
+                if (convoToSelect) {
+                    handleSelectConversation(convoToSelect);
+                }
+
             } catch (error) {
                 console.error("Failed to fetch conversations:", error);
             } finally {
@@ -141,7 +147,7 @@ export default function AdminMessagePage() {
         fetchConversations();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userData, inquiryUserId]);
+  }, [user, userData, preselectUserId, preselectUserName]);
   
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
@@ -274,7 +280,9 @@ export default function AdminMessagePage() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

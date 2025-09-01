@@ -15,6 +15,7 @@ import { Order } from '@/lib/order-data';
 import { getHelpChatResponse } from '@/ai/flows/help-chat-flow';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
+import { useRouter } from 'next/navigation';
 
 type ChatStep = 'initial' | 'waiting' | 'confirm_executive' | 'connected' | 'chatting';
 type Message = { id: number, sender: 'user' | 'bot' | 'system', content: React.ReactNode, hideAvatar?: boolean };
@@ -49,7 +50,8 @@ const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect:
 
 
 export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { order: Order, onClose: () => void, initialOptions?: string[], onExecuteAction?: (action: string) => void }) {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
+    const router = useRouter();
     const [step, setStep] = useState<ChatStep>('initial');
     const [inputValue, setInputValue] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -134,14 +136,21 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
         processUserQuery(query);
     }
 
-    const handleTalkToExecutive = (message?: string) => {
+    const handleTalkToExecutive = () => {
         setStep('waiting');
         setMessages(prev => prev.filter(m => typeof m.content !== 'object')); // Clean up buttons
-        if (message) {
-            addMessage('bot', message);
+        addMessage('system', `Connecting you to an executive. You will be redirected shortly.`);
+        
+        // Redirect the admin to the conversation page
+        if (user && userData) {
+             const adminUrl = `/admin/messages?userId=${user.uid}&userName=${userData.displayName}`;
+             window.open(adminUrl, '_blank'); // Open in a new tab for the admin
         }
-        addMessage('system', `Please wait while we connect you to an executive. Estimated wait time: ${INITIAL_TIMER} seconds.`);
-        startTimer(INITIAL_TIMER);
+
+        // Simulate connecting...
+        setTimeout(() => {
+            onClose(); // Close the chat popup for the user
+        }, 3000);
     };
 
     const startTimer = (duration: number) => {
@@ -186,12 +195,12 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
                     <AlertDialogHeader>
                         <AlertDialogTitle>Connect to Support Executive?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to be connected to a live support agent?
+                            Are you sure you want to be connected to a live support agent? An admin will be notified.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setStep('initial')}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleTalkToExecutive()}>Yes, Connect</AlertDialogAction>
+                        <AlertDialogAction onClick={handleTalkToExecutive}>Yes, Connect</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
