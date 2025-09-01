@@ -10,7 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+import { getFirebaseAdminApp } from '@/lib/firebase-server';
 
 // Initialize Firebase Admin SDK
 getFirebaseAdminApp();

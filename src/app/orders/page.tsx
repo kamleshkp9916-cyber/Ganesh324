@@ -18,7 +18,7 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { allOrderData, getStatusFromTimeline, Order as TimelineOrder } from '@/lib/order-data';
+import { allOrderData, getStatusFromTimeline } from '@/lib/order-data';
 import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 

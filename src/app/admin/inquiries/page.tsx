@@ -117,6 +117,7 @@ export default function AdminInquiriesPage() {
                     <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
                     <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
                     <Link href="/admin/inquiries" className="text-foreground transition-colors hover:text-foreground">Inquiries</Link>
+                    <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
                 </nav>
                 <Sheet>
                     <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
@@ -127,6 +128,7 @@ export default function AdminInquiriesPage() {
                             <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
                             <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
                             <Link href="/admin/inquiries" className="hover:text-foreground">Inquiries</Link>
+                            <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                         </nav>
                     </SheetContent>
                 </Sheet>

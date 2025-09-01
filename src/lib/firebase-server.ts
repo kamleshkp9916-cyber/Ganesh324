@@ -1,5 +1,7 @@
+
 import * as admin from 'firebase-admin';
 
+// This function is for the Genkit flows (server-side)
 export function getFirebaseAdminApp() {
   if (admin.apps.length > 0 && admin.apps[0]) {
     return admin.apps[0];
@@ -20,8 +22,6 @@ export function getFirebaseAdminApp() {
     });
   } catch (error) {
     console.error("Firebase admin initialization error:", error);
-    // Depending on the use case, you might want to throw the error
-    // or handle it gracefully. For now, we'll re-throw.
     throw new Error("Could not initialize Firebase Admin SDK. Please check your credentials.");
   }
 }

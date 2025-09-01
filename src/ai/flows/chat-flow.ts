@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { allOrderData, Order, OrderId } from '@/lib/order-data';
 import { format } from 'date-fns';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getFirebaseAdminApp } from '@/lib/firebase-admin';
+import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import type { CartProduct } from '@/lib/product-history';
 
 getFirebaseAdminApp();
