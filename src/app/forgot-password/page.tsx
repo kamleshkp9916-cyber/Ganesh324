@@ -5,13 +5,9 @@ import Link from 'next/link';
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { Logo } from '@/components/logo';
 import { ChevronLeft } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 function ForgotPasswordContent() {
-  const searchParams = useSearchParams();
-  const email = searchParams.get('email');
-
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-background p-4">
       <div className="absolute top-4 left-4">
@@ -27,10 +23,7 @@ function ForgotPasswordContent() {
           </div>
           <h1 className="text-3xl font-bold">Reset Your Password</h1>
           <p className="text-balance text-muted-foreground px-4">
-            {email 
-                ? `An OTP has been sent to ${email}. Please enter it below.`
-                : "Enter your email to receive a One-Time Password."
-            }
+            Enter your email to receive a secure link to reset your password.
           </p>
         </div>
         <ForgotPasswordForm />
@@ -47,3 +40,5 @@ export default function ForgotPasswordPage() {
     </Suspense>
   )
 }
+
+    

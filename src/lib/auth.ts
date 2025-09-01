@@ -192,7 +192,6 @@ export function useAuthActions() {
         
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
-            delete (sellerData as any).aadharOtp;
             
             const storage = getFirebaseStorage();
 
@@ -208,7 +207,7 @@ export function useAuthActions() {
                  (sellerData as any).signature = signatureUrl;
             }
 
-            await updateUserData(user.uid, sellerData);
+            await createUserData(user, 'seller', sellerData);
             
             toast({
                 title: "Application Submitted!",
@@ -306,3 +305,5 @@ export function useAuthActions() {
 
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp, updateUserProfile };
 }
+
+    
