@@ -5,9 +5,9 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,9 @@ import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
 import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData, updateUserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
+import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase';
+import { getStatusFromTimeline } from '@/lib/order-data';
 
 
 const mockReviews = [
@@ -101,7 +104,7 @@ const paymentLabel = (method: {type: string, provider?: string}) => {
 }
 
 export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
@@ -122,6 +125,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [isChatOpen, setIsChatOpen] = useState(false);
   const displayName = profileData.displayName || (profileData as any).name || "";
   const [activeCategory, setActiveCategory] = useState("All");
+  const [userOrders, setUserOrders] = useState<any[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
   
@@ -160,6 +165,32 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       setSellerProducts(productsToShow);
     }
   };
+  
+  // Fetch user orders
+  useEffect(() => {
+    if (profileData.uid && userData?.role === 'admin') {
+        const fetchOrders = async () => {
+            setIsLoadingOrders(true);
+            const db = getFirestoreDb();
+            const ordersRef = collection(db, "orders");
+            const q = query(ordersRef, where("userId", "==", profileData.uid), orderBy("orderDate", "desc"));
+            try {
+                const querySnapshot = await getDocs(q);
+                const orders: any[] = [];
+                querySnapshot.forEach((doc) => {
+                    orders.push({ ...doc.data(), id: doc.id });
+                });
+                setUserOrders(orders);
+            } catch (error) {
+                console.error("Error fetching user orders:", error);
+                toast({ variant: 'destructive', title: 'Error', description: "Could not fetch user's orders." });
+            } finally {
+                setIsLoadingOrders(false);
+            }
+        };
+        fetchOrders();
+    }
+  }, [profileData.uid, userData?.role, toast]);
 
 
   // Load data from localStorage on mount and add storage listener
@@ -494,8 +525,46 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                       <TabsTrigger value="achievements">Achievements</TabsTrigger>
                                   </>
                               )}
+                               {userData?.role === 'admin' && (
+                                <TabsTrigger value="orders">Orders</TabsTrigger>
+                               )}
                           </TabsList>
                       </ScrollArea>
+
+                      <TabsContent value="orders" className="mt-4">
+                           <Card>
+                                <CardHeader>
+                                    <CardTitle>User Orders</CardTitle>
+                                    <CardDescription>A list of all orders placed by {displayName}.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {isLoadingOrders ? (
+                                        <div className="flex justify-center py-8"><Skeleton className="w-full h-24" /></div>
+                                    ) : userOrders.length > 0 ? (
+                                        <div className="divide-y">
+                                            {userOrders.map((order: any) => (
+                                                <Link href={`/delivery-information/${order.id}`} key={order.id} className="block p-3 hover:bg-muted/50 rounded-lg">
+                                                    <div className="flex justify-between items-center">
+                                                        <p className="font-semibold">{order.id}</p>
+                                                        <Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge>
+                                                    </div>
+                                                    <div className="flex justify-between items-end text-sm text-muted-foreground mt-1">
+                                                        <p>{order.products.length} item(s)</p>
+                                                        <p>Total: ₹{order.total.toFixed(2)}</p>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                         <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                            <PackageSearch className="w-16 h-16 text-border" />
+                                            <h3 className="text-xl font-semibold">No Orders Found</h3>
+                                            <p>This user has not placed any orders yet.</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                           </Card>
+                      </TabsContent>
 
                       <TabsContent value="products" className="mt-4">
                           <div className="flex flex-wrap gap-2 mb-4">
