@@ -25,24 +25,6 @@ import { useAuthActions } from '@/lib/auth';
 import { ProfileCard } from '@/components/profile-card';
 
 
-const mockSellerProfiles: { [key: string]: UserData } = {
-    'BeautyBox': {
-        uid: 'mock_beautybox_uid',
-        displayName: 'BeautyBox',
-        email: 'beautybox@example.com',
-        photoURL: 'https://placehold.co/128x128.png?text=B',
-        role: 'seller',
-        followers: 31100,
-        following: 50,
-        bio: 'All things makeup, skincare, and beauty tutorials.',
-        location: 'Los Angeles, USA',
-        phone: '+1 123 456 7890',
-        addresses: [],
-        verificationStatus: 'verified',
-    }
-};
-
-
 export default function SellerProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,32 +47,18 @@ export default function SellerProfilePage() {
 
         let targetId: string | null | undefined = userIdFromQuery;
         
+        // If no userId is in the query, it means the seller is viewing their own profile.
         if (!targetId) {
             if (user && userData?.role === 'seller') {
                 targetId = user.uid;
             } else {
+                // Not a seller or no user, nothing to show.
                 return;
             }
         }
         
-        let data: UserData | null = null;
-        
-        if (targetId) {
-             // First, try to get by UID, which is the most reliable
-            data = await getUserData(targetId);
-
-            // If not found by UID, try by display name
-            if (!data) {
-                // The URL might contain a display name instead of a UID
-                const targetName = decodeURIComponent(targetId);
-                data = await getUserByDisplayName(targetName);
-            }
-
-            // If STILL not found (i.e., not a real user in DB), check our mock data
-            if (!data && mockSellerProfiles[targetId]) {
-                data = mockSellerProfiles[targetId];
-            }
-        }
+        // Always fetch by UID for reliability.
+        const data = await getUserData(targetId);
         
         if (data) {
             setProfileData(data);
