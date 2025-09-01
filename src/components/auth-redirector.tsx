@@ -45,8 +45,8 @@ export function AuthRedirector() {
             // 1. Admin check (Highest Priority)
             if (role === 'admin') {
                 const isAdminPath = pathname.startsWith('/admin');
-                const isProfilePath = pathname.startsWith('/profile') || pathname.startsWith('/seller/profile') || pathname.startsWith('/delivery-information');
-                if (!isAdminPath && !isProfilePath) {
+                const isAllowedPath = isAdminPath || pathname.startsWith('/delivery-information');
+                if (!isAllowedPath) {
                     targetPath = '/admin/dashboard';
                 }
             } 
