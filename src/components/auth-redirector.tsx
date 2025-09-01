@@ -42,8 +42,13 @@ export function AuthRedirector() {
             }
         } else {
             const { role, verificationStatus } = userData;
-
-            if (role === 'seller') {
+            
+            // IMPORTANT: Check for admin first, as an admin might have other roles.
+            if (role === 'admin') {
+                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller')) {
+                    targetPath = '/admin/dashboard';
+                }
+            } else if (role === 'seller') {
                 if (verificationStatus !== 'verified') {
                     if (pathname !== sellerVerificationPath) {
                         targetPath = sellerVerificationPath;
@@ -52,10 +57,6 @@ export function AuthRedirector() {
                     if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
                         targetPath = '/seller/dashboard';
                     }
-                }
-            } else if (role === 'admin') {
-                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
-                    targetPath = '/admin/dashboard';
                 }
             } else { // Customer
                  if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
