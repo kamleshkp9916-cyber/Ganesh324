@@ -198,7 +198,7 @@ const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onO
 };
 
 
-const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRowClick: (email: string) => void, onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
+const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRowClick: (user: any) => void, onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -226,7 +226,7 @@ const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRo
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onRowClick(u.email)}>View Profile</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onRowClick(u)}>View Profile</DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => onEdit(u)}>Edit Profile</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>Delete Account</DropdownMenuItem>
@@ -369,8 +369,7 @@ export default function AdminUsersPage() {
     )
   }
   
-  const handleUserRowClick = (userEmail: string) => {
-    const targetUser: any = allUsersState.find(u => u.email === userEmail);
+  const handleUserRowClick = (targetUser: UserData) => {
     if (targetUser) {
         if (targetUser.role === 'seller') {
             router.push(`/seller/profile?userId=${targetUser.uid}`);
@@ -380,7 +379,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleEditUser = (userToEdit: any) => {
+  const handleEditUser = (userToEdit: UserData) => {
       if (userToEdit.role === 'seller') {
           router.push(`/seller/profile?userId=${userToEdit.uid}`);
       } else {

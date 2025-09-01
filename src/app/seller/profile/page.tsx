@@ -96,12 +96,14 @@ export default function SellerProfilePage() {
             setProfileData(data);
         } else {
             console.error("Seller not found:", targetId);
+             // Optionally, redirect to a not-found page
+             // router.push('/not-found');
         }
     };
     
     fetchProfileData();
 
-  }, [user, userData, loading, router, isMounted, key, userIdFromQuery]);
+  }, [user, userData, loading, isMounted, key, userIdFromQuery]);
 
 
   const handleProfileSave = async (data: any) => {

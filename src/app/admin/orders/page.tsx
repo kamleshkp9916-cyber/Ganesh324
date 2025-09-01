@@ -63,6 +63,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { updateOrderStatus } from "@/ai/flows/chat-flow"
+import { UserData, getUserData } from "@/lib/follow-data"
 
 type Order = {
     orderId: string;
@@ -73,6 +74,8 @@ type Order = {
     orderDate: string;
     isReturnable: boolean;
     timeline: any[];
+    // We will add the user's role to the order object for navigation
+    userRole?: 'customer' | 'seller'; 
 };
 
 export default function AdminOrdersPage() {
@@ -94,9 +97,19 @@ export default function AdminOrdersPage() {
         try {
             const querySnapshot = await getDocs(q);
             const fetchedOrders: Order[] = [];
-            querySnapshot.forEach((doc) => {
-                fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
-            });
+
+            // Use Promise.all to fetch user data concurrently
+            await Promise.all(querySnapshot.docs.map(async (doc) => {
+                const orderData = doc.data() as Omit<Order, 'orderId'>;
+                const customerData = await getUserData(orderData.userId);
+                
+                fetchedOrders.push({ 
+                    ...orderData, 
+                    orderId: doc.id,
+                    userRole: customerData?.role === 'seller' ? 'seller' : 'customer' // Store role
+                });
+            }));
+
             setOrders(fetchedOrders);
         } catch (error) {
             console.error("Error fetching orders:", error);
@@ -135,6 +148,10 @@ export default function AdminOrdersPage() {
             description: "Could not cancel the order. Please try again.",
         });
     }
+  };
+
+  const getProfileLink = (order: Order) => {
+    return order.userRole === 'seller' ? `/seller/profile?userId=${order.userId}` : `/profile?userId=${order.userId}`;
   };
 
   const filteredOrders = useMemo(() => {
@@ -235,7 +252,7 @@ export default function AdminOrdersPage() {
                                 <TableRow key={order.orderId}>
                                     <TableCell className="font-medium">{order.orderId}</TableCell>
                                     <TableCell>
-                                        <Link href={`/profile?userId=${order.userId}`} className="hover:underline">
+                                        <Link href={getProfileLink(order)} className="hover:underline">
                                             {order.address.name}
                                         </Link>
                                     </TableCell>
@@ -248,7 +265,7 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                 <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Details</DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push(`/profile?userId=${order.userId}`)}>View Customer</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(getProfileLink(order))}>View Customer</DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
                                                  <DropdownMenuSeparator />
                                                 <AlertDialog>
