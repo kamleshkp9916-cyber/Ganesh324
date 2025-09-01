@@ -58,8 +58,6 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
-
 const mockUsers = {
     "USER8432": { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png" },
     "USER8443": { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png" },
@@ -95,24 +93,22 @@ const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orde
 type Order = ReturnType<typeof getFullMockOrders>[0];
 
 export default function AdminOrdersPage() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsMounted(true);
     if (!loading) {
-      if (user?.email === ADMIN_EMAIL) {
+      if (userData?.role === 'admin') {
         setOrders(getFullMockOrders());
       } else {
         router.replace('/');
       }
     }
-  }, [loading, user, router]);
+  }, [loading, userData, router]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
@@ -122,7 +118,7 @@ export default function AdminOrdersPage() {
     );
   }, [orders, searchTerm]);
 
-  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
+  if (loading || !userData || userData.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
   
@@ -177,7 +173,7 @@ export default function AdminOrdersPage() {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="secondary" size="icon" className="rounded-full">
-                            <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback></Avatar>
+                            <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

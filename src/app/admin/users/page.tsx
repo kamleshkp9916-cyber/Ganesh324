@@ -78,8 +78,6 @@ import { getFirestore, collection, query, where, getDocs } from "firebase/firest
 import { getFirestoreDb } from "@/lib/firebase";
 import { Textarea } from "@/components/ui/textarea";
 
-const ADMIN_EMAIL = "samael.prajapati@example.com";
-
 const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
     const handlePrint = () => {
         window.print();
@@ -326,10 +324,9 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
 
 
 export default function AdminUsersPage() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
@@ -352,18 +349,17 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    setIsMounted(true);
     if (!loading) {
-      if (user?.email !== ADMIN_EMAIL) {
+      if (userData?.role !== 'admin') {
         router.replace('/');
       } else {
         fetchUsers();
       }
     }
-  }, [user, loading, router]);
+  }, [user, userData, loading, router]);
 
 
-  if (!isMounted || loading || !user || user.email !== ADMIN_EMAIL) {
+  if (loading || !userData || userData.role !== 'admin') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -545,8 +541,8 @@ export default function AdminUsersPage() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "Admin"} />
-                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'A'}</AvatarFallback>
+                    <AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} alt={user?.displayName || "Admin"} />
+                    <AvatarFallback>{user?.displayName ? user.displayName.charAt(0) : 'A'}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
