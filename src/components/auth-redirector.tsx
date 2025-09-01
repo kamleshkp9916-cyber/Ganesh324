@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
-const publicOnlyPaths = ['/signup', '/forgot-password', '/seller/login', '/seller/register', '/'];
+const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const sellerVerificationPath = '/seller/verification';
 
@@ -16,11 +16,21 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Wait until both authentication and user data loading are fully complete.
     if (loading) {
       return; 
     }
     
-    if (user && userData) {
+    if (user) {
+        // User is authenticated, now we must ensure we have their profile data before redirecting.
+        if (!userData) {
+            // This state can happen for a brief moment while userData is being fetched from Firestore.
+            // By returning here, we wait for the next render when userData will be available.
+            return;
+        }
+
+        // --- User is fully loaded, proceed with redirection logic ---
+
         if (!user.emailVerified) {
             if (pathname !== emailVerificationPath) {
                 router.replace(emailVerificationPath);
@@ -61,6 +71,7 @@ export function AuthRedirector() {
         }
     } 
     else { 
+        // No user is logged in.
         const isPublicAllowed = 
             publicOnlyPaths.includes(pathname) || 
             pathname.startsWith('/product/') ||
@@ -78,7 +89,9 @@ export function AuthRedirector() {
     }
   }, [user, userData, loading, router, pathname]);
 
-  if (loading) {
+  // Show a full-screen loader whenever the auth state is loading or when we have a user
+  // but are still waiting for their detailed profile from the database.
+  if (loading || (user && !userData)) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
             <LoadingSpinner />
