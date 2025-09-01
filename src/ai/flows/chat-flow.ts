@@ -16,8 +16,6 @@ import { getFirestore, query, collection, where, getDocs, writeBatch } from 'fir
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import type { CartProduct } from '@/lib/product-history';
 
-getFirebaseAdminApp();
-const db = getFirestore();
 
 const MessageSchema = z.object({
   id: z.number(),
@@ -195,6 +193,8 @@ const updateOrderStatusFlow = ai.defineFlow(
         outputSchema: z.void(),
     },
     async ({ orderId, status }) => {
+        getFirebaseAdminApp();
+        const db = getFirestore();
         // This flow now needs to update Firestore
         const orderRef = db.collection('orders').doc(orderId);
         const orderDoc = await orderRef.get();
@@ -238,6 +238,8 @@ const createOrderFlow = ai.defineFlow(
     outputSchema: z.object({ orderId: z.string() }),
   },
   async ({ userId, cartItems, address, total }) => {
+    getFirebaseAdminApp();
+    const db = getFirestore();
     const orderId = `#STREAM${Math.floor(1000 + Math.random() * 9000)}`;
     const now = new Date();
     

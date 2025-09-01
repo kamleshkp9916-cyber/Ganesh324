@@ -12,10 +12,6 @@ import { z } from 'zod';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 
-// Initialize Firebase Admin SDK
-getFirebaseAdminApp();
-const db = getFirestore();
-
 export const InquirySchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -34,6 +30,10 @@ const submitInquiryFlow = ai.defineFlow(
     outputSchema: z.object({ id: z.string() }),
   },
   async (inquiry) => {
+    // Initialize Firebase Admin SDK
+    getFirebaseAdminApp();
+    const db = getFirestore();
+
     const inquiryWithTimestamp = {
       ...inquiry,
       createdAt: new Date().toISOString(),
@@ -58,6 +58,8 @@ const getInquiriesFlow = ai.defineFlow(
     outputSchema: z.array(z.custom<Inquiry & { id: string }>()),
   },
   async () => {
+    getFirebaseAdminApp();
+    const db = getFirestore();
     const snapshot = await db.collection('inquiries').orderBy('createdAt', 'desc').get();
     if (snapshot.empty) {
       return [];
@@ -78,6 +80,8 @@ const markInquiryReadFlow = ai.defineFlow(
         outputSchema: z.void(),
     },
     async ({ id }) => {
+        getFirebaseAdminApp();
+        const db = getFirestore();
         await db.collection('inquiries').doc(id).update({ isRead: true });
     }
 );

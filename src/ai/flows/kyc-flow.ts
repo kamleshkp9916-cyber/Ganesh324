@@ -9,6 +9,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { updateUserData } from '@/lib/follow-data';
 import { KycInputSchema, KycInput } from '@/lib/schemas/kyc';
+import { getFirebaseAdminApp } from '@/lib/firebase-server';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const KycOutputSchema = z.object({
   status: z.enum(["verified", "pending", "rejected"]),

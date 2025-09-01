@@ -9,10 +9,6 @@ import { z } from 'zod';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 
-// Initialize Firebase Admin SDK
-getFirebaseAdminApp();
-const db = getFirestore();
-
 // Mock database for executive chats
 const mockExecutiveDatabase: Record<string, Message[]> = {};
 
@@ -50,6 +46,10 @@ const getExecutiveMessagesFlow = ai.defineFlow(
     outputSchema: GetMessagesOutputSchema,
   },
   async ({ userId }) => {
+    // Initialize Firebase Admin SDK
+    getFirebaseAdminApp();
+    const db = getFirestore();
+
     const docRef = db.collection('executiveChats').doc(userId);
     const doc = await docRef.get();
     if (!doc.exists) {
@@ -68,6 +68,9 @@ const sendExecutiveMessageFlow = ai.defineFlow(
     outputSchema: SendMessageOutputSchema,
   },
   async ({ userId, message, from }) => {
+    // Initialize Firebase Admin SDK
+    getFirebaseAdminApp();
+    const db = getFirestore();
     const docRef = db.collection('executiveChats').doc(userId);
 
     const newMessage: Message = {
