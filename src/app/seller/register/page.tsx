@@ -115,8 +115,8 @@ export default function SellerRegisterPage() {
                 form.setValue('userId', userData.userId || '@');
                 setPageStatus('form');
             }
-        } else { // No user logged in, should not be on this page
-            setPageStatus('unauthorized');
+        } else { // No user logged in, should redirect to signup
+             router.replace('/signup');
         }
     }, [router, form, authLoading, user, userData]);
 
@@ -167,32 +167,12 @@ export default function SellerRegisterPage() {
         }
     }
 
-    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting') {
+    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting' || pageStatus === 'unauthorized') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
             </div>
         );
-    }
-
-    if (pageStatus === 'unauthorized') {
-        return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                 <div className="absolute top-4 left-4">
-                    <Button variant="ghost" onClick={() => router.push('/signup')} className="flex items-center gap-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Signup
-                    </Button>
-                </div>
-                 <Alert className="max-w-lg">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle className="text-xl font-bold">Please Sign Up First</AlertTitle>
-                    <AlertDescription>
-                       To become a seller, you must first create a customer account.
-                    </AlertDescription>
-                </Alert>
-             </div>
-        )
     }
 
     if (pageStatus === 'rejected') {
