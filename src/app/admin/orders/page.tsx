@@ -75,6 +75,53 @@ type Order = {
     timeline: any[];
 };
 
+const mockOrders: Order[] = [
+    {
+        orderId: "#MOCK5896",
+        userId: "mockUser1",
+        products: [{ name: "Vintage Camera" }],
+        address: { name: "Ganesh Prajapati" },
+        total: 12500.00,
+        orderDate: "2024-07-27T22:31:00.000Z",
+        isReturnable: true,
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 27, 2024", time: "10:31 PM", completed: true },
+            { status: "Packed", date: "Jul 28, 2024", time: "09:00 AM", completed: true },
+            { status: "Shipped", date: "Jul 28, 2024", time: "05:00 PM", completed: true },
+            { status: "In Transit", date: "Jul 29, 2024", time: "Current status", completed: true },
+            { status: "Out for Delivery", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false },
+        ]
+    },
+     {
+        orderId: "#MOCK5905",
+        userId: "mockUser2",
+        products: [{ name: "Designer Sunglasses" }],
+        address: { name: "Peter Jones" },
+        total: 7800.00,
+        orderDate: "2024-07-28T14:30:00.000Z",
+        isReturnable: true,
+        timeline: [
+            { status: "Order Confirmed", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
+            { status: "Pending", date: null, time: null, completed: false },
+        ]
+    },
+    {
+        orderId: "#MOCK5903",
+        userId: "mockUser3",
+        products: [{ name: "Coffee Maker" }],
+        address: { name: "Jessica Rodriguez" },
+        total: 4500.00,
+        orderDate: "2024-07-21T11:00:00.000Z",
+        isReturnable: false,
+        timeline: [
+             { status: "Order Confirmed", date: "Jul 21, 2024", time: "11:00 AM", completed: true },
+             { status: "Cancelled by admin", date: "Jul 21, 2024", time: "11:30 AM", completed: true },
+        ]
+    }
+];
+
+
 export default function AdminOrdersPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
@@ -97,14 +144,17 @@ export default function AdminOrdersPage() {
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
-            setOrders(fetchedOrders);
+            // Combine fetched orders with mock orders
+            setOrders([...fetchedOrders, ...mockOrders]);
         } catch (error) {
             console.error("Error fetching orders:", error);
             toast({
                 variant: "destructive",
                 title: "Error fetching orders",
-                description: "Could not retrieve orders from the database."
+                description: "Could not retrieve orders from the database. Showing mock data."
             });
+            // If fetch fails, still show mock data
+            setOrders(mockOrders);
         } finally {
             setIsLoading(false);
         }
@@ -119,6 +169,14 @@ export default function AdminOrdersPage() {
   }, [loading, userData]);
 
   const handleCancelOrder = async (orderId: string) => {
+    // Prevent cancelling mock orders
+    if (orderId.startsWith('#MOCK')) {
+        toast({
+            title: "Demo Action",
+            description: "Cancelling mock orders is disabled.",
+        });
+        return;
+    }
     try {
         await updateOrderStatus(orderId, 'Cancelled by admin');
         toast({
