@@ -72,7 +72,8 @@ export function AuthRedirector() {
             publicAllowedPaths.includes(pathname) ||
             pathname.startsWith('/product/') ||
             pathname.startsWith('/stream/') ||
-            pathname.startsWith('/seller/profile');
+            pathname.startsWith('/seller/profile') ||
+            pathname === '/seller/kyc'; // Allow access to KYC form for logged-out users
                                 
         if (!isPublicAllowed) {
             targetPath = '/';
