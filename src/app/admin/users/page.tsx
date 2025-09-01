@@ -82,80 +82,61 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
-    const handlePrint = () => {
-        window.print();
-    };
-    
-    const photoSrc = seller.passportPhoto?.preview || seller.passportPhoto;
+const UserDetailDialog = ({ user, onClose }: { user: any, onClose: () => void }) => {
+    const photoSrc = user.passportPhoto?.preview || user.passportPhoto || user.photoURL;
 
     return (
-        <DialogContent className="max-w-3xl p-0" id="printable-area">
-             <style>
-                {`
-                @media print {
-                    body * { visibility: hidden; }
-                    #printable-area, #printable-area * { visibility: visible; }
-                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
-                    .no-print { display: none; }
-                }
-                `}
-            </style>
-            <DialogHeader className="p-6 pb-4">
-                <div className="flex justify-between items-start">
+        <DialogContent className="max-w-3xl">
+            <DialogHeader>
+                 <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                         <AvatarImage src={photoSrc} alt={user.displayName} />
+                         <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <div>
-                        <DialogTitle className="text-2xl">Seller Application Details</DialogTitle>
-                        <DialogDescription>Review the information submitted by the applicant.</DialogDescription>
+                        <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
+                        <DialogDescription>
+                            <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                            {user.role === 'seller' && <span className="text-sm"> ({user.verificationStatus})</span>}
+                        </DialogDescription>
                     </div>
-                     <Button onClick={handlePrint} variant="outline" size="sm" className="no-print">
-                        <Printer className="h-4 w-4 mr-2" />
-                        Print
-                    </Button>
                 </div>
             </DialogHeader>
-            <div className="px-6 py-4 space-y-6 max-h-[70vh] overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-1">
-                        <h3 className="font-semibold text-lg mb-2 border-b pb-2">Applicant Photo</h3>
-                         <div className="mt-2 relative w-32 h-32 rounded-lg border bg-muted">
-                           {photoSrc && typeof photoSrc === 'string' ? <Image src={photoSrc} alt="Applicant Photo" layout="fill" className="object-cover rounded-lg" /> : <div className="flex items-center justify-center h-full text-muted-foreground">No Photo</div>}
+            <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-4">
+                <h3 className="font-semibold text-lg border-b pb-2">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong className="text-muted-foreground">Email:</strong><p>{user.email}</p></div>
+                    <div><strong className="text-muted-foreground">Phone:</strong><p>{user.phone}</p></div>
+                    <div className="col-span-2"><strong className="text-muted-foreground">User ID:</strong><p>{user.userId}</p></div>
+                    <div className="col-span-2"><strong className="text-muted-foreground">Bio:</strong><p>{user.bio || 'Not provided'}</p></div>
+                </div>
+
+                {user.role === 'seller' && (
+                    <>
+                        <Separator />
+                        <h3 className="font-semibold text-lg border-b pb-2">Seller Information</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong className="text-muted-foreground">Business Name:</strong><p>{user.businessName}</p></div>
+                             <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{user.aadhar}</p></div>
+                             <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{user.pan}</p></div>
+                             <div className="col-span-2"><strong className="text-muted-foreground">Bank Account:</strong><p className="font-mono">{user.accountNumber} ({user.ifsc})</p></div>
+                              <div className="col-span-2">
+                                <strong className="text-muted-foreground text-sm">Signature:</strong>
+                                <div className="mt-1 p-2 border rounded-lg bg-muted aspect-video flex items-center justify-center max-w-xs">
+                                    {user.signature ? <Image src={user.signature} alt="Signature" width={200} height={100} className="object-contain" /> : <p>No Signature</p>}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                     <div className="md:col-span-2">
-                        <h3 className="font-semibold text-lg mb-2 border-b pb-2">Personal & Business Details</h3>
-                         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mt-2">
-                            <div><strong className="text-muted-foreground">First Name:</strong><p>{seller.firstName}</p></div>
-                            <div><strong className="text-muted-foreground">Last Name:</strong><p>{seller.lastName}</p></div>
-                            <div><strong className="text-muted-foreground">Email:</strong><p>{seller.email}</p></div>
-                            <div><strong className="text-muted-foreground">Phone:</strong><p>{seller.phone}</p></div>
-                            <div className="col-span-2"><strong className="text-muted-foreground">Business Name:</strong><p>{seller.businessName}</p></div>
-                         </div>
-                    </div>
-                </div>
-                 <Separator />
-                 <h3 className="font-semibold text-lg border-b pb-2">Identification Details</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                         <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{seller.aadhar}</p></div>
-                         <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{seller.pan}</p></div>
-                    </div>
-                    <div className="md:col-span-1">
-                         <strong className="text-muted-foreground text-sm">Signature:</strong>
-                         <div className="mt-1 p-2 border rounded-lg bg-muted aspect-video flex items-center justify-center">
-                            {seller.signature ? <Image src={seller.signature} alt="Signature" width={200} height={100} className="object-contain" /> : <p>No Signature</p>}
-                         </div>
-                    </div>
-                 </div>
-                 <Separator />
-                 <h3 className="font-semibold text-lg border-b pb-2">Bank Account Details</h3>
-                 <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                     <div><strong className="text-muted-foreground">Account Number:</strong><p className="font-mono">{seller.accountNumber}</p></div>
-                     <div><strong className="text-muted-foreground">IFSC Code:</strong><p className="font-mono">{seller.ifsc}</p></div>
-                </div>
+                    </>
+                )}
             </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={onClose}>Close</Button>
+            </DialogFooter>
         </DialogContent>
     );
-}
+};
+
 
 const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onOpenChange: (open: boolean) => void, onConfirm: (reason: string, type: 'rejected' | 'needs-resubmission') => void }) => {
     const [reason, setReason] = useState("");
@@ -198,7 +179,7 @@ const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onO
 };
 
 
-const UserTable = ({ users, onEdit, onDelete }: { users: any[], onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
+const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -226,7 +207,7 @@ const UserTable = ({ users, onEdit, onDelete }: { users: any[], onEdit: (user: a
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onEdit(u)}>Edit Profile</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onViewDetails(u)}>View Details</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>Delete Account</DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -281,7 +262,7 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
                     {requests.length > 0 ? requests.map((req, index) => (
                         <TableRow key={index}>
                             <TableCell>
-                                <div className="font-medium">{req.firstName} {req.lastName}</div>
+                                <div className="font-medium">{req.displayName}</div>
                                 <div className="text-sm text-muted-foreground">{req.email}</div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
@@ -308,15 +289,15 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
-                        </TableRow>
-                    )) : (
-                        <TableRow>
-                            <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
             </Table>
-             <CardFooter className="px-0 pt-4">
+            <CardFooter className="px-0 pt-4">
                 <div className="text-xs text-muted-foreground">
                     Showing <strong>1-{requests.length > 10 ? 10 : requests.length}</strong> of <strong>{requests.length}</strong> requests
                 </div>
@@ -332,7 +313,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
-  const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
@@ -367,24 +348,6 @@ export default function AdminUsersPage() {
         </div>
     )
   }
-  
-  const handleUserRowClick = (targetUser: UserData) => {
-    if (targetUser) {
-        if (targetUser.role === 'seller') {
-            router.push(`/seller/profile?userId=${targetUser.uid}`);
-        } else {
-            router.push(`/profile?userId=${targetUser.uid}`);
-        }
-    }
-  };
-
-  const handleEditUser = (userToEdit: UserData) => {
-      if (userToEdit.role === 'seller') {
-          router.push(`/seller/profile?userId=${userToEdit.uid}`);
-      } else {
-          router.push(`/profile?userId=${userToEdit.uid}`);
-      }
-  };
   
   const handleDeleteUserClick = (userToDelete: any) => {
       setUserToDelete(userToDelete);
@@ -435,8 +398,8 @@ export default function AdminUsersPage() {
     }
   };
   
-  const handleViewDetails = (seller: any) => {
-    setSelectedSeller(seller);
+  const handleViewDetails = (userToShow: any) => {
+    setSelectedUser(userToShow);
   };
 
   const customers = allUsersState.filter(u => u.role === 'customer');
@@ -463,8 +426,8 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <Dialog open={!!selectedSeller} onOpenChange={(isOpen) => !isOpen && setSelectedSeller(null)}>
-        {selectedSeller && <SellerDetailDialog seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}
+    <Dialog open={!!selectedUser} onOpenChange={(isOpen) => !isOpen && setSelectedUser(null)}>
+        {selectedUser && <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} />}
     </Dialog>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
@@ -626,7 +589,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -637,7 +600,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -658,5 +621,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
