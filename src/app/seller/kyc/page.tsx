@@ -1,12 +1,13 @@
 
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText, Upload, Trash2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,72 +17,103 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { verifyKyc } from "@/ai/flows/kyc-flow";
-import { KycInputSchema } from "@/lib/schemas/kyc";
+import { useAuthActions } from "@/lib/auth";
+import Image from "next/image";
+import SignatureCanvas from 'react-signature-canvas'
+import { Textarea } from "@/components/ui/textarea";
+
+const sellerKycSchema = z.object({
+  firstName: z.string().min(1, "First name is required."),
+  lastName: z.string().min(1, "Last name is required."),
+  email: z.string().email("Invalid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+  confirmPassword: z.string(),
+  businessName: z.string().min(2, "Business name is required."),
+  phone: z.string().regex(/^\+91 \d{10}$/, "Please enter a valid 10-digit Indian phone number."),
+  aadhar: z.string().regex(/^\d{12}$/, "Aadhaar must be 12 digits."),
+  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format."),
+  accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
+  ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
+  passportPhoto: z.any().refine(file => file, "Passport photo is required."),
+  signature: z.any().refine(sig => sig, "Signature is required."),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
 
 export default function SellerKycPage() {
     const { user, userData, loading: authLoading } = useAuth();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
+    const { handleSellerSignUp } = useAuthActions();
+    
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const signaturePadRef = useRef<SignatureCanvas>(null);
 
-    const form = useForm<z.infer<typeof KycInputSchema>>({
-        resolver: zodResolver(KycInputSchema),
+    const form = useForm<z.infer<typeof sellerKycSchema>>({
+        resolver: zodResolver(sellerKycSchema),
         defaultValues: {
-            userId: "",
-            aadhar: "",
-            pan: "",
+            firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
+            businessName: '', phone: '+91 ', aadhar: '', pan: '',
+            accountNumber: '', ifsc: '',
         },
     });
 
     useEffect(() => {
         if (!authLoading) {
-            if (!user) {
-                // If not logged in, redirect to signup. They will be brought back here.
-                router.replace(`/signup?redirect=${encodeURIComponent('/seller/kyc')}`);
-            } else if (userData?.role === 'seller') {
+            if (user) { // Customer upgrading to seller
+                form.setValue('firstName', user.displayName?.split(' ')[0] || '');
+                form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
+                form.setValue('email', user.email || '');
+            }
+             if (userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
-            } else {
-                 form.setValue('userId', user.uid);
             }
         }
     }, [user, userData, authLoading, router, form]);
 
+    const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+                form.setValue('passportPhoto', { file, preview: reader.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-    if (authLoading || !user || userData?.role === 'seller') {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner />
-            </div>
-        );
-    }
+    const handleSignatureEnd = () => {
+        if (signaturePadRef.current) {
+            const dataUrl = signaturePadRef.current.toDataURL();
+            form.setValue('signature', dataUrl);
+        }
+    };
+    
+    const clearSignature = () => {
+        signaturePadRef.current?.clear();
+        form.setValue('signature', null);
+    };
 
-    async function onSubmit(values: z.infer<typeof KycInputSchema>) {
+    async function onSubmit(values: z.infer<typeof sellerKycSchema>) {
         setIsLoading(true);
         try {
-            await verifyKyc(values);
-
-            toast({
-                title: "Verification Submitted!",
-                description: "Your KYC details are being verified. You will be redirected shortly.",
-            });
-            // The AuthRedirector should pick up the role change and redirect automatically.
-            // We'll give it a moment, then force a push if needed.
-            setTimeout(() => {
-                router.push('/seller/dashboard');
-            }, 2000);
-
-        } catch (error: any) {
-            toast({
-                variant: "destructive",
-                title: "Verification Failed",
-                description: error.message || "Could not verify your details. Please check them and try again.",
-            });
+            await handleSellerSignUp(values);
+        } catch (error) {
+            // Toast is handled in auth action
         } finally {
             setIsLoading(false);
         }
     }
     
+    if (authLoading) {
+        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
+    }
+
   return (
     <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center p-4">
          <div className="absolute top-4 left-4">
@@ -92,53 +124,108 @@ export default function SellerKycPage() {
             </Link>
           </Button>
         </div>
-      <Card className="w-full max-w-md my-8">
+      <Card className="w-full max-w-2xl my-8">
         <CardHeader className="text-center">
             <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2">
                 <ShieldCheck className="h-10 w-10 text-primary" />
             </div>
-          <CardTitle className="text-2xl">Seller Verification (KYC)</CardTitle>
+          <CardTitle className="text-2xl">Become a Seller</CardTitle>
           <CardDescription>
-            To ensure a secure marketplace, we need to verify your identity.
+            Complete the form below to start selling on StreamCart.
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Alert className="mb-6">
-                <FileText className="h-4 w-4" />
-                <AlertTitle>Why do we need this?</AlertTitle>
-                <AlertDescription>
-                    KYC verification is required by law and helps us prevent fraud, ensuring a trustworthy platform for all users. Your data is encrypted and handled securely.
-                </AlertDescription>
-            </Alert>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                 <FormField
-                    control={form.control}
-                    name="aadhar"
-                    render={({ field }) => (
+                
+                <h3 className="font-semibold text-lg border-b pb-2">Personal Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="firstName" render={({ field }) => (
+                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="lastName" render={({ field }) => (
+                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
+                 <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
+                )}/>
+                {!user && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="password" render={({ field }) => (
+                            <FormItem><FormLabel>Create Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        <FormField control={form.control} name="confirmPassword" render={({ field }) => (
+                            <FormItem><FormLabel>Confirm Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    </div>
+                )}
+                
+                <h3 className="font-semibold text-lg border-b pb-2 pt-4">Business Information</h3>
+                 <FormField control={form.control} name="businessName" render={({ field }) => (
+                    <FormItem><FormLabel>Business/Shop Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
+                 <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
+
+                 <h3 className="font-semibold text-lg border-b pb-2 pt-4">Identity & Bank Details</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="aadhar" render={({ field }) => (
+                        <FormItem><FormLabel>Aadhar Card Number</FormLabel><FormControl><Input placeholder="XXXX XXXX XXXX" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="pan" render={({ field }) => (
+                        <FormItem><FormLabel>PAN Card Number</FormLabel><FormControl><Input placeholder="ABCDE1234F" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField control={form.control} name="accountNumber" render={({ field }) => (
+                        <FormItem><FormLabel>Bank Account Number</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="ifsc" render={({ field }) => (
+                        <FormItem><FormLabel>IFSC Code</FormLabel><FormControl><Input {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                 </div>
+                 
+                 <h3 className="font-semibold text-lg border-b pb-2 pt-4">Document Upload</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <FormField control={form.control} name="passportPhoto" render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Aadhar Card Number</FormLabel>
-                        <FormControl>
-                            <Input placeholder="XXXX XXXX XXXX" {...field} />
-                        </FormControl>
-                        <FormMessage />
+                            <FormLabel>Passport-size Photo</FormLabel>
+                            <FormControl>
+                                 <div className="w-full h-40 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground hover:border-primary hover:text-primary cursor-pointer relative" onClick={() => photoInputRef.current?.click()}>
+                                    {photoPreview ? (
+                                        <Image src={photoPreview} alt="Photo Preview" layout="fill" className="object-cover rounded-lg" />
+                                    ) : (
+                                        <div className="text-center"><Camera className="h-8 w-8 mx-auto" /><p className="text-xs mt-1">Click to Upload</p></div>
+                                    )}
+                                    <Input id="photo-upload" type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload}/>
+                                </div>
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="pan"
-                    render={({ field }) => (
+                    )}/>
+                     <FormField control={form.control} name="signature" render={({ field }) => (
                         <FormItem>
-                        <FormLabel>PAN Card Number</FormLabel>
-                        <FormControl>
-                            <Input placeholder="ABCDE1234F" {...field} className="uppercase" />
-                        </FormControl>
-                        <FormMessage />
+                            <FormLabel>Signature</FormLabel>
+                            <FormControl>
+                               <div className="w-full rounded-lg border border-input bg-background relative">
+                                    <SignatureCanvas
+                                        ref={signaturePadRef}
+                                        penColor='black'
+                                        canvasProps={{ className: 'w-full h-40 rounded-lg' }}
+                                        onEnd={handleSignatureEnd}
+                                    />
+                                    <Button type="button" variant="ghost" size="sm" className="absolute bottom-2 right-2" onClick={clearSignature}>Clear</Button>
+                               </div>
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
-                    )}
-                />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+                    )}/>
+                 </div>
+
+
+              <Button type="submit" className="w-full mt-8" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
               </Button>
             </form>
