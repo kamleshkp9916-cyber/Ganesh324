@@ -28,35 +28,32 @@ export default function SellerKycPage() {
     const form = useForm<z.infer<typeof KycInputSchema>>({
         resolver: zodResolver(KycInputSchema),
         defaultValues: {
-            userId: user?.uid || "",
+            userId: "",
             aadhar: "",
             pan: "",
         },
     });
 
     useEffect(() => {
-        if(user) {
-            form.setValue('userId', user.uid);
+        if (!authLoading) {
+            if (!user) {
+                // If not logged in, redirect to signup. They will be brought back here.
+                router.replace(`/signup?redirect=${encodeURIComponent('/seller/kyc')}`);
+            } else if (userData?.role === 'seller') {
+                router.replace('/seller/dashboard');
+            } else {
+                 form.setValue('userId', user.uid);
+            }
         }
-    }, [user, form]);
+    }, [user, userData, authLoading, router, form]);
 
-    if (authLoading) {
+
+    if (authLoading || !user || userData?.role === 'seller') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
             </div>
         );
-    }
-    
-    if (!user) {
-        // If not logged in, redirect to signup. They will be brought back here.
-        router.replace(`/signup?redirect=${encodeURIComponent('/seller/kyc')}`);
-        return <LoadingSpinner />;
-    }
-    
-    if (userData?.role === 'seller') {
-        router.replace('/seller/dashboard');
-        return <LoadingSpinner />;
     }
 
     async function onSubmit(values: z.infer<typeof KycInputSchema>) {
