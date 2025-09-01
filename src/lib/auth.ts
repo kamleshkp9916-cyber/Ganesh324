@@ -17,7 +17,7 @@ export function useAuthActions() {
         try {
             await firebaseSignOut(auth);
             
-            router.push('/');
+            router.push('/seller/login');
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
