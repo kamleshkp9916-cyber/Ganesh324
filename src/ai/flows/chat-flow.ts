@@ -19,6 +19,37 @@ import type { CartProduct } from '@/lib/product-history';
 getFirebaseAdminApp();
 const db = getFirestore();
 
+// TEMPORARY: Grant admin access to a specific user
+(async () => {
+    try {
+        console.log("Attempting to grant admin access...");
+        const emailToMakeAdmin = 'kamleshkp9916@gmail.com';
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', emailToMakeAdmin));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            console.log(`Admin promotion failed: User with email ${emailToMakeAdmin} not found.`);
+            return;
+        }
+
+        const userDoc = querySnapshot.docs[0];
+        // Check if already admin to avoid unnecessary writes
+        if (userDoc.data().role === 'admin') {
+            console.log(`User ${emailToMakeAdmin} is already an admin.`);
+            return;
+        }
+
+        const batch = writeBatch(db);
+        batch.update(userDoc.ref, { role: 'admin' });
+        await batch.commit();
+        console.log(`Successfully granted admin access to ${emailToMakeAdmin}.`);
+    } catch (error) {
+        console.error("Error granting admin access:", error);
+    }
+})();
+
+
 const MessageSchema = z.object({
   id: z.number(),
   text: z.string().optional(),
