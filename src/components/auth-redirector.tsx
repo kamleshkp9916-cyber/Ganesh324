@@ -9,6 +9,15 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const sellerVerificationPath = '/seller/verification';
+const publicAllowedPaths = [
+    '/live-selling',
+    '/about',
+    '/contact',
+    '/terms-and-conditions',
+    '/privacy-and-security',
+    '/faq',
+];
+
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -17,18 +26,11 @@ export function AuthRedirector() {
 
   useEffect(() => {
     // Wait until both authentication and user data loading are fully complete.
-    if (loading) {
+    if (loading || (user && !userData)) {
       return; 
     }
     
     if (user) {
-        // User is authenticated, now we must ensure we have their profile data before redirecting.
-        if (!userData) {
-            // This state can happen for a brief moment while userData is being fetched from Firestore.
-            // By returning here, we wait for the next render when userData will be available.
-            return;
-        }
-
         // --- User is fully loaded, proceed with redirection logic ---
 
         if (!user.emailVerified) {
@@ -74,14 +76,9 @@ export function AuthRedirector() {
         // No user is logged in.
         const isPublicAllowed = 
             publicOnlyPaths.includes(pathname) || 
+            publicAllowedPaths.includes(pathname) ||
             pathname.startsWith('/product/') ||
-            pathname.startsWith('/seller/profile') ||
-            pathname === '/live-selling' ||
-            pathname === '/about' ||
-            pathname === '/contact' ||
-            pathname === '/terms-and-conditions' ||
-            pathname === '/privacy-and-security' ||
-            pathname === '/faq';
+            pathname.startsWith('/seller/profile');
                                 
         if (!isPublicAllowed) {
             router.replace('/');
@@ -89,8 +86,9 @@ export function AuthRedirector() {
     }
   }, [user, userData, loading, router, pathname]);
 
-  // Show a full-screen loader whenever the auth state is loading or when we have a user
+  // Show a full-screen loader whenever the auth state is loading OR when we have a user
   // but are still waiting for their detailed profile from the database.
+  // This is the key fix to prevent the "flash" of incorrect pages.
   if (loading || (user && !userData)) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
