@@ -67,7 +67,7 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
+    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting' | 'unauthorized'>('loading');
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -91,7 +91,7 @@ export default function SellerRegisterPage() {
         setIsMounted(true);
         if (authLoading) return;
 
-        if (user && userData) {
+        if (user && userData) { // User is logged in
             if (userData.role === 'seller') {
                 if (userData.verificationStatus === 'verified') {
                     setPageStatus('redirecting');
@@ -106,18 +106,17 @@ export default function SellerRegisterPage() {
                     if((userData as any).aadhar?.length === 12) setIsAadharEntered(true);
                     setPageStatus('form');
                 }
-            } else {
-                 // Logged in as a customer, but trying to register as seller.
-                 // Pre-fill what we can.
+            } else { // User is a customer, pre-fill form for upgrade
                 form.setValue('email', user.email || '');
                 const nameParts = user.displayName?.split(' ') || ['', ''];
                 form.setValue('firstName', nameParts[0]);
                 form.setValue('lastName', nameParts.slice(1).join(' '));
+                form.setValue('phone', userData.phone || '+91 ');
+                form.setValue('userId', userData.userId || '@');
                 setPageStatus('form');
             }
-        } else {
-            // No user logged in
-            setPageStatus('form');
+        } else { // No user logged in, should not be on this page
+            setPageStatus('unauthorized');
         }
     }, [router, form, authLoading, user, userData]);
 
@@ -155,8 +154,6 @@ export default function SellerRegisterPage() {
         setIsLoading(true);
         try {
             await handleSellerSignUp(values);
-            // This is a temp flag to let the verification page know a new user just signed up
-            // and it should wait for the user data to be available.
             sessionStorage.setItem('isNewSellerRegistration', 'true');
             router.push('/seller/verification');
         } catch (error: any) {
@@ -176,6 +173,26 @@ export default function SellerRegisterPage() {
                 <LoadingSpinner />
             </div>
         );
+    }
+
+    if (pageStatus === 'unauthorized') {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
+                 <div className="absolute top-4 left-4">
+                    <Button variant="ghost" onClick={() => router.push('/signup')} className="flex items-center gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Signup
+                    </Button>
+                </div>
+                 <Alert className="max-w-lg">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle className="text-xl font-bold">Please Sign Up First</AlertTitle>
+                    <AlertDescription>
+                       To become a seller, you must first create a customer account.
+                    </AlertDescription>
+                </Alert>
+             </div>
+        )
     }
 
     if (pageStatus === 'rejected') {
@@ -205,9 +222,9 @@ export default function SellerRegisterPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
          <div className="absolute top-4 left-4">
           <Button asChild variant="ghost" className="flex items-center gap-2">
-            <Link href="/">
+            <Link href="/live-selling">
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                Back to App
             </Link>
           </Button>
         </div>

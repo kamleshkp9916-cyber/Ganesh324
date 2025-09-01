@@ -42,6 +42,7 @@ import {
   LayoutDashboard,
   Repeat,
   Laptop,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -698,9 +699,11 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/listed-products"><List className="mr-2 h-4 w-4" /><span>Listed Products</span></Link>
-                                        </DropdownMenuItem>
+                                        {userData?.role === 'customer' && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/seller/register"><Briefcase className="mr-2 h-4 w-4" /><span>Become a Seller</span></Link>
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuItem asChild>
                                             <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
                                         </DropdownMenuItem>
