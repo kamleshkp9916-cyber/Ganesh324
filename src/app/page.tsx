@@ -64,6 +64,12 @@ export default function Home() {
                 Sign up
                 </Link>
             </div>
+            <div>
+                Want to become a seller?{" "}
+                <Link href="/seller/login" className="font-semibold text-primary underline">
+                  Register here
+                </Link>
+            </div>
           </div>
         </div>
       </div>
