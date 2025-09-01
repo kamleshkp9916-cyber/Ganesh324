@@ -15,6 +15,8 @@ import {
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
+import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore"
+import { getFirestoreDb } from "@/lib/firebase"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,70 +53,71 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { allOrderData, OrderId } from "@/lib/order-data"
+import { getStatusFromTimeline } from "@/lib/order-data"
 import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 
-const mockUsers = {
-    "USER8432": { name: "Ganesh Prajapati", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8443": { name: "Olivia Martinez", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8438": { name: "Peter Jones", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8442": { name: "Michael Chen", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8437": { name: "Laura Williams", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8433": { name: "Jane Doe", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8434": { name: "Alex Smith", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8435": { name: "Emily Brown", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8436": { name: "Chris Wilson", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8439": { name: "Sarah Miller", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8440": { name: "David Garcia", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8441": { name: "Jessica Rodriguez", avatarUrl: "https://placehold.co/40x40.png" },
-    "USER8450": { name: "Kevin Scott", avatarUrl: "https://placehold.co/40x40.png" },
+type Order = {
+    orderId: string;
+    userId: string;
+    products: any[];
+    address: any;
+    total: number;
+    orderDate: string;
+    isReturnable: boolean;
+    timeline: any[];
 };
-
-const getFullMockOrders = () => Object.entries(allOrderData).map(([orderId, orderDetails]) => {
-    // @ts-ignore
-    const userId = orderDetails.customerId;
-    const user = mockUsers[userId as keyof typeof mockUsers] || { name: 'Unknown User', avatarUrl: '' };
-    const status = orderDetails.timeline[orderDetails.timeline.length - 1].status.split(':')[0].trim();
-    
-    return {
-        orderId: orderId,
-        user: user,
-        product: { name: orderDetails.product.name },
-        date: orderDetails.orderDate,
-        status: status,
-        total: parseFloat(orderDetails.product.price.replace('₹', '').replace(/,/g, '')),
-    };
-});
-
-type Order = ReturnType<typeof getFullMockOrders>[0];
 
 export default function AdminOrdersPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && userData?.role === 'admin') {
-      setOrders(getFullMockOrders());
-    }
-  }, [loading, userData]);
+    const fetchOrders = async () => {
+        if (!loading && userData?.role === 'admin') {
+            const db = getFirestoreDb();
+            const ordersRef = collection(db, "orders");
+            const q = query(ordersRef, orderBy("orderDate", "desc"));
+            
+            try {
+                const querySnapshot = await getDocs(q);
+                const fetchedOrders: Order[] = [];
+                querySnapshot.forEach((doc) => {
+                    fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
+                });
+                setOrders(fetchedOrders);
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Error fetching orders",
+                    description: "Could not retrieve orders from the database."
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        } else if (!loading) {
+            setIsLoading(false);
+        }
+  }, [loading, userData, toast]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
         order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        order.address.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.products.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [orders, searchTerm]);
 
-  if (loading || !userData || userData.role !== 'admin') {
+  if (loading || isLoading || !userData || userData.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
   
@@ -145,7 +148,7 @@ export default function AdminOrdersPage() {
                 <Link href="/admin/orders" className="text-foreground transition-colors hover:text-foreground">Orders</Link>
                 <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
                 <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
-                <Link href="#" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
+                <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
             </nav>
             <Sheet>
                 <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
@@ -156,6 +159,7 @@ export default function AdminOrdersPage() {
                         <Link href="/admin/orders" className="hover:text-foreground">Orders</Link>
                         <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
                         <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
+                        <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                     </nav>
                 </SheetContent>
             </Sheet>
@@ -199,12 +203,12 @@ export default function AdminOrdersPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredOrders.map(order => (
+                            {filteredOrders.length > 0 ? filteredOrders.map(order => (
                                 <TableRow key={order.orderId}>
                                     <TableCell className="font-medium">{order.orderId}</TableCell>
-                                    <TableCell>{order.user.name}</TableCell>
-                                    <TableCell>{order.product.name}</TableCell>
-                                    <TableCell><Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge></TableCell>
+                                    <TableCell>{order.address.name}</TableCell>
+                                    <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}</TableCell>
+                                    <TableCell><Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
                                     <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
@@ -217,7 +221,13 @@ export default function AdminOrdersPage() {
                                         </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-24 text-center">
+                                        No orders found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
