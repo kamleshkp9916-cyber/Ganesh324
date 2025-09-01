@@ -4,7 +4,7 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { createUserData, getUserData, UserData } from '@/lib/follow-data';
+import { createUserData, getUserData, UserData, updateUserData } from '@/lib/follow-data';
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +24,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         let data = await getUserData(firebaseUser.uid);
+        
+        // --- TEMPORARY ADMIN PROMOTION LOGIC ---
+        // This will ensure the specific user is promoted to admin upon login.
+        if (firebaseUser.email === 'kamleshkp9916@gmail.com' && data?.role !== 'admin') {
+            console.log("Attempting to promote kamleshkp9916@gmail.com to admin...");
+            await updateUserData(firebaseUser.uid, { role: 'admin' });
+            // Re-fetch data after update to ensure it's fresh
+            data = await getUserData(firebaseUser.uid);
+            console.log("Re-fetched user data, new role:", data?.role);
+        }
+        // --- END TEMPORARY LOGIC ---
+
         // If no user document exists, it's a brand new user (e.g., first Google sign-in).
         // Create a default customer profile for them.
         if (!data) {
