@@ -12,6 +12,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { EditProfileForm } from '@/components/edit-profile-form';
 import {
@@ -23,6 +25,9 @@ import {
 import { ProfileCard } from '@/components/profile-card';
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 import { useAuthActions } from '@/lib/auth';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function ProfilePage() {
@@ -31,10 +36,13 @@ export default function ProfilePage() {
   const userId = searchParams.get('userId');
   const { user, userData, loading } = useAuth();
   const { updateUserProfile } = useAuthActions();
+  const { toast } = useToast();
 
   // The profileData state will now hold data for OTHER users being viewed
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
   const [key, setKey] = useState(0);
 
   const isOwnProfile = !userId || (user && user.uid === userId);
@@ -82,6 +90,17 @@ export default function ProfilePage() {
   const onFollowToggle = () => {
     setKey(prev => prev + 1);
   };
+  
+  const handleReportSubmit = () => {
+    if (!reportReason.trim()) {
+        toast({ variant: 'destructive', title: 'Reason required', description: 'Please provide a reason for the report.' });
+        return;
+    }
+    console.log(`Reporting user ${profileData?.displayName} for: ${reportReason}`);
+    toast({ title: 'Report Submitted', description: 'Thank you for your feedback. We will review this user.' });
+    setIsReportDialogOpen(false);
+    setReportReason("");
+  };
 
 
   if (loading || !profileData) {
@@ -100,6 +119,7 @@ export default function ProfilePage() {
 
 
   return (
+    <>
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             
@@ -127,7 +147,7 @@ export default function ProfilePage() {
                             <span>Share Profile</span>
                         </DropdownMenuItem>
                         {!isOwnProfile && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setIsReportDialogOpen(true)}>
                                 <Flag className="mr-2 h-4 w-4" />
                                 <span>Report User</span>
                             </DropdownMenuItem>
@@ -158,5 +178,30 @@ export default function ProfilePage() {
              />
         </DialogContent>
     </Dialog>
+
+    <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Report {profileData.displayName}</DialogTitle>
+                <DialogDescription>
+                    Please provide a reason for reporting this user. Your feedback helps keep our community safe.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Label htmlFor="report-reason">Reason</Label>
+                <Textarea 
+                    id="report-reason"
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    placeholder="e.g., Inappropriate content, spam, scam..."
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsReportDialogOpen(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleReportSubmit}>Submit Report</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
