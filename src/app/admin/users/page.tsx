@@ -349,14 +349,10 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    if (!loading) {
-      if (userData?.role !== 'admin') {
-        router.replace('/');
-      } else {
-        fetchUsers();
-      }
+    if (!loading && userData?.role === 'admin') {
+      fetchUsers();
     }
-  }, [user, userData, loading, router]);
+  }, [user, userData, loading]);
 
 
   if (loading || !userData || userData.role !== 'admin') {

@@ -160,13 +160,9 @@ export default function AdminDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && userData?.role !== 'admin') {
-      router.replace("/");
-    }
-  }, [user, userData, loading, router]);
-
-
+  // The AuthRedirector now handles all unauthorized access and loading states.
+  // This page can assume that if it renders, the user is a verified admin.
+  
   if (loading || !userData || userData.role !== 'admin') {
     return (
         <div className="flex items-center justify-center min-h-screen">

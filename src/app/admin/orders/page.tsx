@@ -101,14 +101,10 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading) {
-      if (userData?.role === 'admin') {
-        setOrders(getFullMockOrders());
-      } else {
-        router.replace('/');
-      }
+    if (!loading && userData?.role === 'admin') {
+      setOrders(getFullMockOrders());
     }
-  }, [loading, userData, router]);
+  }, [loading, userData]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
