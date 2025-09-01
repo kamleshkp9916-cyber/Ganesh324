@@ -61,7 +61,7 @@ export function AuthRedirector() {
         }
         
         else { // This is a customer
-            if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath) {
+            if (publicOnlyPaths.includes(pathname) || pathname === sellerVerificationPath || pathname.startsWith('/seller')) {
                 router.replace('/live-selling');
             }
         }
