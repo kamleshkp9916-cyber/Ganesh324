@@ -198,7 +198,7 @@ const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onO
 };
 
 
-const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRowClick: (user: any) => void, onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
+const UserTable = ({ users, onEdit, onDelete }: { users: any[], onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -226,7 +226,6 @@ const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRo
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onRowClick(u)}>View Profile</DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => onEdit(u)}>Edit Profile</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>Delete Account</DropdownMenuItem>
@@ -627,7 +626,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onRowClick={handleUserRowClick} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={customers} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -638,7 +637,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onRowClick={handleUserRowClick} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={sellers} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -659,3 +658,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
