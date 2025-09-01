@@ -41,6 +41,12 @@ const mockReviews = [
     { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
 
+const mockUserOrders = [
+    { id: "#STREAM5896", products: [{}, {}], timeline: [{ status: 'Delivered', completed: true }], total: 12500.00 },
+    { id: "#STREAM5897", products: [{}], timeline: [{ status: 'Shipped', completed: true }], total: 4999.00 },
+    { id: "#STREAM5902", products: [{}, {}, {}], timeline: [{ status: 'Cancelled by user', completed: true }], total: 3200.00 },
+]
+
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
 const mockAchievements = [
@@ -168,27 +174,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   
   // Fetch user orders
   useEffect(() => {
-    if (profileData.uid && userData?.role === 'admin') {
-        const fetchOrders = async () => {
-            setIsLoadingOrders(true);
-            const db = getFirestoreDb();
-            const ordersRef = collection(db, "orders");
-            const q = query(ordersRef, where("userId", "==", profileData.uid), orderBy("orderDate", "desc"));
-            try {
-                const querySnapshot = await getDocs(q);
-                const orders: any[] = [];
-                querySnapshot.forEach((doc) => {
-                    orders.push({ ...doc.data(), id: doc.id });
-                });
-                setUserOrders(orders);
-            } catch (error) {
-                console.error("Error fetching user orders:", error);
-                toast({ variant: 'destructive', title: 'Error', description: "Could not fetch user's orders." });
-            } finally {
-                setIsLoadingOrders(false);
-            }
-        };
-        fetchOrders();
+    // This is now using mock data, so the fetch is disabled.
+    if (userData?.role === 'admin') {
+      setUserOrders(mockUserOrders);
     }
   }, [profileData.uid, userData?.role, toast]);
 
