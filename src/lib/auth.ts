@@ -17,7 +17,7 @@ export function useAuthActions() {
         try {
             await firebaseSignOut(auth);
             
-            router.push('/live-selling');
+            router.push('/');
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
@@ -121,7 +121,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
           
-          await createUserData(user, 'customer', { userId: values.userId });
+          await createUserData(user, 'customer', { userId: values.userId, phone: values.phone });
           
           await sendEmailVerification(user);
           
@@ -159,13 +159,21 @@ export function useAuthActions() {
     
     const handleSellerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
-        const displayName = `${values.firstName} ${values.lastName}`;
+        let user: User | null = auth.currentUser;
         
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-            const user = userCredential.user;
-            await updateProfile(user, { displayName: displayName });
+            // Check if a user is already logged in (customer upgrading)
+            if (!user) {
+                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                user = userCredential.user;
+                await sendEmailVerification(user);
+            }
+
+            if (!user) throw new Error("User authentication failed.");
             
+            const displayName = `${values.firstName} ${values.lastName}`;
+            await updateProfile(user, { displayName: displayName });
+
             const sellerData: Partial<UserData> = {
                 ...values,
                 role: 'seller',
@@ -178,16 +186,26 @@ export function useAuthActions() {
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
             delete (sellerData as any).aadharOtp;
-            delete (sellerData as any).passportPhoto;
-            delete (sellerData as any).signature;
-
-            await createUserData(user, 'seller', sellerData);
             
-            await sendEmailVerification(user);
+            const storage = getFirebaseStorage();
+
+            if (values.passportPhoto) {
+                 const photoRef = ref(storage, `seller-documents/${user.uid}/passport-photo`);
+                 const photoUrl = await uploadString(photoRef, values.passportPhoto.preview, 'data_url').then(snap => getDownloadURL(snap.ref));
+                 (sellerData as any).passportPhoto = photoUrl;
+            }
+
+            if (values.signature) {
+                 const signatureRef = ref(storage, `seller-documents/${user.uid}/signature`);
+                 const signatureUrl = await uploadString(signatureRef, values.signature, 'data_url').then(snap => getDownloadURL(snap.ref));
+                 (sellerData as any).signature = signatureUrl;
+            }
+
+            await updateUserData(user.uid, sellerData);
             
             toast({
                 title: "Application Submitted!",
-                description: "Your seller application is under review. Please verify your email.",
+                description: "Your seller application is under review. We will notify you upon completion.",
             });
             
         } catch (error: any) {
