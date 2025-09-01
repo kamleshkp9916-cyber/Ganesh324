@@ -9,6 +9,9 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const sellerVerificationPath = '/seller/verification';
+const adminPaths = ['/admin/dashboard', '/admin/orders', '/admin/users', '/admin/inquiries', '/admin/products'];
+const sellerPaths = ['/seller/dashboard', '/seller/orders', '/seller/products', '/seller/messages'];
+
 const publicAllowedPaths = [
     '/live-selling',
     '/about',
@@ -26,7 +29,6 @@ export function AuthRedirector() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Wait until all user data is fully loaded to prevent premature decisions.
     if (loading || (user && !userData)) {
       return; 
     }
@@ -34,8 +36,7 @@ export function AuthRedirector() {
     let targetPath: string | null = null;
     
     if (user) {
-        // --- User is logged in, determine where they should be ---
-
+        // --- User is logged in ---
         if (!user.emailVerified) {
             if (pathname !== emailVerificationPath) {
                 targetPath = emailVerificationPath;
@@ -43,22 +44,26 @@ export function AuthRedirector() {
         } else {
             const { role, verificationStatus } = userData;
             
-            // IMPORTANT: Check for admin first, as an admin might have other roles.
+            // 1. Admin check (Highest Priority)
             if (role === 'admin') {
-                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller')) {
+                if (!pathname.startsWith('/admin')) {
                     targetPath = '/admin/dashboard';
                 }
-            } else if (role === 'seller') {
+            } 
+            // 2. Seller check
+            else if (role === 'seller') {
                 if (verificationStatus !== 'verified') {
                     if (pathname !== sellerVerificationPath) {
                         targetPath = sellerVerificationPath;
                     }
                 } else { // Verified seller
-                    if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath) {
+                    if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/admin')) {
                         targetPath = '/seller/dashboard';
                     }
                 }
-            } else { // Customer
+            } 
+            // 3. Customer check (Default)
+            else { 
                  if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
                     targetPath = '/live-selling';
                 }
@@ -72,15 +77,15 @@ export function AuthRedirector() {
             publicAllowedPaths.includes(pathname) ||
             pathname.startsWith('/product/') ||
             pathname.startsWith('/stream/') ||
-            pathname.startsWith('/seller/profile') ||
-            pathname === '/seller/kyc'; // Allow access to KYC form for logged-out users
+            pathname.startsWith('/seller/profile') || // Allow viewing seller profiles
+            pathname.startsWith('/profile') || // Allow viewing customer profiles
+            pathname === '/seller/kyc';
                                 
         if (!isPublicAllowed) {
             targetPath = '/';
         }
     }
 
-    // If a redirect is needed, set the flag and perform the redirect.
     if (targetPath && targetPath !== pathname) {
         setIsRedirecting(true);
         router.replace(targetPath);
@@ -90,8 +95,6 @@ export function AuthRedirector() {
 
   }, [user, userData, loading, router, pathname]);
 
-  // This is the key change: Show a full-screen loader if auth is loading,
-  // or if a redirect has been initiated. This prevents the "flash".
   if (loading || (user && !userData) || isRedirecting) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
@@ -100,6 +103,5 @@ export function AuthRedirector() {
     );
   }
 
-  // If no loading and no redirect, render the children (the actual page).
   return null;
 }
