@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
@@ -61,7 +61,6 @@ export default function SellerRegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
-    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const sigPadRef = useRef<SignatureCanvas>(null);
     const [isAadharEntered, setIsAadharEntered] = useState(false);
@@ -89,35 +88,28 @@ export default function SellerRegisterPage() {
     useEffect(() => {
         if (authLoading) return;
 
-        if (user && userData) { // User is logged in
-            if (userData.role === 'seller') {
-                if (userData.verificationStatus === 'verified') {
-                    setPageStatus('redirecting');
-                    router.replace('/seller/dashboard');
-                } else if (userData.verificationStatus === 'pending') {
-                    setPageStatus('redirecting');
-                    router.replace('/seller/verification');
-                } else if (userData.verificationStatus === 'rejected') {
-                    setPageStatus('rejected');
-                } else if (userData.verificationStatus === 'needs-resubmission') {
-                    // Pre-fill form for resubmission
-                    form.reset(userData as any);
-                    if((userData as any).aadhar?.length === 12) setIsAadharEntered(true);
-                    setPageStatus('form');
-                }
-            } else { // User is a customer, pre-fill form for upgrade
-                form.setValue('email', user.email || '');
-                const nameParts = user.displayName?.split(' ') || ['', ''];
-                form.setValue('firstName', nameParts[0]);
-                form.setValue('lastName', nameParts.slice(1).join(' '));
-                form.setValue('phone', userData.phone || '+91 ');
-                form.setValue('userId', userData.userId || '@');
-                setPageStatus('form');
+        // If a customer is logged in, pre-fill their info.
+        if (user && userData && userData.role === 'customer') {
+            form.setValue('email', user.email || '');
+            const nameParts = user.displayName?.split(' ') || ['', ''];
+            form.setValue('firstName', nameParts[0]);
+            form.setValue('lastName', nameParts.slice(1).join(' '));
+            form.setValue('phone', userData.phone || '+91 ');
+            form.setValue('userId', userData.userId || '@');
+        } else if (user && userData && userData.role === 'seller') {
+            // The AuthRedirector will handle moving verified/pending sellers away.
+            // But if they have to resubmit, pre-fill their data.
+            if (userData.verificationStatus === 'needs-resubmission') {
+                form.reset({
+                    ...userData,
+                    phone: userData.phone || '+91 ',
+                    password: '',
+                    confirmPassword: '',
+                } as any);
+                if((userData as any).aadhar?.length === 12) setIsAadharEntered(true);
             }
-        } else { // No user logged in, they can fill the form to create an account
-            setPageStatus('form');
         }
-    }, [router, form, authLoading, user, userData]);
+    }, [user, userData, authLoading, form]);
     
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -164,38 +156,16 @@ export default function SellerRegisterPage() {
             setIsLoading(false);
         }
     }
-
-    if (pageStatus === 'loading' || pageStatus === 'redirecting') {
+    
+    // The AuthRedirector handles routing away for logged-in sellers, so we just show a spinner until it decides.
+    if (authLoading || (user && userData?.role === 'seller' && userData.verificationStatus !== 'needs-resubmission')) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
             </div>
         );
     }
-
-    if (pageStatus === 'rejected') {
-        return (
-             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                 <div className="absolute top-4 left-4">
-                    <Button variant="ghost" onClick={() => router.push('/')} className="flex items-center gap-2">
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Home
-                    </Button>
-                </div>
-                 <Alert variant="destructive" className="max-w-lg">
-                    <XCircle className="h-4 w-4" />
-                    <AlertTitle className="text-xl font-bold">Application Rejected</AlertTitle>
-                    <AlertDescription>
-                       We're sorry, but your application to become a seller has been rejected. 
-                       {userData?.rejectionReason && `Reason: ${userData.rejectionReason}`}
-                       <br/>
-                       Please contact support for more information.
-                    </AlertDescription>
-                </Alert>
-             </div>
-        )
-    }
-
+    
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
          <div className="absolute top-4 left-4">
@@ -525,5 +495,3 @@ export default function SellerRegisterPage() {
     </div>
   );
 }
-
-    
