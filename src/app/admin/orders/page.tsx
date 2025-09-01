@@ -13,6 +13,9 @@ import {
   Menu,
   XCircle,
   User,
+  Home,
+  CreditCard,
+  RotateCcw,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -38,6 +41,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu"
 import {
   Pagination,
@@ -73,14 +79,16 @@ type Order = {
     orderDate: string;
     isReturnable: boolean;
     timeline: any[];
+    paymentMethod?: string;
+    refundStatus?: 'N/A' | 'Completed' | 'Pending';
 };
 
 const mockOrders: Order[] = [
     {
         orderId: "#MOCK5896",
         userId: "mockUser1",
-        products: [{ name: "Vintage Camera" }],
-        address: { name: "Ganesh Prajapati" },
+        products: [{ name: "Vintage Camera", key: "prod_1" }],
+        address: { name: "Ganesh Prajapati", village: "123 Sunshine Apts", city: "Pune", state: "MH", pincode: "411001", phone: "9876543210" },
         total: 12500.00,
         orderDate: "2024-07-27T22:31:00.000Z",
         isReturnable: true,
@@ -91,33 +99,39 @@ const mockOrders: Order[] = [
             { status: "In Transit", date: "Jul 29, 2024", time: "Current status", completed: true },
             { status: "Out for Delivery", date: null, time: null, completed: false },
             { status: "Delivered", date: null, time: null, completed: false },
-        ]
+        ],
+        paymentMethod: 'Credit Card',
+        refundStatus: 'N/A'
     },
      {
         orderId: "#MOCK5905",
         userId: "mockUser2",
-        products: [{ name: "Designer Sunglasses" }],
-        address: { name: "Peter Jones" },
+        products: [{ name: "Designer Sunglasses", key: 'prod_4' }],
+        address: { name: "Peter Jones", village: "101 Galaxy Heights", city: "Jaipur", state: "RJ", pincode: "302017", phone: "9876543213" },
         total: 7800.00,
         orderDate: "2024-07-28T14:30:00.000Z",
         isReturnable: true,
         timeline: [
             { status: "Order Confirmed", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
             { status: "Pending", date: null, time: null, completed: false },
-        ]
+        ],
+        paymentMethod: 'UPI',
+        refundStatus: 'N/A'
     },
     {
         orderId: "#MOCK5903",
         userId: "mockUser3",
-        products: [{ name: "Coffee Maker" }],
-        address: { name: "Jessica Rodriguez" },
+        products: [{ name: "Coffee Maker", key: 'prod_5' }],
+        address: { name: "Jessica Rodriguez", village: "222 Ocean View", city: "Chennai", state: "TN", pincode: "600090", phone: "9876543214" },
         total: 4500.00,
         orderDate: "2024-07-21T11:00:00.000Z",
         isReturnable: false,
         timeline: [
              { status: "Order Confirmed", date: "Jul 21, 2024", time: "11:00 AM", completed: true },
              { status: "Cancelled by admin", date: "Jul 21, 2024", time: "11:30 AM", completed: true },
-        ]
+        ],
+        paymentMethod: 'Net Banking',
+        refundStatus: 'Completed'
     }
 ];
 
@@ -295,7 +309,11 @@ export default function AdminOrdersPage() {
                                 <TableRow key={order.orderId}>
                                     <TableCell className="font-medium">{order.orderId}</TableCell>
                                     <TableCell>{order.address.name}</TableCell>
-                                    <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}</TableCell>
+                                    <TableCell>
+                                        <Link href={`/product/${order.products[0].key}`} className="hover:underline">
+                                            {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell><Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
                                     <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                     <TableCell>
@@ -303,9 +321,31 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreVertical className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Order Details</DropdownMenuItem>
+                                                <DropdownMenuSub>
+                                                    <DropdownMenuSubTrigger>Transaction Details</DropdownMenuSubTrigger>
+                                                    <DropdownMenuSubContent className="p-2 w-72">
+                                                        <div className="space-y-2 text-sm">
+                                                            <div className="flex items-start gap-2">
+                                                                <Home className="h-4 w-4 mt-0.5 text-muted-foreground"/>
+                                                                <div>
+                                                                    <p className="font-semibold">Address</p>
+                                                                    <p className="text-muted-foreground">{order.address.village}, {order.address.city}, {order.address.state} - {order.address.pincode}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <CreditCard className="h-4 w-4 text-muted-foreground"/>
+                                                                <p><span className="font-semibold">Payment:</span> {order.paymentMethod || 'N/A'}</p>
+                                                            </div>
+                                                             <div className="flex items-center gap-2">
+                                                                <RotateCcw className="h-4 w-4 text-muted-foreground"/>
+                                                                <p><span className="font-semibold">Refund:</span> {order.refundStatus || 'N/A'}</p>
+                                                            </div>
+                                                        </div>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuSub>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
-                                                 <DropdownMenuSeparator />
+                                                <DropdownMenuSeparator />
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                         <DropdownMenuItem 
