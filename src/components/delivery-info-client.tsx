@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -175,7 +176,7 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
 
 export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: string }) {
     const router = useRouter();
-    const { user, loading } = useAuth();
+    const { user, userData, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
     const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
@@ -402,10 +403,16 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             setIsHelpChatOpen(false);
             // Wait for chat to close before opening dialog
             setTimeout(() => setIsCancelFlowOpen(true), 100);
-        }
-        if (action === 'return_order') {
+        } else if (action === 'return_order') {
             setIsHelpChatOpen(false);
             setTimeout(() => setIsReturnFlowOpen(true), 100);
+        } else if (action === 'talk_to_executive') {
+            // This case is now handled inside HelpChat component, but as a fallback.
+            setIsHelpChatOpen(false);
+             if (user && userData) {
+                const adminUrl = `/admin/messages?userId=${user.uid}&userName=${userData.displayName}`;
+                window.open(adminUrl, '_blank');
+             }
         }
     };
 
@@ -760,5 +767,3 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
-
-    
