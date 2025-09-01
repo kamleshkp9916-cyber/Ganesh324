@@ -122,7 +122,7 @@ export default function SellerVerificationPage() {
         if (status === 'needs-resubmission') {
             router.push('/seller/register');
         } else {
-            signOut();
+            signOut(true);
         }
     };
     
@@ -145,5 +145,3 @@ export default function SellerVerificationPage() {
         </div>
     )
 }
-
-    

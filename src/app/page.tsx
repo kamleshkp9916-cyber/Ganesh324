@@ -13,9 +13,17 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 export default function Home() {
   const { loading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
+  const [hideSellerLink, setHideSellerLink] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // Check if the seller sign-out flag is set
+    const sellerSignedOut = sessionStorage.getItem('sellerSignedOut');
+    if (sellerSignedOut === 'true') {
+        setHideSellerLink(true);
+        // Clean up the flag so it doesn't persist across sessions
+        sessionStorage.removeItem('sellerSignedOut');
+    }
   }, []);
 
   // The AuthRedirector will handle moving away from this page if the user is already logged in.
@@ -64,12 +72,14 @@ export default function Home() {
                 Sign up
                 </Link>
             </div>
-            <div>
-                Want to become a seller?{" "}
-                <Link href="/seller/login" className="font-semibold text-primary underline">
-                  Register here
-                </Link>
-            </div>
+            {!hideSellerLink && (
+                 <div>
+                    Want to become a seller?{" "}
+                    <Link href="/seller/register" className="font-semibold text-primary underline">
+                      Register here
+                    </Link>
+                </div>
+            )}
           </div>
         </div>
       </div>

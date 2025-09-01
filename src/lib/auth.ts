@@ -12,12 +12,18 @@ export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
     
-    const signOut = async () => {
+    const signOut = async (isSeller = false) => {
         const auth = getFirebaseAuth();
         try {
             await firebaseSignOut(auth);
             
-            router.push('/seller/login');
+            if (isSeller) {
+                // Set a flag to indicate a seller has just signed out.
+                // This can be used by the login page to adjust its UI.
+                sessionStorage.setItem('sellerSignedOut', 'true');
+            }
+
+            router.push('/');
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
