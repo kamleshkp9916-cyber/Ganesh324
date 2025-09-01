@@ -21,6 +21,14 @@ export interface UserData {
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
     rejectionReason?: string;
     resubmissionReason?: string;
+    // KYC fields
+    kycStatus?: 'verified' | 'pending' | 'rejected';
+    kycType?: string;
+    verifiedAt?: string;
+    maskedData?: {
+        aadhaar: string;
+        pan: string;
+    };
     // seller specific fields
     businessName?: string;
     aadhar?: string;
@@ -99,13 +107,14 @@ export const createUserData = async (user: User, role: 'customer' | 'seller', ad
         ...additionalData,
     } as UserData;
     
-    // Explicitly remove password fields before saving to Firestore
+    // Explicitly remove sensitive fields before saving to Firestore
     delete (userData as any).password;
     delete (userData as any).confirmPassword;
     delete (userData as any).aadharOtp;
     delete (userData as any).passportPhoto;
     delete (userData as any).signature;
-
+    delete (userData as any).aadhar;
+    delete (userData as any).pan;
 
     await setDoc(userDocRef, userData);
 };

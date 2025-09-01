@@ -12,6 +12,7 @@ import {
   Search,
   Users,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -257,6 +258,12 @@ export default function SellerDashboard() {
               />
             </div>
           </form>
+          {userData?.kycStatus === 'verified' && (
+            <Badge variant="success" className="items-center gap-1">
+              <ShieldCheck className="h-4 w-4" />
+              KYC Verified
+            </Badge>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -383,5 +390,3 @@ export default function SellerDashboard() {
     </>
   )
 }
-
-    
