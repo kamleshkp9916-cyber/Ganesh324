@@ -29,6 +29,8 @@ export function AuthRedirector() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
+    // Wait until authentication is fully resolved and we have user data.
+    // The key change is `(user && !userData)` which forces a wait until the role is loaded.
     if (loading || (user && !userData)) {
       return; 
     }
@@ -95,6 +97,7 @@ export function AuthRedirector() {
 
   }, [user, userData, loading, router, pathname]);
 
+  // Show a spinner if auth is loading, or if we are waiting for user data after auth is confirmed.
   if (loading || (user && !userData) || isRedirecting) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
