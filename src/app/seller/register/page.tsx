@@ -67,7 +67,7 @@ export default function SellerRegisterPage() {
     const [isAadharEntered, setIsAadharEntered] = useState(false);
     const [isOtpVerified, setIsOtpVerified] = useState(false);
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting' | 'unauthorized'>('loading');
+    const [pageStatus, setPageStatus] = useState<'loading' | 'form' | 'rejected' | 'redirecting'>('loading');
 
     const form = useForm<z.infer<typeof sellerFormSchema>>({
         resolver: zodResolver(sellerFormSchema),
@@ -115,8 +115,8 @@ export default function SellerRegisterPage() {
                 form.setValue('userId', userData.userId || '@');
                 setPageStatus('form');
             }
-        } else { // No user logged in, should redirect to signup
-             router.replace('/signup');
+        } else { // No user logged in, they can fill the form to create an account
+            setPageStatus('form');
         }
     }, [router, form, authLoading, user, userData]);
 
@@ -167,7 +167,7 @@ export default function SellerRegisterPage() {
         }
     }
 
-    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting' || pageStatus === 'unauthorized') {
+    if (!isMounted || pageStatus === 'loading' || pageStatus === 'redirecting') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
