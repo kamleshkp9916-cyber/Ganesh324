@@ -299,6 +299,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
+  
+  const showAdminView = userData?.role === 'admin';
 
   return (
     <>
@@ -420,7 +422,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       <div className="p-4 sm:p-6">
           <CardContent className="p-0 space-y-6">
               
-              {isOwnProfile && profileData.role === 'customer' && (
+              {(isOwnProfile || showAdminView) && (
                   <>
                   <div>
                       <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
@@ -443,34 +445,36 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <div>
                       <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold">Delivery Addresses</h3>
-                          <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                            <DialogTrigger asChild>
-                               <Button variant="outline" size="sm">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add/Manage
-                                </Button>
-                            </DialogTrigger>
-                             <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                <DialogHeader>
-                                    <DialogTitle>Manage Delivery Addresses</DialogTitle>
-                                </DialogHeader>
-                                <EditAddressForm 
-                                    onSave={(addr) => {
-                                        const newAddresses = profileData.addresses ? [...profileData.addresses] : [];
-                                        const existingIndex = newAddresses.findIndex(a => a.id === addr.id);
-                                        if (existingIndex > -1) {
-                                            newAddresses[existingIndex] = addr;
-                                        } else {
-                                            newAddresses.push({ ...addr, id: Date.now() });
-                                        }
-                                        onAddressesUpdate(newAddresses);
-                                        setIsAddressDialogOpen(false);
-                                    }}
-                                    onCancel={() => setIsAddressDialogOpen(false)}
-                                    onAddressesUpdate={onAddressesUpdate}
-                                />
-                            </DialogContent>
-                          </Dialog>
+                          {isOwnProfile && (
+                            <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add/Manage
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                    <DialogHeader>
+                                        <DialogTitle>Manage Delivery Addresses</DialogTitle>
+                                    </DialogHeader>
+                                    <EditAddressForm 
+                                        onSave={(addr) => {
+                                            const newAddresses = profileData.addresses ? [...profileData.addresses] : [];
+                                            const existingIndex = newAddresses.findIndex(a => a.id === addr.id);
+                                            if (existingIndex > -1) {
+                                                newAddresses[existingIndex] = addr;
+                                            } else {
+                                                newAddresses.push({ ...addr, id: Date.now() });
+                                            }
+                                            onAddressesUpdate(newAddresses);
+                                            setIsAddressDialogOpen(false);
+                                        }}
+                                        onCancel={() => setIsAddressDialogOpen(false)}
+                                        onAddressesUpdate={onAddressesUpdate}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                          )}
                       </div>
                       {addresses && addresses.length > 0 ? (
                         <div className="space-y-2">
@@ -513,7 +517,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                       <TabsTrigger value="achievements">Achievements</TabsTrigger>
                                   </>
                               )}
-                               {userData?.role === 'admin' && (
+                               {(showAdminView || isOwnProfile) && (
                                 <TabsTrigger value="orders">Orders</TabsTrigger>
                                )}
                           </TabsList>
