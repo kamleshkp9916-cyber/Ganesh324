@@ -176,6 +176,7 @@ export default function AdminOrdersPage() {
                 <Link href="/admin/orders" className="text-foreground transition-colors hover:text-foreground">Orders</Link>
                 <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
                 <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
+                <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                 <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
             </nav>
             <Sheet>
@@ -187,6 +188,7 @@ export default function AdminOrdersPage() {
                         <Link href="/admin/orders" className="hover:text-foreground">Orders</Link>
                         <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
                         <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
+                        <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
                         <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                     </nav>
                 </SheetContent>

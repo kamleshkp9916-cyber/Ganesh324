@@ -97,10 +97,8 @@ export default function AdminInquiriesPage() {
   };
 
   const handleReplyToInquiry = (inquiry: Inquiry & {id: string}) => {
-    // This will open the seller message page, but we can pass params
-    // to indicate this is an executive reply.
-    // The seller message page can then handle this special case.
-    router.push(`/seller/messages?userId=${inquiry.email}&userName=${inquiry.name}&executive=true`);
+    // This will open the new admin message page
+    router.push(`/admin/messages?userId=${inquiry.email}&userName=${inquiry.name}`);
   }
 
   if (loading || userData?.role !== 'admin') {
@@ -117,6 +115,7 @@ export default function AdminInquiriesPage() {
                     <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
                     <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
                     <Link href="/admin/inquiries" className="text-foreground transition-colors hover:text-foreground">Inquiries</Link>
+                    <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                     <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
                 </nav>
                 <Sheet>
@@ -128,6 +127,7 @@ export default function AdminInquiriesPage() {
                             <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
                             <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
                             <Link href="/admin/inquiries" className="hover:text-foreground">Inquiries</Link>
+                            <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
                             <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                         </nav>
                     </SheetContent>
@@ -219,5 +219,3 @@ export default function AdminInquiriesPage() {
     </Dialog>
   )
 }
-
-    

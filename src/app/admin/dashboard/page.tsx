@@ -211,6 +211,12 @@ export default function AdminDashboard() {
             Inquiries
           </Link>
           <Link
+            href="/admin/messages"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Messages
+          </Link>
+          <Link
             href="/admin/products"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -263,6 +269,12 @@ export default function AdminDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Inquiries
+              </Link>
+              <Link
+                href="/admin/messages"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Messages
               </Link>
                <Link
                 href="/admin/products"
