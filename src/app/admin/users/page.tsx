@@ -559,8 +559,8 @@ export default function AdminUsersPage() {
         <Tabs defaultValue="customers">
             <div className="flex items-center justify-between">
                 <TabsList>
-                    <TabsTrigger value="customers">Customers</TabsTrigger>
-                    <TabsTrigger value="sellers">Sellers</TabsTrigger>
+                    <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
+                    <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
                      <TabsTrigger value="verification">
                         Verification Requests 
                         {pendingRequestCount > 0 && <Badge className="ml-2">{pendingRequestCount}</Badge>}
