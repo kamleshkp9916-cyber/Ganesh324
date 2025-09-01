@@ -6,14 +6,31 @@ import { LoginForm } from '@/components/auth/login-form';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function SellerLoginPage() {
+    const { user, loading } = useAuth();
     const router = useRouter();
 
-    // The AuthRedirector now handles all post-login redirection.
-    // This page's only job is to show the login form.
+    useEffect(() => {
+        // The AuthRedirector component will handle redirection once the user is logged in.
+        // This page no longer needs its own redirection logic.
+    }, [user, loading, router]);
     
+    // While the AuthRedirector handles the final redirection,
+    // we can show a spinner here to prevent the form from flashing briefly
+    // for an already-logged-in user.
+    if (loading || user) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
   return (
     <div className="w-full min-h-screen grid lg:grid-cols-2">
        <div className="flex items-center justify-center p-4 relative bg-background">
@@ -55,3 +72,5 @@ export default function SellerLoginPage() {
     </div>
   );
 }
+
+    

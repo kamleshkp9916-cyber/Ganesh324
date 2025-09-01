@@ -121,24 +121,20 @@ export default function SellerDashboard() {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
 
   useEffect(() => {
-    if (!loading) {
-      if (userData?.role !== 'seller') {
-          router.replace('/');
-      } else if (userData.verificationStatus !== 'verified') {
-          router.replace('/seller/verification');
-      } else {
-          // Check if the welcome message has been shown before
-          const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
-          if (!welcomeShown) {
-              setShowWelcomeDialog(true);
-              localStorage.setItem(SELLER_WELCOME_KEY, 'true');
-          }
-      }
+    // The AuthRedirector now handles all unauthorized access.
+    // This page only needs to handle its own content logic.
+    if (!loading && userData?.role === 'seller' && userData.verificationStatus === 'verified') {
+        const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
+        if (!welcomeShown) {
+            setShowWelcomeDialog(true);
+            localStorage.setItem(SELLER_WELCOME_KEY, 'true');
+        }
     }
-  }, [user, userData, loading, router]);
+  }, [userData, loading, router]);
 
 
-  if (loading || !userData || userData.role !== 'seller' || userData.verificationStatus !== 'verified') {
+  // The AuthRedirector will show a spinner, so this page can assume data is ready or it will be redirected.
+  if (loading || !user || !userData || userData.role !== 'seller' || userData.verificationStatus !== 'verified') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -387,3 +383,5 @@ export default function SellerDashboard() {
     </>
   )
 }
+
+    

@@ -13,7 +13,7 @@ import { useAuthActions } from "@/lib/auth";
 type VerificationStatus = 'loading' | 'pending' | 'rejected' | 'needs-resubmission' | 'verified' | 'no-details';
 
 export default function SellerVerificationPage() {
-    const { userData, loading } = useAuth();
+    const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const router = useRouter();
     const [status, setStatus] = useState<VerificationStatus>('loading');
@@ -21,41 +21,40 @@ export default function SellerVerificationPage() {
     const [resubmissionReason, setResubmissionReason] = useState<string | null>(null);
 
     useEffect(() => {
-        const isNewRegistration = sessionStorage.getItem('isNewSellerRegistration') === 'true';
-        
-        if (loading && isNewRegistration) {
-            // If it's a new registration, we deliberately wait for the auth state to settle.
+        // Wait until auth state is fully resolved
+        if (loading) {
+            setStatus('loading');
             return;
         }
 
-        if (!loading && userData) {
-            if (isNewRegistration) {
-                // Clear the flag after reading it
-                sessionStorage.removeItem('isNewSellerRegistration');
-            }
-
-            const currentStatus = userData.verificationStatus;
-            
-            if (currentStatus === 'verified') {
-                router.replace('/seller/dashboard');
-                setStatus('verified');
-                return;
-            }
-            
-            setStatus(currentStatus || 'no-details');
-            if (currentStatus === 'rejected') {
-                setRejectionReason((userData as any).rejectionReason || "No specific reason provided.");
-            }
-             if (currentStatus === 'needs-resubmission') {
-                setResubmissionReason((userData as any).resubmissionReason || "Please review your details carefully.");
-            }
-        } else if (!loading && !userData && !isNewRegistration) {
-            // This might happen if user is not logged in and lands here.
+        // If auth has loaded but there's no user or userData, something is wrong.
+        // The AuthRedirector should handle this, but as a fallback, send to register.
+        if (!user || !userData) {
             router.replace('/seller/register');
+            return;
         }
-    }, [userData, loading, router]);
 
-    if (status === 'loading' || status === 'verified') {
+        // We have user data, so we can determine the status
+        const currentStatus = userData.verificationStatus;
+
+        if (currentStatus === 'verified') {
+            router.replace('/seller/dashboard'); // Should be handled by AuthRedirector, but good to have.
+            return;
+        }
+        
+        setStatus(currentStatus || 'no-details');
+        
+        if (currentStatus === 'rejected') {
+            setRejectionReason((userData as any).rejectionReason || "No specific reason provided.");
+        }
+        if (currentStatus === 'needs-resubmission') {
+            setResubmissionReason((userData as any).resubmissionReason || "Please review your details carefully.");
+        }
+
+    }, [userData, user, loading, router]);
+
+
+    if (status === 'loading') {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner />
@@ -63,8 +62,8 @@ export default function SellerVerificationPage() {
         );
     }
     
-    if (status === 'no-details' && !loading) {
-        return (
+    if (status === 'no-details') {
+         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
                 <p>Could not load seller details. Redirecting...</p>
                 {useEffect(() => {
@@ -114,6 +113,7 @@ export default function SellerVerificationPage() {
                     </Alert>
                 );
             default:
+                // This will be caught by the loading spinner above, but is a safe fallback.
                 return <LoadingSpinner />;
         }
     }
@@ -145,3 +145,5 @@ export default function SellerVerificationPage() {
         </div>
     )
 }
+
+    
