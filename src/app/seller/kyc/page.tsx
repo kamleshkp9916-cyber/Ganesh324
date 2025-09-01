@@ -17,11 +17,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { verifyKyc } from "@/ai/flows/kyc-flow";
-
-const kycSchema = z.object({
-  aadhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits."),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format."),
-});
+import { KycInputSchema } from "@/lib/schemas/kyc";
 
 export default function SellerKycPage() {
     const { user, userData, loading: authLoading } = useAuth();
@@ -29,13 +25,20 @@ export default function SellerKycPage() {
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
-    const form = useForm<z.infer<typeof kycSchema>>({
-        resolver: zodResolver(kycSchema),
+    const form = useForm<z.infer<typeof KycInputSchema>>({
+        resolver: zodResolver(KycInputSchema),
         defaultValues: {
+            userId: user?.uid || "",
             aadhar: "",
             pan: "",
         },
     });
+
+    useEffect(() => {
+        if(user) {
+            form.setValue('userId', user.uid);
+        }
+    }, [user, form]);
 
     if (authLoading) {
         return (
@@ -56,10 +59,10 @@ export default function SellerKycPage() {
         return <LoadingSpinner />;
     }
 
-    async function onSubmit(values: z.infer<typeof kycSchema>) {
+    async function onSubmit(values: z.infer<typeof KycInputSchema>) {
         setIsLoading(true);
         try {
-            await verifyKyc({ userId: user!.uid, aadhar: values.aadhar, pan: values.pan });
+            await verifyKyc(values);
 
             toast({
                 title: "Verification Submitted!",

@@ -8,14 +8,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { updateUserData } from '@/lib/follow-data';
-
-export const KycInputSchema = z.object({
-  userId: z.string(),
-  aadhar: z.string().length(12, "Invalid Aadhaar number"),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format"),
-});
-
-export type KycInput = z.infer<typeof KycInputSchema>;
+import { KycInputSchema, KycInput } from '@/lib/schemas/kyc';
 
 const KycOutputSchema = z.object({
   status: z.enum(["verified", "pending", "rejected"]),
