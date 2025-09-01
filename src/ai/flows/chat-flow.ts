@@ -19,28 +19,6 @@ import type { CartProduct } from '@/lib/product-history';
 getFirebaseAdminApp();
 const db = getFirestore();
 
-// Grant admin role to a specific user.
-const makeAdmin = async () => {
-    const adminEmail = 'kamleshkp9916@gmail.com';
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', adminEmail));
-
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-        const batch = writeBatch(db);
-        querySnapshot.forEach(doc => {
-            console.log(`Setting role 'admin' for user: ${doc.id}`);
-            batch.update(doc.ref, { role: 'admin' });
-        });
-        await batch.commit();
-        console.log('Admin role set successfully.');
-    } else {
-        console.log(`User with email ${adminEmail} not found.`);
-    }
-};
-makeAdmin().catch(console.error);
-
-
 const MessageSchema = z.object({
   id: z.number(),
   text: z.string().optional(),
