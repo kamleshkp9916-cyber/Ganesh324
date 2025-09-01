@@ -10,8 +10,8 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 
 // Initialize Firebase Admin SDK
-// getFirebaseAdminApp();
-// const db = getFirestore();
+getFirebaseAdminApp();
+const db = getFirestore();
 
 // Mock database for executive chats
 const mockExecutiveDatabase: Record<string, Message[]> = {};
@@ -50,14 +50,13 @@ const getExecutiveMessagesFlow = ai.defineFlow(
     outputSchema: GetMessagesOutputSchema,
   },
   async ({ userId }) => {
-    // const docRef = db.collection('executiveChats').doc(userId);
-    // const doc = await docRef.get();
-    // if (!doc.exists) {
-    //     return [];
-    // }
-    // const data = doc.data();
-    // return (data?.messages || []) as Message[];
-    return mockExecutiveDatabase[userId] || [];
+    const docRef = db.collection('executiveChats').doc(userId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+        return [];
+    }
+    const data = doc.data();
+    return (data?.messages || []) as Message[];
   }
 );
 
@@ -69,7 +68,7 @@ const sendExecutiveMessageFlow = ai.defineFlow(
     outputSchema: SendMessageOutputSchema,
   },
   async ({ userId, message, from }) => {
-    // const docRef = db.collection('executiveChats').doc(userId);
+    const docRef = db.collection('executiveChats').doc(userId);
 
     const newMessage: Message = {
       id: Date.now(),
@@ -78,24 +77,17 @@ const sendExecutiveMessageFlow = ai.defineFlow(
       ...message,
     };
 
-    if (!mockExecutiveDatabase[userId]) {
-        mockExecutiveDatabase[userId] = [];
+    const doc = await docRef.get();
+    if (!doc.exists) {
+        await docRef.set({ messages: [newMessage] });
+    } else {
+        await docRef.update({
+            messages: FieldValue.arrayUnion(newMessage)
+        });
     }
-    
-    mockExecutiveDatabase[userId].push(newMessage);
 
-    // const doc = await docRef.get();
-    // if (!doc.exists) {
-    //     await docRef.set({ messages: [newMessage] });
-    // } else {
-    //     await docRef.update({
-    //         messages: FieldValue.arrayUnion(newMessage)
-    //     });
-    // }
-
-    // const updatedDoc = await docRef.get();
-    // return (updatedDoc.data()?.messages || []) as Message[];
-    return mockExecutiveDatabase[userId];
+    const updatedDoc = await docRef.get();
+    return (updatedDoc.data()?.messages || []) as Message[];
   }
 );
 

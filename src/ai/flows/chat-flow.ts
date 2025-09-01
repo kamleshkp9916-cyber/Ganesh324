@@ -16,8 +16,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-admin';
 import type { CartProduct } from '@/lib/product-history';
 
-// getFirebaseAdminApp();
-// const db = getFirestore();
+getFirebaseAdminApp();
+const db = getFirestore();
 
 
 const MessageSchema = z.object({
@@ -197,38 +197,38 @@ const updateOrderStatusFlow = ai.defineFlow(
     },
     async ({ orderId, status }) => {
         // This flow now needs to update Firestore
-        // const orderRef = db.collection('orders').doc(orderId);
-        // const orderDoc = await orderRef.get();
+        const orderRef = db.collection('orders').doc(orderId);
+        const orderDoc = await orderRef.get();
 
-        // if (orderDoc.exists) {
-        //     const orderData = orderDoc.data() as Order;
-        //     let newTimeline = orderData.timeline;
+        if (orderDoc.exists) {
+            const orderData = orderDoc.data() as Order;
+            let newTimeline = orderData.timeline;
 
-        //     if (status === 'Return Initiated') {
-        //         newTimeline = newTimeline.filter(step => step.completed);
-        //         newTimeline.push({
-        //             status: "Return Initiated: The recipient has initiated a return of the package.",
-        //             date: format(new Date(), 'MMM dd, yyyy'),
-        //             time: format(new Date(), 'hh:mm a'),
-        //             completed: true
-        //         });
-        //         newTimeline.push({ status: "Return package picked up", date: null, time: null, completed: false });
-        //         newTimeline.push({ status: "Returned", date: null, time: null, completed: false });
-        //     } else {
-        //         newTimeline.push({
-        //             status: status,
-        //             date: format(new Date(), 'MMM dd, yyyy'),
-        //             time: format(new Date(), 'hh:mm a'),
-        //             completed: true
-        //         });
-        //     }
+            if (status === 'Return Initiated') {
+                newTimeline = newTimeline.filter(step => step.completed);
+                newTimeline.push({
+                    status: "Return Initiated: The recipient has initiated a return of the package.",
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'hh:mm a'),
+                    completed: true
+                });
+                newTimeline.push({ status: "Return package picked up", date: null, time: null, completed: false });
+                newTimeline.push({ status: "Returned", date: null, time: null, completed: false });
+            } else {
+                newTimeline.push({
+                    status: status,
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'hh:mm a'),
+                    completed: true
+                });
+            }
 
-        //     await orderRef.update({ timeline: newTimeline });
-        //     console.log(`Updated status for order ${orderId} to ${status}`);
-        // } else {
-        //     console.error(`Order with ID ${orderId} not found.`);
-        //     throw new Error(`Order not found`);
-        // }
+            await orderRef.update({ timeline: newTimeline });
+            console.log(`Updated status for order ${orderId} to ${status}`);
+        } else {
+            console.error(`Order with ID ${orderId} not found.`);
+            throw new Error(`Order not found`);
+        }
     }
 );
 
@@ -259,7 +259,7 @@ const createOrderFlow = ai.defineFlow(
         ]
     };
 
-    // await db.collection('orders').doc(orderId).set(orderData);
+    await db.collection('orders').doc(orderId).set(orderData);
     
     return { orderId };
   }
