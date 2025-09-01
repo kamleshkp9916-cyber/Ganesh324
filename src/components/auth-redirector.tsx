@@ -9,8 +9,6 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const sellerVerificationPath = '/seller/verification';
-const adminPaths = ['/admin/dashboard', '/admin/orders', '/admin/users', '/admin/inquiries', '/admin/products'];
-const sellerPaths = ['/seller/dashboard', '/seller/orders', '/seller/products', '/seller/messages'];
 
 const publicAllowedPaths = [
     '/live-selling',
@@ -26,12 +24,10 @@ export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Wait until authentication is fully resolved and we have user data.
-    // The key change is `(user && !userData)` which forces a wait until the role is loaded.
-    if (loading || (user && !userData)) {
+    // If auth state is still loading, wait.
+    if (loading) {
       return; 
     }
     
@@ -43,7 +39,7 @@ export function AuthRedirector() {
             if (pathname !== emailVerificationPath) {
                 targetPath = emailVerificationPath;
             }
-        } else {
+        } else if (userData) { // Make sure we have the role data
             const { role, verificationStatus } = userData;
             
             // 1. Admin check (Highest Priority)
@@ -79,8 +75,8 @@ export function AuthRedirector() {
             publicAllowedPaths.includes(pathname) ||
             pathname.startsWith('/product/') ||
             pathname.startsWith('/stream/') ||
-            pathname.startsWith('/seller/profile') || // Allow viewing seller profiles
-            pathname.startsWith('/profile') || // Allow viewing customer profiles
+            pathname.startsWith('/seller/profile') ||
+            pathname.startsWith('/profile') ||
             pathname === '/seller/kyc';
                                 
         if (!isPublicAllowed) {
@@ -89,16 +85,13 @@ export function AuthRedirector() {
     }
 
     if (targetPath && targetPath !== pathname) {
-        setIsRedirecting(true);
         router.replace(targetPath);
-    } else {
-        setIsRedirecting(false);
     }
 
   }, [user, userData, loading, router, pathname]);
 
-  // Show a spinner if auth is loading, or if we are waiting for user data after auth is confirmed.
-  if (loading || (user && !userData) || isRedirecting) {
+  // Show a spinner ONLY while the initial auth check is happening.
+  if (loading) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
             <LoadingSpinner />
@@ -106,5 +99,7 @@ export function AuthRedirector() {
     );
   }
 
+  // Once loading is false, render nothing and let the effect handle redirection.
+  // This prevents rendering the page content for a split second before redirecting.
   return null;
 }

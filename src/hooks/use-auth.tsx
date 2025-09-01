@@ -22,12 +22,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true);
       if (firebaseUser) {
         let data = await getUserData(firebaseUser.uid);
         // If no user document exists, it's a brand new user (e.g., first Google sign-in).
         // Create a default customer profile for them.
-        // The seller registration flow will handle its own explicit data creation.
         if (!data) {
           await createUserData(firebaseUser, 'customer');
           data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
