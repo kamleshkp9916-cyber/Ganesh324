@@ -14,6 +14,7 @@ import {
   Clock,
   Printer,
   Edit,
+  Trash2,
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link"
@@ -26,7 +27,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -78,6 +79,8 @@ import { Separator } from "@/components/ui/separator";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 const SellerDetailDialog = ({ seller, onClose }: { seller: any, onClose: () => void }) => {
     const handlePrint = () => {
@@ -195,7 +198,7 @@ const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onO
 };
 
 
-const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: string) => void }) => (
+const UserTable = ({ users, onRowClick, onEdit, onDelete }: { users: any[], onRowClick: (email: string) => void, onEdit: (user: any) => void, onDelete: (user: any) => void }) => (
     <>
         <Table>
             <TableHeader>
@@ -207,7 +210,7 @@ const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: st
             </TableHeader>
             <TableBody>
                 {users.map((u, index) => (
-                    <TableRow key={index} onClick={() => onRowClick(u.email)} className="cursor-pointer">
+                    <TableRow key={index}>
                         <TableCell>
                             <div className="font-medium">{u.name || u.displayName}</div>
                             <div className="text-sm text-muted-foreground">{u.email}</div>
@@ -216,17 +219,17 @@ const UserTable = ({ users, onRowClick }: { users: any[], onRowClick: (email: st
                         <TableCell>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                                        <MoreHorizontal className="h-4 w-4 rotate-90" />
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
                                         <span className="sr-only">Toggle menu</span>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                     <DropdownMenuItem onSelect={() => onRowClick(u.email)}>View Profile</DropdownMenuItem>
-                                    <DropdownMenuItem>Hold Account</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onEdit(u)}>Edit Profile</DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">Delete Account</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>Delete Account</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -331,6 +334,8 @@ export default function AdminUsersPage() {
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
@@ -375,6 +380,31 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleEditUser = (userToEdit: any) => {
+      if (userToEdit.role === 'seller') {
+          router.push(`/seller/profile?userId=${userToEdit.uid}`);
+      } else {
+          router.push(`/profile?userId=${userToEdit.uid}`);
+      }
+  };
+  
+  const handleDeleteUserClick = (userToDelete: any) => {
+      setUserToDelete(userToDelete);
+      setIsDeleteAlertOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+      if (!userToDelete) return;
+      toast({ title: `Deleting user ${userToDelete.displayName}...` });
+      // In a real app, you would call a server function to delete the user
+      // from Firebase Auth and Firestore. For now, we'll just remove from state.
+      console.log("Simulating deletion of user:", userToDelete.uid);
+      setAllUsersState(prev => prev.filter(u => u.uid !== userToDelete.uid));
+      toast({ title: "User Deleted", description: `${userToDelete.displayName} has been removed.` });
+      setIsDeleteAlertOpen(false);
+      setUserToDelete(null);
+  }
+
   const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
     try {
         let updateData: Partial<UserData> = { verificationStatus: status };
@@ -417,6 +447,24 @@ export default function AdminUsersPage() {
 
   return (
     <>
+    <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the account for 
+                    <strong className="px-1">{userToDelete?.displayName}</strong>
+                    and all associated data.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmDeleteUser} className={cn(buttonVariants({ variant: "destructive" }))}>
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     <Dialog open={!!selectedSeller} onOpenChange={(isOpen) => !isOpen && setSelectedSeller(null)}>
         {selectedSeller && <SellerDetailDialog seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}
     </Dialog>
@@ -580,7 +628,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onRowClick={handleUserRowClick} />
+                        <UserTable users={customers} onRowClick={handleUserRowClick} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -591,7 +639,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onRowClick={handleUserRowClick}/>
+                        <UserTable users={sellers} onRowClick={handleUserRowClick} onEdit={handleEditUser} onDelete={handleDeleteUserClick}/>
                     </CardContent>
                 </Card>
              </TabsContent>

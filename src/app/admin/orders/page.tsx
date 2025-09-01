@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Menu,
   XCircle,
+  User,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -233,7 +234,11 @@ export default function AdminOrdersPage() {
                             {filteredOrders.length > 0 ? filteredOrders.map(order => (
                                 <TableRow key={order.orderId}>
                                     <TableCell className="font-medium">{order.orderId}</TableCell>
-                                    <TableCell>{order.address.name}</TableCell>
+                                    <TableCell>
+                                        <Link href={`/profile?userId=${order.userId}`} className="hover:underline">
+                                            {order.address.name}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}</TableCell>
                                     <TableCell><Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
                                     <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
@@ -243,7 +248,7 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                 <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Details</DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Transaction</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(`/profile?userId=${order.userId}`)}>View Customer</DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
                                                  <DropdownMenuSeparator />
                                                 <AlertDialog>
