@@ -11,6 +11,7 @@ import {
   Search,
   ShieldCheck,
   Menu,
+  XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -59,6 +60,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { updateOrderStatus } from "@/ai/flows/chat-flow"
 
 type Order = {
     orderId: string;
@@ -80,34 +83,58 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-        if (!loading && userData?.role === 'admin') {
-            const db = getFirestoreDb();
-            const ordersRef = collection(db, "orders");
-            const q = query(ordersRef, orderBy("orderDate", "desc"));
-            
-            try {
-                const querySnapshot = await getDocs(q);
-                const fetchedOrders: Order[] = [];
-                querySnapshot.forEach((doc) => {
-                    fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
-                });
-                setOrders(fetchedOrders);
-            } catch (error) {
-                console.error("Error fetching orders:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Error fetching orders",
-                    description: "Could not retrieve orders from the database."
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        } else if (!loading) {
+  const fetchOrders = async () => {
+    if (!loading && userData?.role === 'admin') {
+        setIsLoading(true);
+        const db = getFirestoreDb();
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, orderBy("orderDate", "desc"));
+        
+        try {
+            const querySnapshot = await getDocs(q);
+            const fetchedOrders: Order[] = [];
+            querySnapshot.forEach((doc) => {
+                fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
+            });
+            setOrders(fetchedOrders);
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            toast({
+                variant: "destructive",
+                title: "Error fetching orders",
+                description: "Could not retrieve orders from the database."
+            });
+        } finally {
             setIsLoading(false);
         }
-  }, [loading, userData, toast]);
+    } else if (!loading) {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, userData]);
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+        await updateOrderStatus(orderId, 'Cancelled by admin');
+        toast({
+            title: "Order Cancelled",
+            description: `Order ${orderId} has been successfully cancelled.`,
+        });
+        // Refetch orders to show the updated status
+        fetchOrders();
+    } catch (error) {
+        console.error("Error cancelling order:", error);
+        toast({
+            variant: "destructive",
+            title: "Cancellation Failed",
+            description: "Could not cancel the order. Please try again.",
+        });
+    }
+  };
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
@@ -125,7 +152,7 @@ export default function AdminOrdersPage() {
     switch (status) {
         case 'Delivered': return 'success';
         case 'Shipped': case 'In Transit': case 'Out for Delivery': return 'warning';
-        case 'Cancelled by user': case 'Returned': return 'destructive';
+        case 'Cancelled by user': case 'Cancelled by admin': case 'Returned': return 'destructive';
         case 'Pending': return 'info';
         default: return 'outline';
     }
@@ -216,7 +243,32 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                 <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Details</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Transaction</DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
+                                                 <DropdownMenuSeparator />
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <DropdownMenuItem 
+                                                            className="text-destructive focus:bg-destructive/10 focus:text-destructive" 
+                                                            onSelect={(e) => e.preventDefault()}
+                                                            disabled={getStatusFromTimeline(order.timeline).toLowerCase().includes('cancelled')}
+                                                        >
+                                                            <XCircle className="mr-2 h-4 w-4" /> Cancel Order
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will cancel the order for the customer. This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleCancelOrder(order.orderId)}>Confirm Cancellation</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -239,5 +291,5 @@ export default function AdminOrdersPage() {
             </Card>
         </main>
     </div>
-  )
+  );
 }

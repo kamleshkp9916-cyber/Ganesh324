@@ -195,16 +195,21 @@ const updateOrderStatusFlow = ai.defineFlow(
     async ({ orderId, status }) => {
         getFirebaseAdminApp();
         const db = getFirestore();
-        // This flow now needs to update Firestore
         const orderRef = db.collection('orders').doc(orderId);
         const orderDoc = await orderRef.get();
 
         if (orderDoc.exists) {
             const orderData = orderDoc.data() as Order;
-            let newTimeline = orderData.timeline;
+            let newTimeline = orderData.timeline.filter(step => step.completed); // Get only completed steps
 
-            if (status === 'Return Initiated') {
-                newTimeline = newTimeline.filter(step => step.completed);
+            if (status.startsWith('Cancelled by')) {
+                 newTimeline.push({
+                    status: status,
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'hh:mm a'),
+                    completed: true
+                });
+            } else if (status === 'Return Initiated') {
                 newTimeline.push({
                     status: "Return Initiated: The recipient has initiated a return of the package.",
                     date: format(new Date(), 'MMM dd, yyyy'),
@@ -214,12 +219,27 @@ const updateOrderStatusFlow = ai.defineFlow(
                 newTimeline.push({ status: "Return package picked up", date: null, time: null, completed: false });
                 newTimeline.push({ status: "Returned", date: null, time: null, completed: false });
             } else {
-                newTimeline.push({
-                    status: status,
-                    date: format(new Date(), 'MMM dd, yyyy'),
-                    time: format(new Date(), 'hh:mm a'),
-                    completed: true
-                });
+                 // For other status updates, find the next non-completed step and update it.
+                 // This part of the logic might need refinement based on the exact state machine of orders.
+                 // For now, let's assume we are just adding a new status.
+                 const originalTimeline = orderData.timeline;
+                 const nextStepIndex = originalTimeline.findIndex(step => !step.completed);
+                 
+                 if(nextStepIndex !== -1) {
+                    originalTimeline[nextStepIndex].status = status;
+                    originalTimeline[nextStepIndex].date = format(new Date(), 'MMM dd, yyyy');
+                    originalTimeline[nextStepIndex].time = format(new Date(), 'hh:mm a');
+                    originalTimeline[nextStepIndex].completed = true;
+                    newTimeline = originalTimeline;
+                 } else {
+                    // If all are completed, just push the new status.
+                     newTimeline.push({
+                        status: status,
+                        date: format(new Date(), 'MMM dd, yyyy'),
+                        time: format(new Date(), 'hh:mm a'),
+                        completed: true
+                    });
+                 }
             }
 
             await orderRef.update({ timeline: newTimeline });

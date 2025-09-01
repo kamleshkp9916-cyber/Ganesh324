@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Menu,
   Package2,
-  Video
+  Video,
+  XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link";
@@ -55,9 +56,11 @@ import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Image from "next/image"
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast"
 import { productDetails } from "@/lib/product-data";
-
+import { updateOrderStatus, getOrderStatus } from "@/ai/flows/chat-flow";
+import { getStatusFromTimeline } from "@/lib/order-data";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 
 const mockSellerOrders = [
     {
@@ -262,10 +265,29 @@ export default function SellerOrdersPage() {
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    const handleCancelOrder = async (orderId: string) => {
+        try {
+            await updateOrderStatus(orderId, 'Cancelled by seller');
+            toast({
+                title: "Order Cancelled",
+                description: `Order ${orderId} has been successfully cancelled.`,
+            });
+            // Here you would refetch the orders to update the list
+        } catch (error) {
+            console.error("Error cancelling order:", error);
+            toast({
+                variant: "destructive",
+                title: "Cancellation Failed",
+                description: "Could not cancel the order. Please try again.",
+            });
+        }
+    };
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -333,30 +355,49 @@ export default function SellerOrdersPage() {
                 <CardContent>
                     <div className="divide-y divide-border">
                     {mockSellerOrders.map((order) => (
-                        <div key={order.orderId} className="grid grid-cols-2 md:grid-cols-6 items-start gap-4 py-4 cursor-pointer hover:bg-accent/50" onClick={() => setSelectedOrder(order)}>
-                            <div className="font-medium col-span-2 md:col-span-1">
-                                <p>{order.orderId}</p>
+                        <div key={order.orderId} className="grid grid-cols-1 md:grid-cols-6 items-center gap-4 py-4">
+                            <div className="font-medium col-span-1">
+                                <p className="cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.orderId}</p>
                                 <p className="text-xs text-muted-foreground">{order.date}</p>
                             </div>
-                            <div className="col-span-2 md:col-span-2">
-                            <p className="font-medium hover:underline">{order.product.name}</p>
-                            <p className="text-xs text-muted-foreground">Sold to: {order.customer.name}</p>
-                            </div>
-                            <div className="col-span-2 md:col-span-1">
+                            <div className="col-span-1">
                                 <p className="font-medium">{order.customer.name}</p>
                                 <p className="text-xs text-muted-foreground">{order.customer.email}</p>
                             </div>
-                            <div className="text-left md:text-center">
-                                <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>
-                                    {order.type}
-                                </Badge>
+                            <div className="col-span-2">
+                                <p className="font-medium hover:underline cursor-pointer" onClick={() => setSelectedOrder(order)}>{order.product.name}</p>
                             </div>
-                            <div className="text-left md:text-center">
+                            <div className="text-left md:text-center col-span-1">
                                 <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">
                                     {order.status}
                                 </Badge>
                             </div>
-                            <div className="font-medium text-right">₹{order.price.toFixed(2)}</div>
+                            <div className="font-medium text-right col-span-1 flex items-center justify-end gap-2">
+                                <span>₹{order.price.toFixed(2)}</span>
+                                 <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button 
+                                            variant="destructive" 
+                                            size="sm"
+                                            disabled={order.status === 'Cancelled' || order.status === 'Fulfilled'}
+                                        >
+                                            <XCircle className="mr-2 h-4 w-4" /> Cancel
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will cancel the order for the customer. This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleCancelOrder(order.orderId)}>Confirm Cancellation</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
                         </div>
                     ))}
                     </div>
