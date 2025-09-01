@@ -4,9 +4,9 @@
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/login-form';
 import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/logo';
+import { Logo } from '@/components/ui/logo';
 import { ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
