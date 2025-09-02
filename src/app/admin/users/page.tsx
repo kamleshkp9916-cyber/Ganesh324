@@ -74,7 +74,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
-import { getUserData, UserData } from "@/lib/follow-data";
+import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { updateUserDataOnServer } from "@/lib/firebase-server-utils";
 import { Separator } from "@/components/ui/separator";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
@@ -97,10 +97,10 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                     <div>
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                             <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                             {user.role === 'seller' && (
+                            <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                            {user.role === 'seller' && (
                                 <Badge variant="outline">{user.verificationStatus}</Badge>
-                             )}
+                            )}
                         </div>
                     </div>
                 </div>
@@ -403,7 +403,7 @@ export default function AdminUsersPage() {
         });
 
         // Refresh the user lists to show the update in real-time for the admin
-        fetchUsers();
+        await fetchUsers();
         
     } catch (error) {
          toast({
