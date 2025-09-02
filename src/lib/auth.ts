@@ -124,7 +124,7 @@ export function useAuthActions() {
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
           const user = userCredential.user;
-          const displayName = `${'\'\'\''}${values.firstName} ${values.lastName}'\'\'\'`;
+          const displayName = `${values.firstName} ${values.lastName}`;
           
           await updateProfile(user, { displayName: displayName });
           
@@ -213,6 +213,8 @@ export function useAuthActions() {
                 title: "Application Submitted!",
                 description: "Your seller application is under review. We will notify you upon completion.",
             });
+
+            router.push('/seller/verification');
             
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
@@ -305,4 +307,3 @@ export function useAuthActions() {
 
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp, updateUserProfile };
 }
-
