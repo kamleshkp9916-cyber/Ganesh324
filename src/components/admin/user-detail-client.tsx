@@ -62,6 +62,7 @@ import { getFirestore, collection, query, where, getDocs, orderBy } from "fireba
 import { getFirestoreDb } from "@/lib/firebase";
 import { getStatusFromTimeline } from "@/lib/order-data";
 import Image from "next/image"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Order = {
     orderId: string;
@@ -88,6 +89,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             return;
         }
 
+        setIsLoading(true);
         try {
             // Fetch user data
             const fetchedUserData = await getUserData(userId);
@@ -119,13 +121,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     fetchAllData();
   }, [userId]);
 
-  if (adminLoading || isLoading) {
+  if (adminLoading) {
     return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
   }
 
   if (!adminUser || adminUserData?.role !== 'admin') {
       router.push('/');
       return null;
+  }
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
   }
 
   if (!profileData) {
@@ -219,19 +225,25 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {userOrders.map(order => (
-                                         <TableRow key={order.orderId}>
-                                            <TableCell>
-                                                <Link href={`/delivery-information/${order.orderId}`} className="font-medium hover:underline">{order.orderId}</Link>
-                                            </TableCell>
-                                            <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length-1}`: ''}</TableCell>
-                                            <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
-                                            <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {userOrders.length === 0 && (
+                                    {isLoading ? (
+                                        <>
+                                            <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                            <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                        </>
+                                    ) : userOrders.length > 0 ? (
+                                        userOrders.map(order => (
+                                            <TableRow key={order.orderId}>
+                                                <TableCell>
+                                                    <Link href={`/delivery-information/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link>
+                                                </TableCell>
+                                                <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</TableCell>
+                                                <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                                <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center">No orders found.</TableCell>
+                                            <TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>
