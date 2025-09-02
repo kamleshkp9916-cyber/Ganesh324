@@ -54,6 +54,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -202,7 +203,8 @@ export default function StreamPage() {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-            const sellerIdFromStorage = liveStreamData.seller?.id || `seller_${liveStreamData.seller?.email}`;
+            // Construct a comparable ID. This assumes `liveStreamData.seller.id` exists and is consistent.
+            const sellerIdFromStorage = liveStreamData.seller?.id || streamId;
 
             if (sellerIdFromStorage === streamId) {
                 sellerData = {
@@ -210,6 +212,7 @@ export default function StreamPage() {
                     id: streamId,
                     viewers: Math.floor(Math.random() * 5000),
                     productId: liveStreamData.product?.id,
+                    avatarUrl: liveStreamData.seller.photoURL
                 };
             }
         }
