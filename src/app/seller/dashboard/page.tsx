@@ -14,7 +14,6 @@ import {
   Users,
   Sparkles,
   ShieldCheck,
-  ShieldAlert,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -72,7 +71,6 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const salesData = [
@@ -126,25 +124,34 @@ export default function SellerDashboard() {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
 
   useEffect(() => {
-    // The AuthRedirector now handles most unauthorized access.
-    // This page only needs to handle its own content logic.
-    if (!loading && userData?.role === 'seller' && userData.verificationStatus === 'verified') {
+    // This effect runs once when the component mounts and the user data is available.
+    // It checks if the welcome dialog should be shown to a new seller.
+    if (!loading && userData?.role === 'seller') {
         const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
         if (!welcomeShown) {
             setShowWelcomeDialog(true);
             localStorage.setItem(SELLER_WELCOME_KEY, 'true');
         }
     }
-  }, [userData, loading, router]);
+  }, [userData, loading]);
 
 
-  // The AuthRedirector will show a spinner, so this page can assume data is ready or it will be redirected.
-  if (loading || !user || !userData || userData.role !== 'seller') {
+  if (loading) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
     )
+  }
+
+  // If after loading, there's no user or the user is not a seller, redirect them.
+  if (!user || !userData || userData.role !== 'seller') {
+    router.replace('/');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+      </div>
+    );
   }
 
   return (
