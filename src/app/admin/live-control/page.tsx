@@ -40,6 +40,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -136,8 +138,10 @@ export default function AdminLiveControlPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
+                        <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -234,3 +238,5 @@ export default function AdminLiveControlPage() {
     </div>
   )
 }
+
+    
