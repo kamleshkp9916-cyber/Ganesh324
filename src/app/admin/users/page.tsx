@@ -100,7 +100,7 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                          <div className="flex items-center gap-2">
                              <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
                              {user.role === 'seller' && (
-                                <Badge variant="outline">({user.verificationStatus})</Badge>
+                                <Badge variant="outline">{user.verificationStatus}</Badge>
                              )}
                         </div>
                     </div>
@@ -382,16 +382,16 @@ export default function AdminUsersPage() {
 
   const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
     try {
-      let updateData: Partial<UserData> = { verificationStatus: status };
-
+      const applicant = pendingSellers.find(s => s.uid === userId);
+      if (!applicant) {
+           toast({ title: "Applicant not found", variant: "destructive" });
+           return;
+      }
+      
       if (status === 'verified') {
-        const applicant = pendingSellers.find(s => s.uid === userId);
-        if (!applicant) {
-             toast({ title: "Applicant not found", variant: "destructive" });
-             return;
-        }
-        await verifyKyc({ userId, aadhar: applicant.aadhar, pan: applicant.pan });
+        await verifyKyc({ userId, aadhar: applicant.aadhar || undefined, pan: applicant.pan || undefined });
       } else {
+        let updateData: Partial<UserData> = { verificationStatus: status };
         if (status === 'rejected') {
             updateData.rejectionReason = reason;
         } else if (status === 'needs-resubmission') {
@@ -672,3 +672,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
