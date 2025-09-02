@@ -97,7 +97,7 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                     </Avatar>
                     <div>
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
-                         <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                              <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
                              {user.role === 'seller' && (
                                 <Badge variant="outline">{user.verificationStatus}</Badge>
@@ -279,7 +279,7 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
                                 <div className="text-sm text-muted-foreground">{req.email}</div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
-                            <TableCell className="hidden md:table-cell font-mono">{req.pan}</TableCell>
+                            <TableCell className="hidden md:table-cell font-mono">{req.pan || 'N/A'}</TableCell>
                             <TableCell className="flex gap-2">
                                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'verified')}>
                                     <CheckCircle className="h-3.5 w-3.5" />
@@ -389,7 +389,7 @@ export default function AdminUsersPage() {
       }
       
       if (status === 'verified') {
-        await verifyKyc({ userId, aadhar: applicant.aadhar || undefined, pan: applicant.pan || undefined });
+        await verifyKyc({ userId, aadhar: applicant.aadhar || null, pan: applicant.pan || null });
       } else {
         let updateData: Partial<UserData> = { verificationStatus: status };
         if (status === 'rejected') {
@@ -409,7 +409,8 @@ export default function AdminUsersPage() {
           description: `The application has been updated.`,
       });
 
-      fetchUsers(); // Refresh the user lists
+      // Refresh the user lists to show the update in real-time for the admin
+      fetchUsers();
         
     } catch (error) {
          toast({
@@ -672,5 +673,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    

@@ -3,8 +3,9 @@
 
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase';
+import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase';
 import { createUserData, getUserData, UserData, updateUserData } from '@/lib/follow-data';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -21,26 +22,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const db = getFirestoreDb();
+    
+    // This is the listener for authentication state changes (login/logout)
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        let data = await getUserData(firebaseUser.uid);
-        
-        // If no user document exists, it's a brand new user (e.g., first Google sign-in).
-        // Create a default customer profile for them.
-        if (!data) {
-          await createUserData(firebaseUser, 'customer');
-          data = await getUserData(firebaseUser.uid); // Re-fetch the newly created data
-        }
+        // User is logged in. Set the user object and start listening to their data document.
         setUser(firebaseUser);
-        setUserData(data);
+        
+        // Set up a real-time listener for the user's data in Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const unsubscribeFirestore = onSnapshot(userDocRef, async (doc) => {
+            if (doc.exists()) {
+                setUserData(doc.data() as UserData);
+            } else {
+                // This case handles a new user who has just signed up but their doc hasn't been created yet.
+                // We create it here as a fallback.
+                let data = await getUserData(firebaseUser.uid);
+                if (!data) {
+                    await createUserData(firebaseUser, 'customer');
+                    data = await getUserData(firebaseUser.uid);
+                }
+                setUserData(data);
+            }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error listening to user data:", error);
+            setLoading(false);
+        });
+
+        // Return the cleanup function for the Firestore listener
+        return () => unsubscribeFirestore();
+
       } else {
+        // User is logged out
         setUser(null);
         setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Return the cleanup function for the auth state listener
+    return () => unsubscribeAuth();
   }, []);
 
   const value = useMemo(() => ({ user, userData, loading }), [user, userData, loading]);
