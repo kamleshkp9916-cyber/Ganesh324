@@ -15,6 +15,7 @@ import {
   Printer,
   Edit,
   Trash2,
+  ShoppingBag,
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link"
@@ -76,13 +77,13 @@ import { useToast } from "@/hooks/use-toast"
 import { getUserData, UserData } from "@/lib/follow-data";
 import { updateUserDataOnServer } from "@/lib/firebase-server-utils";
 import { Separator } from "@/components/ui/separator";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-const UserDetailDialog = ({ user, onClose }: { user: any, onClose: () => void }) => {
+const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: () => void, orderCount: number }) => {
     const photoSrc = user.passportPhoto?.preview || user.passportPhoto || user.photoURL;
 
     return (
@@ -96,8 +97,10 @@ const UserDetailDialog = ({ user, onClose }: { user: any, onClose: () => void })
                     <div>
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
                         <DialogDescription>
-                            <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                            {user.role === 'seller' && <span className="text-sm"> ({user.verificationStatus})</span>}
+                            <div className="flex items-center gap-2">
+                                <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                                {user.role === 'seller' && <span className="text-sm"> ({user.verificationStatus})</span>}
+                            </div>
                         </DialogDescription>
                     </div>
                 </div>
@@ -110,6 +113,15 @@ const UserDetailDialog = ({ user, onClose }: { user: any, onClose: () => void })
                     <div className="col-span-2"><strong className="text-muted-foreground">User ID:</strong><p>{user.userId}</p></div>
                     <div className="col-span-2"><strong className="text-muted-foreground">Bio:</strong><p>{user.bio || 'Not provided'}</p></div>
                 </div>
+
+                <Separator />
+                <h3 className="font-semibold text-lg border-b pb-2">Activity</h3>
+                <div className="flex items-center gap-2 text-sm">
+                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                    <strong className="text-muted-foreground">Total Orders:</strong>
+                    <p>{orderCount}</p>
+                </div>
+
 
                 {user.role === 'seller' && (
                     <>
@@ -314,6 +326,7 @@ export default function AdminUsersPage() {
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedUserOrderCount, setSelectedUserOrderCount] = useState(0);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
@@ -398,7 +411,12 @@ export default function AdminUsersPage() {
     }
   };
   
-  const handleViewDetails = (userToShow: any) => {
+  const handleViewDetails = async (userToShow: any) => {
+    const db = getFirestoreDb();
+    const ordersRef = collection(db, "orders");
+    const q = query(ordersRef, where("userId", "==", userToShow.uid));
+    const snapshot = await getCountFromServer(q);
+    setSelectedUserOrderCount(snapshot.data().count);
     setSelectedUser(userToShow);
   };
 
@@ -427,7 +445,7 @@ export default function AdminUsersPage() {
         </AlertDialogContent>
     </AlertDialog>
     <Dialog open={!!selectedUser} onOpenChange={(isOpen) => !isOpen && setSelectedUser(null)}>
-        {selectedUser && <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} />}
+        {selectedUser && <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} orderCount={selectedUserOrderCount} />}
     </Dialog>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
@@ -645,5 +663,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
