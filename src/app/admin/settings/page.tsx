@@ -14,6 +14,9 @@ import {
   Annoyed,
   Send,
   Loader2,
+  FileText,
+  Shield,
+  Flag,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -42,6 +45,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { sendAnnouncement, sendWarning } from "@/ai/flows/notification-flow"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 
 const announcementSchema = z.object({
@@ -54,6 +58,13 @@ const warningSchema = z.object({
     message: z.string().min(10, "Warning message must be at least 10 characters.")
 })
 
+const flaggedContent = [
+    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', reporter: 'AdminBot', status: 'Pending' },
+    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', reporter: 'JaneDoe', status: 'Pending' },
+    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', reporter: 'User456', status: 'Pending' },
+    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', reporter: 'CommunityMod', status: 'Reviewed' },
+];
+
 
 export default function AdminSettingsPage() {
   const { user, userData, loading } = useAuth();
@@ -62,6 +73,7 @@ export default function AdminSettingsPage() {
   const { toast } = useToast()
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
   const [isSendingWarning, setIsSendingWarning] = useState(false)
+  const [contentList, setContentList] = useState(flaggedContent);
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -111,6 +123,15 @@ export default function AdminSettingsPage() {
     } finally {
         setIsSendingWarning(false)
     }
+  }
+
+  const handleRemoveContent = (id: number) => {
+    setContentList(prev => prev.filter(item => item.id !== id));
+    toast({
+        title: "Content Removed",
+        description: "The flagged content has been removed.",
+        variant: "destructive"
+    });
   }
 
 
@@ -195,6 +216,7 @@ export default function AdminSettingsPage() {
                        </Form>
                     </CardContent>
                 </Card>
+
                  <Card>
                     <CardHeader>
                         <CardTitle>Send Warning</CardTitle>
@@ -223,6 +245,86 @@ export default function AdminSettingsPage() {
                                 </Button>
                             </form>
                         </Form>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Content & Policy Management</CardTitle>
+                        <CardDescription>View and manage important site-wide documents.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex items-center gap-3">
+                                <FileText className="h-6 w-6 text-muted-foreground" />
+                                <div>
+                                    <h4 className="font-semibold">Terms & Conditions</h4>
+                                    <p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                 <Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button>
+                                 <Button size="sm">Edit</Button>
+                            </div>
+                        </div>
+                         <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex items-center gap-3">
+                                <Shield className="h-6 w-6 text-muted-foreground" />
+                                <div>
+                                    <h4 className="font-semibold">Privacy Policy</h4>
+                                    <p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button>
+                                <Button size="sm">Edit</Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Flagged Content for Review</CardTitle>
+                        <CardDescription>Review content reported by users or the system for violations.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Content/Reason</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {contentList.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell><Badge variant="outline">{item.type}</Badge></TableCell>
+                                        <TableCell>
+                                            <p className="font-medium">{item.content}</p>
+                                            <p className="text-xs text-muted-foreground">Reported by: {item.reporter}</p>
+                                        </TableCell>
+                                        <TableCell>
+                                             <Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="sm" className="mr-2">Review</Button>
+                                            <Button variant="destructive" size="sm" onClick={() => handleRemoveContent(item.id)}>Remove</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {contentList.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            <Flag className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                                            No flagged content to review.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             </main>
