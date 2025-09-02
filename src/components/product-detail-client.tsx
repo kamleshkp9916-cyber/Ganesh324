@@ -203,13 +203,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const handleReviewSubmit = (reviewData: Review) => {
-        if (!product) return;
+        if (!product || !user) {
+            toast({ variant: 'destructive', title: "Error", description: "You must be logged in to submit a review." });
+            return;
+        }
         if (reviewData.id) { // Editing existing review
             updateReview(product.key, reviewData);
             toast({ title: "Review Updated!", description: "Your review has been successfully updated." });
-        } else { // Adding new review (this path is not used here but good practice)
-            addReview(product.key, reviewData);
-            toast({ title: "Review Submitted!", description: "Thank you for your feedback." });
         }
         fetchReviews(); // Re-fetch to show updated list
     };
@@ -227,6 +227,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const openReviewDialog = () => {
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to write a review.' });
+            return;
+        }
+        const userHasReviewed = reviews.some(r => r.userId === user.uid);
+        if(userHasReviewed) {
+             toast({ variant: 'destructive', title: 'Already Reviewed', description: 'You have already submitted a review for this product.' });
+             return;
+        }
         setEditingReview(undefined);
         setIsReviewDialogOpen(true);
     };
@@ -505,7 +514,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div className="aspect-square bg-muted relative">
                                                         <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                                     </div>
-                                                    <div className="p-2">
+                                                    <div className="p-3">
                                                         <h4 className="font-semibold text-xs truncate">{p.name}</h4>
                                                         <p className="text-foreground text-sm font-bold">{p.price}</p>
                                                     </div>
@@ -595,8 +604,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                  {/* Reviews Section */}
                 <div className="mt-8 py-4 border-t">
-                     <CardHeader className="p-0 mb-4">
+                     <CardHeader className="p-0 mb-4 flex-row justify-between items-center">
                         <CardTitle>Ratings & Reviews</CardTitle>
+                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
                     </CardHeader>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="flex flex-col items-center justify-center gap-2 p-6 bg-muted rounded-lg">
