@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -136,7 +135,7 @@ export default function SellerDashboard() {
   }, [userData, loading]);
 
 
-  if (loading) {
+  if (loading || !user || !userData) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -144,15 +143,8 @@ export default function SellerDashboard() {
     )
   }
 
-  // If after loading, there's no user or the user is not a seller, redirect them.
-  if (!user || !userData || userData.role !== 'seller') {
-    router.replace('/');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner />
-      </div>
-    );
-  }
+  // The AuthRedirector component handles redirection for non-sellers.
+  // We can safely assume if this component renders, the user is a seller.
 
   return (
     <>
@@ -202,7 +194,7 @@ export default function SellerDashboard() {
             Orders
           </Link>
           <Link
-            href="#"
+            href="/seller/products"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Products
@@ -244,7 +236,7 @@ export default function SellerDashboard() {
                 Orders
               </Link>
               <Link
-                href="#"
+                href="/seller/products"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
@@ -288,7 +280,7 @@ export default function SellerDashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => signOut(true)}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
