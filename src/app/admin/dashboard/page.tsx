@@ -19,6 +19,8 @@ import {
   Bell,
   RadioTower,
   ShieldCheck,
+  LineChart,
+  Line,
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 
@@ -146,12 +148,14 @@ const mockNotifications = [
     { id: 4, title: 'Weekly Payout Sent', description: '₹17,499.00 has been sent to your bank.', time: '1d ago', read: true },
 ];
 
-const recentSignups = [
-    { name: "Ganesh Prajapati", email: "ganesh@example.com", role: "Seller", date: "2 days ago" },
-    { name: "Jane Doe", email: "jane.d@example.com", role: "Customer", date: "2 days ago" },
-    { name: "Alex Smith", email: "alex.s@example.com", role: "Customer", date: "3 days ago" },
-    { name: "Emily Brown", email: "emily.b@example.com", role: "Customer", date: "5 days ago" },
-    { name: "Chris Wilson", email: "chris.w@example.com", role: "Seller", date: "1 week ago" },
+const dailySignups = [
+    { day: "Mon", customers: 20, sellers: 5 },
+    { day: "Tue", customers: 35, sellers: 7 },
+    { day: "Wed", customers: 30, sellers: 6 },
+    { day: "Thu", customers: 45, sellers: 10 },
+    { day: "Fri", customers: 50, sellers: 12 },
+    { day: "Sat", customers: 65, sellers: 15 },
+    { day: "Sun", customers: 70, sellers: 18 },
 ]
 
 
@@ -377,43 +381,26 @@ export default function AdminDashboard() {
           </Card>
         </div>
         <div className="grid gap-4 md:gap-8">
-           <Card>
-            <CardHeader>
-              <CardTitle>Recent Signups</CardTitle>
-              <CardDescription>
-                A list of the most recent users who have joined the platform.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-right">Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentSignups.map((signup, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="font-medium">{signup.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {signup.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                         <Badge variant={signup.role === 'Seller' ? 'secondary' : 'outline'}>
-                            {signup.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{signup.date}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle>Recent Signups</CardTitle>
+                <CardDescription>
+                    Weekly user and seller registration trends.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={dailySignups}>
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="customers" stroke="hsl(var(--primary))" strokeWidth={2} name="New Customers" />
+                        <Line type="monotone" dataKey="sellers" stroke="hsl(var(--secondary-foreground))" strokeWidth={2} name="New Sellers" />
+                    </LineChart>
+                </ResponsiveContainer>
+                </CardContent>
+            </Card>
         </div>
       </main>
     </div>
