@@ -272,7 +272,7 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                  <Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button>
-                                 <Button size="sm">Edit</Button>
+                                 <Button asChild size="sm"><Link href="/terms-and-conditions">Edit</Link></Button>
                             </div>
                         </div>
                          <div className="flex items-center justify-between rounded-lg border p-4">
@@ -285,7 +285,7 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button>
-                                <Button size="sm">Edit</Button>
+                                <Button asChild size="sm"><Link href="/privacy-and-security">Edit</Link></Button>
                             </div>
                         </div>
                     </CardContent>
