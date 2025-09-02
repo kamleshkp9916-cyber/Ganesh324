@@ -168,6 +168,9 @@ export default function AdminLiveControlPage() {
                                 <TableRow key={stream.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
+                                             <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
+                                                <Video className="h-5 w-5 text-muted-foreground" />
+                                            </div>
                                             <Avatar>
                                                 <AvatarImage src={stream.seller.avatarUrl} />
                                                 <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
