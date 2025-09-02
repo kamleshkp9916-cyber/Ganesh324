@@ -61,9 +61,9 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: 'stream_1' },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: 'stream_2' },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: 'stream_3' },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1' },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2' },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4' },
 ];
 
 export default function AdminLiveControlPage() {
@@ -167,22 +167,22 @@ export default function AdminLiveControlPage() {
                             {liveStreams.length > 0 ? liveStreams.map(stream => (
                                 <TableRow key={stream.id}>
                                     <TableCell>
-                                        <div className="flex items-center gap-3">
-                                             <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
+                                        <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
+                                            <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
                                                 <Video className="h-5 w-5 text-muted-foreground" />
                                             </div>
                                             <Avatar>
                                                 <AvatarImage src={stream.seller.avatarUrl} />
                                                 <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{stream.seller.name}</span>
-                                        </div>
+                                            <span className="font-medium group-hover:underline">{stream.seller.name}</span>
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
-                                        <div className="flex items-center gap-3">
+                                        <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
                                             <Image src={stream.product.imageUrl} alt={stream.product.name} width={40} height={40} className="rounded-md" data-ai-hint={stream.product.hint} />
-                                            <span>{stream.product.name}</span>
-                                        </div>
+                                            <span className="group-hover:underline">{stream.product.name}</span>
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <Badge variant="secondary" className="gap-1.5">
@@ -241,5 +241,3 @@ export default function AdminLiveControlPage() {
     </div>
   )
 }
-
-    
