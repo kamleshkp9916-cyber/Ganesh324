@@ -53,8 +53,10 @@ export function AuthRedirector() {
             } 
             // 2. Seller check
             else if (role === 'seller') {
-                if (verificationStatus !== 'verified') {
-                    if (pathname !== sellerVerificationPath) {
+                 if (verificationStatus !== 'verified') {
+                    // Allow pending sellers to access their own pages, but redirect from others.
+                    const isAllowedSellerPath = pathname.startsWith('/seller/') || pathname === '/live-selling';
+                    if (!isAllowedSellerPath) {
                         targetPath = sellerVerificationPath;
                     }
                 } else { // Verified seller
