@@ -13,6 +13,7 @@ import {
   Users,
   Sparkles,
   ShieldCheck,
+  ShieldAlert,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -70,6 +71,8 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 const salesData = [
   { name: "Jan", sales: 4000 },
@@ -122,7 +125,7 @@ export default function SellerDashboard() {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
 
   useEffect(() => {
-    // The AuthRedirector now handles all unauthorized access.
+    // The AuthRedirector now handles most unauthorized access.
     // This page only needs to handle its own content logic.
     if (!loading && userData?.role === 'seller' && userData.verificationStatus === 'verified') {
         const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
@@ -135,7 +138,7 @@ export default function SellerDashboard() {
 
 
   // The AuthRedirector will show a spinner, so this page can assume data is ready or it will be redirected.
-  if (loading || !user || !userData || userData.role !== 'seller' || userData.verificationStatus !== 'verified') {
+  if (loading || !user || !userData || userData.role !== 'seller') {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
@@ -258,7 +261,7 @@ export default function SellerDashboard() {
               />
             </div>
           </form>
-          {userData?.kycStatus === 'verified' && (
+          {userData?.verificationStatus === 'verified' && (
             <Badge variant="success" className="items-center gap-1">
               <ShieldCheck className="h-4 w-4" />
               KYC Verified
@@ -283,6 +286,15 @@ export default function SellerDashboard() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        {userData.verificationStatus === 'pending' && (
+             <Alert>
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Verification Pending</AlertTitle>
+                <AlertDescription>
+                    Your account is under review. You can explore the dashboard, but some features will be disabled until you are approved.
+                </AlertDescription>
+            </Alert>
+        )}
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
