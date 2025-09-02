@@ -45,7 +45,8 @@ export function AuthRedirector() {
             // 1. Admin check (Highest Priority)
             if (role === 'admin') {
                 const isAdminPath = pathname.startsWith('/admin');
-                const isAllowedPath = isAdminPath || pathname.startsWith('/delivery-information');
+                // Admins should also be able to access stream pages and delivery info
+                const isAllowedPath = isAdminPath || pathname.startsWith('/delivery-information') || pathname.startsWith('/stream/');
                 if (!isAllowedPath) {
                     targetPath = '/admin/dashboard';
                 }
