@@ -227,6 +227,12 @@ export default function AdminDashboard() {
           >
             Products
           </Link>
+           <Link
+            href="/admin/live-control"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Live Control
+          </Link>
           <Link
             href="#"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -286,6 +292,12 @@ export default function AdminDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
+              </Link>
+              <Link
+                href="/admin/live-control"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Live Control
               </Link>
               <Link
                 href="#"

@@ -295,7 +295,7 @@ const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }:
                         <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
                     </TableRow>
                 )}
-            </TableBody>
+                </TableBody>
             </Table>
             <CardFooter className="px-0 pt-4">
                 <div className="text-xs text-muted-foreground">
@@ -476,6 +476,12 @@ export default function AdminUsersPage() {
             Products
           </Link>
           <Link
+            href="/admin/live-control"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Live Control
+          </Link>
+          <Link
             href="#"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -534,6 +540,12 @@ export default function AdminUsersPage() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
+              </Link>
+              <Link
+                href="/admin/live-control"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Live Control
               </Link>
               <Link
                 href="#"
