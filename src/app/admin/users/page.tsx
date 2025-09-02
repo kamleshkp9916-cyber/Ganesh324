@@ -82,6 +82,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { verifyKyc } from "@/ai/flows/kyc-flow";
 
 const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: () => void, orderCount: number }) => {
     const photoSrc = user.passportPhoto?.preview || user.passportPhoto || user.photoURL;
@@ -96,12 +97,10 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                     </Avatar>
                     <div>
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
-                        <DialogDescription asChild>
-                            <div className="flex items-center gap-2">
-                                <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                                {user.role === 'seller' && <span className="text-sm text-muted-foreground"> ({user.verificationStatus})</span>}
-                            </div>
-                        </DialogDescription>
+                         <div className="flex items-center gap-2">
+                             <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                             {user.role === 'seller' && <span className="text-sm text-muted-foreground"> ({user.verificationStatus})</span>}
+                        </div>
                     </div>
                 </div>
             </DialogHeader>
@@ -381,26 +380,36 @@ export default function AdminUsersPage() {
 
   const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
     try {
-        let updateData: Partial<UserData> = { verificationStatus: status };
-        
+      let updateData: Partial<UserData> = { verificationStatus: status };
+
+      if (status === 'verified') {
+        const applicant = pendingSellers.find(s => s.uid === userId);
+        if (!applicant || !applicant.aadhar || !applicant.pan) {
+            toast({ title: "Missing Information", description: "Aadhar or PAN is missing for this applicant.", variant: "destructive" });
+            return;
+        }
+        await verifyKyc({ userId, aadhar: applicant.aadhar, pan: applicant.pan });
+        // The verifyKyc flow now handles all the necessary updates including role and verificationStatus
+        // so we don't need to manually set them here anymore.
+      } else {
         if (status === 'rejected') {
             updateData.rejectionReason = reason;
         } else if (status === 'needs-resubmission') {
             updateData.resubmissionReason = reason;
         }
-
         await updateUserDataOnServer(userId, updateData);
+      }
 
-        let toastTitle = "Seller Approved";
-        if (status === 'rejected') toastTitle = "Seller Rejected";
-        if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
+      let toastTitle = "Seller Approved";
+      if (status === 'rejected') toastTitle = "Seller Rejected";
+      if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
 
-        toast({
-            title: toastTitle,
-            description: `The application has been updated.`,
-        });
+      toast({
+          title: toastTitle,
+          description: `The application has been updated.`,
+      });
 
-        fetchUsers();
+      fetchUsers(); // Refresh the user lists
         
     } catch (error) {
          toast({
