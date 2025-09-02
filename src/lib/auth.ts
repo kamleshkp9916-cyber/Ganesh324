@@ -124,7 +124,7 @@ export function useAuthActions() {
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
           const user = userCredential.user;
-          const displayName = `${values.firstName} ${values.lastName}`;
+          const displayName = `${'\'\'\''}${values.firstName} ${values.lastName}'\'\'\'`;
           
           await updateProfile(user, { displayName: displayName });
           
@@ -306,4 +306,3 @@ export function useAuthActions() {
     return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp, updateUserProfile };
 }
 
-    

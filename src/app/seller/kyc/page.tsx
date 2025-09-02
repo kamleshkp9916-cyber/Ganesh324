@@ -30,8 +30,6 @@ const sellerKycSchema = z.object({
   confirmPassword: z.string(),
   businessName: z.string().min(2, "Business name is required."),
   phone: z.string().regex(/^\+91 \d{10}$/, "Please enter a valid 10-digit Indian phone number."),
-  aadhar: z.string().regex(/^\d{12}$/, "Aadhaar must be 12 digits."),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format."),
   accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
   ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
   passportPhoto: z.any().refine(file => file, "Passport photo is required."),
@@ -57,7 +55,7 @@ export default function SellerKycPage() {
         resolver: zodResolver(sellerKycSchema),
         defaultValues: {
             firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
-            businessName: '', phone: '+91 ', aadhar: '', pan: '',
+            businessName: '', phone: '+91 ',
             accountNumber: '', ifsc: '',
         },
     });
@@ -169,15 +167,7 @@ export default function SellerKycPage() {
                     <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
 
-                 <h3 className="font-semibold text-lg border-b pb-2 pt-4">Identity & Bank Details</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="aadhar" render={({ field }) => (
-                        <FormItem><FormLabel>Aadhar Card Number</FormLabel><FormControl><Input placeholder="XXXX XXXX XXXX" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    <FormField control={form.control} name="pan" render={({ field }) => (
-                        <FormItem><FormLabel>PAN Card Number</FormLabel><FormControl><Input placeholder="ABCDE1234F" {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                 </div>
+                 <h3 className="font-semibold text-lg border-b pb-2 pt-4">Bank Details</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={form.control} name="accountNumber" render={({ field }) => (
                         <FormItem><FormLabel>Bank Account Number</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
@@ -239,4 +229,3 @@ export default function SellerKycPage() {
   );
 }
 
-    
