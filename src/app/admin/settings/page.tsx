@@ -30,7 +30,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -272,7 +271,7 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                  <Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button>
-                                 <Button asChild size="sm"><Link href="/terms-and-conditions">Edit</Link></Button>
+                                 <Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button>
                             </div>
                         </div>
                          <div className="flex items-center justify-between rounded-lg border p-4">
@@ -285,7 +284,7 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button>
-                                <Button asChild size="sm"><Link href="/privacy-and-security">Edit</Link></Button>
+                                <Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button>
                             </div>
                         </div>
                     </CardContent>
@@ -315,8 +314,7 @@ export default function AdminSettingsPage() {
                                             <p className="text-xs text-muted-foreground">Reported by: {item.reporter}</p>
                                         </TableCell>
                                         <TableCell>
-                                             <Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge>
-                                        </TableCell>
+                                             <Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge></TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="sm" className="mr-2">Review</Button>
                                             <Button variant="destructive" size="sm" onClick={() => handleRemoveContent(item.id)}>Remove</Button>
