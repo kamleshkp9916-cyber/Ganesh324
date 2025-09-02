@@ -96,10 +96,10 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                     </Avatar>
                     <div>
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription asChild>
                             <div className="flex items-center gap-2">
                                 <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                                {user.role === 'seller' && <span className="text-sm"> ({user.verificationStatus})</span>}
+                                {user.role === 'seller' && <span className="text-sm text-muted-foreground"> ({user.verificationStatus})</span>}
                             </div>
                         </DialogDescription>
                     </div>
@@ -108,10 +108,10 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
             <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-4">
                 <h3 className="font-semibold text-lg border-b pb-2">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><strong className="text-muted-foreground">Email:</strong><p>{user.email}</p></div>
-                    <div><strong className="text-muted-foreground">Phone:</strong><p>{user.phone}</p></div>
-                    <div className="col-span-2"><strong className="text-muted-foreground">User ID:</strong><p>{user.userId}</p></div>
-                    <div className="col-span-2"><strong className="text-muted-foreground">Bio:</strong><p>{user.bio || 'Not provided'}</p></div>
+                    <div><strong className="text-muted-foreground">Email:</strong><div>{user.email}</div></div>
+                    <div><strong className="text-muted-foreground">Phone:</strong><div>{user.phone}</div></div>
+                    <div className="col-span-2"><strong className="text-muted-foreground">User ID:</strong><div>{user.userId}</div></div>
+                    <div className="col-span-2"><strong className="text-muted-foreground">Bio:</strong><div>{user.bio || 'Not provided'}</div></div>
                 </div>
 
                 <Separator />
@@ -119,7 +119,7 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                 <div className="flex items-center gap-2 text-sm">
                     <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                     <strong className="text-muted-foreground">Total Orders:</strong>
-                    <p>{orderCount}</p>
+                    <div>{orderCount}</div>
                 </div>
 
 
