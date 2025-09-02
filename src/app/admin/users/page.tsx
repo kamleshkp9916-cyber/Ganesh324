@@ -82,7 +82,6 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { verifyKyc } from "@/ai/flows/kyc-flow";
 
 const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: () => void, orderCount: number }) => {
     const photoSrc = user.passportPhoto?.preview || user.passportPhoto || user.photoURL;
@@ -382,35 +381,29 @@ export default function AdminUsersPage() {
 
   const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
     try {
-      const applicant = pendingSellers.find(s => s.uid === userId);
-      if (!applicant) {
-           toast({ title: "Applicant not found", variant: "destructive" });
-           return;
-      }
-      
-      if (status === 'verified') {
-        await verifyKyc({ userId, aadhar: applicant.aadhar || null, pan: applicant.pan || null });
-      } else {
         let updateData: Partial<UserData> = { verificationStatus: status };
-        if (status === 'rejected') {
+
+        if (status === 'verified') {
+            updateData.role = 'seller';
+        } else if (status === 'rejected') {
             updateData.rejectionReason = reason;
         } else if (status === 'needs-resubmission') {
             updateData.resubmissionReason = reason;
         }
+        
         await updateUserDataOnServer(userId, updateData);
-      }
 
-      let toastTitle = "Seller Approved";
-      if (status === 'rejected') toastTitle = "Seller Rejected";
-      if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
+        let toastTitle = "Seller Approved";
+        if (status === 'rejected') toastTitle = "Seller Rejected";
+        if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
 
-      toast({
-          title: toastTitle,
-          description: `The application has been updated.`,
-      });
+        toast({
+            title: toastTitle,
+            description: `The application has been updated.`,
+        });
 
-      // Refresh the user lists to show the update in real-time for the admin
-      fetchUsers();
+        // Refresh the user lists to show the update in real-time for the admin
+        fetchUsers();
         
     } catch (error) {
          toast({
