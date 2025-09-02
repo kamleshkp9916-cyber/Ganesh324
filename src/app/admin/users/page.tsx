@@ -17,6 +17,7 @@ import {
   Edit,
   Trash2,
   ShoppingBag,
+  Eye,
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link"
@@ -38,15 +39,6 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,77 +68,10 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
 import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
-import { updateUserDataOnServer } from "@/lib/firebase-server-utils";
-import { Separator } from "@/components/ui/separator";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
-import { Textarea } from "@/components/ui/textarea"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-
-const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: () => void, orderCount: number }) => {
-    const photoSrc = user.passportPhoto?.preview || user.passportPhoto || user.photoURL;
-
-    return (
-        <DialogContent className="max-w-3xl">
-            <DialogHeader>
-                 <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                         <AvatarImage src={photoSrc} alt={user.displayName} />
-                         <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
-                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                            {user.role === 'seller' && (
-                                <Badge variant="outline">{user.verificationStatus}</Badge>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </DialogHeader>
-            <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Personal Information</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><strong className="text-muted-foreground">Email:</strong><div>{user.email}</div></div>
-                    <div><strong className="text-muted-foreground">Phone:</strong><div>{user.phone}</div></div>
-                    <div className="col-span-2"><strong className="text-muted-foreground">User ID:</strong><div>{user.userId}</div></div>
-                    <div className="col-span-2"><strong className="text-muted-foreground">Bio:</strong><div>{user.bio || 'Not provided'}</div></div>
-                </div>
-
-                <Separator />
-                <h3 className="font-semibold text-lg border-b pb-2">Activity</h3>
-                <div className="flex items-center gap-2 text-sm">
-                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                    <strong className="text-muted-foreground">Total Orders:</strong>
-                    <div>{orderCount}</div>
-                </div>
-
-
-                {user.role === 'seller' && (
-                    <>
-                        <Separator />
-                        <h3 className="font-semibold text-lg border-b pb-2">Seller Information</h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><strong className="text-muted-foreground">Business Name:</strong><p>{user.businessName}</p></div>
-                             <div className="col-span-2"><strong className="text-muted-foreground">Bank Account:</strong><p className="font-mono">{user.accountNumber} ({user.ifsc})</p></div>
-                              <div className="col-span-2">
-                                <strong className="text-muted-foreground text-sm">Signature:</strong>
-                                <div className="mt-1 p-2 border rounded-lg bg-muted aspect-video flex items-center justify-center max-w-xs">
-                                    {user.signature ? <Image src={user.signature} alt="Signature" width={200} height={100} className="object-contain" /> : <p>No Signature</p>}
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={onClose}>Close</Button>
-            </DialogFooter>
-        </DialogContent>
-    );
-};
 
 
 const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => (
@@ -177,9 +102,15 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onViewDetails(u)}>View Details</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onViewDetails(u)}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View Details
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>Delete Account</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Account
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -200,8 +131,6 @@ export default function AdminUsersPage() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [selectedUserOrderCount, setSelectedUserOrderCount] = useState(0);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
@@ -249,13 +178,8 @@ export default function AdminUsersPage() {
       setUserToDelete(null);
   }
   
-  const handleViewDetails = async (userToShow: any) => {
-    const db = getFirestoreDb();
-    const ordersRef = collection(db, "orders");
-    const q = query(ordersRef, where("userId", "==", userToShow.uid));
-    const snapshot = await getCountFromServer(q);
-    setSelectedUserOrderCount(snapshot.data().count);
-    setSelectedUser(userToShow);
+  const handleViewDetails = (userToShow: any) => {
+    router.push(`/admin/users/${userToShow.uid}`);
   };
 
   const customers = allUsersState.filter(u => u.role === 'customer');
@@ -281,9 +205,6 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <Dialog open={!!selectedUser} onOpenChange={(isOpen) => !isOpen && setSelectedUser(null)}>
-        {selectedUser && <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} orderCount={selectedUserOrderCount} />}
-    </Dialog>
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
