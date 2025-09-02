@@ -99,7 +99,9 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                         <DialogTitle className="text-2xl">{user.displayName}</DialogTitle>
                          <div className="flex items-center gap-2">
                              <Badge variant={user.role === 'seller' ? 'secondary' : 'outline'}>{user.role}</Badge>
-                             {user.role === 'seller' && <span className="text-sm text-muted-foreground"> ({user.verificationStatus})</span>}
+                             {user.role === 'seller' && (
+                                <Badge variant="outline">({user.verificationStatus})</Badge>
+                             )}
                         </div>
                     </div>
                 </div>
@@ -128,8 +130,8 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                         <h3 className="font-semibold text-lg border-b pb-2">Seller Information</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div><strong className="text-muted-foreground">Business Name:</strong><p>{user.businessName}</p></div>
-                             <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{user.aadhar}</p></div>
-                             <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{user.pan}</p></div>
+                             <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{user.aadhar || 'Not Provided'}</p></div>
+                             <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{user.pan || 'Not Provided'}</p></div>
                              <div className="col-span-2"><strong className="text-muted-foreground">Bank Account:</strong><p className="font-mono">{user.accountNumber} ({user.ifsc})</p></div>
                               <div className="col-span-2">
                                 <strong className="text-muted-foreground text-sm">Signature:</strong>
@@ -384,13 +386,11 @@ export default function AdminUsersPage() {
 
       if (status === 'verified') {
         const applicant = pendingSellers.find(s => s.uid === userId);
-        if (!applicant || !applicant.aadhar || !applicant.pan) {
-            toast({ title: "Missing Information", description: "Aadhar or PAN is missing for this applicant.", variant: "destructive" });
-            return;
+        if (!applicant) {
+             toast({ title: "Applicant not found", variant: "destructive" });
+             return;
         }
         await verifyKyc({ userId, aadhar: applicant.aadhar, pan: applicant.pan });
-        // The verifyKyc flow now handles all the necessary updates including role and verificationStatus
-        // so we don't need to manually set them here anymore.
       } else {
         if (status === 'rejected') {
             updateData.rejectionReason = reason;

@@ -46,22 +46,26 @@ const verifyKycFlow = ai.defineFlow(
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const kycData = {
+    const kycData: any = {
         role: 'seller',
         kycStatus: 'verified',
-        kycType: 'Aadhaar + PAN',
         verifiedAt: new Date().toISOString(),
-        maskedData: {
-            aadhaar: maskAadhaar(aadhar),
-            pan: maskPan(pan),
-        },
         // Also update other seller-specific fields that are now implicitly confirmed
         verificationStatus: 'verified',
-        businessName: "Verified Business", // Placeholder
     };
+
+    if (aadhar && pan) {
+        kycData.kycType = 'Aadhaar + PAN';
+        kycData.maskedData = {
+            aadhaar: maskAadhaar(aadhar),
+            pan: maskPan(pan),
+        };
+    } else {
+        kycData.kycType = 'Manual Approval';
+    }
     
-    // Update the user's document in Firestore with the verified (and masked) data
-    await updateUserDataOnServer(userId, kycData as any);
+    // Update the user's document in Firestore with the verified data
+    await updateUserDataOnServer(userId, kycData);
     
     console.log(`KYC for user ${userId} verified and stored securely.`);
     
