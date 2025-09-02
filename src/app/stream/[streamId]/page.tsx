@@ -64,16 +64,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 
 const liveSellers = [
-    { id: 1, name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1' },
-    { id: 2, name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2' },
-    { id: 3, name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3' },
-    { id: 4, name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4' },
-    { id: 5, name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5' },
-    { id: 6, name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6' },
-    { id: 7, name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7' },
-    { id: 8, name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8' },
-    { id: 9, name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9' },
-    { id: 10, name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10' },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1' },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2' },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3' },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4' },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5' },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6' },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7' },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8' },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9' },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10' },
 ];
 
 const mockInitialChat = [
@@ -230,20 +230,26 @@ export default function StreamPage() {
   }, [isMyStream, toast]);
 
   useEffect(() => {
-    let sellerData: any;
-    const sellerFromList = liveSellers.find(s => String(s.id) === streamId);
+    let sellerData: any = null;
+
+    // First, check mock live sellers list (for admin monitoring)
+    const sellerFromList = liveSellers.find(s => s.id === streamId || s.name === streamId);
     if (sellerFromList) {
         sellerData = sellerFromList;
-    } else {
+    } 
+    // If not found, check localStorage (for seller's own stream)
+    else {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-             if (liveStreamData.seller.id === streamId || (streamId.startsWith('seller_') && streamId.endsWith(liveStreamData.seller.email))) {
+            const sellerIdFromStorage = liveStreamData.seller?.id || `seller_${liveStreamData.seller?.email}`;
+
+            if (sellerIdFromStorage === streamId) {
                 sellerData = {
                     ...liveStreamData.seller,
-                    id: streamId, // Use the ID from the URL
+                    id: streamId, // Ensure ID from URL is used
                     viewers: Math.floor(Math.random() * 5000),
-                    productId: liveStreamData.product.id
+                    productId: liveStreamData.product?.id,
                 };
             }
         }
@@ -252,7 +258,7 @@ export default function StreamPage() {
     if (sellerData) {
         setSeller(sellerData);
         if (user) {
-            const userData = getUserData(user.uid);
+            const userData = getUserData(user.uid); // This is async, but not awaited. This is fine since it's not used to set state.
             const followingKey = `following_${user.uid}`;
             const followingList = JSON.parse(localStorage.getItem(followingKey) || '[]');
             setIsFollowing(followingList.includes(sellerData.id));
