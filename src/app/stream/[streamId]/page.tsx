@@ -170,12 +170,10 @@ export default function StreamPage() {
   const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<any>(null);
-  const [isMyStream, setIsMyStream] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [quality, setQuality] = useState('Auto');
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isProductListOpen, setIsProductListOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState(mockInitialChat);
   const [newChatMessage, setNewChatMessage] = useState("");
@@ -195,50 +193,12 @@ export default function StreamPage() {
   }, [chatMessages]);
 
   useEffect(() => {
-    // Check if the current user is the one broadcasting
-    const liveStreamDataRaw = localStorage.getItem('liveStream');
-    if (liveStreamDataRaw) {
-      const liveStreamData = JSON.parse(liveStreamDataRaw);
-      if (user && liveStreamData.seller.email === user.email && streamId === `seller_${user.email}`) {
-        setIsMyStream(true);
-      }
-    }
-  }, [user, streamId]);
-
-  useEffect(() => {
-    // Only request camera if it's the seller's stream
-    if (isMyStream) {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to continue.',
-          });
-        }
-      };
-      getCameraPermission();
-    }
-  }, [isMyStream, toast]);
-
-  useEffect(() => {
     let sellerData: any = null;
-
-    // First, check mock live sellers list (for admin monitoring)
     const sellerFromList = liveSellers.find(s => s.id === streamId || s.name === streamId);
+
     if (sellerFromList) {
         sellerData = sellerFromList;
-    } 
-    // If not found, check localStorage (for seller's own stream)
-    else {
+    } else {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
@@ -247,7 +207,7 @@ export default function StreamPage() {
             if (sellerIdFromStorage === streamId) {
                 sellerData = {
                     ...liveStreamData.seller,
-                    id: streamId, // Ensure ID from URL is used
+                    id: streamId,
                     viewers: Math.floor(Math.random() * 5000),
                     productId: liveStreamData.product?.id,
                 };
@@ -258,14 +218,12 @@ export default function StreamPage() {
     if (sellerData) {
         setSeller(sellerData);
         if (user) {
-            const userData = getUserData(user.uid); // This is async, but not awaited. This is fine since it's not used to set state.
             const followingKey = `following_${user.uid}`;
             const followingList = JSON.parse(localStorage.getItem(followingKey) || '[]');
             setIsFollowing(followingList.includes(sellerData.id));
         }
     }
 
-    // Simulate new users joining
     const joinInterval = setInterval(() => {
         const newUser = mockNewUsers[Math.floor(Math.random() * mockNewUsers.length)];
         const newMessage = {
@@ -276,10 +234,11 @@ export default function StreamPage() {
         };
         // @ts-ignore
         setChatMessages(prev => [...prev, newMessage]);
-    }, Math.random() * (15000 - 5000) + 5000); // every 5-15 seconds
+    }, Math.random() * (15000 - 5000) + 5000);
 
     return () => clearInterval(joinInterval);
   }, [streamId, user]);
+
 
   const handleAddToCart = (productKey: string) => {
     const product = productDetails[productKey as keyof typeof productDetails];
@@ -387,32 +346,35 @@ export default function StreamPage() {
         </header>
         
         <div className="flex-1 relative flex items-center justify-center">
-            {isMyStream ? (
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-            ) : (
-                <Image src="https://placehold.co/1280x720.png" alt="Live stream" layout="fill" objectFit="cover" data-ai-hint="live video stream" />
-            )}
-
-             {isMyStream && hasCameraPermission === false && (
-                <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
-                    <Alert variant="destructive" className="max-w-md">
-                        <AlertTitle>Camera Access Required</AlertTitle>
-                        <AlertDescription>
-                            Please allow camera access in your browser settings to broadcast your stream.
-                        </AlertDescription>
-                    </Alert>
-                </div>
-             )}
-
+            <video 
+                ref={videoRef} 
+                src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                className="w-full h-full object-cover" 
+                autoPlay 
+                muted 
+                loop
+                playsInline
+            />
+            
              {/* Player Controls Overlay */}
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => setIsPaused(!isPaused)}>
+                <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => {
+                    if (videoRef.current) {
+                        videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
+                        setIsPaused(videoRef.current.paused);
+                    }
+                }}>
                     {isPaused ? <Play className="h-12 w-12" /> : <Pause className="h-12 w-12" />}
                 </Button>
             </div>
             
             <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
-                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => setIsMuted(!isMuted)}>
+                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => {
+                     if (videoRef.current) {
+                         videoRef.current.muted = !videoRef.current.muted;
+                         setIsMuted(videoRef.current.muted);
+                     }
+                 }}>
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                 </Button>
                  <DropdownMenu>
@@ -439,7 +401,12 @@ export default function StreamPage() {
             </div>
              {isPaused && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => setIsPaused(false)}>
+                    <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => {
+                         if (videoRef.current) {
+                            videoRef.current.play();
+                            setIsPaused(false);
+                        }
+                    }}>
                         <Play className="h-12 w-12 fill-white" />
                     </Button>
                 </div>
