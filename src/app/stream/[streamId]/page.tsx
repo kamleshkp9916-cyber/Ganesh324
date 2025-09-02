@@ -163,6 +163,8 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
     )
 }
 
+const STREAM_TERMINATED_KEY = 'stream_terminated_violation';
+
 export default function StreamPage() {
   const router = useRouter();
   const params = useParams();
@@ -181,9 +183,22 @@ export default function StreamPage() {
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isStreamTerminated, setIsStreamTerminated] = useState(false);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === STREAM_TERMINATED_KEY && event.newValue === streamId) {
+            setIsStreamTerminated(true);
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [streamId]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -293,12 +308,15 @@ export default function StreamPage() {
     };
     
     const handleTerminateStream = () => {
+        localStorage.setItem(STREAM_TERMINATED_KEY, streamId);
+        // Trigger for current tab since storage event doesn't fire on the same page
+        setIsStreamTerminated(true);
         toast({
             variant: "destructive",
             title: "Stream Terminated",
             description: `The live stream by ${seller.name} has been stopped.`,
         });
-        router.push('/admin/live-control');
+        // No need to redirect admin immediately, let them see the result
     };
 
 
@@ -309,6 +327,20 @@ export default function StreamPage() {
   const sellerProfileUrl = `/seller/profile?userId=${seller.id}`;
 
   return (
+    <>
+     <AlertDialog open={isStreamTerminated}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2"><ShieldCheck className="h-6 w-6 text-destructive"/> Stream Terminated by Admin</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This live stream has been ended by an administrator due to a violation of community guidelines.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogAction onClick={() => router.push('/live-selling')}>Back to Live Selling</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground">
       {/* Video Player Section */}
       <div className="flex-grow bg-black flex flex-col relative group">
@@ -436,6 +468,7 @@ export default function StreamPage() {
                          {isAdminView ? (
                             <>
                                 <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
@@ -567,5 +600,6 @@ export default function StreamPage() {
           </aside>
        )}
     </div>
+    </>
   );
 }
