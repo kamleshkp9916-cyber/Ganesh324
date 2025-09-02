@@ -9,7 +9,8 @@ import {
   Eye,
   StopCircle,
   MoreVertical,
-  Search
+  Search,
+  Gavel,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -61,9 +62,9 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1' },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2' },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4' },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1', hasAuction: true },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2', hasAuction: false },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4', hasAuction: true },
 ];
 
 export default function AdminLiveControlPage() {
@@ -175,7 +176,15 @@ export default function AdminLiveControlPage() {
                                                 <AvatarImage src={stream.seller.avatarUrl} />
                                                 <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium group-hover:underline">{stream.seller.name}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium group-hover:underline">{stream.seller.name}</span>
+                                                {stream.hasAuction && (
+                                                     <Badge variant="purple" className="w-fit">
+                                                        <Gavel className="mr-1 h-3 w-3" />
+                                                        Auction
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </Link>
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
