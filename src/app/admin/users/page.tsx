@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -129,8 +130,6 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
                         <h3 className="font-semibold text-lg border-b pb-2">Seller Information</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div><strong className="text-muted-foreground">Business Name:</strong><p>{user.businessName}</p></div>
-                             <div><strong className="text-muted-foreground">Aadhar No:</strong><p className="font-mono">{user.aadhar || 'Not Provided'}</p></div>
-                             <div><strong className="text-muted-foreground">PAN Card:</strong><p className="font-mono">{user.pan || 'Not Provided'}</p></div>
                              <div className="col-span-2"><strong className="text-muted-foreground">Bank Account:</strong><p className="font-mono">{user.accountNumber} ({user.ifsc})</p></div>
                               <div className="col-span-2">
                                 <strong className="text-muted-foreground text-sm">Signature:</strong>
@@ -147,47 +146,6 @@ const UserDetailDialog = ({ user, onClose, orderCount }: { user: any, onClose: (
             </DialogFooter>
         </DialogContent>
     );
-};
-
-
-const RejectionDialog = ({ open, onOpenChange, onConfirm }: { open: boolean, onOpenChange: (open: boolean) => void, onConfirm: (reason: string, type: 'rejected' | 'needs-resubmission') => void }) => {
-    const [reason, setReason] = useState("");
-    const [type, setType] = useState<'rejected' | 'needs-resubmission'>('rejected');
-
-    const handleConfirm = () => {
-        if (!reason.trim()) {
-            alert("Reason is required."); // Or use a toast
-            return;
-        }
-        onConfirm(reason, type);
-    }
-    
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Application Review</DialogTitle>
-                    <DialogDescription>Provide a reason for rejecting or requesting resubmission for this application.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                    <Textarea 
-                        placeholder="Explain why the application is being rejected or what needs to be fixed..."
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                    />
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button variant="secondary" onClick={() => { setType('needs-resubmission'); handleConfirm(); }} disabled={!reason.trim()}>
-                        <Edit className="h-4 w-4 mr-2" /> Request Resubmission
-                    </Button>
-                    <Button variant="destructive" onClick={() => { setType('rejected'); handleConfirm(); }} disabled={!reason.trim()}>
-                        <XCircle className="h-4 w-4 mr-2" /> Reject Permanently
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
 };
 
 
@@ -237,93 +195,10 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
     </>
 );
 
-const VerificationRequestsTable = ({ requests, onUpdateRequest, onViewDetails }: { requests: any[], onUpdateRequest: (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => void, onViewDetails: (seller: any) => void }) => {
-    const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
-    const [currentUserForRejection, setCurrentUserForRejection] = useState<string | null>(null);
-
-    const handleRejectClick = (userId: string) => {
-        setCurrentUserForRejection(userId);
-        setRejectionDialogOpen(true);
-    };
-    
-    const handleRejectionConfirm = (reason: string, type: 'rejected' | 'needs-resubmission') => {
-        if (currentUserForRejection) {
-            onUpdateRequest(currentUserForRejection, type, reason);
-        }
-        setRejectionDialogOpen(false);
-        setCurrentUserForRejection(null);
-    };
-
-    return (
-        <>
-            <RejectionDialog 
-                open={rejectionDialogOpen}
-                onOpenChange={setRejectionDialogOpen}
-                onConfirm={handleRejectionConfirm}
-            />
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Seller Applicant</TableHead>
-                        <TableHead className="hidden md:table-cell">Business Name</TableHead>
-                        <TableHead className="hidden md:table-cell">PAN</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {requests.length > 0 ? requests.map((req, index) => (
-                        <TableRow key={index}>
-                            <TableCell>
-                                <div className="font-medium">{req.displayName}</div>
-                                <div className="text-sm text-muted-foreground">{req.email}</div>
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell">{req.businessName}</TableCell>
-                            <TableCell className="hidden md:table-cell font-mono">{req.pan || 'N/A'}</TableCell>
-                            <TableCell className="flex gap-2">
-                                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUpdateRequest(req.uid, 'verified')}>
-                                    <CheckCircle className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only">Approve</span>
-                                </Button>
-                                <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleRejectClick(req.uid)}>
-                                    <XCircle className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only">Review</span>
-                                </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                            <span className="sr-only">Toggle menu</span>
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onSelect={() => onViewDetails(req)}>View Details</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                    </TableRow>
-                )) : (
-                    <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">No pending requests.</TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
-            <CardFooter className="px-0 pt-4">
-                <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-{requests.length > 10 ? 10 : requests.length}</strong> of <strong>{requests.length}</strong> requests
-                </div>
-            </CardFooter>
-        </>
-    );
-};
-
-
 export default function AdminUsersPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedUserOrderCount, setSelectedUserOrderCount] = useState(0);
@@ -340,11 +215,6 @@ export default function AdminUsersPage() {
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
     setAllUsersState(usersList as UserData[]);
-
-    // Fetch pending sellers
-    const pendingQuery = query(usersRef, where("role", "==", "seller"), where("verificationStatus", "==", "pending"));
-    const pendingSnapshot = await getDocs(pendingQuery);
-    setPendingSellers(pendingSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id})));
   };
 
   useEffect(() => {
@@ -378,41 +248,6 @@ export default function AdminUsersPage() {
       setIsDeleteAlertOpen(false);
       setUserToDelete(null);
   }
-
-  const handleVerificationUpdate = async (userId: string, status: 'verified' | 'rejected' | 'needs-resubmission', reason?: string) => {
-    try {
-        let updateData: Partial<UserData> = { verificationStatus: status };
-
-        if (status === 'verified') {
-            updateData.role = 'seller';
-        } else if (status === 'rejected') {
-            updateData.rejectionReason = reason;
-        } else if (status === 'needs-resubmission') {
-            updateData.resubmissionReason = reason;
-        }
-        
-        await updateUserDataOnServer(userId, updateData);
-
-        let toastTitle = "Seller Approved";
-        if (status === 'rejected') toastTitle = "Seller Rejected";
-        if (status === 'needs-resubmission') toastTitle = "Resubmission Requested";
-
-        toast({
-            title: toastTitle,
-            description: `The application has been updated.`,
-        });
-
-        // Refresh the user lists to show the update in real-time for the admin
-        await fetchUsers();
-        
-    } catch (error) {
-         toast({
-              title: "Update Failed",
-              description: "Could not update seller status. Please try again.",
-              variant: "destructive"
-          });
-    }
-  };
   
   const handleViewDetails = async (userToShow: any) => {
     const db = getFirestoreDb();
@@ -424,8 +259,7 @@ export default function AdminUsersPage() {
   };
 
   const customers = allUsersState.filter(u => u.role === 'customer');
-  const sellers = allUsersState.filter(u => u.role === 'seller' && u.verificationStatus === 'verified');
-  const pendingRequestCount = pendingSellers.length;
+  const sellers = allUsersState.filter(u => u.role === 'seller');
 
   return (
     <>
@@ -615,10 +449,6 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
-                     <TabsTrigger value="verification">
-                        Verification Requests 
-                        {pendingRequestCount > 0 && <Badge className="ml-2">{pendingRequestCount}</Badge>}
-                    </TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1">
@@ -646,17 +476,6 @@ export default function AdminUsersPage() {
                     </CardHeader>
                     <CardContent>
                         <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick}/>
-                    </CardContent>
-                </Card>
-             </TabsContent>
-            <TabsContent value="verification">
-                <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Seller Verification Requests</CardTitle>
-                        <CardDescription>Approve, reject, or request resubmission for new seller applications.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <VerificationRequestsTable requests={pendingSellers} onUpdateRequest={handleVerificationUpdate} onViewDetails={handleViewDetails} />
                     </CardContent>
                 </Card>
              </TabsContent>

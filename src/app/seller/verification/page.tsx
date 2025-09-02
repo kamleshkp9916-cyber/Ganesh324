@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { Button } from "@/components/ui/button";
@@ -16,132 +17,22 @@ export default function SellerVerificationPage() {
     const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const router = useRouter();
-    const [status, setStatus] = useState<VerificationStatus>('loading');
-    const [rejectionReason, setRejectionReason] = useState<string | null>(null);
-    const [resubmissionReason, setResubmissionReason] = useState<string | null>(null);
 
     useEffect(() => {
-        // Wait until auth state is fully resolved
-        if (loading) {
-            setStatus('loading');
-            return;
+        // The AuthRedirector now handles all redirection logic.
+        // This page is effectively deprecated for users who are auto-verified.
+        // If a user ever lands here, it's likely an edge case or a direct navigation.
+        // We can redirect them to the dashboard as they are already verified.
+        if (!loading && user && userData?.verificationStatus === 'verified') {
+            router.replace('/seller/dashboard');
         }
-
-        // If auth has loaded but there's no user or userData, something is wrong.
-        // The AuthRedirector should handle this, but as a fallback, send to register.
-        if (!user || !userData) {
-            router.replace('/seller/register');
-            return;
-        }
-
-        // We have user data, so we can determine the status
-        const currentStatus = userData.verificationStatus;
-
-        if (currentStatus === 'verified') {
-            router.replace('/seller/dashboard'); // Should be handled by AuthRedirector, but good to have.
-            return;
-        }
-        
-        setStatus(currentStatus || 'no-details');
-        
-        if (currentStatus === 'rejected') {
-            setRejectionReason((userData as any).rejectionReason || "No specific reason provided.");
-        }
-        if (currentStatus === 'needs-resubmission') {
-            setResubmissionReason((userData as any).resubmissionReason || "Please review your details carefully.");
-        }
-
-    }, [userData, user, loading, router]);
-
-
-    if (status === 'loading') {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoadingSpinner />
-            </div>
-        );
-    }
+    }, [user, userData, loading, router]);
     
-    if (status === 'no-details') {
-         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-                <p>Could not load seller details. Redirecting...</p>
-                {useEffect(() => {
-                    const timer = setTimeout(() => router.replace('/seller/register'), 2000);
-                    return () => clearTimeout(timer);
-                }, [router])}
-            </div>
-        )
-    }
-
-    const renderContent = () => {
-        switch (status) {
-            case 'pending':
-                return (
-                    <Alert className="max-w-lg">
-                        <Clock className="h-4 w-4" />
-                        <AlertTitle className="text-xl font-bold">Verification in Progress</AlertTitle>
-                        <AlertDescription>
-                            Thank you for submitting your details. Your information is currently under review. This process may take up to 24 hours. We will notify you upon completion.
-                        </AlertDescription>
-                    </Alert>
-                );
-            case 'rejected':
-                return (
-                    <Alert variant="destructive" className="max-w-lg">
-                        <XCircle className="h-4 w-4" />
-                        <AlertTitle className="text-xl font-bold">Application Rejected</AlertTitle>
-                        <AlertDescription>
-                            We're sorry, but your application to become a seller has been rejected. 
-                            <br />
-                            <strong>Reason:</strong> {rejectionReason}
-                            <br />
-                            Please contact support if you have any questions.
-                        </AlertDescription>
-                    </Alert>
-                );
-            case 'needs-resubmission':
-                return (
-                    <Alert variant="destructive" className="max-w-lg">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle className="text-xl font-bold">Action Required</AlertTitle>
-                        <AlertDescription>
-                           There was an issue with your submission. Please go back to the registration page to correct your details.
-                           <br />
-                           <strong>Reason:</strong> {resubmissionReason}
-                        </AlertDescription>
-                    </Alert>
-                );
-            default:
-                // This will be caught by the loading spinner above, but is a safe fallback.
-                return <LoadingSpinner />;
-        }
-    }
-
-    const handleBackAction = () => {
-        if (status === 'needs-resubmission') {
-            router.push('/seller/register');
-        } else {
-            signOut(true);
-        }
-    };
-    
-    const backButtonText = status === 'needs-resubmission' ? 'Back to Form' : 'Sign Out';
-    const backButtonIcon = status === 'needs-resubmission' ? <ArrowLeft className="h-4 w-4" /> : <LogOut className="h-4 w-4" />;
-
+    // Fallback content for the rare case a user lands here.
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
-             <div className="absolute top-4 left-4">
-                <Button 
-                    variant="ghost" 
-                    onClick={handleBackAction} 
-                    className="flex items-center gap-2"
-                >
-                    {backButtonIcon}
-                    {backButtonText}
-                </Button>
-            </div>
-            {renderContent()}
+            <LoadingSpinner />
+            <p className="mt-4 text-muted-foreground">Loading your seller dashboard...</p>
         </div>
     )
 }

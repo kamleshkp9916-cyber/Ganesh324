@@ -184,7 +184,7 @@ export function useAuthActions() {
             const sellerData: Partial<UserData> = {
                 ...values,
                 role: 'seller',
-                verificationStatus: 'pending',
+                verificationStatus: 'verified', // Auto-verify
                 displayName: displayName,
                 followers: 0,
                 following: 0,
@@ -210,11 +210,11 @@ export function useAuthActions() {
             await createUserData(user, 'seller', sellerData);
             
             toast({
-                title: "Application Submitted!",
-                description: "Your seller application is under review. We will notify you upon completion.",
+                title: "Registration Complete!",
+                description: "Welcome! You can now access your seller dashboard.",
             });
 
-            router.push('/seller/verification');
+            router.push('/seller/dashboard'); // Redirect directly to dashboard
             
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
