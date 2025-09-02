@@ -10,18 +10,13 @@ import {
   Menu,
   Package,
   Package2,
-  Repeat,
   Search,
   Users,
-  ListFilter,
-  Video,
-  MessageSquare,
-  Bell,
-  RadioTower,
-  ShieldCheck,
   LineChart as LineChartIcon,
+  ShieldCheck,
+  RadioTower
 } from "lucide-react"
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Avatar,
@@ -34,20 +29,9 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +39,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -83,11 +66,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
-import { Product } from "@/components/seller/product-form";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from 'next/image';
+import { formatDistanceToNow } from "date-fns";
 
 
 const salesData = [
@@ -142,21 +121,12 @@ const recentTransactions = [
     }
 ];
 
-const mockNotifications = [
-    { id: 1, title: 'New Order Received', description: 'Order #ORD5905 for Designer Sunglasses.', time: '5m ago', read: false },
-    { id: 2, title: 'Low Stock Warning', description: 'Vintage Camera has only 2 items left.', time: '1h ago', read: false },
-    { id: 3, title: 'New Follower', description: 'Jane Doe started following you.', time: '3h ago', read: true },
-    { id: 4, title: 'Weekly Payout Sent', description: '₹17,499.00 has been sent to your bank.', time: '1d ago', read: true },
-];
-
-const dailySignups = [
-    { day: "Mon", customers: 20, sellers: 5 },
-    { day: "Tue", customers: 35, sellers: 7 },
-    { day: "Wed", customers: 30, sellers: 6 },
-    { day: "Thu", customers: 45, sellers: 10 },
-    { day: "Fri", customers: 50, sellers: 12 },
-    { day: "Sat", customers: 65, sellers: 15 },
-    { day: "Sun", customers: 70, sellers: 18 },
+const topProducts = [
+    { name: "Vintage Camera", category: "Electronics", sales: 150 },
+    { name: "Wireless Headphones", category: "Electronics", sales: 120 },
+    { name: "Designer Sunglasses", category: "Fashion", sales: 95 },
+    { name: "Skincare Set", category: "Beauty", sales: 80 },
+    { name: "Leather Backpack", category: "Fashion", sales: 60 },
 ]
 
 
@@ -358,7 +328,7 @@ export default function AdminDashboard() {
           </Card>
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -370,19 +340,7 @@ export default function AdminDashboard() {
           </Card>
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sellers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+432</div>
-              <p className="text-xs text-muted-foreground">
-                +19% from last month
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+              <CardTitle className="text-sm font-medium">Sales</CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -392,32 +350,110 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Streams</CardTitle>
+              <RadioTower className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+573</div>
+              <p className="text-xs text-muted-foreground">
+                +201 since last hour
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <div className="grid gap-4 md:gap-8">
-            <Card>
-                <CardHeader>
-                <CardTitle>Recent Signups</CardTitle>
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          <Card className="xl:col-span-2">
+            <CardHeader className="flex flex-row items-center">
+              <div className="grid gap-2">
+                <CardTitle>Transactions</CardTitle>
                 <CardDescription>
-                    Weekly user and seller registration trends.
+                  Recent transactions from your store.
                 </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={dailySignups}>
-                        <XAxis dataKey="day" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="customers" stroke="hsl(var(--primary))" strokeWidth={2} name="New Customers" />
-                        <Line type="monotone" dataKey="sellers" stroke="hsl(var(--secondary-foreground))" strokeWidth={2} name="New Sellers" />
-                    </LineChart>
-                </ResponsiveContainer>
-                </CardContent>
-            </Card>
+              </div>
+              <Button asChild size="sm" className="ml-auto gap-1">
+                <Link href="/admin/orders">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Type
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Status
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Date
+                    </TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentTransactions.map((transaction) => (
+                    <TableRow key={transaction.orderId}>
+                        <TableCell>
+                            <div className="font-medium">{transaction.customer.name}</div>
+                            <div className="hidden text-sm text-muted-foreground md:inline">
+                                {transaction.customer.email}
+                            </div>
+                        </TableCell>
+                        <TableCell className="hidden xl:table-cell">
+                            <Badge variant={transaction.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
+                                {transaction.type}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="hidden xl:table-cell">
+                             <Badge variant="outline">{transaction.status}</Badge>
+                        </TableCell>
+                         <TableCell className="hidden md:table-cell lg:hidden xl:table-cell">
+                           {formatDistanceToNow(transaction.date, { addSuffix: true })}
+                        </TableCell>
+                        <TableCell className="text-right">₹{transaction.total.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Selling Products</CardTitle>
+              <CardDescription>
+                Your most popular products this month.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+               <Table>
+                 <TableHeader>
+                    <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead className="text-right">Sales</TableHead>
+                    </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                    {topProducts.map((product) => (
+                        <TableRow key={product.name}>
+                            <TableCell>
+                                <div className="font-medium">{product.name}</div>
+                                <div className="text-sm text-muted-foreground">{product.category}</div>
+                            </TableCell>
+                            <TableCell className="text-right">{product.sales}</TableCell>
+                        </TableRow>
+                    ))}
+                 </TableBody>
+               </Table>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
   )
 }
-
-    
