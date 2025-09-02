@@ -36,7 +36,7 @@ export default function EditPrivacyPage() {
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/admin/settings')}>
               <ArrowLeft className="h-6 w-6" />
             </Button>
             <h1 className="text-xl font-bold">Edit Privacy Policy</h1>
