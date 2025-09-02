@@ -8,7 +8,6 @@ import { LoadingSpinner } from './ui/loading-spinner';
 
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
-const sellerVerificationPath = '/seller/verification';
 
 const publicAllowedPaths = [
     '/live-selling',
@@ -40,7 +39,7 @@ export function AuthRedirector() {
                 targetPath = emailVerificationPath;
             }
         } else if (userData) { // Make sure we have the role data
-            const { role, verificationStatus } = userData;
+            const { role } = userData;
             
             // 1. Admin check (Highest Priority)
             if (role === 'admin') {
@@ -53,21 +52,14 @@ export function AuthRedirector() {
             } 
             // 2. Seller check
             else if (role === 'seller') {
-                 if (verificationStatus !== 'verified') {
-                    // Allow pending sellers to access their own pages, but redirect from others.
-                    const isAllowedSellerPath = pathname.startsWith('/seller/') || pathname === '/live-selling';
-                    if (!isAllowedSellerPath) {
-                        targetPath = sellerVerificationPath;
-                    }
-                } else { // Verified seller
-                    if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/admin')) {
-                        targetPath = '/seller/dashboard';
-                    }
+                 // Verified seller
+                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin')) {
+                    targetPath = '/seller/dashboard';
                 }
             } 
             // 3. Customer check (Default)
             else { 
-                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname === sellerVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
+                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
                     targetPath = '/live-selling';
                 }
             }
