@@ -19,8 +19,7 @@ import {
   Bell,
   RadioTower,
   ShieldCheck,
-  LineChart,
-  Line,
+  LineChart as LineChartIcon,
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 
@@ -77,6 +76,8 @@ import {
   YAxis,
   Tooltip,
   Legend,
+  LineChart,
+  Line,
 } from "recharts"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
