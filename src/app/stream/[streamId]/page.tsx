@@ -31,6 +31,8 @@ import {
   MessageCircle,
   LifeBuoy,
   Gavel,
+  ShieldCheck,
+  StopCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -51,12 +53,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 const liveSellers = [
@@ -162,7 +166,7 @@ export default function StreamPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<any>(null);
@@ -319,6 +323,15 @@ export default function StreamPage() {
             setIsFollowing(prev => !prev);
         }
     };
+    
+    const handleTerminateStream = () => {
+        toast({
+            variant: "destructive",
+            title: "Stream Terminated",
+            description: `The live stream by ${seller.name} has been stopped.`,
+        });
+        router.push('/admin/live-control');
+    };
 
 
   if (!seller) {
@@ -437,9 +450,39 @@ export default function StreamPage() {
                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
                     <List />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Gavel />
-                </Button>
+                {userData?.role === 'admin' && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                                <ShieldCheck />
+                            </Button>
+                        </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                        <StopCircle className="mr-2 h-4 w-4" />
+                                        Terminate Stream
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action will immediately terminate the stream for {seller.name} and all viewers.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
                     <PanelRightClose />
                 </Button>
@@ -553,4 +596,3 @@ export default function StreamPage() {
     </div>
   );
 }
-
