@@ -14,13 +14,26 @@ export default function PrivacyAndSecurityPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold">Privacy And Security</h1>
+        <h1 className="text-xl font-bold">Privacy & Security</h1>
         <div className="w-10"></div>
       </header>
 
-      <main className="flex-grow p-4">
-        <div className="text-center">
-          <p>This is the privacy and security page. You can add content here.</p>
+      <main className="flex-grow p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-8 text-sm text-muted-foreground">
+            <div className="text-center space-y-1">
+                <h2 className="text-2xl font-bold text-foreground">Privacy Policy for StreamCart</h2>
+                <p>Effective Date: [26/08/2025]</p>
+            </div>
+
+            <p>This Privacy Policy describes how StreamCart ("we," "us," or "our") collects, uses, and discloses your information when you use our mobile application, website, and related services (collectively, the “Platform”).</p>
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">1. Information We Collect</h3>
+                <p>We collect information you provide directly to us, such as when you create an account, list a product, make a purchase, or communicate with us. This may include your name, email address, phone number, shipping address, and payment information.</p>
+            </div>
+            
+            ... (rest of the policy) ...
+
         </div>
       </main>
     </div>
