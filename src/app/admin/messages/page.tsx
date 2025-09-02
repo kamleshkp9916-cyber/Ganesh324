@@ -250,6 +250,7 @@ export default function AdminMessagePage() {
                                 <Link href="/admin/messages" className="hover:text-foreground">Messages</Link>
                                 <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                                 <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
+                                 <Link href="/admin/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
                             </nav>
                         </SheetContent>
                     </Sheet>
@@ -328,5 +329,3 @@ export default function AdminMessagePage() {
     </div>
   );
 }
-
-    

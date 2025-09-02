@@ -6,3 +6,4 @@ import "./flows/help-chat-flow.ts";
 import "./flows/contact-flow.ts";
 import "./flows/executive-chat-flow.ts";
 import "./flows/kyc-flow.ts";
+import "./flows/notification-flow.ts";

@@ -204,7 +204,7 @@ export default function AdminDashboard() {
             Live Control
           </Link>
           <Link
-            href="#"
+            href="/admin/settings"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Settings
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                 Live Control
               </Link>
               <Link
-                href="#"
+                href="/admin/settings"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Settings

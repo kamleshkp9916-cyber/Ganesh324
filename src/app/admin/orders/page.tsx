@@ -251,6 +251,7 @@ export default function AdminOrdersPage() {
                 <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                 <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
                  <Link href="/admin/live-control" className="text-muted-foreground transition-colors hover:text-foreground">Live Control</Link>
+                 <Link href="/admin/settings" className="text-muted-foreground transition-colors hover:text-foreground">Settings</Link>
             </nav>
             <Sheet>
                 <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
@@ -264,6 +265,7 @@ export default function AdminOrdersPage() {
                         <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
                         <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
                          <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
+                         <Link href="/admin/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
                     </nav>
                 </SheetContent>
             </Sheet>
