@@ -23,7 +23,6 @@ export default function TermsAndConditionsPage() {
             <div className="text-center space-y-1">
                 <h2 className="text-2xl font-bold text-foreground">Terms and Conditions for StreamCart</h2>
                 <p>Effective Date: [26/08/2025]</p>
-                <p>Last Updated: [26/08/2025]</p>
             </div>
 
             <p>These Terms and Conditions (“Terms”) govern your access to and use of the StreamCart mobile application, website, and related services (collectively, the “Platform”). By registering an account or otherwise using the Platform, you agree to be bound by these Terms. If you do not agree, you must not use StreamCart.</p>
@@ -32,7 +31,7 @@ export default function TermsAndConditionsPage() {
                 <h3 className="text-lg font-semibold text-foreground">1. Eligibility</h3>
                 <p>Users must be at least 18 years of age, or the age of majority in their jurisdiction, in order to buy, sell, or participate in auctions through the Platform. By creating an account, you represent and warrant that you meet these eligibility requirements and that all information you provide is accurate and truthful.</p>
             </div>
-
+            
             ... (rest of the terms) ...
             
         </div>
