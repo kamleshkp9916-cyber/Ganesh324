@@ -112,7 +112,7 @@ const mockNewUsers = [
 ]
 
 
-function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
+function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminView }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void, isAdminView: boolean }) {
     const product = productDetails[productKey as keyof typeof productDetails];
     if (!product) return null;
 
@@ -131,10 +131,10 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { prod
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="flex-1" onClick={() => onAddToCart(productKey)}>
+                    <Button size="sm" className="flex-1" onClick={() => onAddToCart(productKey)} disabled={isAdminView}>
                         <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                     </Button>
-                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(productKey)}>
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(productKey)} disabled={isAdminView}>
                         Buy Now
                     </Button>
                 </div>
@@ -143,7 +143,7 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow }: { prod
     );
 }
 
-function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow }: { product: any, isBuyable: boolean, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void }) {
+function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminView }: { product: any, isBuyable: boolean, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void, isAdminView: boolean }) {
      return (
         <div className="flex items-center gap-3 py-2 border-b last:border-none">
             <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md object-cover" data-ai-hint={product.hint}/>
@@ -152,10 +152,10 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow }: { produc
                 <p className="text-xs text-muted-foreground">{product.price}</p>
             </div>
             <div className="flex flex-col gap-1">
-                 <Button size="sm" variant="secondary" onClick={() => onAddToCart(product.key)} disabled={!isBuyable} className="h-7 text-xs">
+                 <Button size="sm" variant="secondary" onClick={() => onAddToCart(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
                     <ShoppingCart className="mr-1.5 h-3 w-3" /> Cart
                 </Button>
-                <Button size="sm" onClick={() => onBuyNow(product.key)} disabled={!isBuyable} className="h-7 text-xs">
+                <Button size="sm" onClick={() => onBuyNow(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
                     Buy
                 </Button>
             </div>
@@ -183,6 +183,7 @@ export default function StreamPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
+  const isAdminView = userData?.role === 'admin';
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -203,8 +204,7 @@ export default function StreamPage() {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-            // Construct a comparable ID. This assumes `liveStreamData.seller.id` exists and is consistent.
-            const sellerIdFromStorage = liveStreamData.seller?.id || streamId;
+            const sellerIdFromStorage = liveStreamData.seller?.uid || streamId;
 
             if (sellerIdFromStorage === streamId) {
                 sellerData = {
@@ -426,42 +426,6 @@ export default function StreamPage() {
                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
                     <List />
                 </Button>
-                {userData?.role === 'admin' && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
-                                <ShieldCheck />
-                            </Button>
-                        </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                        <StopCircle className="mr-2 h-4 w-4" />
-                                        Terminate Stream
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action will immediately terminate the stream for {seller.name} and all viewers.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
-                    <PanelRightClose />
-                </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -469,20 +433,51 @@ export default function StreamPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" />
-                            <span>Report</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <MessageCircle className="mr-2 h-4 w-4" />
-                            <span>Feedback</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem>
-                            <LifeBuoy className="mr-2 h-4 w-4" />
-                            <span>Help</span>
-                        </DropdownMenuItem>
+                         {isAdminView ? (
+                            <>
+                                <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                            <StopCircle className="mr-2 h-4 w-4" />
+                                            Terminate Stream
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action will immediately terminate the stream for {seller.name} and all viewers.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </>
+                         ) : (
+                            <>
+                                <DropdownMenuItem>
+                                    <Flag className="mr-2 h-4 w-4" />
+                                    <span>Report</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    <span>Feedback</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    <span>Help</span>
+                                </DropdownMenuItem>
+                            </>
+                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
+                    <PanelRightClose />
+                </Button>
               </div>
             </div>
             <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
@@ -508,6 +503,7 @@ export default function StreamPage() {
                         stock={item.stock!} 
                         onAddToCart={handleAddToCart}
                         onBuyNow={handleBuyNow}
+                        isAdminView={isAdminView}
                     />
                 )
               ))}
@@ -562,6 +558,7 @@ export default function StreamPage() {
                                 isBuyable={featuredProductIds.includes(product.key)}
                                 onAddToCart={handleAddToCart}
                                 onBuyNow={handleBuyNow}
+                                isAdminView={isAdminView}
                             />
                         ))}
                     </ScrollArea>
