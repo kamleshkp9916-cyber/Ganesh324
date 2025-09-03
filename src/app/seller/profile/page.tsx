@@ -45,27 +45,22 @@ export default function SellerProfilePage() {
     const fetchProfileData = async () => {
         if (loading || !isMounted) return;
 
-        let targetId: string | null | undefined = userIdFromQuery;
-        
-        // If no userId is in the query, it means the seller is viewing their own profile.
-        if (!targetId) {
-            if (user && userData?.role === 'seller') {
-                targetId = user.uid;
-            } else {
-                // Not a seller or no user, nothing to show.
-                return;
-            }
+        // This page should ONLY render a profile if a userId is in the query.
+        // It should never default to the logged-in user.
+        if (!userIdFromQuery) {
+            setProfileData(null); // Explicitly clear data if no ID
+            // Optionally, redirect to a "not found" or home page
+            // For now, we'll just show a loading/empty state.
+            return;
         }
         
-        // Always fetch by UID for reliability.
-        const data = await getUserData(targetId);
+        const data = await getUserData(userIdFromQuery);
         
         if (data) {
             setProfileData(data);
         } else {
-            console.error("Seller not found:", targetId);
-             // Optionally, redirect to a not-found page
-             // router.push('/not-found');
+            console.error("Seller not found:", userIdFromQuery);
+            setProfileData(null);
         }
     };
     
