@@ -66,10 +66,10 @@ const warningSchema = z.object({
 })
 
 const flaggedContent = [
-    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', reporter: 'AdminBot', status: 'Pending' },
-    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', reporter: 'JaneDoe', status: 'Pending' },
-    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', reporter: 'User456', status: 'Pending' },
-    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', reporter: 'CommunityMod', status: 'Reviewed' },
+    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
+    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
+    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
+    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
 ];
 
 
@@ -132,10 +132,37 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const handleReviewContent = (item: typeof flaggedContent[0]) => {
+    let path = '';
+    switch (item.type) {
+      case 'User Profile':
+        path = `/admin/users/${item.targetId}`;
+        break;
+      case 'Product Image':
+        path = `/product/${item.targetId}`;
+        break;
+      case 'Chat Message':
+        path = `/admin/messages?userId=${item.targetId}`;
+        break;
+      case 'Live Stream':
+        path = `/stream/${item.targetId}`;
+        break;
+      default:
+        toast({
+            title: "Cannot Review",
+            description: "The content type does not have a review page.",
+            variant: "destructive"
+        });
+        return;
+    }
+    router.push(path);
+  };
+
+
   const handleRemoveContent = (id: number) => {
     setContentList(prev => prev.filter(item => item.id !== id));
     toast({
-        title: "Content Removed",
+        title: "Content Action Taken",
         description: "The flagged content has been removed.",
         variant: "destructive"
     });
@@ -316,7 +343,7 @@ export default function AdminSettingsPage() {
                                         <TableCell>
                                              <Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge></TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="mr-2">Review</Button>
+                                            <Button variant="ghost" size="sm" className="mr-2" onClick={() => handleReviewContent(item)}>Review</Button>
                                             <Button variant="destructive" size="sm" onClick={() => handleRemoveContent(item.id)}>Remove</Button>
                                         </TableCell>
                                     </TableRow>
