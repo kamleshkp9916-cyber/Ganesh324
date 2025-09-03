@@ -535,25 +535,27 @@ export default function StreamPage() {
                             <p className="font-semibold">{item.user}</p>
                             <p className="text-muted-foreground">{item.message}</p>
                         </div>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
-                                    <Flag className="h-3 w-3 text-muted-foreground" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Report Comment?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Are you sure you want to report this comment for review by our moderation team?
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                        {!isAdminView && (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
+                                        <Flag className="h-3 w-3 text-muted-foreground" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Report Comment?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Are you sure you want to report this comment for review by our moderation team?
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        )}
                     </div>
                 ) : item.type === 'join' ? (
                     <div key={item.id} className="text-center text-xs text-muted-foreground italic my-2">
