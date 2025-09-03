@@ -8,8 +8,6 @@ import { LoadingSpinner } from './ui/loading-spinner';
 
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
-const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages'];
-const adminPaths = ['/admin/dashboard', '/admin/users', '/admin/orders', '/admin/inquiries', '/admin/messages', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/edit/privacy', '/admin/edit/terms'];
 
 const isPublicAllowedPath = (pathname: string) => {
     const publicAllowedPrefixes = [
@@ -43,10 +41,10 @@ export function AuthRedirector() {
             
             if (role === 'admin') {
                 // If user is an admin, they should only be redirected away from public-only paths.
-                // They should be able to access any other page, including customer and seller pages.
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/admin/dashboard';
                 }
+                // Otherwise, let them stay on any page they are trying to access.
             } 
             else if (role === 'seller') {
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin')) {
