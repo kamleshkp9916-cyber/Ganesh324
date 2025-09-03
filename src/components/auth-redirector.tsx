@@ -19,12 +19,13 @@ const isPublicAllowedPath = (pathname: string) => {
 };
 
 export function AuthRedirector() {
-  const { user, loading, userData } = useAuth();
+  const { user, loading, userData, authReady } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) {
+    // Wait until both authentication and user data are confirmed to be loaded
+    if (!authReady) {
       return; 
     }
     
@@ -40,11 +41,9 @@ export function AuthRedirector() {
             const { role } = userData;
             
             if (role === 'admin') {
-                // If user is an admin, they should only be redirected away from public-only paths.
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/admin/dashboard';
                 }
-                // Otherwise, let them stay on any page they are trying to access.
             } 
             else if (role === 'seller') {
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin')) {
@@ -73,9 +72,9 @@ export function AuthRedirector() {
         router.replace(targetPath);
     }
 
-  }, [user, userData, loading, router, pathname]);
+  }, [user, userData, authReady, router, pathname]);
 
-  if (loading) {
+  if (!authReady) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
             <LoadingSpinner />
