@@ -1,23 +1,24 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, usePathname } from 'next/navigation';
 import { LoadingSpinner } from './ui/loading-spinner';
 
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
+const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages'];
+const adminPaths = ['/admin/dashboard', '/admin/users', '/admin/orders', '/admin/inquiries', '/admin/messages', '/admin/products', '/admin/live-control', '/admin/settings'];
 
-const publicAllowedPaths = [
-    '/live-selling',
-    '/about',
-    '/contact',
-    '/terms-and-conditions',
-    '/privacy-and-security',
-    '/faq',
-];
-
+const isPublicAllowedPath = (pathname: string) => {
+    const publicAllowedPrefixes = [
+        '/live-selling', '/about', '/contact', '/terms-and-conditions', 
+        '/privacy-and-security', '/faq', '/product/', '/stream/', 
+        '/seller/profile', '/profile', '/seller/kyc'
+    ];
+    return publicAllowedPrefixes.some(prefix => pathname.startsWith(prefix));
+};
 
 export function AuthRedirector() {
   const { user, loading, userData } = useAuth();
@@ -25,7 +26,6 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // If auth state is still loading, wait.
     if (loading) {
       return; 
     }
@@ -38,25 +38,20 @@ export function AuthRedirector() {
             if (pathname !== emailVerificationPath) {
                 targetPath = emailVerificationPath;
             }
-        } else if (userData) { // Make sure we have the role data
+        } else if (userData) {
             const { role } = userData;
             
-            // 1. Admin check (Highest Priority)
             if (role === 'admin') {
-                // Admins should only be redirected away from pages meant for non-logged-in users.
-                if (publicOnlyPaths.includes(pathname)) {
+                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/admin/dashboard';
                 }
             } 
-            // 2. Seller check
             else if (role === 'seller') {
-                 // Verified seller
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin')) {
                     targetPath = '/seller/dashboard';
                 }
             } 
-            // 3. Customer check (Default)
-            else { 
+            else { // Customer
                  if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
                     targetPath = '/live-selling';
                 }
@@ -65,16 +60,9 @@ export function AuthRedirector() {
     } 
     else { 
         // --- No user is logged in ---
-        const isPublicAllowed = 
-            publicOnlyPaths.includes(pathname) || 
-            publicAllowedPaths.includes(pathname) ||
-            pathname.startsWith('/product/') ||
-            pathname.startsWith('/stream/') ||
-            pathname.startsWith('/seller/profile') ||
-            pathname.startsWith('/profile') ||
-            pathname === '/seller/kyc';
+        const isAllowed = publicOnlyPaths.includes(pathname) || isPublicAllowedPath(pathname);
                                 
-        if (!isPublicAllowed) {
+        if (!isAllowed) {
             targetPath = '/';
         }
     }
@@ -85,7 +73,6 @@ export function AuthRedirector() {
 
   }, [user, userData, loading, router, pathname]);
 
-  // Show a spinner ONLY while the initial auth check is happening.
   if (loading) {
     return (
         <div className="w-full h-screen flex items-center justify-center bg-background">
@@ -94,7 +81,5 @@ export function AuthRedirector() {
     );
   }
 
-  // Once loading is false, render nothing and let the effect handle redirection.
-  // This prevents rendering the page content for a split second before redirecting.
   return null;
 }
