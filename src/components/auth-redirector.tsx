@@ -43,8 +43,8 @@ export function AuthRedirector() {
             
             // 1. Admin check (Highest Priority)
             if (role === 'admin') {
-                // Admins should be redirected away from pages meant only for non-logged-in users or specific registration flows.
-                if (publicOnlyPaths.includes(pathname) || pathname.startsWith('/seller/kyc')) {
+                // Admins should only be redirected away from pages meant for non-logged-in users.
+                if (publicOnlyPaths.includes(pathname)) {
                     targetPath = '/admin/dashboard';
                 }
             } 
