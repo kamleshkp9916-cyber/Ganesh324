@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -43,6 +44,7 @@ import {
   Repeat,
   Laptop,
   Briefcase,
+  Gavel,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -97,7 +99,8 @@ const liveSellers = [
       rating: 4.8,
       reviews: 12,
       hint: 'woman posing stylish outfit',
-      productId: 'prod_1'
+      productId: 'prod_1',
+      hasAuction: true
     },
     {
       id: 2,
@@ -110,7 +113,8 @@ const liveSellers = [
       rating: 4.9,
       reviews: 28,
       hint: 'unboxing new phone',
-      productId: 'prod_2'
+      productId: 'prod_2',
+      hasAuction: false
     },
     {
       id: 3,
@@ -123,7 +127,8 @@ const liveSellers = [
       rating: 4.7,
       reviews: 9,
       hint: 'modern living room decor',
-      productId: 'prod_3'
+      productId: 'prod_3',
+      hasAuction: false
     },
     {
       id: 4,
@@ -136,7 +141,8 @@ const liveSellers = [
       rating: 4.9,
       reviews: 55,
       hint: 'makeup tutorial',
-      productId: 'prod_4'
+      productId: 'prod_4',
+      hasAuction: true
     },
     {
       id: 5,
@@ -149,7 +155,8 @@ const liveSellers = [
       rating: 0,
       reviews: 0,
       hint: 'cooking demonstration',
-      productId: 'prod_5'
+      productId: 'prod_5',
+      hasAuction: false
     },
     {
       id: 6,
@@ -162,7 +169,8 @@ const liveSellers = [
       rating: 4.6,
       reviews: 18,
       hint: 'yoga session',
-      productId: 'prod_6'
+      productId: 'prod_6',
+      hasAuction: false
     },
     {
       id: 7,
@@ -175,7 +183,8 @@ const liveSellers = [
       rating: 5.0,
       reviews: 6,
       hint: 'pottery making',
-      productId: 'prod_7'
+      productId: 'prod_7',
+      hasAuction: true
     },
     {
       id: 8,
@@ -188,7 +197,8 @@ const liveSellers = [
       rating: 4.8,
       reviews: 30,
       hint: 'playing with puppy',
-      productId: 'prod_8'
+      productId: 'prod_8',
+      hasAuction: false
     },
     {
       id: 9,
@@ -201,7 +211,8 @@ const liveSellers = [
       rating: 4.9,
       reviews: 10,
       hint: 'reading book cozy',
-      productId: 'prod_9'
+      productId: 'prod_9',
+      hasAuction: false
     },
     {
       id: 10,
@@ -214,7 +225,8 @@ const liveSellers = [
       rating: 4.9,
       reviews: 80,
       hint: 'esports competition',
-      productId: 'prod_10'
+      productId: 'prod_10',
+      hasAuction: true
     },
 ]
 
@@ -895,18 +907,14 @@ export default function LiveSellingPage() {
                                                     </Avatar>
                                                 </Link>
                                                 <div className="flex-1">
-                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                     <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
                                                         <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                     </Link>
-                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    {seller.rating > 0 && (
-                                                         <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                            <div className="flex items-center gap-1 text-xs text-amber-300 mt-1">
-                                                                <Star className="w-3 h-3 fill-current" />
-                                                                <span>{seller.rating.toFixed(1)}</span>
-                                                                <span className="text-muted-foreground/80">({seller.reviews})</span>
-                                                            </div>
-                                                        </Link>
+                                                    {seller.hasAuction && (
+                                                        <Badge variant="purple" className="mt-1">
+                                                            <Gavel className="mr-1 h-3 w-3" />
+                                                            Auction
+                                                        </Badge>
                                                     )}
                                                 </div>
                                             </div>
