@@ -54,6 +54,7 @@ import { useToast } from "@/hooks/use-toast"
 import { sendAnnouncement, sendWarning } from "@/ai/flows/notification-flow"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
+const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -65,7 +66,7 @@ const warningSchema = z.object({
     message: z.string().min(10, "Warning message must be at least 10 characters.")
 })
 
-const flaggedContent = [
+const initialFlaggedContent = [
     { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
     { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
     { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
@@ -80,7 +81,25 @@ export default function AdminSettingsPage() {
   const { toast } = useToast()
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
   const [isSendingWarning, setIsSendingWarning] = useState(false)
-  const [contentList, setContentList] = useState(flaggedContent);
+  const [contentList, setContentList] = useState(initialFlaggedContent);
+
+  useEffect(() => {
+    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
+        id: initialFlaggedContent.length + index + 1,
+        type: 'Chat Message',
+        content: `Reported comment: "${comment.message}"`,
+        targetId: comment.streamId, // Use streamId as target for review navigation
+        reporter: 'User',
+        status: 'Pending',
+    }));
+
+    setContentList(prev => {
+        const existingIds = new Set(prev.map(item => item.content));
+        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
+        return [...prev, ...uniqueNewItems];
+    });
+  }, []);
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -132,7 +151,7 @@ export default function AdminSettingsPage() {
     }
   }
 
-  const handleReviewContent = (item: typeof flaggedContent[0]) => {
+  const handleReviewContent = (item: typeof contentList[0]) => {
     let path = '';
     switch (item.type) {
       case 'User Profile':
@@ -213,6 +232,7 @@ export default function AdminSettingsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
                             <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -235,7 +255,7 @@ export default function AdminSettingsPage() {
                                    <FormMessage />
                                </FormItem>
                            )}/>
-                            <FormField control={announcementForm.control} name="message" render={({ field }) => (
+                            <FormField control={form.control} name="message" render={({ field }) => (
                                <FormItem>
                                    <FormLabel>Message</FormLabel>
                                    <FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl>
