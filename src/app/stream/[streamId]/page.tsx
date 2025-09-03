@@ -57,6 +57,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -110,6 +111,16 @@ const emojis = [
 const mockNewUsers = [
     'GadgetFan', 'StyleQueen', 'HomeBody', 'DealHunter', 'GamerPro', 'BookLover', 'PetParent'
 ]
+
+const mockViewers = [
+    { userId: 'user1', name: 'Alice', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user2', name: 'Bob', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user3', name: 'Charlie', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user4', name: 'Diana', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user5', name: 'Eve', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user6', name: 'Frank', avatar: 'https://placehold.co/40x40.png' },
+    { userId: 'user7', name: 'Grace', avatar: 'https://placehold.co/40x40.png' },
+];
 
 
 function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminView }: { productKey: string, stock: number, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void, isAdminView: boolean }) {
@@ -369,10 +380,38 @@ export default function StreamPage() {
                   <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
                   <div className="flex items-center gap-2 text-xs">
                     <Badge variant="default" className="h-5">LIVE</Badge>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>{seller.viewers}</span>
-                    </div>
+                     <Dialog>
+                        <DialogTrigger asChild>
+                             <div className="flex items-center gap-1 cursor-pointer hover:text-white/80">
+                                <Users className="h-3 w-3" />
+                                <span>{seller.viewers}</span>
+                            </div>
+                        </DialogTrigger>
+                        {isAdminView && (
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Live Viewers ({mockViewers.length})</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="h-80">
+                                    <div className="p-4 space-y-4">
+                                        {mockViewers.map(viewer => (
+                                            <Link
+                                                key={viewer.userId}
+                                                href={`/admin/users/${viewer.userId}`}
+                                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
+                                            >
+                                                <Avatar>
+                                                    <AvatarImage src={viewer.avatar} alt={viewer.name} />
+                                                    <AvatarFallback>{viewer.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <p className="font-semibold">{viewer.name}</p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </DialogContent>
+                        )}
+                     </Dialog>
                   </div>
                 </div>
             </Link>
