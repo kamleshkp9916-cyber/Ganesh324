@@ -384,10 +384,12 @@ export default function StreamPage() {
                 Show Chat
               </Button>
             )}
-            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              {isFollowing ? 'Following' : 'Follow'}
-            </Button>
+            {!isAdminView && (
+              <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                {isFollowing ? 'Following' : 'Follow'}
+              </Button>
+            )}
           </div>
         </header>
         
