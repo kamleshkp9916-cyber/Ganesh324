@@ -9,13 +9,13 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages'];
-const adminPaths = ['/admin/dashboard', '/admin/users', '/admin/orders', '/admin/inquiries', '/admin/messages', '/admin/products', '/admin/live-control', '/admin/settings'];
+const adminPaths = ['/admin/dashboard', '/admin/users', '/admin/orders', '/admin/inquiries', '/admin/messages', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/edit/privacy', '/admin/edit/terms'];
 
 const isPublicAllowedPath = (pathname: string) => {
     const publicAllowedPrefixes = [
         '/live-selling', '/about', '/contact', '/terms-and-conditions', 
         '/privacy-and-security', '/faq', '/product/', '/stream/', 
-        '/seller/profile', '/profile', '/seller/kyc'
+        '/seller/profile', '/profile'
     ];
     return publicAllowedPrefixes.some(prefix => pathname.startsWith(prefix));
 };
@@ -42,6 +42,8 @@ export function AuthRedirector() {
             const { role } = userData;
             
             if (role === 'admin') {
+                // If user is an admin, they should only be redirected away from public-only paths.
+                // They should be able to access any other page, including customer and seller pages.
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/admin/dashboard';
                 }
@@ -52,7 +54,9 @@ export function AuthRedirector() {
                 }
             } 
             else { // Customer
-                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/seller') || pathname.startsWith('/admin')) {
+                 if (pathname.startsWith('/seller/') || pathname.startsWith('/admin/')) {
+                    targetPath = '/live-selling';
+                } else if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/live-selling';
                 }
             }

@@ -3,12 +3,7 @@ import type {Metadata} from 'next';
 import { Inter } from 'next/font/google'
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/hooks/use-auth.tsx';
-import { TopLoader } from '@/components/top-loader';
-import React from 'react';
-import { AuthRedirector } from '@/components/auth-redirector';
+import { ClientLayout } from './client-layout';
 
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
@@ -25,20 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-        >
-            <AuthProvider>
-                <AuthRedirector />
-                <React.Suspense fallback={<TopLoader />}>
-                    {children}
-                </React.Suspense>
-                <Toaster />
-            </AuthProvider>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
