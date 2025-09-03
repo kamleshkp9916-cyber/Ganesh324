@@ -177,9 +177,8 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
 const STREAM_TERMINATED_KEY = 'stream_terminated_violation';
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 
-export default function StreamPage() {
+export default function StreamPage({ params }: { params: { streamId: string } }) {
   const router = useRouter();
-  const params = useParams();
   const { toast } = useToast();
   const { user, userData } = useAuth();
   const streamId = params.streamId as string;
