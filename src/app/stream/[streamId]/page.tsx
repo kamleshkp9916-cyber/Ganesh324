@@ -42,7 +42,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
@@ -89,12 +89,7 @@ const mockInitialChat = [
     { id: 8, type: 'chat', user: 'Frank', message: 'Can you show the back of the product?'},
 ];
 
-const allStreamProducts = [
-    productDetails['prod_1'],
-    productDetails['prod_2'],
-    productDetails['prod_4'],
-    productDetails['prod_5'],
-].map(p => ({...p, stock: Math.floor(Math.random() * 20) + 5})); // Add mock stock
+const allStreamProducts = Object.values(productDetails).map(p => ({...p, stock: Math.floor(Math.random() * 20) + 5})); // Add mock stock
 
 const emojis = [
     '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
@@ -199,6 +194,14 @@ export default function StreamPage() {
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
+
+  const streamProducts = useMemo(() => {
+    if (seller?.hasAuction) {
+      return Object.values(productDetails).filter(p => (p as any).isAuctionItem);
+    }
+    return allStreamProducts;
+  }, [seller]);
+
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -657,13 +660,13 @@ export default function StreamPage() {
             {isProductListOpen && (
                 <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col">
                     <div className="p-4 border-b flex justify-between items-center">
-                        <h3 className="font-bold text-lg">Products in Stream</h3>
+                        <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
                         <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
                             <X />
                         </Button>
                     </div>
                     <ScrollArea className="flex-grow p-4">
-                        {allStreamProducts.map(product => (
+                        {streamProducts.map((product: any) => (
                             <ProductListItem
                                 key={product.id}
                                 product={product}
