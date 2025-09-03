@@ -92,27 +92,27 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                             <div className="text-sm text-muted-foreground">{u.email}</div>
                         </TableCell>
                          <TableCell className="hidden md:table-cell">{new Date(u.date || Date.now()).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={() => onViewDetails(u)}>
-                                        <Eye className="mr-2 h-4 w-4" />
-                                        View Details
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Account
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                        <TableCell className="text-right">
+                             <div className="flex items-center justify-end gap-2">
+                                <Button variant="outline" size="sm" onClick={() => onViewDetails(u)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View
+                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete Account
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ))}
