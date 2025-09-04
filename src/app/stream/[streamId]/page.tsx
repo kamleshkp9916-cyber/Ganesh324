@@ -63,6 +63,7 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
 
 
 const liveSellers = [
@@ -171,6 +172,38 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
 
 const STREAM_TERMINATED_KEY = 'stream_terminated_violation';
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
+
+function StreamTimer() {
+    const [elapsedTime, setElapsedTime] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setElapsedTime(prevTime => prevTime + 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    const formatTime = (totalSeconds: number) => {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [hours, minutes, seconds]
+            .map(v => v.toString().padStart(2, '0'))
+            .join(':');
+    };
+
+    const progress = (elapsedTime % 300) / 3; // Example: progress resets every 5 minutes (300s)
+
+    return (
+        <div className="absolute bottom-16 sm:bottom-4 left-4 right-4 z-10 text-white">
+            <div className="flex items-center gap-4">
+                <span className="text-sm font-mono">{formatTime(elapsedTime)}</span>
+                <Progress value={progress} className="w-full h-1 bg-white/30" />
+            </div>
+        </div>
+    );
+}
 
 export default function StreamPage() {
   const router = useRouter();
@@ -463,6 +496,8 @@ export default function StreamPage() {
                     {isPaused ? <Play className="h-12 w-12" /> : <Pause className="h-12 w-12" />}
                 </Button>
             </div>
+
+            <StreamTimer />
             
             <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => {
