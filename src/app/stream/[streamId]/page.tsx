@@ -516,16 +516,15 @@ export default function StreamPage() {
           </div>
         </header>
         
-        <div className="flex-1 relative flex items-center justify-center">
+        <div className="flex-1 relative flex items-center justify-center cursor-pointer" onClick={handleClick}>
              <div 
                 className="absolute inset-0 z-10" 
-                onClick={handleClick}
             >
                 {/* Seek Indicators */}
-                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 text-white/80 transition-opacity duration-300">
+                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 text-white/80 transition-opacity duration-300 pointer-events-none">
                     {seekIndicator === 'backward' && <Rewind className="h-12 w-12" />}
                 </div>
-                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 translate-x-1/2 text-white/80 transition-opacity duration-300">
+                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 translate-x-1/2 text-white/80 transition-opacity duration-300 pointer-events-none">
                     {seekIndicator === 'forward' && <FastForward className="h-12 w-12" />}
                 </div>
             </div>
@@ -776,5 +775,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
