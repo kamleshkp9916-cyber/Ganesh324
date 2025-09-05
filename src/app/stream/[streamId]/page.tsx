@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -173,33 +172,67 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
 const STREAM_TERMINATED_KEY = 'stream_terminated_violation';
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 
-function StreamTimer() {
-    const [elapsedTime, setElapsedTime] = useState(0);
+function VideoProgressBar({ videoRef }: { videoRef: React.RefObject<HTMLVideoElement> }) {
+    const [progress, setProgress] = useState(0);
+    const [currentTime, setCurrentTime] = useState("00:00");
+    const [duration, setDuration] = useState("00:00");
+    const progressContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setElapsedTime(prevTime => prevTime + 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    const formatTime = (totalSeconds: number) => {
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        return [hours, minutes, seconds]
-            .map(v => v.toString().padStart(2, '0'))
-            .join(':');
+    const formatTime = (timeInSeconds: number) => {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
 
-    const progress = (elapsedTime % 300) / 3; // Example: progress resets every 5 minutes (300s)
+        const updateProgress = () => {
+            setProgress((video.currentTime / video.duration) * 100);
+            setCurrentTime(formatTime(video.currentTime));
+        };
 
+        const setVideoDuration = () => {
+            setDuration(formatTime(video.duration));
+        };
+
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('loadedmetadata', setVideoDuration);
+        
+        return () => {
+            video.removeEventListener('timeupdate', updateProgress);
+            video.removeEventListener('loadedmetadata', setVideoDuration);
+        };
+    }, [videoRef]);
+
+    const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+        const progressContainer = progressContainerRef.current;
+        const video = videoRef.current;
+        if (!progressContainer || !video) return;
+        
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const width = progressContainer.clientWidth;
+        const newTime = (clickX / width) * video.duration;
+        video.currentTime = newTime;
+    };
+    
     return (
-        <div className="absolute bottom-16 sm:bottom-4 left-4 right-4 z-10 text-white">
-            <div className="flex items-center gap-4">
-                <span className="text-sm font-mono">{formatTime(elapsedTime)}</span>
-                <Progress value={progress} className="w-full h-1 bg-white/30" />
+        <div className="absolute bottom-4 left-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white">
+            <div
+                ref={progressContainerRef}
+                onClick={handleSeek}
+                className="w-full h-2 bg-white/30 cursor-pointer rounded-full"
+            >
+                <div 
+                    className="h-full bg-primary rounded-full"
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
+            <div className="flex justify-between items-center text-xs font-mono mt-1">
+                <span>{currentTime}</span>
+                <span>{duration}</span>
             </div>
         </div>
     );
@@ -210,7 +243,6 @@ export default function StreamPage() {
   const params = useParams();
   const { toast } = useToast();
   const { user, userData } = useAuth();
-  const streamId = params.streamId as string;
   
   const [seller, setSeller] = useState<any>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -224,6 +256,7 @@ export default function StreamPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isStreamTerminated, setIsStreamTerminated] = useState(false);
+  const streamId = params.streamId as string;
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
@@ -497,9 +530,9 @@ export default function StreamPage() {
                 </Button>
             </div>
 
-            <StreamTimer />
+            <VideoProgressBar videoRef={videoRef} />
             
-            <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
+            <div className="absolute bottom-16 sm:bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => {
                      if (videoRef.current) {
                          videoRef.current.muted = !videoRef.current.muted;
@@ -720,3 +753,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
