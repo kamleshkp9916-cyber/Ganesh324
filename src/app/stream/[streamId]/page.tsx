@@ -33,6 +33,8 @@ import {
   Gavel,
   ShieldCheck,
   StopCircle,
+  Rewind,
+  FastForward,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -218,6 +220,8 @@ export default function StreamPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isStreamTerminated, setIsStreamTerminated] = useState(false);
+  const [seekIndicator, setSeekIndicator] = useState<'forward' | 'backward' | null>(null);
+  const doubleClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const streamId = params.streamId as string;
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
@@ -372,6 +376,49 @@ export default function StreamPage() {
         });
     };
 
+    const handleSeek = (direction: 'forward' | 'backward') => {
+        if (videoRef.current) {
+            const seekTime = direction === 'forward' ? 10 : -10;
+            videoRef.current.currentTime += seekTime;
+            setSeekIndicator(direction);
+            setTimeout(() => setSeekIndicator(null), 500);
+        }
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const videoRect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - videoRect.left;
+        if (clickX < videoRect.width / 2) {
+            handleSeek('backward');
+        } else {
+            handleSeek('forward');
+        }
+    };
+
+    const handleSingleClick = () => {
+        if(videoRef.current) {
+            if (videoRef.current.paused) {
+                videoRef.current.play();
+            } else {
+                videoRef.current.pause();
+            }
+            setIsPaused(videoRef.current.paused);
+        }
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (doubleClickTimeoutRef.current) {
+            clearTimeout(doubleClickTimeoutRef.current);
+            doubleClickTimeoutRef.current = null;
+            handleDoubleClick(e);
+        } else {
+            doubleClickTimeoutRef.current = setTimeout(() => {
+                handleSingleClick();
+                doubleClickTimeoutRef.current = null;
+            }, 300);
+        }
+    };
+
 
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -470,6 +517,19 @@ export default function StreamPage() {
         </header>
         
         <div className="flex-1 relative flex items-center justify-center">
+             <div 
+                className="absolute inset-0 z-10" 
+                onClick={handleClick}
+            >
+                {/* Seek Indicators */}
+                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 text-white/80 transition-opacity duration-300">
+                    {seekIndicator === 'backward' && <Rewind className="h-12 w-12" />}
+                </div>
+                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 translate-x-1/2 text-white/80 transition-opacity duration-300">
+                    {seekIndicator === 'forward' && <FastForward className="h-12 w-12" />}
+                </div>
+            </div>
+
             <video 
                 ref={videoRef} 
                 src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -481,8 +541,9 @@ export default function StreamPage() {
             />
             
              {/* Player Controls Overlay */}
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => {
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <Button variant="ghost" size="icon" className="h-16 w-16 text-white pointer-events-auto" onClick={(e) => {
+                    e.stopPropagation(); // Prevent click from bubbling to the container
                     if (videoRef.current) {
                         videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
                         setIsPaused(videoRef.current.paused);
@@ -526,7 +587,7 @@ export default function StreamPage() {
                 </DropdownMenu>
             </div>
              {isPaused && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
                     <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => {
                          if (videoRef.current) {
                             videoRef.current.play();
@@ -715,3 +776,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
