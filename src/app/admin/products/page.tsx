@@ -37,19 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth.tsx"
@@ -133,7 +120,7 @@ const ProductTable = ({ products }: { products: Product[] }) => (
           </TableHeader>
           <TableBody>
             {products.length > 0 ? products.map(product => (
-              <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
+              <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
                   <Link href={`/product/${product.id}`}>
                     {product.images && product.images.length > 0 ? (
@@ -155,7 +142,6 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                   <Link href={`/product/${product.id}`} className="hover:underline">
                     {product.name}
                   </Link>
-                  {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
                 </TableCell>
                 <TableCell>
                     {product.seller ? (
@@ -167,19 +153,19 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                     )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
+                  <Badge variant={'success'}>Active</Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   ₹{product.price.toLocaleString()}
                 </TableCell>
-                <TableCell className={cn("hidden md:table-cell", product.stock === 0 && "text-destructive font-bold")}>
+                <TableCell className="hidden md:table-cell">
                   {product.stock}
                 </TableCell>
               </TableRow>
             )) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No products found in this category.
+                  No active products found.
                 </TableCell>
               </TableRow>
             )}
@@ -188,28 +174,22 @@ const ProductTable = ({ products }: { products: Product[] }) => (
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>1-{products.length > 10 ? 10 : products.length}</strong> of <strong>{products.length}</strong> products
+          Showing <strong>{products.length}</strong> of <strong>{products.length}</strong> active products
         </div>
       </CardFooter>
     </Card>
 );
 
 export default function AdminProductsPage() {
-    const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [isMounted, setIsMounted] = useState(false);
     const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const router = useRouter();
 
-    useEffect(() => {
-        setIsMounted(true);
+    const activeProducts = useMemo(() => {
+        return initialProducts.filter(p => p.status === 'active' && p.stock > 0)
     }, []);
 
-    const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
-    const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
-    const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
-
-    if (!isMounted || loading || userData?.role !== 'admin') {
+    if (loading || userData?.role !== 'admin') {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
     }
 
@@ -266,66 +246,45 @@ export default function AdminProductsPage() {
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>All Products</CardTitle>
-                    <CardDescription>
-                    Manage all products across the platform.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="all">
-                    <div className="flex items-center gap-4">
-                        <TabsList>
-                        <TabsTrigger value="all">All ({products.length})</TabsTrigger>
-                        <TabsTrigger value="active">Active ({activeProducts.length})</TabsTrigger>
-                        <TabsTrigger value="draft">Draft ({draftProducts.length})</TabsTrigger>
-                        <TabsTrigger value="archived" className="hidden sm:flex">
-                            Archived ({archivedProducts.length})
-                        </TabsTrigger>
-                        </TabsList>
-                        <div className="ml-auto flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 gap-1">
-                                <ListFilter className="h-3.5 w-3.5" />
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Listed Products</CardTitle>
+                            <CardDescription>
+                                A global view of all active, in-stock products on the platform.
+                            </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                        Filter
+                                        </span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked>
+                                        Available
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem>
+                                        Out of Stock
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-8 gap-1">
+                                <File className="h-3.5 w-3.5" />
                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Filter
+                                Export
                                 </span>
                             </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuCheckboxItem checked>
-                                Available
-                            </DropdownMenuCheckboxItem>
-                            <DropdownMenuCheckboxItem>
-                                Out of Stock
-                            </DropdownMenuCheckboxItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" variant="outline" className="h-8 gap-1">
-                            <File className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Export
-                            </span>
-                        </Button>
                         </div>
                     </div>
-                    <div className="mt-4">
-                        <TabsContent value="all">
-                            <ProductTable products={products} />
-                        </TabsContent>
-                        <TabsContent value="active">
-                            <ProductTable products={activeProducts} />
-                        </TabsContent>
-                        <TabsContent value="draft">
-                            <ProductTable products={draftProducts} />
-                        </TabsContent>
-                        <TabsContent value="archived">
-                            <ProductTable products={archivedProducts} />
-                        </TabsContent>
-                    </div>
-                    </Tabs>
+                </CardHeader>
+                <CardContent>
+                    <ProductTable products={activeProducts} />
                 </CardContent>
             </Card>
         </main>
