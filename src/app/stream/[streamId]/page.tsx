@@ -493,7 +493,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                     <div className="flex items-center gap-2 flex-shrink-0">
                         {seller.hasAuction && (
                             <Dialog>
                             <DialogTrigger asChild>
@@ -529,7 +529,7 @@ export default function StreamPage() {
         </div>
 
         {/* Combined layout for small screens */}
-        <div className="lg:hidden flex flex-col h-screen w-full">
+        <div className="lg:hidden flex flex-col h-screen w-full bg-black">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10">
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
