@@ -66,7 +66,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "../ui/separator";
+import { Separator } from "@/components/ui/separator";
 
 
 const liveSellers = [
@@ -445,8 +445,8 @@ export default function StreamPage() {
         </AlertDialogContent>
     </AlertDialog>
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
-      <div className="flex-1 flex flex-col">
-        <div className="w-full aspect-video bg-black relative group">
+      <div className="flex-1 flex flex-col bg-black">
+        <div className="w-full aspect-video bg-black relative group flex-shrink-0">
           <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
               <ArrowLeft />
           </Button>
@@ -465,9 +465,7 @@ export default function StreamPage() {
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
 
-            <div className="space-y-2">
-                <h3 className="font-semibold text-white">{seller.title}</h3>
-                <p className="text-xs text-white/60">{seller.category}</p>
+             <div className="space-y-2">
                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
             </div>
             
