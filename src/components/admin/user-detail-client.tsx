@@ -433,6 +433,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Order Timeline for {selectedOrderForTimeline?.orderId}</DialogTitle>
+                <DialogDescription>
+                    Review the step-by-step progress of this order from confirmation to delivery.
+                </DialogDescription>
             </DialogHeader>
             <div className="p-4">
                  <ul className="space-y-2">
