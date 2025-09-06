@@ -56,7 +56,7 @@ import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
@@ -80,6 +80,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 const COUPONS_KEY = 'streamcart_coupons';
+const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -101,6 +102,15 @@ const couponSchema = z.object({
 });
 export type Coupon = z.infer<typeof couponSchema>;
 
+const slideSchema = z.object({
+  id: z.number().optional(),
+  title: z.string().min(3, "Title is required."),
+  description: z.string().min(5, "Description is required."),
+  imageUrl: z.string().url("A valid image URL is required."),
+  expiresAt: z.date().optional(),
+});
+export type Slide = z.infer<typeof slideSchema>;
+
 
 const initialFlaggedContent = [
     { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
@@ -114,18 +124,17 @@ const initialCoupons: Coupon[] = [
     { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100 },
 ];
 
+const initialSlides: Slide[] = [
+  { id: 1, imageUrl: 'https://placehold.co/1200x400.png', title: 'Flash Sale!', description: 'Up to 50% off on electronics.', expiresAt: new Date(new Date().setDate(new Date().getDate() + 3)) },
+  { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.' },
+];
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof couponSchema>>({
         resolver: zodResolver(couponSchema),
-        defaultValues: existingCoupon || {
-            code: "",
-            description: "",
-            discountType: "percentage",
-            discountValue: 0,
-        },
+        defaultValues: existingCoupon || { code: "", description: "", discountType: "percentage", discountValue: 0, },
     });
 
     const onSubmit = (values: z.infer<typeof couponSchema>) => {
@@ -142,11 +151,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="code" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Coupon Code</FormLabel>
-                            <FormControl><Input placeholder="e.g., SALE10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
+                        <FormItem><FormLabel>Coupon Code</FormLabel><FormControl><Input placeholder="e.g., SALE10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., 10% off electronics" {...field} /></FormControl><FormMessage /></FormItem>
@@ -154,68 +159,62 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                      <FormField control={form.control} name="discountType" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Discount Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                    <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
+                        <FormItem><FormLabel>Discount Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="percentage">Percentage (%)</SelectItem><SelectItem value="fixed">Fixed Amount (₹)</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="discountValue" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Discount Value</FormLabel>
-                            <FormControl><Input type="number" placeholder="e.g., 10 or 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
+                        <FormItem><FormLabel>Discount Value</FormLabel><FormControl><Input type="number" placeholder="e.g., 10 or 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                <FormField
-                    control={form.control}
-                    name="expiresAt"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Expiration Date (Optional)</FormLabel>
+                <FormField control={form.control} name="expiresAt" render={({ field }) => (
+                    <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) } initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
+                )}/>
+                <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save Coupon</Button></DialogFooter>
+            </form>
+        </Form>
+    );
+};
+
+const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Slide) => void, existingSlide?: Slide, closeDialog: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof slideSchema>>({
+        resolver: zodResolver(slideSchema),
+        defaultValues: existingSlide || { title: "", description: "", imageUrl: "" },
+    });
+
+    const onSubmit = (values: z.infer<typeof slideSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave({ ...values, id: existingSlide?.id || Date.now() });
+            setIsLoading(false);
+            closeDialog();
+        }, 500);
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="title" render={({ field }) => (
+                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Flash Sale!" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Up to 50% off!" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                    <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://..." {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                 <FormField control={form.control} name="expiresAt" render={({ field }) => (
+                    <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel>
                         <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) }
-                                initialFocus
-                            />
-                            </PopoverContent>
+                            <PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))} initialFocus/></PopoverContent>
                         </Popover>
+                        <FormDescription>
+                            The promotion will be automatically hidden after this date.
+                        </FormDescription>
                         <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
-                    <Button type="submit" disabled={isLoading}>
-                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Coupon
-                    </Button>
-                </DialogFooter>
+                    </FormItem>
+                )} />
+                <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save Slide</Button></DialogFooter>
             </form>
         </Form>
     );
@@ -233,9 +232,13 @@ export default function AdminSettingsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
 
+
+  // Load data from local storage on mount
   useEffect(() => {
-    // Load coupons from local storage
     const storedCoupons = localStorage.getItem(COUPONS_KEY);
     if (storedCoupons) {
         const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
@@ -243,37 +246,65 @@ export default function AdminSettingsPage() {
     } else {
         setCoupons(initialCoupons);
     }
+
+    const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+    if (storedSlides) {
+        const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
+        setSlides(parsedSlides);
+    } else {
+        setSlides(initialSlides);
+    }
   }, []);
 
   const saveCoupons = (newCoupons: Coupon[]) => {
       setCoupons(newCoupons);
       localStorage.setItem(COUPONS_KEY, JSON.stringify(newCoupons));
-      window.dispatchEvent(new Event('storage')); // Notify other tabs
+      window.dispatchEvent(new Event('storage'));
+  };
+  
+   const saveSlides = (newSlides: Slide[]) => {
+      setSlides(newSlides);
+      localStorage.setItem(PROMOTIONAL_SLIDES_KEY, JSON.stringify(newSlides));
+      window.dispatchEvent(new Event('storage'));
   };
 
   const handleSaveCoupon = (coupon: Coupon) => {
-    const existingIndex = coupons.findIndex(c => c.id === coupon.id);
-    let newCoupons;
-    if (existingIndex > -1) {
-        newCoupons = [...coupons];
-        newCoupons[existingIndex] = coupon;
-    } else {
-        newCoupons = [{ ...coupon, id: Date.now() }, ...coupons];
-    }
+    const newCoupons = [...coupons];
+    const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
+    if (existingIndex > -1) newCoupons[existingIndex] = coupon;
+    else newCoupons.unshift({ ...coupon, id: Date.now() });
     saveCoupons(newCoupons);
     toast({ title: "Coupon Saved!", description: `Coupon ${coupon.code} has been updated.` });
   };
 
   const handleDeleteCoupon = (couponId: number) => {
       saveCoupons(coupons.filter(s => s.id !== couponId));
-      toast({ title: "Coupon Deleted!", description: "The coupon has been removed.", variant: "destructive" });
+      toast({ title: "Coupon Deleted!", variant: "destructive" });
   };
 
   const openCouponForm = (coupon?: Coupon) => {
       setEditingCoupon(coupon);
       setIsCouponFormOpen(true);
   };
+  
+  const handleSaveSlide = (slide: Slide) => {
+    const newSlides = [...slides];
+    const existingIndex = newSlides.findIndex(s => s.id === slide.id);
+    if (existingIndex > -1) newSlides[existingIndex] = slide;
+    else newSlides.unshift({ ...slide, id: Date.now() });
+    saveSlides(newSlides);
+    toast({ title: "Promotional Slide Saved!" });
+  };
 
+  const handleDeleteSlide = (slideId: number) => {
+      saveSlides(slides.filter(s => s.id !== slideId));
+      toast({ title: "Slide Deleted!", variant: "destructive" });
+  };
+
+  const openSlideForm = (slide?: Slide) => {
+      setEditingSlide(slide);
+      setIsSlideFormOpen(true);
+  };
 
   useEffect(() => {
     const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
@@ -281,7 +312,7 @@ export default function AdminSettingsPage() {
         id: initialFlaggedContent.length + index + 1,
         type: 'Chat Message',
         content: `Reported comment: "${comment.message}"`,
-        targetId: comment.streamId, // Use streamId as target for review navigation
+        targetId: comment.streamId,
         reporter: 'User',
         status: 'Pending',
     }));
@@ -307,17 +338,10 @@ export default function AdminSettingsPage() {
     setIsSendingAnnouncement(true)
     try {
         await sendAnnouncement(values.title, values.message)
-        toast({
-            title: "Announcement Sent!",
-            description: "Your announcement has been sent to all users.",
-        })
+        toast({ title: "Announcement Sent!", description: "Your announcement has been sent to all users." })
         announcementForm.reset()
     } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error Sending Announcement",
-            description: "Could not send the announcement. Please try again.",
-        })
+        toast({ variant: "destructive", title: "Error Sending Announcement", description: "Could not send the announcement. Please try again." })
     } finally {
         setIsSendingAnnouncement(false)
     }
@@ -327,17 +351,10 @@ export default function AdminSettingsPage() {
     setIsSendingWarning(true)
     try {
         await sendWarning(values.userId, values.message)
-        toast({
-            title: "Warning Sent!",
-            description: `A warning has been sent to ${values.userId}.`,
-        })
+        toast({ title: "Warning Sent!", description: `A warning has been sent to ${values.userId}.` })
         warningForm.reset()
     } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error Sending Warning",
-            description: "Could not send the warning. Please check the user ID and try again.",
-        })
+        toast({ variant: "destructive", title: "Error Sending Warning", description: "Could not send the warning. Please check the user ID and try again." })
     } finally {
         setIsSendingWarning(false)
     }
@@ -346,25 +363,11 @@ export default function AdminSettingsPage() {
   const handleReviewContent = (item: typeof contentList[0]) => {
     let path = '';
     switch (item.type) {
-      case 'User Profile':
-        path = `/admin/users/${item.targetId}`;
-        break;
-      case 'Product Image':
-        path = `/product/${item.targetId}`;
-        break;
-      case 'Chat Message':
-        path = `/admin/messages?userId=${item.targetId}`;
-        break;
-      case 'Live Stream':
-        path = `/stream/${item.targetId}`;
-        break;
-      default:
-        toast({
-            title: "Cannot Review",
-            description: "The content type does not have a review page.",
-            variant: "destructive"
-        });
-        return;
+      case 'User Profile': path = `/admin/users/${item.targetId}`; break;
+      case 'Product Image': path = `/product/${item.targetId}`; break;
+      case 'Chat Message': path = `/admin/messages?userId=${item.targetId}`; break;
+      case 'Live Stream': path = `/stream/${item.targetId}`; break;
+      default: toast({ title: "Cannot Review", description: "The content type does not have a review page.", variant: "destructive" }); return;
     }
     router.push(path);
   };
@@ -372,11 +375,7 @@ export default function AdminSettingsPage() {
 
   const handleRemoveContent = (id: number) => {
     setContentList(prev => prev.filter(item => item.id !== id));
-    toast({
-        title: "Content Action Taken",
-        description: "The flagged content has been removed.",
-        variant: "destructive"
-    });
+    toast({ title: "Content Action Taken", description: "The flagged content has been removed.", variant: "destructive" });
   }
 
 
@@ -385,7 +384,19 @@ export default function AdminSettingsPage() {
   }
 
   return (
+    <>
         <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
+             <DialogContent>
+                <DialogHeader><DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle><DialogDescription>Fill in the details for the discount coupon.</DialogDescription></DialogHeader>
+                <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} />
+            </DialogContent>
+        </Dialog>
+        <Dialog open={isSlideFormOpen} onOpenChange={setIsSlideFormOpen}>
+             <DialogContent>
+                <DialogHeader><DialogTitle>{editingSlide ? 'Edit' : 'Add New'} Slide</DialogTitle><DialogDescription>Fill in the details for the promotional slide.</DialogDescription></DialogHeader>
+                <SlideForm onSave={handleSaveSlide} existingSlide={editingSlide} closeDialog={() => setIsSlideFormOpen(false)} />
+            </DialogContent>
+        </Dialog>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -418,196 +429,102 @@ export default function AdminSettingsPage() {
                 <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
                     <div className="ml-auto"></div>
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-                        </DropdownMenuContent>
+                        <DropdownMenuTrigger asChild><Button variant="secondary" size="icon" className="rounded-full"><Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end"><DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem><DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem></DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </header>
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Coupon Management</CardTitle>
-                            <CardDescription>Create and manage discount coupons for your store.</CardDescription>
-                        </div>
-                        <Button size="sm" onClick={() => openCouponForm()}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add New Coupon
-                        </Button>
+                        <div><CardTitle>Promotion & Offer Management</CardTitle><CardDescription>Manage the promotional slides on the live shopping page.</CardDescription></div>
+                        <Button size="sm" onClick={() => openSlideForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Slide</Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {slides.length > 0 ? slides.map(slide => (
+                            <div key={slide.id} className={cn("flex items-center justify-between rounded-lg border p-4", slide.expiresAt && new Date(slide.expiresAt) < new Date() && "bg-muted/50")}>
+                                <div className="flex items-center gap-4"><Image src={slide.imageUrl} alt={slide.title} width={80} height={40} className="rounded-md object-cover" />
+                                    <div><h4 className="font-semibold">{slide.title}</h4><p className="text-xs text-muted-foreground">{slide.description}</p>
+                                        {slide.expiresAt ? (<p className={cn("text-xs mt-1", new Date(slide.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>Expires on: {format(new Date(slide.expiresAt), 'PPP')}{new Date(slide.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}</p>) : null}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openSlideForm(slide)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSlide(slide.id!)}><Trash2 className="h-4 w-4" /></Button></div>
+                            </div>
+                        )) : (<p className="text-center text-muted-foreground py-4">No promotional slides have been created yet.</p>)}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div><CardTitle>Coupon Management</CardTitle><CardDescription>Create and manage discount coupons for your store.</CardDescription></div>
+                        <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Coupon</Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {coupons.length > 0 ? coupons.map(coupon => (
                              <div key={coupon.id} className={cn("flex items-center justify-between rounded-lg border p-4", coupon.expiresAt && new Date(coupon.expiresAt) < new Date() && "bg-muted/50")}>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                                        <Ticket className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold">{coupon.code}</h4>
-                                        <p className="text-xs text-muted-foreground">{coupon.description}</p>
-                                        {coupon.expiresAt ? (
-                                            <p className={cn("text-xs mt-1", new Date(coupon.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                                Expires on: {format(new Date(coupon.expiresAt), 'PPP')}
-                                                {new Date(coupon.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}
-                                            </p>
-                                        ) : null}
+                                <div className="flex items-center gap-4"><div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center"><Ticket className="h-6 w-6 text-primary" /></div>
+                                    <div><h4 className="font-semibold">{coupon.code}</h4><p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                        {coupon.expiresAt ? (<p className={cn("text-xs mt-1", new Date(coupon.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>Expires on: {format(new Date(coupon.expiresAt), 'PPP')}{new Date(coupon.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}</p>) : null}
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                     <Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button>
-                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
+                                <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button></div>
                             </div>
-                        )) : (
-                            <p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p>
-                        )}
+                        )) : (<p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p>)}
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle>App-wide Announcement</CardTitle>
-                        <CardDescription>Send a notification to all users of the app. Use for feature updates, policy changes, or important announcements.</CardDescription>
-                    </CardHeader>
+                    <CardHeader><CardTitle>App-wide Announcement</CardTitle><CardDescription>Send a notification to all users of the app. Use for feature updates, policy changes, or important announcements.</CardDescription></CardHeader>
                     <CardContent>
                        <Form {...announcementForm}>
                          <form onSubmit={announcementForm.handleSubmit(onSendAnnouncement)} className="space-y-4">
                            <FormField control={announcementForm.control} name="title" render={({ field }) => (
-                               <FormItem>
-                                   <FormLabel>Title</FormLabel>
-                                   <FormControl><Input placeholder="e.g., New Feature Added!" {...field} /></FormControl>
-                                   <FormMessage />
-                               </FormItem>
+                               <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., New Feature Added!" {...field} /></FormControl><FormMessage /></FormItem>
                            )}/>
                             <FormField control={announcementForm.control} name="message" render={({ field }) => (
-                               <FormItem>
-                                   <FormLabel>Message</FormLabel>
-                                   <FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl>
-                                   <FormMessage />
-                               </FormItem>
+                               <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl><FormMessage /></FormItem>
                            )}/>
-                            <Button type="submit" disabled={isSendingAnnouncement}>
-                                {isSendingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                <Send className="mr-2 h-4 w-4" /> Send to All Users
-                            </Button>
+                            <Button type="submit" disabled={isSendingAnnouncement}>{isSendingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Send className="mr-2 h-4 w-4" /> Send to All Users</Button>
                          </form>
                        </Form>
                     </CardContent>
                 </Card>
 
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Send Warning</CardTitle>
-                        <CardDescription>Send a direct warning notification to a specific user (seller or buyer).</CardDescription>
-                    </CardHeader>
+                    <CardHeader><CardTitle>Send Warning</CardTitle><CardDescription>Send a direct warning notification to a specific user (seller or buyer).</CardDescription></CardHeader>
                     <CardContent>
                         <Form {...warningForm}>
                             <form onSubmit={warningForm.handleSubmit(onSendWarning)} className="space-y-4">
                                 <FormField control={warningForm.control} name="userId" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>User ID or Email</FormLabel>
-                                        <FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                    <FormItem><FormLabel>User ID or Email</FormLabel><FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                 <FormField control={warningForm.control} name="message" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Warning Message</FormLabel>
-                                        <FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                    <FormItem><FormLabel>Warning Message</FormLabel><FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
-                                 <Button type="submit" variant="destructive" disabled={isSendingWarning}>
-                                    {isSendingWarning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <Annoyed className="mr-2 h-4 w-4" /> Send Warning
-                                </Button>
+                                 <Button type="submit" variant="destructive" disabled={isSendingWarning}>{isSendingWarning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Annoyed className="mr-2 h-4 w-4" /> Send Warning</Button>
                             </form>
                         </Form>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Content & Policy Management</CardTitle>
-                        <CardDescription>View and manage important site-wide documents.</CardDescription>
-                    </CardHeader>
+                    <CardHeader><CardTitle>Content & Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="flex items-center gap-3">
-                                <FileText className="h-6 w-6 text-muted-foreground" />
-                                <div>
-                                    <h4 className="font-semibold">Terms & Conditions</h4>
-                                    <p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                 <Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button>
-                                 <Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button>
-                            </div>
-                        </div>
-                         <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="flex items-center gap-3">
-                                <Shield className="h-6 w-6 text-muted-foreground" />
-                                <div>
-                                    <h4 className="font-semibold">Privacy Policy</h4>
-                                    <p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button>
-                                <Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button>
-                            </div>
-                        </div>
+                        <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms & Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
+                         <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
                     </CardContent>
                 </Card>
                 
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Flagged Content for Review</CardTitle>
-                        <CardDescription>Review content reported by users or the system for violations.</CardDescription>
-                    </CardHeader>
+                    <CardHeader><CardTitle>Flagged Content for Review</CardTitle><CardDescription>Review content reported by users or the system for violations.</CardDescription></CardHeader>
                     <CardContent>
                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Content/Reason</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
+                            <TableHeader><TableRow><TableHead>Type</TableHead><TableHead>Content/Reason</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                             <TableBody>
                                 {contentList.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell><Badge variant="outline">{item.type}</Badge></TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{item.content}</p>
-                                            <p className="text-xs text-muted-foreground">Reported by: {item.reporter}</p>
-                                        </TableCell>
-                                        <TableCell>
-                                             <Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge></TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="mr-2" onClick={() => handleReviewContent(item)}>Review</Button>
-                                            <Button variant="destructive" size="sm" onClick={() => handleRemoveContent(item.id)}>Remove</Button>
-                                        </TableCell>
-                                    </TableRow>
+                                    <TableRow key={item.id}><TableCell><Badge variant="outline">{item.type}</Badge></TableCell><TableCell><p className="font-medium">{item.content}</p><p className="text-xs text-muted-foreground">Reported by: {item.reporter}</p></TableCell><TableCell><Badge variant={item.status === 'Pending' ? 'destructive' : 'secondary'}>{item.status}</Badge></TableCell><TableCell className="text-right"><Button variant="ghost" size="sm" className="mr-2" onClick={() => handleReviewContent(item)}>Review</Button><Button variant="destructive" size="sm" onClick={() => handleRemoveContent(item.id)}>Remove</Button></TableCell></TableRow>
                                 ))}
                                 {contentList.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            <Flag className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                                            No flagged content to review.
-                                        </TableCell>
-                                    </TableRow>
+                                    <TableRow><TableCell colSpan={4} className="h-24 text-center"><Flag className="mx-auto h-8 w-8 text-muted-foreground mb-2" />No flagged content to review.</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>
@@ -615,19 +532,6 @@ export default function AdminSettingsPage() {
                 </Card>
             </main>
         </div>
-         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle>
-                <DialogDescription>
-                    Fill in the details for the discount coupon.
-                </DialogDescription>
-            </DialogHeader>
-            <CouponForm
-                onSave={handleSaveCoupon}
-                existingCoupon={editingCoupon}
-                closeDialog={() => setIsCouponFormOpen(false)}
-            />
-        </DialogContent>
-        </Dialog>
+    </>
   )
 }
