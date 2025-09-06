@@ -13,6 +13,7 @@ import {
   Users,
   Sparkles,
   ShieldCheck,
+  RadioTower,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -37,6 +38,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -70,6 +72,7 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
+import { GoLiveDialog } from "@/components/go-live-dialog";
 
 
 const salesData = [
@@ -251,16 +254,15 @@ export default function SellerDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
-            </div>
-          </form>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button className="ml-auto">
+                        <RadioTower className="mr-2 h-4 w-4" /> Go Live
+                    </Button>
+                </DialogTrigger>
+                <GoLiveDialog />
+            </Dialog>
+
           {userData?.verificationStatus === 'verified' && (
             <Badge variant="success" className="items-center gap-1">
               <ShieldCheck className="h-4 w-4" />
