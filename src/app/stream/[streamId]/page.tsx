@@ -69,16 +69,16 @@ import { Progress } from "@/components/ui/progress";
 
 
 const liveSellers = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false },
-    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false },
-    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4', hasAuction: true },
-    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5', hasAuction: false },
-    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6', hasAuction: false },
-    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7', hasAuction: true },
-    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8', hasAuction: false },
-    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9', hasAuction: false },
-    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10', hasAuction: true },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion' },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics' },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods' },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4', hasAuction: true, category: 'Beauty' },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5', hasAuction: false, category: 'Kitchenware' },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6', hasAuction: false, category: 'Fitness' },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7', hasAuction: true, category: 'Handmade' },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8', hasAuction: false, category: 'Pet Supplies' },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9', hasAuction: false, category: 'Books' },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10', hasAuction: true, category: 'Gaming' },
 ];
 
 const mockInitialChat = [
@@ -440,115 +440,104 @@ export default function StreamPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row relative group">
-      
-        {/* Main Content: Video Player and Overlays */}
-        <div className="flex-1 relative" onClick={handleClick}>
-             <video 
-                ref={videoRef} 
-                src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                className="w-full h-full object-cover" 
-                autoPlay 
-                muted 
-                loop
-                playsInline
-            />
-            {/* Overlays */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
-            <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none">
-                 {/* Header */}
-                 <header className="flex items-start justify-between text-white w-full pointer-events-auto">
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
-                            <ArrowLeft />
-                        </Button>
-                        <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
-                            <Avatar>
-                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
-                                <div className="flex items-center gap-2 text-xs">
-                                <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                 <Dialog>
-                                    <DialogTrigger asChild>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-white/80">
-                                            <Users className="h-3 w-3" />
-                                            <span>{seller.viewers}</span>
-                                        </div>
-                                    </DialogTrigger>
-                                    {isAdminView && (
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Live Viewers ({mockViewers.length})</DialogTitle>
-                                            </DialogHeader>
-                                            <ScrollArea className="h-80">
-                                                <div className="p-4 space-y-4">
-                                                    {mockViewers.map(viewer => (
-                                                        <Link
-                                                            key={viewer.userId}
-                                                            href={`/admin/users/${viewer.userId}`}
-                                                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
-                                                        >
-                                                            <Avatar>
-                                                                <AvatarImage src={viewer.avatar} alt={viewer.name} />
-                                                                <AvatarFallback>{viewer.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <p className="font-semibold">{viewer.name}</p>
-                                                        </Link>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
-                                        </DialogContent>
-                                    )}
-                                </Dialog>
+    <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
+        <div className="flex-1 flex flex-col">
+            {/* Top Bar */}
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-black/50 backdrop-blur-sm z-30 border-b border-white/10 lg:hidden">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
+                    <ArrowLeft />
+                </Button>
+                <Link href={sellerProfileUrl} className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <h2 className="font-semibold text-sm">{seller.name}</h2>
+                </Link>
+                <div className="flex items-center gap-1">
+                    <Badge variant="destructive" className="h-5">LIVE</Badge>
+                    <div className="flex items-center gap-1 text-sm">
+                        <Users className="h-3 w-3" />
+                        <span>{seller.viewers}</span>
+                    </div>
+                </div>
+            </header>
+            
+            {/* Main Content: Video Player and Details */}
+            <div className="flex-grow w-full flex flex-col">
+                <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
+                    <video 
+                        ref={videoRef} 
+                        src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                        className="w-full h-full object-contain" 
+                        autoPlay 
+                        muted 
+                        loop
+                        playsInline
+                    />
+                    <StreamTimer />
+                </div>
+                
+                <div className="p-4 border-b border-white/10">
+                    <div className="flex justify-between items-start gap-4">
+                         <div className="flex items-start gap-3">
+                             <Link href={sellerProfileUrl} className="hidden lg:block">
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </Link>
+                            <div className="flex-grow">
+                                <h2 className="font-bold text-lg">{seller.name}'s Live Stream</h2>
+                                <p className="text-sm text-white/70">{seller.category}</p>
+                                <div className="flex items-center gap-2 text-xs mt-1">
+                                    <Badge variant="destructive" className="h-5">LIVE</Badge>
+                                    <div className="flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        <span>{seller.viewers} viewers</span>
+                                    </div>
                                 </div>
                             </div>
-                        </Link>
-                        {seller.hasAuction && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Badge variant="purple" className="cursor-pointer ml-2">
-                                        <Gavel className="mr-1 h-3 w-3" />
-                                        Auction
-                                    </Badge>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Live Auction</DialogTitle>
-                                        <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 text-center">
-                                        <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                        <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                        <Button size="lg" className="w-full">Place Your Bid</Button>
-                                        <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {seller.hasAuction && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="bg-purple-600 border-purple-500 hover:bg-purple-700 text-white">
+                                            <Gavel className="mr-2 h-4 w-4" />
+                                            Auction
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Live Auction</DialogTitle>
+                                            <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4 text-center">
+                                            <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                            <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                            <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                            <Button size="lg" className="w-full">Place Your Bid</Button>
+                                            <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                             {!isAdminView && (
+                                <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    {isFollowing ? 'Following' : 'Follow'}
+                                </Button>
+                            )}
+                        </div>
                     </div>
-                    {!isAdminView && (
-                        <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            {isFollowing ? 'Following' : 'Follow'}
-                        </Button>
-                    )}
-                 </header>
-                 
-                 {/* Footer Actions */}
-                 <div className="flex items-center justify-end gap-2 pointer-events-auto">
-                    {/* Placeholder for other actions like gifts, etc. */}
-                 </div>
+                </div>
             </div>
-            <StreamTimer />
         </div>
 
         {/* Chat Panel */}
          {isChatVisible && (
-            <aside className="w-full lg:w-96 flex flex-col bg-black/50 lg:bg-black/70 backdrop-blur-sm lg:border-l lg:border-white/10">
+            <aside className="w-full lg:w-96 flex flex-col bg-black/90 lg:border-l lg:border-white/10">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-1">
@@ -718,3 +707,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
