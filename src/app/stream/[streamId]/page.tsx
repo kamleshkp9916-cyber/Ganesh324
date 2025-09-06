@@ -468,10 +468,10 @@ export default function StreamPage() {
                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                            <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
-                            <div className="flex items-center gap-2 text-xs">
+                                <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
+                                <div className="flex items-center gap-2 text-xs">
                                 <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                <Dialog>
+                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <div className="flex items-center gap-1 cursor-pointer hover:text-white/80">
                                             <Users className="h-3 w-3" />
@@ -503,32 +503,32 @@ export default function StreamPage() {
                                         </DialogContent>
                                     )}
                                 </Dialog>
-                                {seller.hasAuction && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Badge variant="purple" className="cursor-pointer">
-                                            <Gavel className="mr-1 h-3 w-3" />
-                                            Auction
-                                        </Badge>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Live Auction</DialogTitle>
-                                            <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                        </DialogHeader>
-                                        <div className="py-4 text-center">
-                                            <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                            <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                            <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                            <Button size="lg" className="w-full">Place Your Bid</Button>
-                                            <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                                )}
-                            </div>
+                                </div>
                             </div>
                         </Link>
+                        {seller.hasAuction && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Badge variant="purple" className="cursor-pointer ml-2">
+                                        <Gavel className="mr-1 h-3 w-3" />
+                                        Auction
+                                    </Badge>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Live Auction</DialogTitle>
+                                        <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 text-center">
+                                        <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                        <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                        <Button size="lg" className="w-full">Place Your Bid</Button>
+                                        <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </div>
                     {!isAdminView && (
                         <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
