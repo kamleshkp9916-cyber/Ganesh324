@@ -277,7 +277,7 @@ export default function StreamPage() {
                 sellerData = {
                     ...liveStreamData,
                     id: streamId,
-                    viewers: liveSellers.find(s => s.id === '2')?.viewers || 2500, // Use a static number to avoid hydration error
+                    viewers: liveSellers[1].viewers,
                     productId: liveStreamData.product?.id,
                     avatarUrl: liveStreamData.seller.photoURL,
                     name: liveStreamData.seller.name,
@@ -524,7 +524,17 @@ export default function StreamPage() {
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
+                
+                <video 
+                    ref={videoRef} 
+                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                    className="w-full h-full object-contain" 
+                    autoPlay 
+                    muted 
+                    loop
+                    playsInline
+                />
+                 <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
                     <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
                         <List />
                     </Button>
@@ -542,58 +552,75 @@ export default function StreamPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                <video 
-                    ref={videoRef} 
-                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                    className="w-full h-full object-contain" 
-                    autoPlay 
-                    muted 
-                    loop
-                    playsInline
-                />
             </div>
-             <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
-                <div className="flex justify-between items-center gap-4">
-                    <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                         <Link href={sellerProfileUrl}>
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </Link>
-                         <div className="flex-1 overflow-hidden">
-                             <Link href={sellerProfileUrl} className="hover:underline">
-                                <h2 className="font-semibold text-base truncate">{seller.name}</h2>
-                            </Link>
-                             <div className="flex items-center gap-2 text-xs mt-1">
-                                <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                {seller.hasAuction && (
-                                     <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
-                                            <div className="py-4 text-center">
-                                                <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                                <Button size="lg" className="w-full">Place Bid</Button>
-                                            </div>
-                                        </DialogContent>
-                                     </Dialog>
+            
+            <div className="flex-1 relative overflow-hidden">
+                <div className="absolute inset-0 flex flex-col">
+                     <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
+                        <div className="flex justify-between items-center gap-4">
+                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                <Link href={sellerProfileUrl}>
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </Link>
+                                <div className="flex-1 overflow-hidden">
+                                    <Link href={sellerProfileUrl} className="hover:underline">
+                                        <h2 className="font-semibold text-base truncate">{seller.name}</h2>
+                                    </Link>
+                                    <div className="flex items-center gap-2 text-xs mt-1">
+                                        <Badge variant="destructive" className="h-5">LIVE</Badge>
+                                        {seller.hasAuction && (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
+                                                    <div className="py-4 text-center">
+                                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                                        <Button size="lg" className="w-full">Place Bid</Button>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                                {!isAdminView && user && (
+                                    <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
                                 )}
                             </div>
                         </div>
                     </div>
-                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {!isAdminView && user && (
-                            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
-                        )}
+                     <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
+                        <div className='p-2 mb-4'>
+                            <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                            <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                        </div>
+                        {chatMessages.map(item => (
+                            item.type === 'chat' ? (
+                                <div key={item.id} className="flex items-start gap-2 text-sm">
+                                    <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
+                                    <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
+                                </div>
+                            ) : item.type === 'product' ? (
+                                <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
+                            ) : null
+                        ))}
+                    </ScrollArea>
+                    <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10">
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                            <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
+                            <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
+                        </form>
                     </div>
                 </div>
-            </div>
-            <div className="flex-1 relative overflow-hidden">
-                {isProductListOpen && (
-                    <div className="absolute top-0 inset-x-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col max-h-[50%]">
+
+                 {isProductListOpen && (
+                    <div className="absolute top-[calc(25vh+5rem)] inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col">
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
                             <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
@@ -614,28 +641,6 @@ export default function StreamPage() {
                         </ScrollArea>
                     </div>
                 )}
-                <ScrollArea className="absolute inset-0 p-4 space-y-4 bg-black/90">
-                    <div className='p-2 mb-4'>
-                        <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                        <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                    </div>
-                    {chatMessages.map(item => (
-                        item.type === 'chat' ? (
-                            <div key={item.id} className="flex items-start gap-2 text-sm">
-                                <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
-                                <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
-                            </div>
-                        ) : item.type === 'product' ? (
-                            <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
-                        ) : null
-                    ))}
-                </ScrollArea>
-            </div>
-             <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                    <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
-                    <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
-                </form>
             </div>
         </div>
 
