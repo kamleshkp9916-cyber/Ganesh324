@@ -45,6 +45,7 @@ import {
   Laptop,
   Briefcase,
   Gavel,
+  RadioTower,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -85,6 +86,8 @@ import { ThemeSwitcher } from '@/components/theme-switcher';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Logo } from '@/components/logo';
+import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { GoLiveDialog } from '@/components/go-live-dialog';
 
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
@@ -637,6 +640,16 @@ export default function LiveSellingPage() {
                         <Skeleton className="h-9 w-24 rounded-full" />
                     ) : user ? (
                         <div className="flex items-center gap-1 sm:gap-2">
+                             {userData?.role === 'seller' && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm">
+                                            <RadioTower className="mr-2 h-4 w-4" /> Go Live
+                                        </Button>
+                                    </DialogTrigger>
+                                    <GoLiveDialog />
+                                </Dialog>
+                            )}
                             <div ref={searchRef} className="relative flex items-center">
                                  <Button
                                   variant="ghost"

@@ -59,7 +59,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -490,10 +490,27 @@ export default function StreamPage() {
                         )}
                      </Dialog>
                     {seller.hasAuction && (
-                        <Badge variant="purple">
-                            <Gavel className="mr-1 h-3 w-3" />
-                            Auction
-                        </Badge>
+                       <Dialog>
+                            <DialogTrigger asChild>
+                                <Badge variant="purple" className="cursor-pointer">
+                                    <Gavel className="mr-1 h-3 w-3" />
+                                    Auction
+                                </Badge>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Live Auction</DialogTitle>
+                                    <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 text-center">
+                                    <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                    <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                    <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                    <Button size="lg" className="w-full">Place Your Bid</Button>
+                                    <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     )}
                   </div>
                 </div>
