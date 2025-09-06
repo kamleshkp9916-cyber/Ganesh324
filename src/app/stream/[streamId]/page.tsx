@@ -445,28 +445,32 @@ export default function StreamPage() {
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="flex-1 flex flex-col">
             
-            {/* Main Content: Video Player and Details */}
-            <div className="w-full flex flex-col">
-                <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
-                    <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                        <ArrowLeft />
-                    </Button>
-                    <video 
-                        ref={videoRef} 
-                        src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                        className="w-full h-full object-contain" 
-                        autoPlay 
-                        muted 
-                        loop
-                        playsInline
-                    />
-                    <StreamTimer />
-                </div>
-                
-                <div className="p-4 border-b border-white/10">
-                    <div className="flex justify-between items-start gap-4">
-                         <div className="flex items-start gap-3">
-                             <Link href={sellerProfileUrl}>
+            <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
+                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+                    <ArrowLeft />
+                </Button>
+                <video 
+                    ref={videoRef} 
+                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                    className="w-full h-full object-contain" 
+                    autoPlay 
+                    muted 
+                    loop
+                    playsInline
+                />
+                <StreamTimer />
+            </div>
+
+            <ScrollArea className="flex-1">
+                <div className="p-4">
+                    <div className="mt-4 text-sm text-white/80">
+                        <h3 className="font-semibold text-white">{seller.title}</h3>
+                        <p className="whitespace-pre-wrap">{seller.description}</p>
+                    </div>
+
+                    <div className="flex justify-between items-start gap-4 pt-4 mt-4 border-t border-white/10">
+                        <div className="flex items-start gap-3">
+                            <Link href={sellerProfileUrl}>
                                 <Avatar className="h-12 w-12">
                                     <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -474,7 +478,7 @@ export default function StreamPage() {
                             </Link>
                             <div className="flex-grow">
                                 <div className="flex items-center gap-2">
-                                    <Link href={sellerProfileUrl} className="hover:underline">
+                                     <Link href={sellerProfileUrl} className="hover:underline">
                                         <h2 className="font-bold text-lg">{seller.name}</h2>
                                     </Link>
                                     {seller.hasAuction && (
@@ -517,12 +521,8 @@ export default function StreamPage() {
                             </Button>
                         )}
                     </div>
-                     <div className="mt-4 text-sm text-white/80">
-                        <h3 className="font-semibold text-white">{seller.title}</h3>
-                        <p className="whitespace-pre-wrap">{seller.description}</p>
-                    </div>
                 </div>
-            </div>
+            </ScrollArea>
         </div>
 
         {/* Chat Panel */}
