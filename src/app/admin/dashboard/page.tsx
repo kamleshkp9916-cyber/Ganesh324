@@ -124,11 +124,38 @@ const recentTransactionsData = [
     }
 ];
 
-const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1' },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2' },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4' },
-];
+const recentSales = [
+  {
+    name: "Olivia Martin",
+    email: "olivia.martin@email.com",
+    amount: "+$1,999.00",
+    avatar: "https://placehold.co/40x40.png"
+  },
+  {
+    name: "Jackson Lee",
+    email: "jackson.lee@email.com",
+    amount: "+$39.00",
+    avatar: "https://placehold.co/40x40.png"
+  },
+  {
+    name: "Isabella Nguyen",
+    email: "isabella.nguyen@email.com",
+    amount: "+$299.00",
+    avatar: "https://placehold.co/40x40.png"
+  },
+  {
+    name: "William Kim",
+    email: "will@email.com",
+    amount: "+$99.00",
+    avatar: "https://placehold.co/40x40.png"
+  },
+  {
+    name: "Sofia Davis",
+    email: "sofia.davis@email.com",
+    amount: "+$39.00",
+    avatar: "https://placehold.co/40x40.png"
+  },
+]
 
 
 export default function AdminDashboard() {
@@ -436,48 +463,28 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center">
-              <CardTitle>Active Live Streams</CardTitle>
-               <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="/admin/live-control">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
+            <CardHeader>
+              <CardTitle>Recent Sales</CardTitle>
+              <CardDescription>
+                You made 265 sales this month.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-               <Table>
-                 <TableHeader>
-                    <TableRow>
-                        <TableHead>Seller</TableHead>
-                        <TableHead className="text-right">Viewers</TableHead>
-                    </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                    {mockLiveStreams.map((stream) => (
-                        <TableRow key={stream.id}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={stream.seller.avatarUrl} />
-                                        <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <div className="font-medium">{stream.seller.name}</div>
-                                        <div className="text-sm text-muted-foreground">{stream.product.name}</div>
-                                    </div>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Badge variant="secondary" className="gap-1.5">
-                                    <Users className="h-3 w-3"/>
-                                    {stream.viewers}
-                                </Badge>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                 </TableBody>
-               </Table>
+            <CardContent className="grid gap-8">
+               {recentSales.map((sale, index) => (
+                <div key={index} className="flex items-center gap-4">
+                    <Avatar className="hidden h-9 w-9 sm:flex">
+                    <AvatarImage src={sale.avatar} alt="Avatar" />
+                    <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="grid gap-1">
+                    <p className="text-sm font-medium leading-none">{sale.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {sale.email}
+                    </p>
+                    </div>
+                    <div className="ml-auto font-medium">{sale.amount}</div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
