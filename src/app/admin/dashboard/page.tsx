@@ -14,9 +14,11 @@ import {
   Users,
   LineChart as LineChartIcon,
   ShieldCheck,
-  RadioTower
+  RadioTower,
+  Video
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 import {
   Avatar,
@@ -122,13 +124,11 @@ const recentTransactionsData = [
     }
 ];
 
-const topProducts = [
-    { name: "Vintage Camera", category: "Electronics", sales: 150 },
-    { name: "Wireless Headphones", category: "Electronics", sales: 120 },
-    { name: "Designer Sunglasses", category: "Fashion", sales: 95 },
-    { name: "Skincare Set", category: "Beauty", sales: 80 },
-    { name: "Leather Backpack", category: "Fashion", sales: 60 },
-]
+const mockLiveStreams = [
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1' },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2' },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4' },
+];
 
 
 export default function AdminDashboard() {
@@ -436,28 +436,44 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle>Top Selling Products</CardTitle>
-              <CardDescription>
-                Your most popular products this month.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center">
+              <CardTitle>Active Live Streams</CardTitle>
+               <Button asChild size="sm" className="ml-auto gap-1">
+                <Link href="/admin/live-control">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </CardHeader>
             <CardContent>
                <Table>
                  <TableHeader>
                     <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead className="text-right">Sales</TableHead>
+                        <TableHead>Seller</TableHead>
+                        <TableHead className="text-right">Viewers</TableHead>
                     </TableRow>
                  </TableHeader>
                  <TableBody>
-                    {topProducts.map((product) => (
-                        <TableRow key={product.name}>
+                    {mockLiveStreams.map((stream) => (
+                        <TableRow key={stream.id}>
                             <TableCell>
-                                <div className="font-medium">{product.name}</div>
-                                <div className="text-sm text-muted-foreground">{product.category}</div>
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={stream.seller.avatarUrl} />
+                                        <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-medium">{stream.seller.name}</div>
+                                        <div className="text-sm text-muted-foreground">{stream.product.name}</div>
+                                    </div>
+                                </div>
                             </TableCell>
-                            <TableCell className="text-right">{product.sales}</TableCell>
+                            <TableCell className="text-right">
+                                <Badge variant="secondary" className="gap-1.5">
+                                    <Users className="h-3 w-3"/>
+                                    {stream.viewers}
+                                </Badge>
+                            </TableCell>
                         </TableRow>
                     ))}
                  </TableBody>
@@ -469,5 +485,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
-    
