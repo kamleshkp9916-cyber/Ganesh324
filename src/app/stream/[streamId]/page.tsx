@@ -582,6 +582,10 @@ export default function StreamPage() {
                 </div>
             </div>
             <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
+                 <div className='p-2 mb-4'>
+                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                    <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                </div>
                 {chatMessages.map(item => (
                     item.type === 'chat' ? (
                         <div key={item.id} className="flex items-start gap-2 text-sm">
