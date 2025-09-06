@@ -446,10 +446,26 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
         {/* Main content for large screens */}
-        <div className="hidden lg:flex flex-1 flex-col bg-black">
-             <div className="p-4 space-y-4">
+        <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+                <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+                    <ArrowLeft />
+                </Button>
+                <video 
+                    ref={videoRef} 
+                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                    className="w-full h-full object-contain" 
+                    autoPlay 
+                    muted 
+                    loop
+                    playsInline
+                />
+                <StreamTimer />
+            </div>
+
+            <div className="p-4 space-y-4">
                 <div className="space-y-2">
-                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                     <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                     <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                     <p className="text-sm text-primary font-semibold">{seller.category}</p>
                 </div>
@@ -510,27 +526,11 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
-            <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                <ArrowLeft />
-            </Button>
-            <video 
-                ref={videoRef} 
-                src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                className="w-full h-full object-contain" 
-                autoPlay 
-                muted 
-                loop
-                playsInline
-            />
-            <StreamTimer />
-            </div>
-
         </div>
 
         {/* Combined layout for small screens */}
         <div className="lg:hidden flex flex-col h-screen w-full">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10">
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
@@ -559,24 +559,24 @@ export default function StreamPage() {
                             </Link>
                              <div className="flex items-center gap-2 text-xs mt-1">
                                 <Badge variant="destructive" className="h-5">LIVE</Badge>
+                                {seller.hasAuction && (
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
+                                            <div className="py-4 text-center">
+                                                <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                                <Button size="lg" className="w-full">Place Bid</Button>
+                                            </div>
+                                        </DialogContent>
+                                     </Dialog>
+                                )}
                             </div>
                         </div>
                     </div>
                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {seller.hasAuction && (
-                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
-                                    <div className="py-4 text-center">
-                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                        <Button size="lg" className="w-full">Place Bid</Button>
-                                    </div>
-                                </DialogContent>
-                             </Dialog>
-                        )}
                         {!isAdminView && user && (
                             <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
                         )}
@@ -595,7 +595,7 @@ export default function StreamPage() {
                     ) : null
                 ))}
             </ScrollArea>
-            <div className="p-3 border-t border-white/10 bg-black mt-auto flex-shrink-0">
+            <div className="p-3 border-t border-white/10 bg-black mt-auto flex-shrink-0 z-10">
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
                     <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
