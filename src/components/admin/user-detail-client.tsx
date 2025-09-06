@@ -71,6 +71,7 @@ type Order = {
     timeline: any[];
     paymentMethod: 'Credit Card' | 'UPI' | 'Net Banking';
     refundStatus: 'N/A' | 'Pending' | 'Completed';
+    transactionId: string;
 };
 
 type Product = {
@@ -94,7 +95,8 @@ const mockOrders: Order[] = [
         isReturnable: true,
         timeline: [{ status: "Delivered", date: "Aug 05, 2024", time: "02:00 PM", completed: true }],
         paymentMethod: 'Credit Card',
-        refundStatus: 'N/A'
+        refundStatus: 'N/A',
+        transactionId: 'txn_1a2b3c4d5e6f'
     },
     {
         orderId: "#MOCK456",
@@ -106,7 +108,8 @@ const mockOrders: Order[] = [
         isReturnable: false,
         timeline: [{ status: "Shipped", date: "Jul 26, 2024", time: "11:00 AM", completed: true }],
         paymentMethod: 'UPI',
-        refundStatus: 'Pending'
+        refundStatus: 'Pending',
+        transactionId: 'txn_7g8h9i0j1k2l'
     }
 ];
 
@@ -238,6 +241,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                             <TableCell className="text-xs">
                                                 <p>Pay: {order.paymentMethod}</p>
                                                 <p>Refund: {order.refundStatus}</p>
+                                                <p className="font-mono text-muted-foreground truncate" title={order.transactionId}>ID: {order.transactionId}</p>
                                             </TableCell>
                                             <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                         </TableRow>
