@@ -1,3 +1,4 @@
+
 /**
  * Import function triggers from their respective submodules:
  *
@@ -8,6 +9,11 @@
  */
 
 const {setGlobalOptions} = require("firebase-functions");
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+
 const {onRequest} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 
@@ -29,4 +35,42 @@ setGlobalOptions({ maxInstances: 10 });
 exports.helloWorld = onRequest((request, response) => {
   logger.info("Hello logs!", {structuredData: true});
   response.send("Hello from Firebase!");
+});
+
+
+/**
+ * Triggered when a new user signs up.
+ * This function creates a corresponding user document in Firestore.
+ */
+exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
+  logger.info(`New user created: ${user.uid}`, {structuredData: true});
+
+  const { uid, email, displayName, photoURL } = user;
+
+  const userData = {
+    uid,
+    email,
+    displayName: displayName || 'New User',
+    photoURL: photoURL || `https://placehold.co/128x128.png?text=${(displayName || 'U').charAt(0)}`,
+    role: 'customer', // Default role for all new sign-ups
+    followers: 0,
+    following: 0,
+    bio: "",
+    location: "",
+    phone: "",
+    addresses: [],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  try {
+    await admin.firestore().collection('users').doc(uid).set(userData);
+    logger.info(`Successfully created Firestore document for user: ${uid}`);
+
+    // Placeholder for sending a welcome email
+    // In a real app, you would integrate an email service like SendGrid or Mailgun here.
+    logger.info(`(Placeholder) Sending welcome email to ${email}`);
+
+  } catch (error) {
+    logger.error(`Error creating Firestore document for user: ${uid}`, {error, structuredData: true});
+  }
 });
