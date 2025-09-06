@@ -29,6 +29,7 @@ export function GoLiveDialog() {
     const [step, setStep] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [streamTitle, setStreamTitle] = useState('');
+    const [streamDescription, setStreamDescription] = useState('');
     const [isAuction, setIsAuction] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,6 +59,7 @@ export function GoLiveDialog() {
             },
             product: selectedProduct,
             title: streamTitle,
+            description: streamDescription,
             isAuction: isAuction,
             startedAt: new Date().toISOString(),
         };
@@ -117,6 +119,16 @@ export function GoLiveDialog() {
                             placeholder="e.g., Unboxing New Arrivals!"
                             value={streamTitle}
                             onChange={(e) => setStreamTitle(e.target.value)}
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="stream-description">Stream Description</Label>
+                        <Textarea
+                            id="stream-description"
+                            placeholder="Tell viewers what your stream is about. You can include links here."
+                            value={streamDescription}
+                            onChange={(e) => setStreamDescription(e.target.value)}
+                            rows={4}
                         />
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
