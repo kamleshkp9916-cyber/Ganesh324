@@ -442,29 +442,9 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="flex-1 flex flex-col">
-            {/* Top Bar */}
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-black/50 backdrop-blur-sm z-30 border-b border-white/10 lg:hidden">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
-                    <ArrowLeft />
-                </Button>
-                <Link href={sellerProfileUrl} className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <h2 className="font-semibold text-sm">{seller.name}</h2>
-                </Link>
-                <div className="flex items-center gap-1">
-                    <Badge variant="destructive" className="h-5">LIVE</Badge>
-                    <div className="flex items-center gap-1 text-sm">
-                        <Users className="h-3 w-3" />
-                        <span>{seller.viewers}</span>
-                    </div>
-                </div>
-            </header>
             
             {/* Main Content: Video Player and Details */}
-            <div className="flex-grow w-full flex flex-col">
+            <div className="w-full flex flex-col">
                 <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
                     <video 
                         ref={videoRef} 
@@ -475,13 +455,18 @@ export default function StreamPage() {
                         loop
                         playsInline
                     />
+                     <div className="absolute top-4 left-4 z-20">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+                            <ArrowLeft />
+                        </Button>
+                    </div>
                     <StreamTimer />
                 </div>
                 
                 <div className="p-4 border-b border-white/10">
                     <div className="flex justify-between items-start gap-4">
                          <div className="flex items-start gap-3">
-                             <Link href={sellerProfileUrl} className="hidden lg:block">
+                             <Link href={sellerProfileUrl}>
                                 <Avatar className="h-12 w-12">
                                     <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -707,5 +692,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
