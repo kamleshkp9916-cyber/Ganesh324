@@ -391,32 +391,34 @@ export default function LiveSellingPage() {
   }, []);
 
   const loadData = useCallback(() => {
-        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
+    setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
 
-        const storedFeed = localStorage.getItem('mockFeed');
-        if (storedFeed) {
-            setMockFeed(JSON.parse(storedFeed));
-        } else {
-            setMockFeed(initialMockFeed);
-            localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
-        }
-        
-        const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-        if (storedSlidesRaw) {
-            const storedSlides = JSON.parse(storedSlidesRaw);
-            const now = new Date();
-            const activeSlides = storedSlides.filter((slide: any) => {
-                return !slide.expiresAt || new Date(slide.expiresAt) >= now;
-            });
-            setOfferSlides(activeSlides);
-        } else {
-            setOfferSlides(initialOfferSlides);
-        }
+    const storedFeed = localStorage.getItem('mockFeed');
+    if (storedFeed) {
+        setMockFeed(JSON.parse(storedFeed));
+    } else {
+        setMockFeed(initialMockFeed);
+        localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
+    }
+    
+    const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+    if (storedSlidesRaw) {
+        const storedSlides = JSON.parse(storedSlidesRaw);
+        const now = new Date();
+        const activeSlides = storedSlides.filter((slide: any) => {
+            return !slide.expiresAt || new Date(slide.expiresAt) >= now;
+        });
+        setOfferSlides(activeSlides);
+    } else {
+        setOfferSlides(initialOfferSlides);
+    }
 
-        const liveStreamDataRaw = localStorage.getItem('liveStream');
+    const liveStreamDataRaw = localStorage.getItem('liveStream');
+    setAllSellers(prevSellers => {
+        const currentSellers = [...prevSellers];
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-            const sellerIsLive = allSellers.some(s => s.id === liveStreamData.seller.id);
+            const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.id);
 
             if (!sellerIsLive) {
                 const newSellerCard = {
@@ -433,13 +435,15 @@ export default function LiveSellingPage() {
                     productId: liveStreamData.product.id,
                     isMyStream: true,
                 };
-                setAllSellers(prev => [newSellerCard, ...prev.filter(s => s.id !== newSellerCard.id)]);
+                return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
             }
         } else {
-             // If liveStream data is gone, remove the stream card that was marked as our own
-             setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
+            // If liveStream data is gone, remove the stream card that was marked as our own
+            return currentSellers.filter(s => !(s as any).isMyStream);
         }
-    }, [allSellers]);
+        return currentSellers;
+    });
+  }, []);
 
   useEffect(() => {
     if (!isMounted) return;
