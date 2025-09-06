@@ -278,7 +278,7 @@ export default function AdminProductsPage() {
     const { toast } = useToast();
 
     // In an admin view, we'd fetch all products. For this demo, we'll use a single combined list.
-    const getAllProductsKey = () => 'allSellerProducts';
+    const getAllProductsKey = () => 'allAdminProducts';
 
     useEffect(() => {
         setIsMounted(true);
@@ -497,5 +497,3 @@ export default function AdminProductsPage() {
     </>
   )
 }
-
-    
