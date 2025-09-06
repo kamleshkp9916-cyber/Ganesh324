@@ -73,8 +73,10 @@ import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isSameDay, isSameMonth, isSameYear, parseISO } from "date-fns";
 import { useDebounce } from "@/hooks/use-debounce";
+import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore";
+import { getFirestoreDb } from "@/lib/firebase";
 
 
 const salesData = [
@@ -85,6 +87,17 @@ const salesData = [
   { name: "May", sales: 600000 },
   { name: "Jun", sales: 550000 },
 ]
+
+type Order = {
+    orderId: string;
+    userId: string;
+    products: any[];
+    address: any;
+    total: number;
+    orderDate: string;
+    timeline: any[];
+};
+
 
 const recentTransactionsData = [
     {
@@ -170,6 +183,25 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [salesFilter, setSalesFilter] = useState("This Month");
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+        if (!loading && userData?.role === 'admin') {
+            const db = getFirestoreDb();
+            const ordersRef = collection(db, "orders");
+            const q = query(ordersRef, orderBy("orderDate", "desc"));
+            const querySnapshot = await getDocs(q);
+            const fetchedOrders: Order[] = querySnapshot.docs.map(doc => ({
+                ...doc.data(),
+                orderId: doc.id
+            } as Order));
+            setAllOrders(fetchedOrders);
+        }
+    };
+    fetchOrders();
+  }, [loading, userData]);
+
 
   const filteredTransactions = useMemo(() => {
     return recentTransactionsData.filter(transaction =>
@@ -179,18 +211,32 @@ export default function AdminDashboard() {
   }, [debouncedSearchTerm]);
 
   const salesFigures = useMemo(() => {
+    const now = new Date();
+    let filteredOrders = allOrders;
+
     switch (salesFilter) {
       case 'Today':
-        return { sales: "+520", percent: "+15.2%" };
-      case 'This Year':
-        return { sales: "+150,480", percent: "+12.5%" };
-      case 'Custom Range':
-        return { sales: "+1,234", percent: "+N/A" };
+        filteredOrders = allOrders.filter(order => isSameDay(parseISO(order.orderDate), now));
+        break;
       case 'This Month':
+        filteredOrders = allOrders.filter(order => isSameMonth(parseISO(order.orderDate), now));
+        break;
+      case 'This Year':
+        filteredOrders = allOrders.filter(order => isSameYear(parseISO(order.orderDate), now));
+        break;
+      case 'Custom Range':
+        // Custom range logic would go here
+        break;
       default:
-        return { sales: "+12,234", percent: "+19%" };
+        break;
     }
-  }, [salesFilter]);
+    
+    // For now, we only show the count. The percentage can be a future enhancement.
+    return {
+      sales: `+${filteredOrders.length}`,
+      percent: "+0%" // Placeholder
+    };
+  }, [salesFilter, allOrders]);
   
   if (loading || !userData || userData.role !== 'admin') {
     return (
