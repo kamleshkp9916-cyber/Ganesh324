@@ -15,7 +15,9 @@ import {
   LineChart as LineChartIcon,
   ShieldCheck,
   RadioTower,
-  Video
+  Video,
+  MoreHorizontal,
+  Calendar as CalendarIcon,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -41,6 +43,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -164,6 +169,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [salesFilter, setSalesFilter] = useState("This Month");
 
   const filteredTransactions = useMemo(() => {
     return recentTransactionsData.filter(transaction =>
@@ -172,8 +178,19 @@ export default function AdminDashboard() {
     );
   }, [debouncedSearchTerm]);
 
-  // The AuthRedirector now handles all unauthorized access and loading states.
-  // This page can assume that if it renders, the user is a verified admin.
+  const salesFigures = useMemo(() => {
+    switch (salesFilter) {
+      case 'Today':
+        return { sales: "+520", percent: "+15.2%" };
+      case 'This Year':
+        return { sales: "+150,480", percent: "+12.5%" };
+      case 'Custom Range':
+        return { sales: "+1,234", percent: "+N/A" };
+      case 'This Month':
+      default:
+        return { sales: "+12,234", percent: "+19%" };
+    }
+  }, [salesFilter]);
   
   if (loading || !userData || userData.role !== 'admin') {
     return (
@@ -379,13 +396,36 @@ export default function AdminDashboard() {
           </Card>
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              <div className="flex flex-col">
+                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                  <CardDescription className="text-xs">{salesFilter}</CardDescription>
+              </div>
+               <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => setSalesFilter("Today")}>Today</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setSalesFilter("This Month")}>This Month</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setSalesFilter("This Year")}>This Year</DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          Custom Range
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <p className="p-2 text-xs text-muted-foreground">Custom date range picker coming soon.</p>
+                        </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
+              <div className="text-2xl font-bold">{salesFigures.sales}</div>
               <p className="text-xs text-muted-foreground">
-                +19% from last month
+                {salesFigures.percent} from last period
               </p>
             </CardContent>
           </Card>
