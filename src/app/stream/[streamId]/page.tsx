@@ -419,9 +419,10 @@ export default function StreamPage() {
         }
     };
 
-  const handleBack = () => {
-    router.back();
-  };
+    const handleBack = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        router.back();
+    };
 
 
   if (!seller) {
