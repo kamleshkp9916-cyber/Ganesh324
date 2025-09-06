@@ -18,6 +18,8 @@ import {
   Trash2,
   ShoppingBag,
   Eye,
+  Wallet,
+  Send,
 } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
@@ -74,6 +76,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
+const mockPayments = [
+    { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
+    { orderId: "#ORD5897", customer: { name: "Jane Doe" }, amount: 4999.00, status: 'released' },
+    { orderId: "#ORD5903", customer: { name: "Jessica Rodriguez" }, amount: 4500.00, status: 'refunded' },
+];
+
+const mockPayouts = [
+    { sellerId: 'seller1', name: 'FashionFinds', available: 52340.50, status: 'pending' },
+    { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
+];
 
 const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => (
     <>
@@ -347,7 +359,7 @@ export default function AdminUsersPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search users..."
+                placeholder="Search..."
                 className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -381,6 +393,8 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
+                    <TabsTrigger value="payments">Payments</TabsTrigger>
+                    <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1">
@@ -411,11 +425,65 @@ export default function AdminUsersPage() {
                     </CardContent>
                 </Card>
              </TabsContent>
+              <TabsContent value="payments">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Payments</CardTitle>
+                        <CardDescription>View all "on-hold", "released", and "refunded" payments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {mockPayments.map(p => (
+                                    <TableRow key={p.orderId}>
+                                        <TableCell>{p.orderId}</TableCell>
+                                        <TableCell>{p.customer.name}</TableCell>
+                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'holding' ? 'warning' : p.status === 'released' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
+                                        <TableCell>
+                                            {p.status === 'holding' && <Button variant="secondary" size="sm">Release Payment</Button>}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+             </TabsContent>
+             <TabsContent value="payouts">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Payouts</CardTitle>
+                        <CardDescription>Approve or deny seller withdrawal requests.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Available</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {mockPayouts.map(p => (
+                                    <TableRow key={p.sellerId}>
+                                        <TableCell>{p.name}</TableCell>
+                                        <TableCell>₹{p.available.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : 'success'}>{p.status}</Badge></TableCell>
+                                        <TableCell>
+                                            {p.status === 'pending' && (
+                                                <div className="flex gap-2">
+                                                    <Button variant="default" size="sm"><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                                                    <Button variant="destructive" size="sm"><XCircle className="mr-2 h-4 w-4" />Deny</Button>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+             </TabsContent>
         </Tabs>
       </main>
     </div>
     </>
   )
 }
-
-    

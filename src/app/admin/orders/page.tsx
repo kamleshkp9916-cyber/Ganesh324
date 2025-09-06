@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -86,6 +87,8 @@ type Order = {
     refundStatus?: 'N/A' | 'Completed' | 'Pending';
     type?: 'Live Stream' | 'Listed Product';
     transactionId?: string;
+    paymentStatus?: 'holding' | 'released' | 'refunded';
+    paymentDetails?: any;
 };
 
 const mockOrders: Order[] = [
@@ -108,7 +111,8 @@ const mockOrders: Order[] = [
         paymentMethod: 'Credit Card',
         refundStatus: 'N/A',
         type: 'Listed Product',
-        transactionId: 'txn_1a2b3c4d5e6f'
+        transactionId: 'txn_1a2b3c4d5e6f',
+        paymentStatus: 'holding',
     },
      {
         orderId: "#MOCK5905",
@@ -125,7 +129,8 @@ const mockOrders: Order[] = [
         paymentMethod: 'UPI',
         refundStatus: 'N/A',
         type: 'Live Stream',
-        transactionId: 'txn_7g8h9i0j1k2l'
+        transactionId: 'txn_7g8h9i0j1k2l',
+        paymentStatus: 'released',
     },
     {
         orderId: "#MOCK5903",
@@ -142,7 +147,8 @@ const mockOrders: Order[] = [
         paymentMethod: 'Net Banking',
         refundStatus: 'Completed',
         type: 'Listed Product',
-        transactionId: 'txn_3m4n5o6p7q8r'
+        transactionId: 'txn_3m4n5o6p7q8r',
+        paymentStatus: 'refunded',
     }
 ];
 
@@ -367,7 +373,7 @@ export default function AdminOrdersPage() {
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <CreditCard className="h-4 w-4 text-muted-foreground"/>
-                                                                <p><span className="font-semibold">Payment:</span> {order.paymentMethod || 'N/A'}</p>
+                                                                <p><span className="font-semibold">Payment:</span> {order.paymentMethod || 'N/A'} (<Badge variant={order.paymentStatus === 'holding' ? 'warning' : order.paymentStatus === 'released' ? 'success' : 'destructive'} className="text-xs">{order.paymentStatus || 'N/A'}</Badge>)</p>
                                                             </div>
                                                              <div className="flex items-center gap-2">
                                                                 <RotateCcw className="h-4 w-4 text-muted-foreground"/>
