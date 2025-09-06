@@ -17,10 +17,15 @@ import {
   FileText,
   Shield,
   Flag,
+  Trash2,
+  Edit,
+  PlusCircle,
+  UploadCloud,
+  Image as ImageIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -53,8 +58,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { sendAnnouncement, sendWarning } from "@/ai/flows/notification-flow"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import Image from "next/image"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
+
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
+const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -66,12 +84,122 @@ const warningSchema = z.object({
     message: z.string().min(10, "Warning message must be at least 10 characters.")
 })
 
+const slideSchema = z.object({
+    id: z.number().optional(),
+    title: z.string().min(3, "Title is required."),
+    description: z.string().min(5, "Description is required."),
+    imageUrl: z.string().url("A valid image URL is required."),
+    hint: z.string().optional(),
+});
+export type Slide = z.infer<typeof slideSchema>;
+
 const initialFlaggedContent = [
     { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
     { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
     { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
     { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
 ];
+
+const initialOfferSlides: Slide[] = [
+  {
+    id: 1,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'Flash Sale!',
+    description: 'Up to 50% off on electronics.',
+    hint: 'electronics sale',
+  },
+  {
+    id: 2,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'New Arrivals',
+    description: 'Check out the latest fashion trends.',
+    hint: 'fashion clothing runway',
+  },
+  {
+    id: 3,
+    imageUrl: 'https://placehold.co/1200x400.png',
+    title: 'Home Decor Deals',
+    description: 'Beautify your space for less.',
+    hint: 'modern living room',
+  },
+];
+
+
+const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Slide) => void, existingSlide?: Slide, closeDialog: () => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const form = useForm<z.infer<typeof slideSchema>>({
+        resolver: zodResolver(slideSchema),
+        defaultValues: existingSlide || {
+            title: "",
+            description: "",
+            imageUrl: "",
+            hint: "",
+        },
+    });
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                form.setValue('imageUrl', event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const onSubmit = (values: z.infer<typeof slideSchema>) => {
+        setIsLoading(true);
+        // Simulate network delay
+        setTimeout(() => {
+            onSave({ ...values, id: existingSlide?.id || Date.now() });
+            setIsLoading(false);
+            closeDialog();
+        }, 500);
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="title" render={({ field }) => (
+                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Flash Sale!" {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
+                <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Up to 50% off..." {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
+                 <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Image</FormLabel>
+                        <div className="flex items-center gap-4">
+                            <FormControl>
+                                <Input type="text" placeholder="Or paste image URL" {...field} />
+                            </FormControl>
+                             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                <UploadCloud className="mr-2 h-4 w-4" /> Upload
+                            </Button>
+                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                        </div>
+                        {field.value && (
+                            <div className="mt-2 relative w-full aspect-video rounded-md overflow-hidden">
+                                <Image src={field.value} alt="Slide preview" layout="fill" objectFit="cover" />
+                            </div>
+                        )}
+                        <FormMessage />
+                    </FormItem>
+                )}/>
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
+                    <Button type="submit" disabled={isLoading}>
+                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Slide
+                    </Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+};
 
 
 export default function AdminSettingsPage() {
@@ -82,6 +210,49 @@ export default function AdminSettingsPage() {
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
   const [isSendingWarning, setIsSendingWarning] = useState(false)
   const [contentList, setContentList] = useState(initialFlaggedContent);
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
+
+  useEffect(() => {
+    // Load slides from local storage
+    const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+    if (storedSlides) {
+        setSlides(JSON.parse(storedSlides));
+    } else {
+        setSlides(initialOfferSlides);
+    }
+  }, []);
+
+  const saveSlides = (newSlides: Slide[]) => {
+      setSlides(newSlides);
+      localStorage.setItem(PROMOTIONAL_SLIDES_KEY, JSON.stringify(newSlides));
+      window.dispatchEvent(new Event('storage')); // Notify other tabs
+  };
+
+  const handleSaveSlide = (slide: Slide) => {
+    const existingIndex = slides.findIndex(s => s.id === slide.id);
+    let newSlides;
+    if (existingIndex > -1) {
+        newSlides = [...slides];
+        newSlides[existingIndex] = slide;
+    } else {
+        newSlides = [slide, ...slides];
+    }
+    saveSlides(newSlides);
+    toast({ title: "Promotion Saved!", description: "The promotional slide has been updated." });
+  };
+
+  const handleDeleteSlide = (slideId: number) => {
+      saveSlides(slides.filter(s => s.id !== slideId));
+      toast({ title: "Promotion Deleted!", description: "The promotional slide has been removed.", variant: "destructive" });
+  };
+
+  const openSlideForm = (slide?: Slide) => {
+      setEditingSlide(slide);
+      setIsSlideFormOpen(true);
+  };
+
 
   useEffect(() => {
     const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
@@ -193,6 +364,7 @@ export default function AdminSettingsPage() {
   }
 
   return (
+        <Dialog open={isSlideFormOpen} onOpenChange={setIsSlideFormOpen}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -240,6 +412,40 @@ export default function AdminSettingsPage() {
                 </div>
             </header>
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Promotion & Offer Management</CardTitle>
+                            <CardDescription>Manage the promotional slides on the live selling page carousel.</CardDescription>
+                        </div>
+                        <Button size="sm" onClick={() => openSlideForm()}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add New Slide
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {slides.length > 0 ? slides.map(slide => (
+                             <div key={slide.id} className="flex items-center justify-between rounded-lg border p-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-24 h-12 bg-muted rounded-md overflow-hidden relative">
+                                         <Image src={slide.imageUrl} alt={slide.title} layout="fill" objectFit="cover" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold">{slide.title}</h4>
+                                        <p className="text-xs text-muted-foreground">{slide.description}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <Button variant="ghost" size="icon" onClick={() => openSlideForm(slide)}><Edit className="h-4 w-4" /></Button>
+                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSlide(slide.id!)}><Trash2 className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-center text-muted-foreground py-4">No promotional slides have been added yet.</p>
+                        )}
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>App-wide Announcement</CardTitle>
@@ -382,5 +588,19 @@ export default function AdminSettingsPage() {
                 </Card>
             </main>
         </div>
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{editingSlide ? 'Edit' : 'Add New'} Promotional Slide</DialogTitle>
+                <DialogDescription>
+                    Fill in the details for the promotional slide. It will appear on the live selling page.
+                </DialogDescription>
+            </DialogHeader>
+            <SlideForm 
+                onSave={handleSaveSlide} 
+                existingSlide={editingSlide}
+                closeDialog={() => setIsSlideFormOpen(false)}
+            />
+        </DialogContent>
+        </Dialog>
   )
 }

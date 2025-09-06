@@ -86,6 +86,7 @@ import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Logo } from '@/components/logo';
 
+const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
 const liveSellers = [
     {
@@ -230,7 +231,7 @@ const liveSellers = [
     },
 ]
 
-const offerSlides = [
+const initialOfferSlides = [
   {
     id: 1,
     imageUrl: 'https://placehold.co/1200x400.png',
@@ -353,7 +354,7 @@ function FeedPostSkeleton() {
 }
 
 export default function LiveSellingPage() {
-  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+  const [offerSlides, setOfferSlides] = useState(initialOfferSlides);
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
@@ -386,10 +387,7 @@ export default function LiveSellingPage() {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const loadData = () => {
+  const loadData = useCallback(() => {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
 
         const storedFeed = localStorage.getItem('mockFeed');
@@ -398,6 +396,13 @@ export default function LiveSellingPage() {
         } else {
             setMockFeed(initialMockFeed);
             localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
+        }
+        
+        const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+        if (storedSlides) {
+            setOfferSlides(JSON.parse(storedSlides));
+        } else {
+            setOfferSlides(initialOfferSlides);
         }
 
         const liveStreamDataRaw = localStorage.getItem('liveStream');
@@ -426,31 +431,31 @@ export default function LiveSellingPage() {
              // If liveStream data is gone, remove the stream card that was marked as our own
              setAllSellers(prev => prev.filter(s => !(s as any).isMyStream));
         }
-    };
-    
-    // Initial load
+    }, [allSellers]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     loadData();
 
     // Simulate loading spinners
-    const offersTimer = setTimeout(() => setIsLoadingOffers(false), 1500);
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
     const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
 
     // Listen for storage changes from other tabs/pages
     const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === null) {
+        if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
             loadData();
         }
     };
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
-        clearTimeout(offersTimer);
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isMounted]);
+  }, [isMounted, loadData]);
 
    useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -792,7 +797,7 @@ export default function LiveSellingPage() {
 
                     <TabsContent value="live">
                         <div className="mb-6">
-                        {isLoadingOffers ? (
+                        {offerSlides.length === 0 ? (
                             <Skeleton className="w-full aspect-[3/1] rounded-lg" />
                         ) : (
                             <div>
