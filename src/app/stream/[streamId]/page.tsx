@@ -464,9 +464,11 @@ export default function StreamPage() {
             </div>
 
             <div className="p-4 space-y-4">
+                 <div>
+                    <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                    <p className="text-sm text-primary font-semibold">{seller.category}</p>
+                </div>
                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                <p className="text-sm text-primary font-semibold">{seller.category}</p>
                 
                 <Separator className="bg-white/10" />
                 
@@ -541,6 +543,24 @@ export default function StreamPage() {
                     loop
                     playsInline
                 />
+                 <div className="absolute right-4 bottom-4 z-20 flex flex-col gap-3">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
+                        <List />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
+                        <Share2 />
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
+                                <MoreVertical />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                           {/* ... menu items ... */}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
              <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
                 <div className="flex justify-between items-center gap-4">
@@ -583,8 +603,8 @@ export default function StreamPage() {
             </div>
             <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
                  <div className='p-2 mb-4'>
-                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                     <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                 </div>
                 {chatMessages.map(item => (
                     item.type === 'chat' ? (
@@ -597,25 +617,7 @@ export default function StreamPage() {
                     ) : null
                 ))}
             </ScrollArea>
-             <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10 flex flex-col gap-2">
-                 <div className="flex items-center justify-around">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
-                        <List />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Share2 />
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {/* ... same menu items as desktop ... */}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+             <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
                     <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
