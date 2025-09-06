@@ -66,19 +66,20 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "../ui/separator";
 
 
 const liveSellers = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion' },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics' },
-    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods' },
-    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4', hasAuction: true, category: 'Beauty' },
-    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5', hasAuction: false, category: 'Kitchenware' },
-    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6', hasAuction: false, category: 'Fitness' },
-    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7', hasAuction: true, category: 'Handmade' },
-    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8', hasAuction: false, category: 'Pet Supplies' },
-    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9', hasAuction: false, category: 'Books' },
-    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10', hasAuction: true, category: 'Gaming' },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!' },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics', description: 'Unboxing the brand new SoundWave Pro 2 headphones. We will be testing the noise cancellation and battery life. Ask me anything!' },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.' },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4', hasAuction: true, category: 'Beauty', description: 'Live makeup tutorial: Achieving the perfect evening look with our new eyeshadow palette. Big giveaways during the stream!' },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5', hasAuction: false, category: 'Kitchenware', description: 'Cooking demo! Making a one-pot pasta with our best-selling non-stick pan. Simple, easy, and delicious.' },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6', hasAuction: false, category: 'Fitness', description: 'Join our live 30-minute yoga session. We are using our extra-thick, non-slip yoga mats. All experience levels are welcome!' },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7', hasAuction: true, category: 'Handmade', description: 'Watch me create a unique pottery piece from scratch. This one-of-a-kind item will be auctioned at the end of the stream.' },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8', hasAuction: false, category: 'Pet Supplies', description: 'Everything your furry friend needs! Today we are looking at our orthopedic pet beds and interactive toys.' },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9', hasAuction: false, category: 'Books', description: 'Live reading from the first chapter of this month\'s featured novel. We have signed copies available for purchase!' },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10', hasAuction: true, category: 'Gaming', description: 'High-stakes gaming tournament! Watch the pros compete and get a chance to win the gaming mouse they are using.' },
 ];
 
 const mockInitialChat = [
@@ -277,6 +278,7 @@ export default function StreamPage() {
                     avatarUrl: liveStreamData.seller.photoURL,
                     name: liveStreamData.seller.name,
                     category: liveStreamData.product.category,
+                    description: liveStreamData.description
                 };
             }
         }
@@ -462,15 +464,16 @@ export default function StreamPage() {
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            
-            <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-            
-            <div>
-              <h3 className="font-semibold text-lg text-white">{seller.title}</h3>
-              <p className="text-xs text-white/60 mb-2">{seller.category}</p>
+
+            <div className="space-y-2">
+                <h3 className="font-semibold text-white">{seller.title}</h3>
+                <p className="text-xs text-white/60">{seller.category}</p>
+                <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
             </div>
             
-            <div className="flex justify-between items-center gap-4 pt-4 border-t border-white/10">
+            <Separator className="bg-white/10" />
+
+            <div className="flex justify-between items-center gap-4">
                 <div className="flex items-center gap-3">
                     <Link href={sellerProfileUrl}>
                         <Avatar className="h-12 w-12">
