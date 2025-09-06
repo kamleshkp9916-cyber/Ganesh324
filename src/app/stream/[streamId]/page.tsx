@@ -61,7 +61,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/use-auth.tsx";
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -549,85 +549,11 @@ export default function StreamPage() {
                     loop
                     playsInline
                 />
-                 <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
-                        <List />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
-                        <Share2 />
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
-                                <MoreVertical />
-                            </Button>
-                        </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
-                            {isAdminView ? (
-                            <>
-                                <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                            <StopCircle className="mr-2 h-4 w-4" />
-                                            Terminate Stream
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action will immediately terminate the stream for {seller.name} and all viewers.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </>
-                            ) : (
-                            <>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <Flag className="mr-2 h-4 w-4" />
-                                            <span>Report Stream</span>
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                     <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report this stream?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                               If this stream contains inappropriate content, please report it. Our moderation team will review it shortly.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                                <DropdownMenuItem>
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    <span>Feedback</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <LifeBuoy className="mr-2 h-4 w-4" />
-                                    <span>Help</span>
-                                </DropdownMenuItem>
-                            </>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
             </div>
             
             <div className="flex-1 relative overflow-hidden">
                 <div className="absolute inset-0 flex flex-col">
-                     <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
+                    <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
                         <div className="flex justify-between items-center gap-4">
                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                 <Link href={sellerProfileUrl}>
@@ -673,17 +599,83 @@ export default function StreamPage() {
                         </div>
                         {chatMessages.map(item => (
                             item.type === 'chat' ? (
-                                <div key={item.id} className="flex items-start gap-2 text-sm">
+                                <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
                                     <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
-                                    <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
+                                    <div className="flex-grow">
+                                        <p className="font-semibold">{item.user}</p>
+                                        <p className="text-white/80">{item.message}</p>
+                                    </div>
+                                    {!isAdminView && user?.displayName !== item.user && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
+                                                    <Flag className="h-3 w-3 text-white/50" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Report Comment?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Are you sure you want to report this comment for review by our moderation team?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
                                 </div>
                             ) : item.type === 'product' ? (
                                 <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
                             ) : null
                         ))}
                     </ScrollArea>
-                    <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10">
-                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+
+                    <div className="p-3 border-t border-white/10 bg-black flex flex-col gap-3 flex-shrink-0 z-10">
+                        <div className="flex items-center gap-2">
+                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                                <List />
+                            </Button>
+                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShareStream}>
+                                <Share2 />
+                            </Button>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    {isAdminView ? (
+                                        <>
+                                            <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                             <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                        <StopCircle className="mr-2 h-4 w-4" />
+                                                        Terminate Stream
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action will immediately terminate the stream for {seller.name} and all viewers.</AlertDialogDescription></AlertDialogHeader>
+                                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction></AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
+                                            <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
+                                            <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
+                                        </>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
                             <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
                             <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
                         </form>
@@ -756,26 +748,7 @@ export default function StreamPage() {
                                 </>
                                 ) : (
                                 <>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <Flag className="mr-2 h-4 w-4" />
-                                                <span>Report Stream</span>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                         <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Report this stream?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                   If this stream contains inappropriate content, please report it. Our moderation team will review it shortly.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                    <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
                                     <DropdownMenuItem>
                                         <MessageCircle className="mr-2 h-4 w-4" />
                                         <span>Feedback</span>
@@ -802,7 +775,7 @@ export default function StreamPage() {
                                     <p className="font-semibold">{item.user}</p>
                                     <p className="text-white/80">{item.message}</p>
                                 </div>
-                                {!isAdminView && (
+                                {!isAdminView && user?.displayName !== item.user && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
@@ -837,28 +810,26 @@ export default function StreamPage() {
                         ))}
                     </ScrollArea>
                     
-                    {isProductListOpen && (
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col">
-                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                                <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                                <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                                    <X />
-                                </Button>
-                            </div>
-                            <ScrollArea className="flex-grow p-4">
-                                {streamProducts.map((product: any) => (
-                                    <ProductListItem
-                                        key={product.id}
-                                        product={product}
-                                        isBuyable={featuredProductIds.includes(product.key)}
-                                        onAddToCart={handleAddToCart}
-                                        onBuyNow={handleBuyNow}
-                                        isAdminView={isAdminView}
-                                    />
-                                ))}
-                            </ScrollArea>
+                    <div className={cn("absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex-col", isProductListOpen ? "flex" : "hidden")}>
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                                <X />
+                            </Button>
                         </div>
-                    )}
+                        <ScrollArea className="flex-grow p-4">
+                            {streamProducts.map((product: any) => (
+                                <ProductListItem
+                                    key={product.id}
+                                    product={product}
+                                    isBuyable={featuredProductIds.includes(product.key)}
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    isAdminView={isAdminView}
+                                />
+                            ))}
+                        </ScrollArea>
+                    </div>
                 </div>
                 <div className="p-3 border-t border-white/10">
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
