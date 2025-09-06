@@ -464,24 +464,23 @@ export default function StreamPage() {
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-
-             <div className="space-y-2">
+            <div className="space-y-2">
                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
             </div>
             
             <Separator className="bg-white/10" />
-
+            
             <div className="flex justify-between items-center gap-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <Link href={sellerProfileUrl}>
                         <Avatar className="h-12 w-12">
                             <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                     </Link>
-                    <div>
+                    <div className="flex-1 overflow-hidden">
                         <Link href={sellerProfileUrl} className="hover:underline">
-                            <h2 className="font-bold text-lg">{seller.name}</h2>
+                            <h2 className="font-bold text-lg truncate">{seller.name}</h2>
                         </Link>
                         <div className="flex items-center gap-2 text-xs mt-1">
                             <Badge variant="destructive" className="h-5">LIVE</Badge>
@@ -492,7 +491,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-2 flex-shrink-0">
                     {seller.hasAuction && (
                         <Dialog>
                         <DialogTrigger asChild>
