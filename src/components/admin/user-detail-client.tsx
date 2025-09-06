@@ -67,7 +67,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { getStatusFromTimeline } from "@/lib/order-data";
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
 type Order = {
