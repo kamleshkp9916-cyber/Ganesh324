@@ -16,6 +16,7 @@ import {
   Home,
   CreditCard,
   RotateCcw,
+  Video,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -81,6 +82,7 @@ type Order = {
     timeline: any[];
     paymentMethod?: string;
     refundStatus?: 'N/A' | 'Completed' | 'Pending';
+    type?: 'Live Stream' | 'Listed Product';
 };
 
 const mockOrders: Order[] = [
@@ -101,7 +103,8 @@ const mockOrders: Order[] = [
             { status: "Delivered", date: null, time: null, completed: false },
         ],
         paymentMethod: 'Credit Card',
-        refundStatus: 'N/A'
+        refundStatus: 'N/A',
+        type: 'Listed Product'
     },
      {
         orderId: "#MOCK5905",
@@ -116,7 +119,8 @@ const mockOrders: Order[] = [
             { status: "Pending", date: null, time: null, completed: false },
         ],
         paymentMethod: 'UPI',
-        refundStatus: 'N/A'
+        refundStatus: 'N/A',
+        type: 'Live Stream'
     },
     {
         orderId: "#MOCK5903",
@@ -131,7 +135,8 @@ const mockOrders: Order[] = [
              { status: "Cancelled by admin", date: "Jul 21, 2024", time: "11:30 AM", completed: true },
         ],
         paymentMethod: 'Net Banking',
-        refundStatus: 'Completed'
+        refundStatus: 'Completed',
+        type: 'Listed Product'
     }
 ];
 
@@ -303,6 +308,7 @@ export default function AdminOrdersPage() {
                                 <TableHead>Order ID</TableHead>
                                 <TableHead>Customer</TableHead>
                                 <TableHead>Product</TableHead>
+                                <TableHead>Type</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -317,6 +323,14 @@ export default function AdminOrdersPage() {
                                         <Link href={`/product/${order.products[0].key}`} className="hover:underline">
                                             {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}
                                         </Link>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={order.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
+                                            <div className="flex items-center gap-1">
+                                                {order.type === 'Live Stream' && <Video className="h-3 w-3"/>}
+                                                {order.type}
+                                            </div>
+                                        </Badge>
                                     </TableCell>
                                     <TableCell><Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
                                     <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
@@ -379,7 +393,7 @@ export default function AdminOrdersPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
+                                    <TableCell colSpan={7} className="h-24 text-center">
                                         No orders found.
                                     </TableCell>
                                 </TableRow>
