@@ -447,24 +447,7 @@ export default function StreamPage() {
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
         {/* Main content for large screens */}
         <div className="hidden lg:flex flex-1 flex-col bg-black">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
-            <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                <ArrowLeft />
-            </Button>
-            <video 
-                ref={videoRef} 
-                src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                className="w-full h-full object-contain" 
-                autoPlay 
-                muted 
-                loop
-                playsInline
-            />
-            <StreamTimer />
-            </div>
-
-            <ScrollArea className="flex-1">
-            <div className="p-4 space-y-4">
+             <div className="p-4 space-y-4">
                 <div className="space-y-2">
                     <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                     <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
@@ -527,11 +510,26 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            </ScrollArea>
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+            <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+                <ArrowLeft />
+            </Button>
+            <video 
+                ref={videoRef} 
+                src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                className="w-full h-full object-contain" 
+                autoPlay 
+                muted 
+                loop
+                playsInline
+            />
+            <StreamTimer />
+            </div>
+
         </div>
 
         {/* Combined layout for small screens */}
-        <div className="lg:hidden flex flex-col h-full w-full">
+        <div className="lg:hidden flex flex-col h-screen w-full">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
@@ -546,32 +544,21 @@ export default function StreamPage() {
                     playsInline
                 />
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                 {/* This is the scrollable content area on mobile */}
-                <div className="space-y-2">
-                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                    <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                    <p className="text-sm text-primary font-semibold">{seller.category}</p>
-                </div>
-                 <Separator className="bg-white/10" />
-                 <div className="flex justify-between items-center gap-4">
+             <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
+                <div className="flex justify-between items-center gap-4">
                     <div className="flex items-center gap-3 flex-1 overflow-hidden">
                          <Link href={sellerProfileUrl}>
-                            <Avatar className="h-12 w-12">
+                            <Avatar className="h-10 w-10">
                                 <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                         </Link>
                          <div className="flex-1 overflow-hidden">
                              <Link href={sellerProfileUrl} className="hover:underline">
-                                <h2 className="font-bold text-lg truncate">{seller.name}</h2>
+                                <h2 className="font-semibold text-base truncate">{seller.name}</h2>
                             </Link>
                              <div className="flex items-center gap-2 text-xs mt-1">
                                 <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                <div className="flex items-center gap-1">
-                                    <Users className="h-3 w-3" />
-                                    <span>{seller.viewers} viewers</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -591,26 +578,24 @@ export default function StreamPage() {
                              </Dialog>
                         )}
                         {!isAdminView && user && (
-                            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
+                            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
                         )}
                     </div>
                 </div>
-                <Separator className="bg-white/10" />
-                 {/* Chat Messages on Mobile */}
-                 <div className="space-y-4">
-                     {chatMessages.map(item => (
-                        item.type === 'chat' ? (
-                            <div key={item.id} className="flex items-start gap-2 text-sm">
-                                <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
-                                <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
-                            </div>
-                        ) : item.type === 'product' ? (
-                            <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
-                        ) : null
-                    ))}
-                 </div>
             </div>
-            <div className="p-3 border-t border-white/10 bg-black mt-auto">
+            <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
+                {chatMessages.map(item => (
+                    item.type === 'chat' ? (
+                        <div key={item.id} className="flex items-start gap-2 text-sm">
+                            <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
+                            <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
+                        </div>
+                    ) : item.type === 'product' ? (
+                        <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
+                    ) : null
+                ))}
+            </ScrollArea>
+            <div className="p-3 border-t border-white/10 bg-black mt-auto flex-shrink-0">
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
                     <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
