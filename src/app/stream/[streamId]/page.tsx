@@ -369,6 +369,21 @@ export default function StreamPage() {
             description: "Thank you for your feedback. Our moderators will review it.",
         });
     };
+    
+    const handleReportStream = () => {
+        toast({
+            title: "Stream Reported",
+            description: "Thank you for helping keep StreamCart safe. Our team will review this stream.",
+        });
+    };
+    
+    const handleShareStream = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+            title: "Link Copied!",
+            description: "Stream link copied to your clipboard.",
+        });
+    };
 
     const handleSeek = (direction: 'forward' | 'backward') => {
         if (videoRef.current) {
@@ -538,7 +553,7 @@ export default function StreamPage() {
                     <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
                         <List />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
                         <Share2 />
                     </Button>
                     <DropdownMenu>
@@ -547,8 +562,64 @@ export default function StreamPage() {
                                 <MoreVertical />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                           {/* ... menu items ... */}
+                         <DropdownMenuContent align="end">
+                            {isAdminView ? (
+                            <>
+                                <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                            <StopCircle className="mr-2 h-4 w-4" />
+                                            Terminate Stream
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action will immediately terminate the stream for {seller.name} and all viewers.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </>
+                            ) : (
+                            <>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Flag className="mr-2 h-4 w-4" />
+                                            <span>Report Stream</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                     <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report this stream?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                               If this stream contains inappropriate content, please report it. Our moderation team will review it shortly.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                <DropdownMenuItem>
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    <span>Feedback</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    <span>Help</span>
+                                </DropdownMenuItem>
+                            </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -619,15 +690,14 @@ export default function StreamPage() {
                     </div>
                 </div>
 
-                 {isProductListOpen && (
-                    <div className="absolute top-[calc(25vh+5rem)] inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col">
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                 <div className={cn("absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col transition-transform duration-300 ease-in-out", isProductListOpen ? "translate-y-0" : "translate-y-full")}>
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                             <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
                             <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
                                 <X />
                             </Button>
                         </div>
-                        <ScrollArea className="flex-grow p-4">
+                        <ScrollArea className="flex-grow p-4 max-h-[40vh]">
                             {streamProducts.map((product: any) => (
                                 <ProductListItem
                                     key={product.id}
@@ -640,7 +710,6 @@ export default function StreamPage() {
                             ))}
                         </ScrollArea>
                     </div>
-                )}
             </div>
         </div>
 
@@ -659,48 +728,64 @@ export default function StreamPage() {
                                     <MoreVertical />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                    {isAdminView ? (
-                                    <>
-                                        <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                    <StopCircle className="mr-2 h-4 w-4" />
-                                                    Terminate Stream
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This action will immediately terminate the stream for {seller.name} and all viewers.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </>
-                                    ) : (
-                                    <>
-                                        <DropdownMenuItem>
-                                            <Flag className="mr-2 h-4 w-4" />
-                                            <span>Report</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <MessageCircle className="mr-2 h-4 w-4" />
-                                            <span>Feedback</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <LifeBuoy className="mr-2 h-4 w-4" />
-                                            <span>Help</span>
-                                        </DropdownMenuItem>
-                                    </>
-                                    )}
+                             <DropdownMenuContent align="end">
+                                {isAdminView ? (
+                                <>
+                                    <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                <StopCircle className="mr-2 h-4 w-4" />
+                                                Terminate Stream
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action will immediately terminate the stream for {seller.name} and all viewers.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                                ) : (
+                                <>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <Flag className="mr-2 h-4 w-4" />
+                                                <span>Report Stream</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                         <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report this stream?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                   If this stream contains inappropriate content, please report it. Our moderation team will review it shortly.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    <DropdownMenuItem>
+                                        <MessageCircle className="mr-2 h-4 w-4" />
+                                        <span>Feedback</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <LifeBuoy className="mr-2 h-4 w-4" />
+                                        <span>Help</span>
+                                    </DropdownMenuItem>
+                                </>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
