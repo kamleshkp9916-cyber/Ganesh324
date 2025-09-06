@@ -22,6 +22,7 @@ import {
   PlusCircle,
   UploadCloud,
   Image as ImageIcon,
+  CalendarIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -29,6 +30,8 @@ import React, { useState, useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { format } from "date-fns"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -69,6 +72,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -90,6 +95,7 @@ const slideSchema = z.object({
     description: z.string().min(5, "Description is required."),
     imageUrl: z.string().url("A valid image URL is required."),
     hint: z.string().optional(),
+    expiresAt: z.date().optional(),
 });
 export type Slide = z.infer<typeof slideSchema>;
 
@@ -107,6 +113,7 @@ const initialOfferSlides: Slide[] = [
     title: 'Flash Sale!',
     description: 'Up to 50% off on electronics.',
     hint: 'electronics sale',
+    expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), // Expires in 7 days
   },
   {
     id: 2,
@@ -131,7 +138,7 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
 
     const form = useForm<z.infer<typeof slideSchema>>({
         resolver: zodResolver(slideSchema),
-        defaultValues: existingSlide || {
+        defaultValues: existingSlide ? { ...existingSlide, expiresAt: existingSlide.expiresAt ? new Date(existingSlide.expiresAt) : undefined } : {
             title: "",
             description: "",
             imageUrl: "",
@@ -163,12 +170,14 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="title" render={({ field }) => (
-                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Flash Sale!" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                <FormField control={form.control} name="description" render={({ field }) => (
-                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Up to 50% off..." {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="title" render={({ field }) => (
+                        <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Flash Sale!" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="description" render={({ field }) => (
+                        <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Up to 50% off..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
                  <FormField control={form.control} name="imageUrl" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Image</FormLabel>
@@ -189,6 +198,48 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
                         <FormMessage />
                     </FormItem>
                 )}/>
+                 <FormField
+                    control={form.control}
+                    name="expiresAt"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Expiration Date (Optional)</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[240px] pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormDescription>
+                            The promotion will be automatically hidden after this date.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
                     <Button type="submit" disabled={isLoading}>
@@ -218,7 +269,9 @@ export default function AdminSettingsPage() {
     // Load slides from local storage
     const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
     if (storedSlides) {
-        setSlides(JSON.parse(storedSlides));
+        // Need to parse date strings back into Date objects
+        const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
+        setSlides(parsedSlides);
     } else {
         setSlides(initialOfferSlides);
     }
@@ -237,7 +290,7 @@ export default function AdminSettingsPage() {
         newSlides = [...slides];
         newSlides[existingIndex] = slide;
     } else {
-        newSlides = [slide, ...slides];
+        newSlides = [{ ...slide, id: Date.now() }, ...slides];
     }
     saveSlides(newSlides);
     toast({ title: "Promotion Saved!", description: "The promotional slide has been updated." });
@@ -425,7 +478,7 @@ export default function AdminSettingsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {slides.length > 0 ? slides.map(slide => (
-                             <div key={slide.id} className="flex items-center justify-between rounded-lg border p-4">
+                             <div key={slide.id} className={cn("flex items-center justify-between rounded-lg border p-4", slide.expiresAt && new Date(slide.expiresAt) < new Date() && "bg-muted/50")}>
                                 <div className="flex items-center gap-4">
                                     <div className="w-24 h-12 bg-muted rounded-md overflow-hidden relative">
                                          <Image src={slide.imageUrl} alt={slide.title} layout="fill" objectFit="cover" />
@@ -433,6 +486,12 @@ export default function AdminSettingsPage() {
                                     <div>
                                         <h4 className="font-semibold">{slide.title}</h4>
                                         <p className="text-xs text-muted-foreground">{slide.description}</p>
+                                        {slide.expiresAt ? (
+                                            <p className={cn("text-xs mt-1", new Date(slide.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Expires on: {format(new Date(slide.expiresAt), 'PPP')}
+                                                {new Date(slide.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}
+                                            </p>
+                                        ) : null}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">

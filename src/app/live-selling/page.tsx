@@ -398,9 +398,14 @@ export default function LiveSellingPage() {
             localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
         }
         
-        const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-        if (storedSlides) {
-            setOfferSlides(JSON.parse(storedSlides));
+        const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+        if (storedSlidesRaw) {
+            const storedSlides = JSON.parse(storedSlidesRaw);
+            const now = new Date();
+            const activeSlides = storedSlides.filter((slide: any) => {
+                return !slide.expiresAt || new Date(slide.expiresAt) >= now;
+            });
+            setOfferSlides(activeSlides);
         } else {
             setOfferSlides(initialOfferSlides);
         }
