@@ -440,112 +440,10 @@ export default function StreamPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground">
-      {/* Video Player Section */}
-      <div className="flex-grow bg-black flex flex-col relative group">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
-          <ArrowLeft />
-        </Button>
-        <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent z-10 text-white transition-opacity duration-300 opacity-100 group-hover:opacity-100">
-          <div className="flex items-center gap-3 ml-12">
-            <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
-                <Avatar>
-                  <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                  <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
-                  <div className="flex items-center gap-2 text-xs">
-                    <Badge variant="default" className="h-5">LIVE</Badge>
-                     <Dialog>
-                        <DialogTrigger asChild>
-                             <div className="flex items-center gap-1 cursor-pointer hover:text-white/80">
-                                <Users className="h-3 w-3" />
-                                <span>{seller.viewers}</span>
-                            </div>
-                        </DialogTrigger>
-                        {isAdminView && (
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Live Viewers ({mockViewers.length})</DialogTitle>
-                                </DialogHeader>
-                                <ScrollArea className="h-80">
-                                    <div className="p-4 space-y-4">
-                                        {mockViewers.map(viewer => (
-                                            <Link
-                                                key={viewer.userId}
-                                                href={`/admin/users/${viewer.userId}`}
-                                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
-                                            >
-                                                <Avatar>
-                                                    <AvatarImage src={viewer.avatar} alt={viewer.name} />
-                                                    <AvatarFallback>{viewer.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <p className="font-semibold">{viewer.name}</p>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            </DialogContent>
-                        )}
-                     </Dialog>
-                    {seller.hasAuction && (
-                       <Dialog>
-                            <DialogTrigger asChild>
-                                <Badge variant="purple" className="cursor-pointer">
-                                    <Gavel className="mr-1 h-3 w-3" />
-                                    Auction
-                                </Badge>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Live Auction</DialogTitle>
-                                    <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 text-center">
-                                    <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                    <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                    <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                    <Button size="lg" className="w-full">Place Your Bid</Button>
-                                    <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                  </div>
-                </div>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isChatVisible && (
-              <Button variant="secondary" size="sm" onClick={() => setIsChatVisible(true)}>
-                <PanelRightOpen className="mr-2 h-4 w-4" />
-                Show Chat
-              </Button>
-            )}
-            {!isAdminView && (
-              <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                {isFollowing ? 'Following' : 'Follow'}
-              </Button>
-            )}
-          </div>
-        </header>
-        
-        <div className="flex-1 relative flex items-center justify-center cursor-pointer" onClick={handleClick}>
-             <div 
-                className="absolute inset-0 z-10" 
-            >
-                {/* Seek Indicators */}
-                <div className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 text-white/80 transition-opacity duration-300 pointer-events-none">
-                    {seekIndicator === 'backward' && <Rewind className="h-12 w-12" />}
-                </div>
-                 <div className="absolute top-1/2 right-1/4 -translate-y-1/2 translate-x-1/2 text-white/80 transition-opacity duration-300 pointer-events-none">
-                    {seekIndicator === 'forward' && <FastForward className="h-12 w-12" />}
-                </div>
-            </div>
-
-            <video 
+    <div className="h-screen w-full bg-black text-white relative group">
+      
+        <div className="absolute inset-0 z-0">
+             <video 
                 ref={videoRef} 
                 src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
                 className="w-full h-full object-cover" 
@@ -554,239 +452,273 @@ export default function StreamPage() {
                 loop
                 playsInline
             />
-            
-             {/* Player Controls Overlay */}
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                <Button variant="ghost" size="icon" className="h-16 w-16 text-white pointer-events-auto" onClick={(e) => {
-                    e.stopPropagation(); // Prevent click from bubbling to the container
-                    if (videoRef.current) {
-                        videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
-                        setIsPaused(videoRef.current.paused);
-                    }
-                }}>
-                    {isPaused ? <Play className="h-12 w-12" /> : <Pause className="h-12 w-12" />}
-                </Button>
-            </div>
-
-            <StreamTimer />
-            
-            <div className="absolute bottom-16 sm:bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
-                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white" onClick={() => {
-                     if (videoRef.current) {
-                         videoRef.current.muted = !videoRef.current.muted;
-                         setIsMuted(videoRef.current.muted);
-                     }
-                 }}>
-                    {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-                </Button>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white">
-                            <Settings className="h-6 w-6" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" side="top">
-                        <DropdownMenuItem onSelect={() => setQuality('Auto')}>
-                            <RadioTower className="mr-2 h-4 w-4" />
-                            <span>Auto</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setQuality('1080p')}>
-                            <Tv className="mr-2 h-4 w-4" />
-                            <span>1080p</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => setQuality('720p')}>
-                             <Tv className="mr-2 h-4 w-4" />
-                            <span>720p</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-             {isPaused && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
-                    <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={() => {
-                         if (videoRef.current) {
-                            videoRef.current.play();
-                            setIsPaused(false);
-                        }
-                    }}>
-                        <Play className="h-12 w-12 fill-white" />
-                    </Button>
-                </div>
-            )}
         </div>
-      </div>
 
-      {/* Chat and Details Section */}
-       {isChatVisible && (
-          <aside className="w-full lg:w-96 h-1/2 lg:h-screen border-l flex flex-col relative">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-lg">Live Chat</h3>
-              <div className="flex items-center gap-1">
-                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
-                    <List />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none"></div>
+      
+        <div className="absolute inset-0 z-20 flex flex-col">
+            <header className="p-4 flex items-center justify-between text-white w-full">
+            <div className="flex items-center gap-3">
+                 <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
+                    <ArrowLeft />
                 </Button>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                         {isAdminView ? (
-                            <>
-                                <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                            <StopCircle className="mr-2 h-4 w-4" />
-                                            Terminate Stream
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action will immediately terminate the stream for {seller.name} and all viewers.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </>
-                         ) : (
-                            <>
-                                <DropdownMenuItem>
-                                    <Flag className="mr-2 h-4 w-4" />
-                                    <span>Report</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    <span>Feedback</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <LifeBuoy className="mr-2 h-4 w-4" />
-                                    <span>Help</span>
-                                </DropdownMenuItem>
-                            </>
-                         )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
-                    <PanelRightClose />
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
-              {chatMessages.map(item => (
-                 item.type === 'chat' ? (
-                    <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
-                        <Avatar className="h-8 w-8">
-                            <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
-                            <p className="font-semibold">{item.user}</p>
-                            <p className="text-muted-foreground">{item.message}</p>
-                        </div>
-                        {!isAdminView && (
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
-                                        <Flag className="h-3 w-3 text-muted-foreground" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Report Comment?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Are you sure you want to report this comment for review by our moderation team?
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        )}
-                    </div>
-                ) : item.type === 'join' ? (
-                    <div key={item.id} className="text-center text-xs text-muted-foreground italic my-2">
-                        <span>{item.user} {item.message}</span>
-                    </div>
-                ) : (
-                    <ProductChatMessage 
-                        key={item.id} 
-                        productKey={item.productKey!}
-                        stock={item.stock!} 
-                        onAddToCart={handleAddToCart}
-                        onBuyNow={handleBuyNow}
-                        isAdminView={isAdminView}
-                    />
-                )
-              ))}
-            </ScrollArea>
-            <div className="p-3 border-t">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                    <div className="relative flex-grow">
-                        <Input 
-                            placeholder="Say something..." 
-                            className="pr-10"
-                            value={newChatMessage}
-                            onChange={(e) => setNewChatMessage(e.target.value)}
-                        />
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                    <Smile className="h-5 w-5 text-muted-foreground" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80 h-64">
-                                <ScrollArea className="h-full">
-                                    <div className="grid grid-cols-8 gap-1">
-                                        {emojis.map((emoji, index) => (
-                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                                {emoji}
-                                            </Button>
-                                        ))}
+                <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
+                    <Avatar>
+                      <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                      <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="font-semibold group-hover/profile:underline">{seller.name}</h2>
+                      <div className="flex items-center gap-2 text-xs">
+                        <Badge variant="destructive" className="h-5">LIVE</Badge>
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                 <div className="flex items-center gap-1 cursor-pointer hover:text-white/80">
+                                    <Users className="h-3 w-3" />
+                                    <span>{seller.viewers}</span>
+                                </div>
+                            </DialogTrigger>
+                            {isAdminView && (
+                                 <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Live Viewers ({mockViewers.length})</DialogTitle>
+                                    </DialogHeader>
+                                    <ScrollArea className="h-80">
+                                        <div className="p-4 space-y-4">
+                                            {mockViewers.map(viewer => (
+                                                <Link
+                                                    key={viewer.userId}
+                                                    href={`/admin/users/${viewer.userId}`}
+                                                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
+                                                >
+                                                    <Avatar>
+                                                        <AvatarImage src={viewer.avatar} alt={viewer.name} />
+                                                        <AvatarFallback>{viewer.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <p className="font-semibold">{viewer.name}</p>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                </DialogContent>
+                            )}
+                         </Dialog>
+                        {seller.hasAuction && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Badge variant="purple" className="cursor-pointer">
+                                        <Gavel className="mr-1 h-3 w-3" />
+                                        Auction
+                                    </Badge>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Live Auction</DialogTitle>
+                                        <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 text-center">
+                                        <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                        <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                        <Button size="lg" className="w-full">Place Your Bid</Button>
+                                        <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
                                     </div>
-                                </ScrollArea>
-                            </PopoverContent>
-                        </Popover>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                      </div>
                     </div>
-                    <Button type="submit" size="icon" disabled={!newChatMessage.trim()}>
-                        <Send className="h-4 w-4" />
-                    </Button>
-                </form>
+                </Link>
             </div>
+             <div className="flex items-center gap-2">
+                {!isChatVisible && (
+                  <Button variant="secondary" size="sm" onClick={() => setIsChatVisible(true)}>
+                    <PanelRightOpen className="mr-2 h-4 w-4" />
+                    Show Chat
+                  </Button>
+                )}
+                {!isAdminView && (
+                  <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </Button>
+                )}
+            </div>
+            </header>
 
-            {isProductListOpen && (
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col">
-                    <div className="p-4 border-b flex justify-between items-center">
-                        <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                            <X />
-                        </Button>
-                    </div>
-                    <ScrollArea className="flex-grow p-4">
-                        {streamProducts.map((product: any) => (
-                            <ProductListItem
-                                key={product.id}
-                                product={product}
-                                isBuyable={featuredProductIds.includes(product.key)}
-                                onAddToCart={handleAddToCart}
-                                onBuyNow={handleBuyNow}
-                                isAdminView={isAdminView}
-                            />
-                        ))}
-                    </ScrollArea>
-                </div>
-            )}
-          </aside>
-       )}
+            <div className="flex-1 min-h-0 flex flex-col-reverse lg:flex-row">
+                 {isChatVisible && (
+                    <aside className="w-full lg:w-96 flex flex-col bg-black/50 backdrop-blur-sm lg:border-l lg:border-white/10">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                          <h3 className="font-bold text-lg">Live Chat</h3>
+                          <div className="flex items-center gap-1">
+                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                                <List />
+                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                     {isAdminView ? (
+                                        <>
+                                            <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                        <StopCircle className="mr-2 h-4 w-4" />
+                                                        Terminate Stream
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action will immediately terminate the stream for {seller.name} and all viewers.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </>
+                                     ) : (
+                                        <>
+                                            <DropdownMenuItem>
+                                                <Flag className="mr-2 h-4 w-4" />
+                                                <span>Report</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <MessageCircle className="mr-2 h-4 w-4" />
+                                                <span>Feedback</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <LifeBuoy className="mr-2 h-4 w-4" />
+                                                <span>Help</span>
+                                            </DropdownMenuItem>
+                                        </>
+                                     )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsChatVisible(false)}>
+                                <PanelRightClose />
+                            </Button>
+                          </div>
+                        </div>
+                        <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
+                           {chatMessages.map(item => (
+                             item.type === 'chat' ? (
+                                <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow">
+                                        <p className="font-semibold">{item.user}</p>
+                                        <p className="text-white/80">{item.message}</p>
+                                    </div>
+                                    {!isAdminView && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
+                                                    <Flag className="h-3 w-3 text-white/50" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Report Comment?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Are you sure you want to report this comment for review by our moderation team?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                                </div>
+                            ) : item.type === 'join' ? (
+                                <div key={item.id} className="text-center text-xs text-white/60 italic my-2">
+                                    <span>{item.user} {item.message}</span>
+                                </div>
+                            ) : (
+                                <ProductChatMessage 
+                                    key={item.id} 
+                                    productKey={item.productKey!}
+                                    stock={item.stock!} 
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    isAdminView={isAdminView}
+                                />
+                            )
+                          ))}
+                        </ScrollArea>
+                        <div className="p-3 border-t border-white/10">
+                            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                                <div className="relative flex-grow">
+                                    <Input 
+                                        placeholder="Say something..." 
+                                        className="pr-10 bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50"
+                                        value={newChatMessage}
+                                        onChange={(e) => setNewChatMessage(e.target.value)}
+                                    />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white/50 hover:text-white">
+                                                <Smile className="h-5 w-5" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 h-64">
+                                            <ScrollArea className="h-full">
+                                                <div className="grid grid-cols-8 gap-1">
+                                                    {emojis.map((emoji, index) => (
+                                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                            {emoji}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80">
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </form>
+                        </div>
+
+                         {isProductListOpen && (
+                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col">
+                                <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                                    <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                                        <X />
+                                    </Button>
+                                </div>
+                                <ScrollArea className="flex-grow p-4">
+                                    {streamProducts.map((product: any) => (
+                                        <ProductListItem
+                                            key={product.id}
+                                            product={product}
+                                            isBuyable={featuredProductIds.includes(product.key)}
+                                            onAddToCart={handleAddToCart}
+                                            onBuyNow={handleBuyNow}
+                                            isAdminView={isAdminView}
+                                        />
+                                    ))}
+                                </ScrollArea>
+                            </div>
+                        )}
+                    </aside>
+                 )}
+            </div>
+        </div>
     </div>
     </>
   );
