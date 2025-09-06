@@ -79,6 +79,34 @@ type Product = {
 
 type ViewType = 'orders' | 'products' | 'revenue';
 
+const mockOrders: Order[] = [
+    {
+        orderId: "#MOCK123",
+        userId: "mockUser",
+        products: [{ name: "Mock Product 1", key: "mock_1" }],
+        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
+        total: 1999.00,
+        orderDate: "2024-08-01T10:00:00.000Z",
+        isReturnable: true,
+        timeline: [{ status: "Delivered", date: "Aug 05, 2024", time: "02:00 PM", completed: true }],
+    },
+    {
+        orderId: "#MOCK456",
+        userId: "mockUser",
+        products: [{ name: "Mock Product 2", key: "mock_2" }],
+        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
+        total: 450.50,
+        orderDate: "2024-07-25T15:30:00.000Z",
+        isReturnable: false,
+        timeline: [{ status: "Shipped", date: "Jul 26, 2024", time: "11:00 AM", completed: true }],
+    }
+];
+
+const mockProducts: Product[] = [
+    { id: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'mock_2', name: 'Mock Seller Product B', price: 450.50, category: 'Fashion', images: [{ preview: 'https://placehold.co/100x100.png' }] },
+];
+
 
 export const UserDetailClient = ({ userId }: { userId: string }) => {
   const router = useRouter();
@@ -116,19 +144,24 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
-            setUserOrders(fetchedOrders);
+            setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : mockOrders);
 
             // Fetch user products if they are a seller
             if (fetchedUserData.role === 'seller') {
                 const productsKey = `sellerProducts_${fetchedUserData.displayName}`;
                 const storedProducts = localStorage.getItem(productsKey);
-                if (storedProducts) {
+                if (storedProducts && JSON.parse(storedProducts).length > 0) {
                     setUserProducts(JSON.parse(storedProducts));
+                } else {
+                     setUserProducts(mockProducts);
                 }
             }
 
         } catch (error) {
             console.error("Error fetching user details:", error);
+            // Fallback to mock data on error for demo purposes
+            setUserOrders(mockOrders);
+            setUserProducts(mockProducts);
         } finally {
             setIsLoading(false);
         }
