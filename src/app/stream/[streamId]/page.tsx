@@ -466,6 +466,8 @@ export default function StreamPage() {
           <div className="p-4 space-y-4">
             <div className="space-y-2">
                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                <p className="text-sm text-primary font-semibold">{seller.category}</p>
             </div>
             
             <Separator className="bg-white/10" />
@@ -515,7 +517,7 @@ export default function StreamPage() {
                         </DialogContent>
                         </Dialog>
                     )}
-                     {!isAdminView && (
+                     {!isAdminView && user && (
                         <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
                         <UserPlus className="mr-1.5 h-3 w-3" />
                         {isFollowing ? "Following" : "Follow"}
