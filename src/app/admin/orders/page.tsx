@@ -17,6 +17,7 @@ import {
   CreditCard,
   RotateCcw,
   Video,
+  Hash,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -84,6 +85,7 @@ type Order = {
     paymentMethod?: string;
     refundStatus?: 'N/A' | 'Completed' | 'Pending';
     type?: 'Live Stream' | 'Listed Product';
+    transactionId?: string;
 };
 
 const mockOrders: Order[] = [
@@ -105,7 +107,8 @@ const mockOrders: Order[] = [
         ],
         paymentMethod: 'Credit Card',
         refundStatus: 'N/A',
-        type: 'Listed Product'
+        type: 'Listed Product',
+        transactionId: 'txn_1a2b3c4d5e6f'
     },
      {
         orderId: "#MOCK5905",
@@ -121,7 +124,8 @@ const mockOrders: Order[] = [
         ],
         paymentMethod: 'UPI',
         refundStatus: 'N/A',
-        type: 'Live Stream'
+        type: 'Live Stream',
+        transactionId: 'txn_7g8h9i0j1k2l'
     },
     {
         orderId: "#MOCK5903",
@@ -137,7 +141,8 @@ const mockOrders: Order[] = [
         ],
         paymentMethod: 'Net Banking',
         refundStatus: 'Completed',
-        type: 'Listed Product'
+        type: 'Listed Product',
+        transactionId: 'txn_3m4n5o6p7q8r'
     }
 ];
 
@@ -346,6 +351,13 @@ export default function AdminOrdersPage() {
                                                     <DropdownMenuSubTrigger>Transaction Details</DropdownMenuSubTrigger>
                                                     <DropdownMenuSubContent className="p-2 w-72">
                                                         <div className="space-y-2 text-sm">
+                                                             <div className="flex items-start gap-2">
+                                                                <Hash className="h-4 w-4 mt-0.5 text-muted-foreground"/>
+                                                                <div>
+                                                                    <p className="font-semibold">Transaction ID</p>
+                                                                    <p className="text-muted-foreground font-mono text-xs">{order.transactionId || 'N/A'}</p>
+                                                                </div>
+                                                            </div>
                                                             <div className="flex items-start gap-2">
                                                                 <Home className="h-4 w-4 mt-0.5 text-muted-foreground"/>
                                                                 <div>
@@ -413,5 +425,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-
-    
