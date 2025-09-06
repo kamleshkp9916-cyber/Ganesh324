@@ -795,7 +795,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       </div>
       {isChatOpen && !isOwnProfile && (
           <ChatPopup 
-              user={{ displayName, photoURL: profileData.photoURL }}
+              user={{ displayName, photoURL: profileData.photoURL || '' }}
               onClose={() => setIsChatOpen(false)} 
           />
       )}

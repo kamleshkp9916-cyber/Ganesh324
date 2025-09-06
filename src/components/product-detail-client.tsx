@@ -527,7 +527,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
-                                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group">
+                                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group">
                                     <Avatar>
                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -538,7 +538,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </Link>
                                 <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=${seller.uid}`}>
+                                    <Link href={`/seller/profile?userId=${seller.name}`}>
                                         View Profile
                                     </Link>
                                 </Button>
