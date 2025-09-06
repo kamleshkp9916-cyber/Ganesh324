@@ -465,7 +465,7 @@ export default function StreamPage() {
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             <div className="space-y-2">
-                <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                 <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                 <p className="text-sm text-primary font-semibold">{seller.category}</p>
             </div>
