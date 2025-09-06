@@ -60,6 +60,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
+import { useDebounce } from "@/hooks/use-debounce";
 
 const mockLiveStreams = [
     { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1', hasAuction: true },
@@ -74,13 +75,14 @@ export default function AdminLiveControlPage() {
   const [liveStreams, setLiveStreams] = useState(mockLiveStreams);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredStreams = useMemo(() => {
     return liveStreams.filter(stream =>
-      stream.seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stream.product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      stream.product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [liveStreams, searchTerm]);
+  }, [liveStreams, debouncedSearchTerm]);
 
   const handleMonitorStream = (streamId: string) => {
     // In a real app, this would join the stream with admin privileges.

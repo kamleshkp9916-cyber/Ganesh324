@@ -23,6 +23,7 @@ import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
 import { useAuthActions } from '@/lib/auth';
+import { useDebounce } from '@/hooks/use-debounce';
 
 function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     const isMe = msg.sender === 'StreamCart';
@@ -91,11 +92,12 @@ export default function AdminMessagePage() {
   const [newMessage, setNewMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredConversations = useMemo(() => {
-    if (!searchTerm) return conversations;
-    return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [conversations, searchTerm]);
+    if (!debouncedSearchTerm) return conversations;
+    return conversations.filter(convo => convo.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+  }, [conversations, debouncedSearchTerm]);
 
   // This param comes from the inquiries page or the help chat
   const preselectUserId = searchParams.get('userId');
@@ -329,3 +331,5 @@ export default function AdminMessagePage() {
     </div>
   );
 }
+
+    

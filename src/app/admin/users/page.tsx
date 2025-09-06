@@ -72,6 +72,7 @@ import { getFirestore, collection, query, where, getDocs,getCountFromServer } fr
 import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 
 
 const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => (
@@ -135,6 +136,7 @@ export default function AdminUsersPage() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -155,10 +157,10 @@ export default function AdminUsersPage() {
 
   const filteredUsers = useMemo(() => {
     return allUsersState.filter(u =>
-      (u.displayName && u.displayName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      (u.displayName && u.displayName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+      (u.email && u.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
     );
-  }, [allUsersState, searchTerm]);
+  }, [allUsersState, debouncedSearchTerm]);
 
   if (loading || !userData || userData.role !== 'admin') {
     return (

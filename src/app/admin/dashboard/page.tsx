@@ -67,6 +67,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 import { formatDistanceToNow } from "date-fns";
+import { useDebounce } from "@/hooks/use-debounce";
 
 
 const salesData = [
@@ -135,13 +136,14 @@ export default function AdminDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredTransactions = useMemo(() => {
     return recentTransactionsData.filter(transaction =>
-      transaction.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+      transaction.customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      transaction.customer.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   // The AuthRedirector now handles all unauthorized access and loading states.
   // This page can assume that if it renders, the user is a verified admin.

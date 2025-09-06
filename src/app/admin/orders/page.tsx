@@ -70,6 +70,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { updateOrderStatus } from "@/ai/flows/chat-flow"
+import { useDebounce } from "@/hooks/use-debounce";
 
 type Order = {
     orderId: string;
@@ -148,6 +149,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
   const fetchOrders = async () => {
@@ -216,11 +218,11 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order =>
-        order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.address.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (order.products && order.products.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())))
+        order.orderId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        order.address.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        (order.products && order.products.some(p => p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())))
     );
-  }, [orders, searchTerm]);
+  }, [orders, debouncedSearchTerm]);
 
   if (loading || isLoading || !userData || userData.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
@@ -411,4 +413,5 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+
     
