@@ -20,6 +20,8 @@ import {
   UserCheck,
   UserX,
   Wallet,
+  BookUser,
+  LineChart,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 import Link from "next/link"
@@ -47,16 +49,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useAuthActions } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast"
 import { getUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
@@ -75,12 +69,26 @@ type Order = {
     timeline: any[];
 };
 
+type Product = {
+    id: string;
+    name: string;
+    price: number;
+    category: string;
+    images: { preview: string }[];
+};
+
+type ViewType = 'orders' | 'products' | 'revenue';
+
+
 export const UserDetailClient = ({ userId }: { userId: string }) => {
   const router = useRouter();
   const { user: adminUser, userData: adminUserData, loading: adminLoading } = useAuth();
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [userProducts, setUserProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeView, setActiveView] = useState<ViewType>('orders');
+
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -91,25 +99,33 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
         setIsLoading(true);
         try {
-            // Fetch user data
             const fetchedUserData = await getUserData(userId);
             if (!fetchedUserData) {
-                // Handle user not found
                 setIsLoading(false);
                 return;
             }
             setProfileData(fetchedUserData);
 
-            // Fetch user orders
             const db = getFirestoreDb();
+            
+            // Fetch user orders
             const ordersRef = collection(db, "orders");
-            const q = query(ordersRef, where("userId", "==", userId), orderBy("orderDate", "desc"));
-            const querySnapshot = await getDocs(q);
-            const fetchedOrders: Order[] = querySnapshot.docs.map(doc => ({
+            const ordersQuery = query(ordersRef, where("userId", "==", userId), orderBy("orderDate", "desc"));
+            const ordersSnapshot = await getDocs(ordersQuery);
+            const fetchedOrders: Order[] = ordersSnapshot.docs.map(doc => ({
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
             setUserOrders(fetchedOrders);
+
+            // Fetch user products if they are a seller
+            if (fetchedUserData.role === 'seller') {
+                const productsKey = `sellerProducts_${fetchedUserData.displayName}`;
+                const storedProducts = localStorage.getItem(productsKey);
+                if (storedProducts) {
+                    setUserProducts(JSON.parse(storedProducts));
+                }
+            }
 
         } catch (error) {
             console.error("Error fetching user details:", error);
@@ -140,10 +156,100 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
 
+  const renderActiveView = () => {
+    switch(activeView) {
+        case 'orders':
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Order History</CardTitle>
+                        <CardDescription>A list of all orders placed by this user.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading ? (
+                                    <>
+                                        <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                    </>
+                                ) : userOrders.length > 0 ? (
+                                    userOrders.map(order => (
+                                        <TableRow key={order.orderId}>
+                                            <TableCell>
+                                                <Link href={`/delivery-information/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link>
+                                            </TableCell>
+                                            <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</TableCell>
+                                            <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                            <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            );
+        case 'products':
+             return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Listed Products</CardTitle>
+                        <CardDescription>All products currently listed by {profileData.displayName}.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead className="text-right">Price</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {userProducts.length > 0 ? (
+                                    userProducts.map(product => (
+                                        <TableRow key={product.id}>
+                                            <TableCell className="font-medium">{product.name}</TableCell>
+                                            <TableCell>{product.category}</TableCell>
+                                            <TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            );
+        default:
+            return <Card><CardContent className="p-6">Select a metric to view details.</CardContent></Card>;
+    }
+  }
+
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
             <Button size="icon" variant="outline" className="sm:hidden" onClick={() => router.back()}>
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+             <Button size="icon" variant="ghost" className="hidden sm:inline-flex" onClick={() => router.push('/admin/users')}>
                 <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
@@ -178,78 +284,44 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle>Key Stats</CardTitle>
+                            <CardTitle>User Metrics</CardTitle>
+                             <CardDescription>Click a metric to see details.</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Total Orders</span>
-                                <span>{userOrders.length}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Total Spent</span>
-                                <span>₹{totalSpent.toLocaleString()}</span>
-                            </div>
+                        <CardContent className="grid grid-cols-2 gap-2 text-sm">
+                            <Button variant={activeView === 'orders' ? 'secondary' : 'ghost'} className="justify-start h-auto p-2" onClick={() => setActiveView('orders')}>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-xs text-muted-foreground">Total Received Orders</span>
+                                    <span className="text-lg font-bold">{userOrders.length}</span>
+                                </div>
+                            </Button>
+                             <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
+                                <div className="flex flex-col items-start">
+                                    <span className="text-xs text-muted-foreground">Total Spent</span>
+                                    <span className="text-lg font-bold">₹{totalSpent.toLocaleString()}</span>
+                                </div>
+                            </Button>
+
                             {profileData.role === 'seller' && (
                                 <>
-                                 <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Total Revenue</span>
-                                    <span>₹{userOrders.reduce((s,o) => s + o.total, 0).toLocaleString()}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Products Listed</span>
-                                    <span>{0}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Live Streams</span>
-                                    <span>{0}</span>
-                                </div>
+                                 <Button variant={activeView === 'products' ? 'secondary' : 'ghost'} className="justify-start h-auto p-2" onClick={() => setActiveView('products')}>
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-xs text-muted-foreground">Products Listed</span>
+                                        <span className="text-lg font-bold">{userProducts.length}</span>
+                                    </div>
+                                </Button>
+                                <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-xs text-muted-foreground">Total Revenue</span>
+                                        <span className="text-lg font-bold">₹{totalSpent.toLocaleString()}</span>
+                                    </div>
+                                </Button>
                                 </>
                             )}
                         </CardContent>
                     </Card>
                 </div>
                  <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Order History</CardTitle>
-                            <CardDescription>A list of all orders placed by this user.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Order ID</TableHead>
-                                        <TableHead>Product</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {isLoading ? (
-                                        <>
-                                            <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
-                                            <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
-                                        </>
-                                    ) : userOrders.length > 0 ? (
-                                        userOrders.map(order => (
-                                            <TableRow key={order.orderId}>
-                                                <TableCell>
-                                                    <Link href={`/delivery-information/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link>
-                                                </TableCell>
-                                                <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</TableCell>
-                                                <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
-                                                <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
+                    {renderActiveView()}
                 </div>
             </div>
         </main>
