@@ -255,7 +255,7 @@ export default function AdminSettingsPage() {
                                    <FormMessage />
                                </FormItem>
                            )}/>
-                            <FormField control={form.control} name="message" render={({ field }) => (
+                            <FormField control={announcementForm.control} name="message" render={({ field }) => (
                                <FormItem>
                                    <FormLabel>Message</FormLabel>
                                    <FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl>
