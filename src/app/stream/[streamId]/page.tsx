@@ -462,10 +462,12 @@ export default function StreamPage() {
 
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
+            
+            <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+            
             <div>
               <h3 className="font-semibold text-lg text-white">{seller.title}</h3>
               <p className="text-xs text-white/60 mb-2">{seller.category}</p>
-              <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
             </div>
             
             <div className="flex justify-between items-center gap-4 pt-4 border-t border-white/10">
@@ -486,38 +488,40 @@ export default function StreamPage() {
                                 <Users className="h-3 w-3" />
                                 <span>{seller.viewers} viewers</span>
                             </div>
-                            {seller.hasAuction && (
-                                <Dialog>
-                                <DialogTrigger asChild>
-                                    <Badge variant="purple" className="cursor-pointer">
-                                        <Gavel className="mr-1 h-3 w-3" />
-                                        Auction
-                                    </Badge>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                    <DialogTitle>Live Auction</DialogTitle>
-                                    <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="py-4 text-center">
-                                    <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                    <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                    <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                    <Button size="lg" className="w-full">Place Your Bid</Button>
-                                    <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                    </div>
-                                </DialogContent>
-                                </Dialog>
-                            )}
                         </div>
                     </div>
                 </div>
-                 {!isAdminView && (
-                    <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
-                    <UserPlus className="mr-1.5 h-3 w-3" />
-                    {isFollowing ? 'Following' : 'Follow'}
-                    </Button>
-                )}
+                 <div className="flex items-center gap-2">
+                    {seller.hasAuction && (
+                        <Dialog>
+                        <DialogTrigger asChild>
+                            <Badge variant="purple" className="cursor-pointer">
+                                <Gavel className="mr-1 h-3 w-3" />
+                                Auction
+                            </Badge>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                            <DialogTitle>Live Auction</DialogTitle>
+                            <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4 text-center">
+                            <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                            <p className="text-sm text-muted-foreground">Current Bid:</p>
+                            <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                            <Button size="lg" className="w-full">Place Your Bid</Button>
+                            <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                            </div>
+                        </DialogContent>
+                        </Dialog>
+                    )}
+                     {!isAdminView && (
+                        <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
+                        <UserPlus className="mr-1.5 h-3 w-3" />
+                        {isFollowing ? "Following" : "Follow"}
+                        </Button>
+                    )}
+                 </div>
             </div>
           </div>
         </ScrollArea>
