@@ -221,19 +221,29 @@ export default function AdminDashboard() {
     );
   }, [debouncedSearchTerm]);
 
+  const totalRevenue = useMemo(() => {
+    return allOrders.reduce((acc, order) => acc + order.total, 0);
+  }, [allOrders]);
+
   const salesFigures = useMemo(() => {
     const now = new Date();
     let filteredOrders = allOrders;
 
     switch (salesFilter) {
       case 'Today':
-        filteredOrders = allOrders.filter(order => isSameDay(parseISO(order.orderDate), now));
+        filteredOrders = allOrders.filter(order => {
+            try { return isSameDay(parseISO(order.orderDate), now) } catch { return false }
+        });
         break;
       case 'This Month':
-        filteredOrders = allOrders.filter(order => isSameMonth(parseISO(order.orderDate), now));
+        filteredOrders = allOrders.filter(order => {
+            try { return isSameMonth(parseISO(order.orderDate), now) } catch { return false }
+        });
         break;
       case 'This Year':
-        filteredOrders = allOrders.filter(order => isSameYear(parseISO(order.orderDate), now));
+        filteredOrders = allOrders.filter(order => {
+            try { return isSameYear(parseISO(order.orderDate), now) } catch { return false }
+        });
         break;
       case 'Custom Range':
         // Custom range logic would go here
@@ -433,7 +443,7 @@ export default function AdminDashboard() {
               <span className="h-4 w-4 text-muted-foreground">₹</span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹1,24,52,31.89</div>
+              <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last month
               </p>
