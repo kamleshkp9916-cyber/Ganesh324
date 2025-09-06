@@ -20,6 +20,8 @@ import { productDetails } from '@/lib/product-data';
 import { createOrder } from '@/ai/flows/chat-flow';
 import { UserData, updateUserData } from '@/lib/follow-data';
 
+const COUPONS_KEY = 'streamcart_coupons';
+
 function EmptyCart() {
     const router = useRouter();
     return (
@@ -43,12 +45,21 @@ export default function CartPage() {
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
 
   const buyNowProductId = searchParams.get('productId');
   const isBuyNow = searchParams.get('buyNow') === 'true';
 
   useEffect(() => {
     setIsClient(true);
+    // Load coupons from local storage
+    const storedCoupons = localStorage.getItem(COUPONS_KEY);
+    if (storedCoupons) {
+        const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
+        const now = new Date();
+        const activeCoupons = parsedCoupons.filter((c: any) => !c.expiresAt || c.expiresAt >= now);
+        setAvailableCoupons(activeCoupons);
+    }
   }, []);
 
   useEffect(() => {
@@ -129,18 +140,15 @@ export default function CartPage() {
     return cartItems.reduce((acc, item) => acc + item.quantity, 0);
   }, [cartItems]);
 
-  const mockCoupons = [
-    { code: 'STREAM10', description: '10% off on all orders', discount: 0.10, type: 'percentage' },
-    { code: 'SAVE100', description: '₹100 off on orders above ₹1000', discount: 100, type: 'fixed' },
-];
-
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) return 0;
-    if (appliedCoupon.type === 'percentage') {
-        return subtotal * appliedCoupon.discount;
+    if (appliedCoupon.discountType === 'percentage') {
+        return subtotal * (appliedCoupon.discountValue / 100);
     }
-    if (appliedCoupon.type === 'fixed' && subtotal > 1000) {
-        return appliedCoupon.discount;
+    if (appliedCoupon.discountType === 'fixed') {
+        // Example condition, this could be more complex
+        if (appliedCoupon.code === 'SAVE100' && subtotal < 1000) return 0;
+        return appliedCoupon.discountValue;
     }
     return 0;
   }, [appliedCoupon, subtotal]);
@@ -149,7 +157,7 @@ export default function CartPage() {
   const total = subtotal - couponDiscount + shippingCost;
   const estimatedDeliveryDate = useMemo(() => format(addDays(new Date(), 5), 'E, MMM dd, yyyy'), []);
 
-  const handleApplyCoupon = (coupon: typeof mockCoupons[0]) => {
+  const handleApplyCoupon = (coupon: any) => {
     if (coupon.code === 'SAVE100' && subtotal < 1000) {
         toast({
             variant: "destructive",
@@ -334,8 +342,8 @@ export default function CartPage() {
                                 <CardTitle>Available Coupons</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                               {mockCoupons.map(coupon => (
-                                <div key={coupon.code} className="flex items-center justify-between p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg">
+                               {availableCoupons.map(coupon => (
+                                <div key={coupon.id} className="flex items-center justify-between p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg">
                                     <div className="flex items-center gap-3">
                                         <Ticket className="h-6 w-6 text-primary" />
                                         <div>
@@ -348,6 +356,7 @@ export default function CartPage() {
                                     </Button>
                                 </div>
                                ))}
+                               {availableCoupons.length === 0 && <p className="text-sm text-center text-muted-foreground">No coupons available right now.</p>}
                             </CardContent>
                         </Card>
                         
@@ -396,5 +405,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-    

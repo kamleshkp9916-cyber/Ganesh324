@@ -23,6 +23,7 @@ import {
   UploadCloud,
   Image as ImageIcon,
   CalendarIcon,
+  Ticket,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -55,7 +56,7 @@ import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
@@ -74,10 +75,11 @@ import {
 } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
-const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
+const COUPONS_KEY = 'streamcart_coupons';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -89,15 +91,16 @@ const warningSchema = z.object({
     message: z.string().min(10, "Warning message must be at least 10 characters.")
 })
 
-const slideSchema = z.object({
-    id: z.number().optional(),
-    title: z.string().min(3, "Title is required."),
-    description: z.string().min(5, "Description is required."),
-    imageUrl: z.string().url("A valid image URL is required."),
-    hint: z.string().optional(),
-    expiresAt: z.date().optional(),
+const couponSchema = z.object({
+  id: z.number().optional(),
+  code: z.string().min(3, "Code must be at least 3 characters.").regex(/^[A-Z0-9]+$/, "Code can only contain uppercase letters and numbers."),
+  description: z.string().min(5, "Description is required."),
+  discountType: z.enum(['percentage', 'fixed']),
+  discountValue: z.number().positive("Discount must be a positive number."),
+  expiresAt: z.date().optional(),
 });
-export type Slide = z.infer<typeof slideSchema>;
+export type Coupon = z.infer<typeof couponSchema>;
+
 
 const initialFlaggedContent = [
     { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
@@ -106,62 +109,29 @@ const initialFlaggedContent = [
     { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
 ];
 
-const initialOfferSlides: Slide[] = [
-  {
-    id: 1,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'Flash Sale!',
-    description: 'Up to 50% off on electronics.',
-    hint: 'electronics sale',
-    expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), // Expires in 7 days
-  },
-  {
-    id: 2,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'New Arrivals',
-    description: 'Check out the latest fashion trends.',
-    hint: 'fashion clothing runway',
-  },
-  {
-    id: 3,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'Home Decor Deals',
-    description: 'Beautify your space for less.',
-    hint: 'modern living room',
-  },
+const initialCoupons: Coupon[] = [
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)) },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100 },
 ];
 
 
-const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Slide) => void, existingSlide?: Slide, closeDialog: () => void }) => {
+const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const form = useForm<z.infer<typeof slideSchema>>({
-        resolver: zodResolver(slideSchema),
-        defaultValues: existingSlide ? { ...existingSlide, expiresAt: existingSlide.expiresAt ? new Date(existingSlide.expiresAt) : undefined } : {
-            title: "",
+    const form = useForm<z.infer<typeof couponSchema>>({
+        resolver: zodResolver(couponSchema),
+        defaultValues: existingCoupon || {
+            code: "",
             description: "",
-            imageUrl: "",
-            hint: "",
+            discountType: "percentage",
+            discountValue: 0,
         },
     });
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                form.setValue('imageUrl', event.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    const onSubmit = (values: z.infer<typeof slideSchema>) => {
+    const onSubmit = (values: z.infer<typeof couponSchema>) => {
         setIsLoading(true);
-        // Simulate network delay
         setTimeout(() => {
-            onSave({ ...values, id: existingSlide?.id || Date.now() });
+            onSave({ ...values, id: existingCoupon?.id || Date.now() });
             setIsLoading(false);
             closeDialog();
         }, 500);
@@ -171,34 +141,40 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="title" render={({ field }) => (
-                        <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Flash Sale!" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
+                    <FormField control={form.control} name="code" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Coupon Code</FormLabel>
+                            <FormControl><Input placeholder="e.g., SALE10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
-                        <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., Up to 50% off..." {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
+                        <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., 10% off electronics" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
                 </div>
-                 <FormField control={form.control} name="imageUrl" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Image</FormLabel>
-                        <div className="flex items-center gap-4">
-                            <FormControl>
-                                <Input type="text" placeholder="Or paste image URL" {...field} />
-                            </FormControl>
-                             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                <UploadCloud className="mr-2 h-4 w-4" /> Upload
-                            </Button>
-                            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-                        </div>
-                        {field.value && (
-                            <div className="mt-2 relative w-full aspect-video rounded-md overflow-hidden">
-                                <Image src={field.value} alt="Slide preview" layout="fill" objectFit="cover" />
-                            </div>
-                        )}
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-                 <FormField
+                 <div className="grid grid-cols-2 gap-4">
+                     <FormField control={form.control} name="discountType" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Discount Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                    <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="discountValue" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Discount Value</FormLabel>
+                            <FormControl><Input type="number" placeholder="e.g., 10 or 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+                <FormField
                     control={form.control}
                     name="expiresAt"
                     render={({ field }) => (
@@ -214,11 +190,7 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
                                     !field.value && "text-muted-foreground"
                                 )}
                                 >
-                                {field.value ? (
-                                    format(field.value, "PPP")
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
+                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
                             </FormControl>
@@ -233,9 +205,6 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
                             />
                             </PopoverContent>
                         </Popover>
-                        <FormDescription>
-                            The promotion will be automatically hidden after this date.
-                        </FormDescription>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -244,7 +213,7 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
                     <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
                     <Button type="submit" disabled={isLoading}>
                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Slide
+                        Save Coupon
                     </Button>
                 </DialogFooter>
             </form>
@@ -261,49 +230,48 @@ export default function AdminSettingsPage() {
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
   const [isSendingWarning, setIsSendingWarning] = useState(false)
   const [contentList, setContentList] = useState(initialFlaggedContent);
-  const [slides, setSlides] = useState<Slide[]>([]);
-  const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
-  const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
 
   useEffect(() => {
-    // Load slides from local storage
-    const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-    if (storedSlides) {
-        // Need to parse date strings back into Date objects
-        const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
-        setSlides(parsedSlides);
+    // Load coupons from local storage
+    const storedCoupons = localStorage.getItem(COUPONS_KEY);
+    if (storedCoupons) {
+        const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
+        setCoupons(parsedCoupons);
     } else {
-        setSlides(initialOfferSlides);
+        setCoupons(initialCoupons);
     }
   }, []);
 
-  const saveSlides = (newSlides: Slide[]) => {
-      setSlides(newSlides);
-      localStorage.setItem(PROMOTIONAL_SLIDES_KEY, JSON.stringify(newSlides));
+  const saveCoupons = (newCoupons: Coupon[]) => {
+      setCoupons(newCoupons);
+      localStorage.setItem(COUPONS_KEY, JSON.stringify(newCoupons));
       window.dispatchEvent(new Event('storage')); // Notify other tabs
   };
 
-  const handleSaveSlide = (slide: Slide) => {
-    const existingIndex = slides.findIndex(s => s.id === slide.id);
-    let newSlides;
+  const handleSaveCoupon = (coupon: Coupon) => {
+    const existingIndex = coupons.findIndex(c => c.id === coupon.id);
+    let newCoupons;
     if (existingIndex > -1) {
-        newSlides = [...slides];
-        newSlides[existingIndex] = slide;
+        newCoupons = [...coupons];
+        newCoupons[existingIndex] = coupon;
     } else {
-        newSlides = [{ ...slide, id: Date.now() }, ...slides];
+        newCoupons = [{ ...coupon, id: Date.now() }, ...coupons];
     }
-    saveSlides(newSlides);
-    toast({ title: "Promotion Saved!", description: "The promotional slide has been updated." });
+    saveCoupons(newCoupons);
+    toast({ title: "Coupon Saved!", description: `Coupon ${coupon.code} has been updated.` });
   };
 
-  const handleDeleteSlide = (slideId: number) => {
-      saveSlides(slides.filter(s => s.id !== slideId));
-      toast({ title: "Promotion Deleted!", description: "The promotional slide has been removed.", variant: "destructive" });
+  const handleDeleteCoupon = (couponId: number) => {
+      saveCoupons(coupons.filter(s => s.id !== couponId));
+      toast({ title: "Coupon Deleted!", description: "The coupon has been removed.", variant: "destructive" });
   };
 
-  const openSlideForm = (slide?: Slide) => {
-      setEditingSlide(slide);
-      setIsSlideFormOpen(true);
+  const openCouponForm = (coupon?: Coupon) => {
+      setEditingCoupon(coupon);
+      setIsCouponFormOpen(true);
   };
 
 
@@ -417,7 +385,7 @@ export default function AdminSettingsPage() {
   }
 
   return (
-        <Dialog open={isSlideFormOpen} onOpenChange={setIsSlideFormOpen}>
+        <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -468,39 +436,39 @@ export default function AdminSettingsPage() {
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle>Promotion & Offer Management</CardTitle>
-                            <CardDescription>Manage the promotional slides on the live selling page carousel.</CardDescription>
+                            <CardTitle>Coupon Management</CardTitle>
+                            <CardDescription>Create and manage discount coupons for your store.</CardDescription>
                         </div>
-                        <Button size="sm" onClick={() => openSlideForm()}>
+                        <Button size="sm" onClick={() => openCouponForm()}>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Add New Slide
+                            Add New Coupon
                         </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {slides.length > 0 ? slides.map(slide => (
-                             <div key={slide.id} className={cn("flex items-center justify-between rounded-lg border p-4", slide.expiresAt && new Date(slide.expiresAt) < new Date() && "bg-muted/50")}>
+                        {coupons.length > 0 ? coupons.map(coupon => (
+                             <div key={coupon.id} className={cn("flex items-center justify-between rounded-lg border p-4", coupon.expiresAt && new Date(coupon.expiresAt) < new Date() && "bg-muted/50")}>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-24 h-12 bg-muted rounded-md overflow-hidden relative">
-                                         <Image src={slide.imageUrl} alt={slide.title} layout="fill" objectFit="cover" />
+                                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                                        <Ticket className="h-6 w-6 text-primary" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold">{slide.title}</h4>
-                                        <p className="text-xs text-muted-foreground">{slide.description}</p>
-                                        {slide.expiresAt ? (
-                                            <p className={cn("text-xs mt-1", new Date(slide.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-                                                Expires on: {format(new Date(slide.expiresAt), 'PPP')}
-                                                {new Date(slide.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}
+                                        <h4 className="font-semibold">{coupon.code}</h4>
+                                        <p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                        {coupon.expiresAt ? (
+                                            <p className={cn("text-xs mt-1", new Date(coupon.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                                Expires on: {format(new Date(coupon.expiresAt), 'PPP')}
+                                                {new Date(coupon.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}
                                             </p>
                                         ) : null}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                     <Button variant="ghost" size="icon" onClick={() => openSlideForm(slide)}><Edit className="h-4 w-4" /></Button>
-                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSlide(slide.id!)}><Trash2 className="h-4 w-4" /></Button>
+                                     <Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button>
+                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button>
                                 </div>
                             </div>
                         )) : (
-                            <p className="text-center text-muted-foreground py-4">No promotional slides have been added yet.</p>
+                            <p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p>
                         )}
                     </CardContent>
                 </Card>
@@ -649,15 +617,15 @@ export default function AdminSettingsPage() {
         </div>
          <DialogContent>
             <DialogHeader>
-                <DialogTitle>{editingSlide ? 'Edit' : 'Add New'} Promotional Slide</DialogTitle>
+                <DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle>
                 <DialogDescription>
-                    Fill in the details for the promotional slide. It will appear on the live selling page.
+                    Fill in the details for the discount coupon.
                 </DialogDescription>
             </DialogHeader>
-            <SlideForm 
-                onSave={handleSaveSlide} 
-                existingSlide={editingSlide}
-                closeDialog={() => setIsSlideFormOpen(false)}
+            <CouponForm
+                onSave={handleSaveCoupon}
+                existingCoupon={editingCoupon}
+                closeDialog={() => setIsCouponFormOpen(false)}
             />
         </DialogContent>
         </Dialog>

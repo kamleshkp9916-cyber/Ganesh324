@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -35,7 +36,7 @@ const mockQandA = [
     { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru" },
 ];
 
-const mockOffers = [
+const mockAdminOffers = [
     { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
     { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
@@ -58,7 +59,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user } = useAuth();
     
-    const product = productDetails[productId as keyof typeof productDetails] || null;
+    const [product, setProduct] = useState<any>(null);
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
@@ -72,12 +73,37 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
 
+    const fetchProductDetails = () => {
+        let details = productDetails[productId as keyof typeof productDetails] || null;
+        if (details) {
+            // Check localStorage for seller-specific updates
+            const sellerName = productToSellerMapping[details.key]?.name;
+            if (sellerName) {
+                const sellerProductsKey = `sellerProducts_${sellerName}`;
+                const storedProducts = localStorage.getItem(sellerProductsKey);
+                if (storedProducts) {
+                    const sellerProducts = JSON.parse(storedProducts);
+                    const updatedProduct = sellerProducts.find((p: any) => p.id === details.key);
+                    if (updatedProduct) {
+                         details = { ...details, ...updatedProduct };
+                    }
+                }
+            }
+        }
+        setProduct(details);
+    };
+
     const fetchReviews = () => {
         if (product) {
             setReviews(getReviews(product.key));
         }
     };
     
+    useEffect(() => {
+        fetchProductDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [productId]);
+
     useEffect(() => {
         if (product) {
             setSelectedImage(product.images[0]);
@@ -97,16 +123,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setInCart(isProductInCart(product.id));
             fetchReviews();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
 
     useEffect(() => {
         const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'streamcart_reviews') {
+            if (event.key?.startsWith('sellerProducts_') || event.key === 'streamcart_reviews') {
+                fetchProductDetails();
                 fetchReviews();
             }
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
 
 
@@ -284,7 +313,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     {/* Product Image Gallery */}
                     <div className="flex flex-col-reverse md:flex-row gap-4">
                          <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar md:max-h-[500px]">
-                           {product.images.map((img, index) => (
+                           {product.images.map((img: string, index: number) => (
                                <div 
                                     key={index}
                                     className={cn(
@@ -339,6 +368,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <p className="text-3xl font-bold text-foreground">{product.price}</p>
                             <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
                         </div>
+                        
+                        {product.offer?.title && (
+                            <Card className="bg-primary/10 border-primary/20">
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Ticket className="h-5 w-5 text-primary" />
+                                        {product.offer.title}
+                                    </CardTitle>
+                                    <CardDescription>{product.offer.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        )}
                         
                         <p className="text-muted-foreground">{product.description}</p>
                         
@@ -429,7 +470,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <CardTitle className="text-lg">Available Offers</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {mockOffers.map((offer, index) => (
+                                    {mockAdminOffers.map((offer, index) => (
                                         <div key={index} className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-1">{offer.icon}</div>
                                             <div>
@@ -467,7 +508,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <CardContent className="p-0 pt-4 grid md:grid-cols-2 gap-4">
                              {productHighlights.length > 0 && (
                                 <ul className="list-disc list-inside text-muted-foreground space-y-2 text-sm my-auto">
-                                    {productHighlights.map((highlight, index) => (
+                                    {productHighlights.map((highlight: string, index: number) => (
                                         <li key={index}>{highlight}</li>
                                     ))}
                                 </ul>

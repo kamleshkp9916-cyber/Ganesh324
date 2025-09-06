@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DialogFooter, DialogClose } from "../ui/dialog"
-import { Loader2, UploadCloud, X } from "lucide-react"
+import { Loader2, UploadCloud, X, Ticket } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -45,6 +46,10 @@ const productFormSchema = z.object({
   })).min(1, "Please upload at least one image."),
   listingType: z.enum(['live-stream', 'general']).default('general'),
   status: z.enum(["draft", "active", "archived"]),
+  offer: z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+  }).optional(),
   // Category specific fields
   size: z.string().optional(),
   color: z.string().optional(),
@@ -145,7 +150,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         if (productToEdit.image && !productToEdit.images) {
             images = [{ file: null, preview: productToEdit.image.preview }];
         }
-        return { ...productToEdit, images: images || [] };
+        return { ...productToEdit, images: images || [], offer: productToEdit.offer || { title: '', description: ''} };
     }
     return {
       name: "",
@@ -158,6 +163,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       images: [],
       listingType: "general",
       status: "draft",
+      offer: { title: "", description: "" },
       size: "",
       color: "",
       modelNumber: "",
@@ -374,6 +380,33 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                         </FormItem>
                     )}
                 />
+                
+                <div className="space-y-4 rounded-lg border p-4">
+                    <h3 className="text-base font-semibold flex items-center gap-2"><Ticket className="h-5 w-5 text-primary" /> Product Offer (Optional)</h3>
+                     <FormField
+                        control={form.control}
+                        name="offer.title"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Offer Title</FormLabel>
+                            <FormControl><Input placeholder="e.g., Launch Discount!" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="offer.description"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Offer Description</FormLabel>
+                            <FormControl><Input placeholder="e.g., Get 20% off for a limited time." {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                </div>
+
 
                  <FormField
                     control={form.control}
