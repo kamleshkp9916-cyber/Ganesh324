@@ -193,6 +193,8 @@ export default function AdminDashboard() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [salesFilter, setSalesFilter] = useState("This Month");
   const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
+
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -575,8 +577,25 @@ export default function AdminDashboard() {
         </div>
          <Card className="col-span-1 lg:col-span-full">
             <CardHeader>
-                <CardTitle>New Accounts Overview</CardTitle>
-                <CardDescription>A line graph showing new user sign-ups per month.</CardDescription>
+              <div className="flex items-center justify-between">
+                  <div>
+                      <CardTitle>New Accounts Overview</CardTitle>
+                      <CardDescription>Showing new user sign-ups for the {accountsFilter.toLowerCase()}.</CardDescription>
+                  </div>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-6 w-6">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => setAccountsFilter("Today")}>Today</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setAccountsFilter("This Month")}>This Month</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setAccountsFilter("Last 6 Months")}>Last 6 Months</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setAccountsFilter("This Year")}>This Year</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+              </div>
             </CardHeader>
             <CardContent>
                  <ResponsiveContainer width="100%" height={300}>
