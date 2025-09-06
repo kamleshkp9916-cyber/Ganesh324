@@ -292,20 +292,6 @@ export default function StreamPage() {
             setIsFollowing(followingList.includes(sellerData.id));
         }
     }
-
-    const joinInterval = setInterval(() => {
-        const newUser = mockNewUsers[Math.floor(Math.random() * mockNewUsers.length)];
-        const newMessage = {
-            id: Date.now(),
-            type: 'join',
-            user: newUser,
-            message: 'joined the stream'
-        };
-        // @ts-ignore
-        setChatMessages(prev => [...prev, newMessage]);
-    }, Math.random() * (15000 - 5000) + 5000);
-
-    return () => clearInterval(joinInterval);
   }, [streamId, user]);
 
 
