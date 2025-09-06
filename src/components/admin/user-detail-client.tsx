@@ -16,6 +16,7 @@ import {
   RadioTower,
   ShieldCheck,
   ShoppingBag,
+  Star,
   User,
   UserCheck,
   UserX,
@@ -325,7 +326,13 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <CardTitle>{profileData.displayName}</CardTitle>
+                                    <CardTitle className="flex items-center gap-2">{profileData.displayName}
+                                     {profileData.role === 'seller' && (
+                                        <Badge variant="secondary" className="flex items-center gap-1">
+                                            <Star className="h-3 w-3" /> 4.8
+                                        </Badge>
+                                    )}
+                                    </CardTitle>
                                      <Badge variant={profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
                                 </div>
                             </div>
