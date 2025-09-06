@@ -381,7 +381,7 @@ export default function StreamPage() {
         navigator.clipboard.writeText(window.location.href);
         toast({
             title: "Link Copied!",
-            description: "Stream link copied to your clipboard.",
+            description: "Stream link copied to clipboard.",
         });
     };
 
@@ -552,7 +552,7 @@ export default function StreamPage() {
             </div>
             
             <div className="flex-1 relative overflow-hidden">
-                 <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col transition-transform duration-300 ease-in-out bg-black/80 backdrop-blur-sm" style={{ transform: isProductListOpen ? 'translateY(-100%)' : 'translateY(0)', top: isProductListOpen ? '0' : 'auto' }}>
+                 <div className={cn("absolute inset-x-0 bottom-0 z-30 flex flex-col transition-transform duration-300 ease-in-out bg-black/80 backdrop-blur-sm", isProductListOpen ? 'translate-y-0' : 'translate-y-full')} style={{ top: isProductListOpen ? 'auto' : '100%', height: isProductListOpen ? `calc(100% - ${(100 * 9 / 16)}vw)` : '0' }}>
                     <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
                         <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
