@@ -392,14 +392,6 @@ export default function AdminProductsPage() {
                     </SheetContent>
                 </Sheet>
                 <div className="ml-auto flex items-center gap-2">
-                  <DialogTrigger asChild>
-                      <Button size="sm" className="h-8 gap-1">
-                          <PlusCircle className="h-3.5 w-3.5" />
-                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                          Add Product
-                          </span>
-                      </Button>
-                  </DialogTrigger>
                    <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="secondary" size="icon" className="rounded-full">
@@ -484,7 +476,7 @@ export default function AdminProductsPage() {
               <DialogHeader>
                   <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                   <DialogDescription>
-                      {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
+                      {editingProduct ? "Update the details of the product." : "Fill in the details to add a new product."}
                   </DialogDescription>
               </DialogHeader>
               <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
