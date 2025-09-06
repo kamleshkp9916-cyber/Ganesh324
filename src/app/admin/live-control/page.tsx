@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,6 +73,14 @@ export default function AdminLiveControlPage() {
   const router = useRouter();
   const [liveStreams, setLiveStreams] = useState(mockLiveStreams);
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredStreams = useMemo(() => {
+    return liveStreams.filter(stream =>
+      stream.seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      stream.product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [liveStreams, searchTerm]);
 
   const handleMonitorStream = (streamId: string) => {
     // In a real app, this would join the stream with admin privileges.
@@ -131,7 +139,13 @@ export default function AdminLiveControlPage() {
                  <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input type="search" placeholder="Search streams..." className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]" />
+                        <Input
+                          type="search"
+                          placeholder="Search streams..."
+                          className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                 </form>
                 <DropdownMenu>
@@ -167,7 +181,7 @@ export default function AdminLiveControlPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {liveStreams.length > 0 ? liveStreams.map(stream => (
+                            {filteredStreams.length > 0 ? filteredStreams.map(stream => (
                                 <TableRow key={stream.id}>
                                     <TableCell>
                                         <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
@@ -236,7 +250,7 @@ export default function AdminLiveControlPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">No live streams are currently active.</TableCell>
+                                    <TableCell colSpan={4} className="h-24 text-center">No live streams found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -244,7 +258,7 @@ export default function AdminLiveControlPage() {
                 </CardContent>
                 <CardFooter>
                     <div className="text-xs text-muted-foreground">
-                        Showing <strong>1-{liveStreams.length}</strong> of <strong>{liveStreams.length}</strong> active streams
+                        Showing <strong>1-{filteredStreams.length}</strong> of <strong>{filteredStreams.length}</strong> active streams
                     </div>
                 </CardFooter>
             </Card>
@@ -252,3 +266,5 @@ export default function AdminLiveControlPage() {
     </div>
   )
 }
+
+    

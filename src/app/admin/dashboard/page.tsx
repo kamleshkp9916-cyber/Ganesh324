@@ -16,7 +16,7 @@ import {
   ShieldCheck,
   RadioTower
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Avatar,
@@ -78,7 +78,7 @@ const salesData = [
   { name: "Jun", sales: 550000 },
 ]
 
-const recentTransactions = [
+const recentTransactionsData = [
     {
         orderId: "#ORD5896",
         customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
@@ -134,6 +134,14 @@ export default function AdminDashboard() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredTransactions = useMemo(() => {
+    return recentTransactionsData.filter(transaction =>
+      transaction.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
 
   // The AuthRedirector now handles all unauthorized access and loading states.
   // This page can assume that if it renders, the user is a verified admin.
@@ -279,13 +287,15 @@ export default function AdminDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
+          <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search..."
                 className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </form>
@@ -397,7 +407,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentTransactions.map((transaction) => (
+                  {filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.orderId}>
                         <TableCell>
                             <div className="font-medium">{transaction.customer.name}</div>
@@ -457,3 +467,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+    

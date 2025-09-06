@@ -19,7 +19,7 @@ import {
   ShoppingBag,
   Eye,
 } from "lucide-react"
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -134,6 +134,7 @@ export default function AdminUsersPage() {
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -152,6 +153,12 @@ export default function AdminUsersPage() {
     }
   }, [user, userData, loading]);
 
+  const filteredUsers = useMemo(() => {
+    return allUsersState.filter(u =>
+      (u.displayName && u.displayName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [allUsersState, searchTerm]);
 
   if (loading || !userData || userData.role !== 'admin') {
     return (
@@ -182,8 +189,8 @@ export default function AdminUsersPage() {
     router.push(`/admin/users/${userToShow.uid}`);
   };
 
-  const customers = allUsersState.filter(u => u.role === 'customer');
-  const sellers = allUsersState.filter(u => u.role === 'seller');
+  const customers = filteredUsers.filter(u => u.role === 'customer');
+  const sellers = filteredUsers.filter(u => u.role === 'seller');
 
   return (
     <>
@@ -333,13 +340,15 @@ export default function AdminUsersPage() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial">
+          <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search users..."
                 className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </form>
@@ -406,3 +415,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
