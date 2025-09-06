@@ -464,11 +464,9 @@ export default function StreamPage() {
             </div>
 
             <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                     <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                    <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                    <p className="text-sm text-primary font-semibold">{seller.category}</p>
-                </div>
+                <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                <p className="text-sm text-primary font-semibold">{seller.category}</p>
                 
                 <Separator className="bg-white/10" />
                 
@@ -595,11 +593,29 @@ export default function StreamPage() {
                     ) : null
                 ))}
             </ScrollArea>
-            <div className="p-3 border-t border-white/10 bg-black mt-auto flex-shrink-0 z-10">
-                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+             <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10 flex flex-col gap-2">
+                 <div className="flex items-center justify-around">
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                        <List />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Share2 />
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {/* ... same menu items as desktop ... */}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
                     <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
-                 </form>
+                </form>
             </div>
         </div>
 
