@@ -524,16 +524,7 @@ export default function StreamPage() {
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
-                <video 
-                    ref={videoRef} 
-                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                    className="w-full h-full object-contain" 
-                    autoPlay 
-                    muted 
-                    loop
-                    playsInline
-                />
-                 <div className="absolute right-4 bottom-1/2 translate-y-1/2 z-20 flex flex-col gap-3 lg:hidden">
+                 <div className="absolute right-4 bottom-1/2 translate-y-1/2 z-20 flex flex-col gap-3">
                     <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
                         <List />
                     </Button>
@@ -551,28 +542,15 @@ export default function StreamPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                {isProductListOpen && (
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col">
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                                <X />
-                            </Button>
-                        </div>
-                        <ScrollArea className="flex-grow p-4">
-                            {streamProducts.map((product: any) => (
-                                <ProductListItem
-                                    key={product.id}
-                                    product={product}
-                                    isBuyable={featuredProductIds.includes(product.key)}
-                                    onAddToCart={handleAddToCart}
-                                    onBuyNow={handleBuyNow}
-                                    isAdminView={isAdminView}
-                                />
-                            ))}
-                        </ScrollArea>
-                    </div>
-                )}
+                <video 
+                    ref={videoRef} 
+                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+                    className="w-full h-full object-contain" 
+                    autoPlay 
+                    muted 
+                    loop
+                    playsInline
+                />
             </div>
              <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
                 <div className="flex justify-between items-center gap-4">
@@ -613,22 +591,47 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
-                 <div className='p-2 mb-4'>
-                    <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                    <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                </div>
-                {chatMessages.map(item => (
-                    item.type === 'chat' ? (
-                        <div key={item.id} className="flex items-start gap-2 text-sm">
-                            <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
-                            <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
+            <div className="flex-1 relative overflow-hidden">
+                <ScrollArea className="absolute inset-0 p-4 space-y-4 bg-black/90">
+                    <div className='p-2 mb-4'>
+                        <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                        <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                    </div>
+                    {chatMessages.map(item => (
+                        item.type === 'chat' ? (
+                            <div key={item.id} className="flex items-start gap-2 text-sm">
+                                <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
+                                <div><p className="font-semibold">{item.user}</p><p className="text-white/80">{item.message}</p></div>
+                            </div>
+                        ) : item.type === 'product' ? (
+                            <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
+                        ) : null
+                    ))}
+                </ScrollArea>
+
+                 {isProductListOpen && (
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                                <X />
+                            </Button>
                         </div>
-                    ) : item.type === 'product' ? (
-                        <ProductChatMessage key={item.id} productKey={item.productKey!} stock={item.stock!} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} isAdminView={isAdminView}/>
-                    ) : null
-                ))}
-            </ScrollArea>
+                        <ScrollArea className="flex-grow p-4">
+                            {streamProducts.map((product: any) => (
+                                <ProductListItem
+                                    key={product.id}
+                                    product={product}
+                                    isBuyable={featuredProductIds.includes(product.key)}
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    isAdminView={isAdminView}
+                                />
+                            ))}
+                        </ScrollArea>
+                    </div>
+                )}
+            </div>
              <div className="p-3 border-t border-white/10 bg-black flex-shrink-0 z-10">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
