@@ -88,6 +88,15 @@ const salesData = [
   { name: "Jun", sales: 550000 },
 ]
 
+const newAccountsData = [
+  { name: "Jan", accounts: 120 },
+  { name: "Feb", accounts: 180 },
+  { name: "Mar", accounts: 250 },
+  { name: "Apr", accounts: 210 },
+  { name: "May", accounts: 320 },
+  { name: "Jun", accounts: 450 },
+];
+
 type Order = {
     orderId: string;
     userId: string;
@@ -413,7 +422,7 @@ export default function AdminDashboard() {
         </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -425,18 +434,6 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold">₹1,24,52,31.89</div>
               <p className="text-xs text-muted-foreground">
                 +20.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
-              <p className="text-xs text-muted-foreground">
-                +180.1% from last month
               </p>
             </CardContent>
           </Card>
@@ -576,6 +573,23 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+         <Card className="col-span-1 lg:col-span-full">
+            <CardHeader>
+                <CardTitle>New Accounts Overview</CardTitle>
+                <CardDescription>A line graph showing new user sign-ups per month.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={newAccountsData}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="accounts" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
       </main>
     </div>
   )
