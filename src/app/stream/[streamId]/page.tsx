@@ -151,7 +151,7 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
 
 function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminView }: { product: any, isBuyable: boolean, onAddToCart: (productKey: string) => void, onBuyNow: (productKey: string) => void, isAdminView: boolean }) {
      return (
-        <div className="flex items-center gap-3 py-2 border-b last:border-none">
+        <div className="flex items-center gap-3 py-2 border-b last:border-none border-white/10">
             <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md object-cover" data-ai-hint={product.hint}/>
             <div className="flex-grow overflow-hidden">
                 <p className="text-sm font-semibold truncate">{product.name}</p>
@@ -453,7 +453,7 @@ export default function StreamPage() {
                 <StreamTimer />
             </div>
 
-            <div className="p-4 space-y-4">
+             <div className="p-4 space-y-4">
                  <div>
                     <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                     <p className="text-sm text-primary font-semibold">{seller.category}</p>
@@ -533,7 +533,7 @@ export default function StreamPage() {
                     loop
                     playsInline
                 />
-                 <div className="absolute right-4 bottom-4 z-20 flex flex-col gap-3">
+                 <div className="absolute right-4 bottom-1/2 translate-y-1/2 z-20 flex flex-col gap-3 lg:hidden">
                     <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
                         <List />
                     </Button>
@@ -551,6 +551,28 @@ export default function StreamPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+                {isProductListOpen && (
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col">
+                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                                <X />
+                            </Button>
+                        </div>
+                        <ScrollArea className="flex-grow p-4">
+                            {streamProducts.map((product: any) => (
+                                <ProductListItem
+                                    key={product.id}
+                                    product={product}
+                                    isBuyable={featuredProductIds.includes(product.key)}
+                                    onAddToCart={handleAddToCart}
+                                    onBuyNow={handleBuyNow}
+                                    isAdminView={isAdminView}
+                                />
+                            ))}
+                        </ScrollArea>
+                    </div>
+                )}
             </div>
              <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
                 <div className="flex justify-between items-center gap-4">
@@ -676,51 +698,76 @@ export default function StreamPage() {
                         </DropdownMenu>
                     </div>
                 </div>
-                <ScrollArea className="flex-grow p-4 space-y-4" ref={scrollAreaRef}>
-                    {chatMessages.map(item => (
-                        item.type === 'chat' ? (
-                        <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow">
-                                <p className="font-semibold">{item.user}</p>
-                                <p className="text-white/80">{item.message}</p>
+                <div className="relative flex-1 overflow-hidden">
+                    <ScrollArea className="absolute inset-0 p-4 space-y-4" ref={scrollAreaRef}>
+                        {chatMessages.map(item => (
+                            item.type === 'chat' ? (
+                            <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-grow">
+                                    <p className="font-semibold">{item.user}</p>
+                                    <p className="text-white/80">{item.message}</p>
+                                </div>
+                                {!isAdminView && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
+                                                <Flag className="h-3 w-3 text-white/50" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report Comment?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to report this comment for review by our moderation team?
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
                             </div>
-                            {!isAdminView && (
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
-                                            <Flag className="h-3 w-3 text-white/50" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report Comment?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Are you sure you want to report this comment for review by our moderation team?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleReportComment(item)}>Report</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
+                        ) : (
+                            <ProductChatMessage 
+                                key={item.id} 
+                                productKey={item.productKey!}
+                                stock={item.stock!} 
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                                isAdminView={isAdminView}
+                            />
+                        )
+                        ))}
+                    </ScrollArea>
+                    
+                    {isProductListOpen && (
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col">
+                            <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                                <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                                <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                                    <X />
+                                </Button>
+                            </div>
+                            <ScrollArea className="flex-grow p-4">
+                                {streamProducts.map((product: any) => (
+                                    <ProductListItem
+                                        key={product.id}
+                                        product={product}
+                                        isBuyable={featuredProductIds.includes(product.key)}
+                                        onAddToCart={handleAddToCart}
+                                        onBuyNow={handleBuyNow}
+                                        isAdminView={isAdminView}
+                                    />
+                                ))}
+                            </ScrollArea>
                         </div>
-                    ) : (
-                        <ProductChatMessage 
-                            key={item.id} 
-                            productKey={item.productKey!}
-                            stock={item.stock!} 
-                            onAddToCart={handleAddToCart}
-                            onBuyNow={handleBuyNow}
-                            isAdminView={isAdminView}
-                        />
-                    )
-                    ))}
-                </ScrollArea>
+                    )}
+                </div>
                 <div className="p-3 border-t border-white/10">
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                         <div className="relative flex-grow">
@@ -754,29 +801,6 @@ export default function StreamPage() {
                         </Button>
                     </form>
                 </div>
-
-                {isProductListOpen && (
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col">
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                                <X />
-                            </Button>
-                        </div>
-                        <ScrollArea className="flex-grow p-4">
-                            {streamProducts.map((product: any) => (
-                                <ProductListItem
-                                    key={product.id}
-                                    product={product}
-                                    isBuyable={featuredProductIds.includes(product.key)}
-                                    onAddToCart={handleAddToCart}
-                                    onBuyNow={handleBuyNow}
-                                    isAdminView={isAdminView}
-                                />
-                            ))}
-                        </ScrollArea>
-                    </div>
-                )}
             </aside>
         )}
     </div>
