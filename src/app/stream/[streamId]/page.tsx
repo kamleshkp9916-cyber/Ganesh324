@@ -419,6 +419,10 @@ export default function StreamPage() {
         }
     };
 
+  const handleBack = () => {
+    router.back();
+  };
+
 
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -446,7 +450,7 @@ export default function StreamPage() {
       <div className="flex-grow bg-black flex flex-col relative group">
         <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent z-10 text-white transition-opacity duration-300 opacity-100 group-hover:opacity-100">
           <div className="flex items-center gap-3">
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
+             <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={handleBack}>
               <ArrowLeft />
             </Button>
             <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
