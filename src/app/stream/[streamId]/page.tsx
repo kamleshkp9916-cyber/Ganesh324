@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
@@ -552,9 +552,30 @@ export default function StreamPage() {
             </div>
             
             <div className="flex-1 relative overflow-hidden">
+                 <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col transition-transform duration-300 ease-in-out bg-black/80 backdrop-blur-sm" style={{ transform: isProductListOpen ? 'translateY(-100%)' : 'translateY(0)', top: isProductListOpen ? '0' : 'auto' }}>
+                    <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                        <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                        <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                            <X />
+                        </Button>
+                    </div>
+                    <ScrollArea className="flex-grow p-4">
+                        {streamProducts.map((product: any) => (
+                            <ProductListItem
+                                key={product.id}
+                                product={product}
+                                isBuyable={featuredProductIds.includes(product.key)}
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                                isAdminView={isAdminView}
+                            />
+                        ))}
+                    </ScrollArea>
+                </div>
+
                 <div className="absolute inset-0 flex flex-col">
-                    <div className="p-3 border-b border-white/10 bg-black flex-shrink-0">
-                        <div className="flex justify-between items-center gap-4">
+                    <ScrollArea className="flex-1 p-4 space-y-4">
+                         <div className="flex justify-between items-start gap-4">
                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                 <Link href={sellerProfileUrl}>
                                     <Avatar className="h-10 w-10">
@@ -591,10 +612,8 @@ export default function StreamPage() {
                                 )}
                             </div>
                         </div>
-                    </div>
-                     <ScrollArea className="flex-1 p-4 space-y-4 bg-black/90">
-                        <div className='p-2 mb-4'>
-                            <h1 className="font-bold text-lg mt-2">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                        <div className='p-2 my-2'>
+                            <h1 className="font-bold text-lg">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                             <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
                         </div>
                         {chatMessages.map(item => (
@@ -633,75 +652,80 @@ export default function StreamPage() {
                         ))}
                     </ScrollArea>
 
+                    <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
+                            <List />
+                        </Button>
+                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
+                            <Share2 />
+                        </Button>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
+                                    <MoreVertical />
+                                </Button>
+                            </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                                {isAdminView ? (
+                                    <>
+                                        <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                         <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                    <StopCircle className="mr-2 h-4 w-4" />
+                                                    Terminate Stream
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action will immediately terminate the stream for {seller.name} and all viewers.</AlertDialogDescription></AlertDialogHeader>
+                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction></AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </>
+                                ) : (
+                                    <>
+                                        <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
+                                        <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
+                                        <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
                     <div className="p-3 border-t border-white/10 bg-black flex flex-col gap-3 flex-shrink-0 z-10">
-                        <div className="flex items-center gap-2">
-                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
-                                <List />
-                            </Button>
-                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleShareStream}>
-                                <Share2 />
-                            </Button>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreVertical />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {isAdminView ? (
-                                        <>
-                                            <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                             <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                        <StopCircle className="mr-2 h-4 w-4" />
-                                                        Terminate Stream
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action will immediately terminate the stream for {seller.name} and all viewers.</AlertDialogDescription></AlertDialogHeader>
-                                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction></AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
-                                            <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
-                                            <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
-                                        </>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
                         <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
-                            <Input placeholder="Say something..." className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} />
+                            <div className="relative flex-grow">
+                                <Input 
+                                    placeholder="Say something..." 
+                                    className="bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50 pr-10" 
+                                    value={newChatMessage} 
+                                    onChange={(e) => setNewChatMessage(e.target.value)} 
+                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white/50 hover:text-white">
+                                            <Smile className="h-5 w-5" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 h-64">
+                                        <ScrollArea className="h-full">
+                                            <div className="grid grid-cols-8 gap-1">
+                                                {emojis.map((emoji, index) => (
+                                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                        {emoji}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                             <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
                         </form>
                     </div>
                 </div>
-
-                 <div className={cn("absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-sm z-30 flex flex-col transition-transform duration-300 ease-in-out", isProductListOpen ? "translate-y-0" : "translate-y-full")}>
-                        <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
-                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                                <X />
-                            </Button>
-                        </div>
-                        <ScrollArea className="flex-grow p-4 max-h-[40vh]">
-                            {streamProducts.map((product: any) => (
-                                <ProductListItem
-                                    key={product.id}
-                                    product={product}
-                                    isBuyable={featuredProductIds.includes(product.key)}
-                                    onAddToCart={handleAddToCart}
-                                    onBuyNow={handleBuyNow}
-                                    isAdminView={isAdminView}
-                                />
-                            ))}
-                        </ScrollArea>
-                    </div>
             </div>
         </div>
 
@@ -749,14 +773,8 @@ export default function StreamPage() {
                                 ) : (
                                 <>
                                     <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <MessageCircle className="mr-2 h-4 w-4" />
-                                        <span>Feedback</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <LifeBuoy className="mr-2 h-4 w-4" />
-                                        <span>Help</span>
-                                    </DropdownMenuItem>
+                                    <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
+                                    <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
                                 </>
                                 )}
                             </DropdownMenuContent>
