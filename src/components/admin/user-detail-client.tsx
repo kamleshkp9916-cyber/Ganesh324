@@ -315,6 +315,12 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <span className="text-lg font-bold">₹{totalSpent.toLocaleString()}</span>
                                     </div>
                                 </Button>
+                                 <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-xs text-muted-foreground">Total Live Streams</span>
+                                        <span className="text-lg font-bold">0</span>
+                                    </div>
+                                </Button>
                                 </>
                             )}
                         </CardContent>
