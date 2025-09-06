@@ -24,6 +24,14 @@ import {
   BookUser,
   LineChart,
   MessageSquare,
+  PackageCheck,
+  PackageOpen,
+  Hourglass,
+  Circle,
+  XCircle,
+  Truck,
+  CheckCircle2,
+  Home,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 import Link from "next/link"
@@ -59,6 +67,8 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { getStatusFromTimeline } from "@/lib/order-data";
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
+import { cn } from "@/lib/utils"
 
 type Order = {
     orderId: string;
@@ -127,7 +137,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const [userProducts, setUserProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeView, setActiveView] = useState<ViewType>('orders');
-
+  const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -200,6 +210,19 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
 
+  const getStatusIcon = (status: string) => {
+    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
+    if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
+    if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
+    if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
+    return <Circle className="h-5 w-5" />;
+  };
+
   const renderActiveView = () => {
     switch(activeView) {
         case 'orders':
@@ -237,7 +260,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                                     {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}
                                                 </Link>
                                             </TableCell>
-                                            <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                            <TableCell>
+                                                <DialogTrigger asChild>
+                                                    <Badge 
+                                                        variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}
+                                                        className="cursor-pointer"
+                                                        onClick={() => setSelectedOrderForTimeline(order)}
+                                                    >
+                                                        {getStatusFromTimeline(order.timeline)}
+                                                    </Badge>
+                                                </DialogTrigger>
+                                            </TableCell>
                                             <TableCell className="text-xs">
                                                 <p>Pay: {order.paymentMethod}</p>
                                                 <p>Refund: {order.refundStatus}</p>
@@ -298,6 +331,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
 
   return (
+    <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
             <Button size="icon" variant="outline" className="sm:hidden" onClick={() => router.back()}>
@@ -396,6 +430,46 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 </div>
             </div>
         </main>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Order Timeline for {selectedOrderForTimeline?.orderId}</DialogTitle>
+            </DialogHeader>
+            <div className="p-4">
+                 <ul className="space-y-2">
+                    {selectedOrderForTimeline?.timeline.map((item: any, index: number) => (
+                        <li key={index} className="flex items-start gap-4">
+                            <div className="flex flex-col items-center">
+                                <div className={cn(
+                                    "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 z-10",
+                                    item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                )}>
+                                    {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
+                                </div>
+                                {index < selectedOrderForTimeline.timeline.length - 1 && (
+                                    <div className="w-0.5 h-10 bg-border" />
+                                )}
+                            </div>
+                            <div className="flex-grow pt-1">
+                                <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
+                                    {item.status.split(':')[0]}
+                                </p>
+                                {item.status.includes(':') && (
+                                    <p className="text-sm text-muted-foreground">
+                                        {item.status.split(':')[1]}
+                                    </p>
+                                )}
+                                {item.date && (
+                                    <p className="text-sm text-muted-foreground">
+                                        {item.date} {item.time && `- ${item.time}`}
+                                    </p>
+                                )}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </DialogContent>
     </div>
+    </Dialog>
   );
 };
