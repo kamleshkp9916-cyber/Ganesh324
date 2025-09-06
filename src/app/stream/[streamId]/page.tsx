@@ -444,7 +444,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
       <div className="flex-1 flex flex-col">
-        <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
+        <div className="w-full aspect-video bg-black relative group">
           <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
               <ArrowLeft />
           </Button>
@@ -695,5 +695,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
