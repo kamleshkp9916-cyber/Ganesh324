@@ -209,6 +209,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   }
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
+  const sellerAverageRating = 4.8; // Mock rating
 
   const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
@@ -350,7 +351,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         Message
                     </Link>
                 </Button>
-                <Button>Save</Button>
             </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -367,7 +367,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     <CardTitle className="flex items-center gap-2">{profileData.displayName}
                                      {profileData.role === 'seller' && (
                                         <Badge variant="secondary" className="flex items-center gap-1">
-                                            <Star className="h-3 w-3" /> 4.8
+                                            <Star className="h-3 w-3" /> {sellerAverageRating}
                                         </Badge>
                                     )}
                                     </CardTitle>
@@ -434,7 +434,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             <DialogHeader>
                 <DialogTitle>Order Timeline for {selectedOrderForTimeline?.orderId}</DialogTitle>
                 <DialogDescription>
-                    Review the step-by-step progress of this order from confirmation to delivery.
+                   Review the step-by-step progress of this order from confirmation to delivery.
                 </DialogDescription>
             </DialogHeader>
             <div className="p-4">
@@ -458,7 +458,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </p>
                                 {item.status.includes(':') && (
                                     <p className="text-sm text-muted-foreground">
-                                        {item.status.split(':')[1]}
+                                        {item.status.split(':').slice(1).join(':').trim()}
                                     </p>
                                 )}
                                 {item.date && (
