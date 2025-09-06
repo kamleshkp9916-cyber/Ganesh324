@@ -419,12 +419,6 @@ export default function StreamPage() {
         }
     };
 
-    const handleBack = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        router.back();
-    };
-
-
   if (!seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
   }
@@ -449,11 +443,11 @@ export default function StreamPage() {
     <div className="h-screen w-full flex flex-col lg:flex-row bg-background text-foreground">
       {/* Video Player Section */}
       <div className="flex-grow bg-black flex flex-col relative group">
+        <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={() => router.back()}>
+          <ArrowLeft />
+        </Button>
         <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent z-10 text-white transition-opacity duration-300 opacity-100 group-hover:opacity-100">
-          <div className="flex items-center gap-3">
-             <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20 hover:text-white" onClick={handleBack}>
-              <ArrowLeft />
-            </Button>
+          <div className="flex items-center gap-3 ml-12">
             <Link href={sellerProfileUrl} className="flex items-center gap-3 group/profile">
                 <Avatar>
                   <AvatarImage src={seller.avatarUrl} alt={seller.name} />
