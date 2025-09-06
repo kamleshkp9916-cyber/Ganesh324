@@ -220,7 +220,11 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                             <TableCell>
                                                 <Link href={`/delivery-information/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link>
                                             </TableCell>
-                                            <TableCell>{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</TableCell>
+                                            <TableCell>
+                                                <Link href={`/product/${order.products[0].key}`} className="hover:underline">
+                                                    {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}
+                                                </Link>
+                                            </TableCell>
                                             <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
                                             <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                         </TableRow>
