@@ -107,10 +107,6 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-const mockNewUsers = [
-    'GadgetFan', 'StyleQueen', 'HomeBody', 'DealHunter', 'GamerPro', 'BookLover', 'PetParent'
-]
-
 const mockViewers = [
     { userId: 'user1', name: 'Alice', avatar: 'https://placehold.co/40x40.png' },
     { userId: 'user2', name: 'Bob', avatar: 'https://placehold.co/40x40.png' },
@@ -224,6 +220,7 @@ export default function StreamPage() {
   const [seekIndicator, setSeekIndicator] = useState<'forward' | 'backward' | null>(null);
   const doubleClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const streamId = params.streamId as string;
+  const [isClient, setIsClient] = useState(false);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
@@ -235,8 +232,13 @@ export default function StreamPage() {
     return allStreamProducts;
   }, [seller]);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+
     const handleStorageChange = (event: StorageEvent) => {
         if (event.key === STREAM_TERMINATED_KEY && event.newValue === streamId) {
             setIsStreamTerminated(true);
@@ -246,7 +248,7 @@ export default function StreamPage() {
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [streamId]);
+  }, [isClient, streamId]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -258,6 +260,8 @@ export default function StreamPage() {
   }, [chatMessages]);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     let sellerData: any = null;
     const sellerFromList = liveSellers.find(s => s.id === streamId || s.name === streamId);
 
@@ -292,7 +296,7 @@ export default function StreamPage() {
             setIsFollowing(followingList.includes(sellerData.id));
         }
     }
-  }, [streamId, user]);
+  }, [streamId, user, isClient]);
 
 
   const handleAddToCart = (productKey: string) => {
@@ -409,7 +413,7 @@ export default function StreamPage() {
         }
     };
 
-  if (!seller) {
+  if (!isClient || !seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
   }
   
@@ -704,10 +708,6 @@ export default function StreamPage() {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
-                        </div>
-                    ) : item.type === 'join' ? (
-                        <div key={item.id} className="text-center text-xs text-white/60 italic my-2">
-                            <span>{item.user} {item.message}</span>
                         </div>
                     ) : (
                         <ProductChatMessage 
