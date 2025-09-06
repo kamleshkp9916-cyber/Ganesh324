@@ -22,6 +22,7 @@ import {
   Wallet,
   BookUser,
   LineChart,
+  MessageSquare,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 import Link from "next/link"
@@ -67,6 +68,8 @@ type Order = {
     orderDate: string;
     isReturnable: boolean;
     timeline: any[];
+    paymentMethod: 'Credit Card' | 'UPI' | 'Net Banking';
+    refundStatus: 'N/A' | 'Pending' | 'Completed';
 };
 
 type Product = {
@@ -89,6 +92,8 @@ const mockOrders: Order[] = [
         orderDate: "2024-08-01T10:00:00.000Z",
         isReturnable: true,
         timeline: [{ status: "Delivered", date: "Aug 05, 2024", time: "02:00 PM", completed: true }],
+        paymentMethod: 'Credit Card',
+        refundStatus: 'N/A'
     },
     {
         orderId: "#MOCK456",
@@ -99,6 +104,8 @@ const mockOrders: Order[] = [
         orderDate: "2024-07-25T15:30:00.000Z",
         isReturnable: false,
         timeline: [{ status: "Shipped", date: "Jul 26, 2024", time: "11:00 AM", completed: true }],
+        paymentMethod: 'UPI',
+        refundStatus: 'Pending'
     }
 ];
 
@@ -205,14 +212,15 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     <TableHead>Order ID</TableHead>
                                     <TableHead>Product</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead>Transaction Details</TableHead>
                                     <TableHead className="text-right">Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
                                     <>
-                                        <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
-                                        <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={5}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={5}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
                                     </>
                                 ) : userOrders.length > 0 ? (
                                     userOrders.map(order => (
@@ -226,12 +234,16 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                                 </Link>
                                             </TableCell>
                                             <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                            <TableCell className="text-xs">
+                                                <p>Pay: {order.paymentMethod}</p>
+                                                <p>Refund: {order.refundStatus}</p>
+                                            </TableCell>
                                             <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell>
+                                        <TableCell colSpan={5} className="text-center h-24">No orders found.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -293,7 +305,12 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 User Profile
             </h1>
             <div className="ml-auto flex items-center gap-2">
-                <Button variant="outline">Suspend</Button>
+                <Button variant="outline" asChild>
+                    <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Message
+                    </Link>
+                </Button>
                 <Button>Save</Button>
             </div>
         </header>
@@ -327,7 +344,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <CardContent className="grid grid-cols-2 gap-2 text-sm">
                             <Button variant={activeView === 'orders' ? 'secondary' : 'ghost'} className="justify-start h-auto p-2" onClick={() => setActiveView('orders')}>
                                 <div className="flex flex-col items-start">
-                                    <span className="text-xs text-muted-foreground">Total Received Orders</span>
+                                    <span className="text-xs text-muted-foreground">Total Orders</span>
                                     <span className="text-lg font-bold">{userOrders.length}</span>
                                 </div>
                             </Button>

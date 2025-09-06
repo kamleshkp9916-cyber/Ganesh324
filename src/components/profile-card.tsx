@@ -174,11 +174,25 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   
   // Fetch user orders
   useEffect(() => {
-    // This is now using mock data, so the fetch is disabled.
-    if (userData?.role === 'admin') {
-      setUserOrders(mockUserOrders);
-    }
-  }, [profileData.uid, userData?.role, toast]);
+    const fetchOrders = async () => {
+        if (!isOwnProfile) return;
+        setIsLoadingOrders(true);
+        try {
+            const db = getFirestoreDb();
+            const ordersRef = collection(db, 'orders');
+            const q = query(ordersRef, where('userId', '==', profileData.uid), orderBy('orderDate', 'desc'));
+            const snapshot = await getDocs(q);
+            const orders = snapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
+            setUserOrders(orders);
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            toast({variant: 'destructive', title: "Error", description: "Could not fetch order history."});
+        } finally {
+            setIsLoadingOrders(false);
+        }
+    };
+    fetchOrders();
+  }, [profileData.uid, isOwnProfile, toast]);
 
 
   // Load data from localStorage on mount and add storage listener
@@ -517,7 +531,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                       <TabsTrigger value="achievements">Achievements</TabsTrigger>
                                   </>
                               )}
-                               {(showAdminView || isOwnProfile) && (
+                               {(isOwnProfile) && (
                                 <TabsTrigger value="orders">Orders</TabsTrigger>
                                )}
                           </TabsList>
@@ -526,8 +540,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       <TabsContent value="orders" className="mt-4">
                            <Card>
                                 <CardHeader>
-                                    <CardTitle>User Orders</CardTitle>
-                                    <CardDescription>A list of all orders placed by {displayName}.</CardDescription>
+                                    <CardTitle>My Orders</CardTitle>
+                                    <CardDescription>A list of all orders you've placed.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     {isLoadingOrders ? (
@@ -559,7 +573,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                          <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                             <PackageSearch className="w-16 h-16 text-border" />
                                             <h3 className="text-xl font-semibold">No Orders Found</h3>
-                                            <p>This user has not placed any orders yet.</p>
+                                            <p>Your orders will appear here once you've made a purchase.</p>
                                         </div>
                                     )}
                                 </CardContent>
