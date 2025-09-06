@@ -443,87 +443,87 @@ export default function StreamPage() {
         </AlertDialogContent>
     </AlertDialog>
     <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
-        <div className="flex-1 flex flex-col">
-            
-            <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
-                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                    <ArrowLeft />
-                </Button>
-                <video 
-                    ref={videoRef} 
-                    src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-                    className="w-full h-full object-contain" 
-                    autoPlay 
-                    muted 
-                    loop
-                    playsInline
-                />
-                <StreamTimer />
-            </div>
-
-            <ScrollArea className="flex-1">
-                <div className="p-4">
-                    <div className="mt-4 text-sm text-white/80">
-                        <h3 className="font-semibold text-white">{seller.title}</h3>
-                        <p className="whitespace-pre-wrap">{seller.description}</p>
-                    </div>
-
-                    <div className="flex justify-between items-start gap-4 pt-4 mt-4 border-t border-white/10">
-                        <div className="flex items-start gap-3">
-                            <Link href={sellerProfileUrl}>
-                                <Avatar className="h-12 w-12">
-                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            </Link>
-                            <div className="flex-grow">
-                                <div className="flex items-center gap-2">
-                                     <Link href={sellerProfileUrl} className="hover:underline">
-                                        <h2 className="font-bold text-lg">{seller.name}</h2>
-                                    </Link>
-                                    {seller.hasAuction && (
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Badge variant="purple" className="cursor-pointer">
-                                                    <Gavel className="mr-1 h-3 w-3" />
-                                                    Auction
-                                                </Badge>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Live Auction</DialogTitle>
-                                                    <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                                </DialogHeader>
-                                                <div className="py-4 text-center">
-                                                    <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                                    <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                                    <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                                    <Button size="lg" className="w-full">Place Your Bid</Button>
-                                                    <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2 text-xs mt-1">
-                                    <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                    <div className="flex items-center gap-1">
-                                        <Users className="h-3 w-3" />
-                                        <span>{seller.viewers} viewers</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {!isAdminView && (
-                            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle}>
-                                <UserPlus className="mr-2 h-4 w-4" />
-                                {isFollowing ? 'Following' : 'Follow'}
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </ScrollArea>
+      <div className="flex-1 flex flex-col">
+        <div className="w-full aspect-video bg-black relative group" onClick={handleClick}>
+          <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+              <ArrowLeft />
+          </Button>
+          <video 
+              ref={videoRef} 
+              src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+              className="w-full h-full object-contain" 
+              autoPlay 
+              muted 
+              loop
+              playsInline
+          />
+          <StreamTimer />
         </div>
+
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+              <div className="mt-4 text-sm text-white/80">
+                  <h3 className="font-semibold text-lg text-white">{seller.title}</h3>
+                  <p className="text-xs text-white/60 mb-2">{seller.category}</p>
+                  <p className="whitespace-pre-wrap">{seller.description}</p>
+              </div>
+              <div className="flex justify-between items-start gap-4 pt-4 mt-4 border-t border-white/10">
+                  <div className="flex items-start gap-3">
+                      <Link href={sellerProfileUrl}>
+                          <Avatar className="h-12 w-12">
+                              <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                              <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                      </Link>
+                      <div className="flex-grow">
+                          <div className="flex items-center gap-2">
+                               <Link href={sellerProfileUrl} className="hover:underline">
+                                  <h2 className="font-bold text-lg">{seller.name}</h2>
+                              </Link>
+                              {!isAdminView && (
+                                  <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
+                                      <UserPlus className="mr-1.5 h-3 w-3" />
+                                      {isFollowing ? 'Following' : 'Follow'}
+                                  </Button>
+                              )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs mt-1">
+                              <Badge variant="destructive" className="h-5">LIVE</Badge>
+                              <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{seller.viewers} viewers</span>
+                              </div>
+                               {seller.hasAuction && (
+                                  <Dialog>
+                                      <DialogTrigger asChild>
+                                          <Badge variant="purple" className="cursor-pointer">
+                                              <Gavel className="mr-1 h-3 w-3" />
+                                              Auction
+                                          </Badge>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                          <DialogHeader>
+                                              <DialogTitle>Live Auction</DialogTitle>
+                                              <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                          </DialogHeader>
+                                          <div className="py-4 text-center">
+                                              <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                              <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                              <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                              <Button size="lg" className="w-full">Place Your Bid</Button>
+                                              <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                                          </div>
+                                      </DialogContent>
+                                  </Dialog>
+                              )}
+                          </div>
+                      </div>
+                  </div>
+                  
+              </div>
+          </div>
+        </ScrollArea>
+      </div>
 
         {/* Chat Panel */}
          {isChatVisible && (
@@ -697,3 +697,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
