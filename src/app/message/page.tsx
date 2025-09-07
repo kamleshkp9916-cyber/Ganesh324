@@ -253,16 +253,15 @@ export default function MessagePage() {
       router.push('/');
       return null;
   }
+  
+  const showConversationList = !selectedConversation || (selectedConversation && window.innerWidth >= 768);
 
   return (
     <div className="h-screen w-full flex bg-background text-foreground">
-        <aside className="w-full md:w-1/3 lg:w-1/4 h-full border-r flex flex-col">
+        <aside className={cn("w-full md:w-1/3 lg:w-1/4 h-full border-r flex-col", !selectedConversation ? "flex" : "hidden md:flex")}>
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                     <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => router.push('/live-selling')}>
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/live-selling')}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
@@ -292,11 +291,14 @@ export default function MessagePage() {
             </div>
         </aside>
         
-        <main className="w-full md:w-2/3 lg:w-3/4 h-full flex-col hidden md:flex">
+        <main className={cn("w-full md:w-2/3 lg:w-3/4 h-full flex-col", selectedConversation ? "flex" : "hidden md:flex")}>
              {selectedConversation ? (
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
+                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
+                                <ArrowLeft className="h-6 w-6" />
+                            </Button>
                              <Link href={selectedConversation.isExecutive ? '#' : `/seller/profile?userId=${selectedConversation.userId}`} className={cn(!selectedConversation.isExecutive && "cursor-pointer group")}>
                                 <div className="flex items-center gap-3">
                                     <Avatar>
@@ -370,5 +372,3 @@ export default function MessagePage() {
     </div>
   );
 }
-
-    
