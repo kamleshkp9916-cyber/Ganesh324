@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Menu,
   MoreHorizontal,
+  Search,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -47,9 +48,12 @@ import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthActions } from "@/lib/auth"
+import { useDebounce } from "@/hooks/use-debounce";
+import { Input } from "@/components/ui/input"
 
 interface Product {
     id: string;
+    key?: string;
     name: string;
     description: string;
     price: number;
@@ -62,6 +66,7 @@ interface Product {
 const initialProducts: Product[] = [
     {
         id: 'prod_1',
+        key: 'prod_1',
         name: "Vintage Camera",
         description: "A classic 35mm film camera from the 70s. Fully functional.",
         price: 12500,
@@ -72,6 +77,7 @@ const initialProducts: Product[] = [
     },
     {
         id: 'prod_2',
+        key: 'prod_2',
         name: "Wireless Headphones",
         description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
         price: 4999,
@@ -82,6 +88,7 @@ const initialProducts: Product[] = [
     },
     {
         id: 'prod_3',
+        key: 'prod_3',
         name: "Leather Backpack",
         description: "Handmade genuine leather backpack, perfect for daily use.",
         price: 6200,
@@ -92,6 +99,7 @@ const initialProducts: Product[] = [
     },
      {
         id: 'prod_4',
+        key: 'prod_4',
         name: "Smart Watch",
         description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
         price: 8750,
@@ -142,6 +150,7 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                   <Link href={`/product/${product.id}`} className="hover:underline">
                     {product.name}
                   </Link>
+                   <p className="text-xs text-muted-foreground font-mono">{product.key}</p>
                 </TableCell>
                 <TableCell>
                     {product.seller ? (
@@ -184,10 +193,20 @@ export default function AdminProductsPage() {
     const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const router = useRouter();
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     const activeProducts = useMemo(() => {
-        return initialProducts.filter(p => p.status === 'active' && p.stock > 0)
-    }, []);
+        let products = initialProducts.filter(p => p.status === 'active' && p.stock > 0);
+        if (debouncedSearchTerm) {
+            products = products.filter(p => 
+                p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+                (p.key && p.key.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+                (p.seller && p.seller.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+            );
+        }
+        return products;
+    }, [debouncedSearchTerm]);
 
     if (loading || userData?.role !== 'admin') {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -229,6 +248,18 @@ export default function AdminProductsPage() {
                 </SheetContent>
             </Sheet>
             <div className="ml-auto flex items-center gap-2">
+                 <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="search"
+                          placeholder="Search products..."
+                          className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </form>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="secondary" size="icon" className="rounded-full">

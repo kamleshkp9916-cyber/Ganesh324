@@ -33,6 +33,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const productFormSchema = z.object({
   id: z.string().optional(),
+  key: z.string().optional(),
   name: z.string().min(3, "Product name must be at least 3 characters."),
   brand: z.string().min(2, "Brand name must be at least 2 characters."),
   category: z.string().min(1, "Please select a category."),
@@ -188,7 +189,11 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   function onSubmit(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
     setTimeout(() => {
-        onSave(values);
+        const productToSave = {
+            ...values,
+            key: values.key || `prod_${Date.now()}`
+        };
+        onSave(productToSave);
         setIsSaving(false);
     }, 1000);
   }

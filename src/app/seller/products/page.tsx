@@ -70,6 +70,7 @@ import { Textarea } from "@/components/ui/textarea"
 const initialProducts: Product[] = [
     {
         id: 'prod_1',
+        key: 'prod_1',
         name: "Vintage Camera",
         description: "A classic 35mm film camera from the 70s. Fully functional.",
         price: 12500,
@@ -79,6 +80,7 @@ const initialProducts: Product[] = [
     },
     {
         id: 'prod_2',
+        key: 'prod_2',
         name: "Wireless Headphones",
         description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
         price: 4999,
@@ -88,6 +90,7 @@ const initialProducts: Product[] = [
     },
     {
         id: 'prod_3',
+        key: 'prod_3',
         name: "Leather Backpack",
         description: "Handmade genuine leather backpack, perfect for daily use.",
         price: 6200,
@@ -97,6 +100,7 @@ const initialProducts: Product[] = [
     },
      {
         id: 'prod_4',
+        key: 'prod_4',
         name: "Smart Watch",
         description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
         price: 8750,
@@ -189,7 +193,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
             {products.length > 0 ? products.map(product => (
               <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
                 <TableCell className="hidden sm:table-cell">
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${product.key}`}>
                     {product.images && product.images.length > 0 ? (
                       <Image
                         alt={product.name}
@@ -206,7 +210,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
                   </Link>
                 </TableCell>
                 <TableCell className="font-medium">
-                  <Link href={`/product/${product.id}`} className="hover:underline">
+                  <Link href={`/product/${product.key}`} className="hover:underline">
                     {product.name}
                   </Link>
                   {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
@@ -330,7 +334,7 @@ export default function SellerProductsPage() {
             }
             setProducts(products.map(p => p.id === product.id ? product : p));
         } else {
-            setProducts(prev => [...prev, { ...product, id: `prod_${Date.now()}` }]);
+            setProducts(prev => [...prev, { ...product, id: product.key, key: product.key }]);
         }
 
         if (product.stock === 0 && wasInStock) {
