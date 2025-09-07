@@ -148,6 +148,14 @@ export default function MessagePage() {
   const [newMessage, setNewMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const filteredConversations = useMemo(() => {
     if (!searchTerm) return conversations;
@@ -181,7 +189,7 @@ export default function MessagePage() {
                 }
 
                 setConversations(allConvos);
-                if (allConvos.length > 0) {
+                if (allConvos.length > 0 && !isMobile) {
                     handleSelectConversation(allConvos[0]);
                 }
             } catch (error) {
@@ -192,7 +200,8 @@ export default function MessagePage() {
         };
         fetchConversations();
     }
-  }, [user, userData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, userData, isMobile]);
   
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
@@ -254,121 +263,141 @@ export default function MessagePage() {
       return null;
   }
   
-  const showConversationList = !selectedConversation || (selectedConversation && window.innerWidth >= 768);
+  const showConversationList = isMobile && !selectedConversation;
+  const showChatWindow = !isMobile || (isMobile && selectedConversation);
+
+  const conversationListContent = (
+     <aside className="w-full h-full border-r flex-col flex">
+        <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/live-selling')}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-xl font-bold">Chats</h1>
+            </div>
+        </header>
+        <div className="p-4 border-b">
+                <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search conversations..."
+                    className="pl-8 w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
+        <div className="p-2 flex-grow overflow-y-auto">
+            {filteredConversations.map(convo => (
+                <ConversationItem 
+                    key={convo.userId} 
+                    convo={convo} 
+                    onClick={() => handleSelectConversation(convo)}
+                    isSelected={selectedConversation?.userId === convo.userId}
+                />
+            ))}
+        </div>
+    </aside>
+  );
+
+  const chatWindowContent = (
+    <main className="w-full h-full flex flex-col">
+        {selectedConversation ? (
+            <>
+                <header className="p-4 border-b flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-3">
+                        {isMobile && (
+                             <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
+                                <ArrowLeft className="h-6 w-6" />
+                            </Button>
+                        )}
+                        <Link href={selectedConversation.isExecutive ? '#' : `/seller/profile?userId=${selectedConversation.userId}`} className={cn(!selectedConversation.isExecutive && "cursor-pointer group")}>
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarImage src={selectedConversation.avatarUrl} />
+                                    <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h2 className={cn("font-semibold", !selectedConversation.isExecutive && "group-hover:underline")}>{selectedConversation.userName}</h2>
+                                    <p className="text-xs text-muted-foreground">Online</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <ScreenshotDialog
+                                    messages={messages}
+                                    conversation={selectedConversation}
+                                    trigger={<DropdownMenuItem onSelect={(e) => e.preventDefault()}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>}
+                                />
+                                <DropdownMenuItem>
+                                    <MessageCircle className="mr-2 h-4 w-4" />Feedback
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />Help
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </header>
+                <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
+                    {isChatLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-12 w-2/3" />
+                            <Skeleton className="h-12 w-1/2 ml-auto" />
+                            <Skeleton className="h-16 w-3/4" />
+                            <Skeleton className="h-8 w-1/3 ml-auto" />
+                        </div>
+                    ) : (
+                        messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
+                    )}
+                </div>
+                <footer className="p-4 border-t shrink-0">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" type="button"><Smile className="h-5 w-5" /></Button>
+                            <Button variant="ghost" size="icon" type="button"><Paperclip className="h-5 w-5" /></Button>
+                        <Input 
+                            placeholder="Type a message" 
+                            className="flex-grow" 
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                        <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                            <Send className="h-5 w-5"/>
+                        </Button>
+                    </form>
+                </footer>
+            </>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <MessageSquare className="h-16 w-16 mb-4"/>
+                <h2 className="text-xl font-semibold">Select a chat</h2>
+                <p>Choose a conversation to start messaging.</p>
+                </div>
+            )}
+    </main>
+  );
 
   return (
     <div className="h-screen w-full flex bg-background text-foreground">
-        <aside className={cn("w-full md:w-1/3 lg:w-1/4 h-full border-r flex-col", !selectedConversation ? "flex" : "hidden md:flex")}>
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/live-selling')}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <h1 className="text-xl font-bold">Chats</h1>
+        {isMobile ? (
+            showConversationList ? conversationListContent : chatWindowContent
+        ) : (
+            <>
+                <div className="w-full md:w-1/3 lg:w-1/4 h-full">
+                    {conversationListContent}
                 </div>
-            </header>
-            <div className="p-4 border-b">
-                 <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search conversations..."
-                        className="pl-8 w-full"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="w-full md:w-2/3 lg:w-3/4 h-full">
+                    {chatWindowContent}
                 </div>
-            </div>
-            <div className="p-2 flex-grow overflow-y-auto">
-                {filteredConversations.map(convo => (
-                    <ConversationItem 
-                        key={convo.userId} 
-                        convo={convo} 
-                        onClick={() => handleSelectConversation(convo)}
-                        isSelected={selectedConversation?.userId === convo.userId}
-                    />
-                ))}
-            </div>
-        </aside>
-        
-        <main className={cn("w-full md:w-2/3 lg:w-3/4 h-full flex-col", selectedConversation ? "flex" : "hidden md:flex")}>
-             {selectedConversation ? (
-                <>
-                    <header className="p-4 border-b flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
-                                <ArrowLeft className="h-6 w-6" />
-                            </Button>
-                             <Link href={selectedConversation.isExecutive ? '#' : `/seller/profile?userId=${selectedConversation.userId}`} className={cn(!selectedConversation.isExecutive && "cursor-pointer group")}>
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={selectedConversation.avatarUrl} />
-                                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <h2 className={cn("font-semibold", !selectedConversation.isExecutive && "group-hover:underline")}>{selectedConversation.userName}</h2>
-                                        <p className="text-xs text-muted-foreground">Online</p>
-                                    </div>
-                                </div>
-                            </Link>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <ScreenshotDialog
-                                        messages={messages}
-                                        conversation={selectedConversation}
-                                        trigger={<DropdownMenuItem onSelect={(e) => e.preventDefault()}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>}
-                                    />
-                                    <DropdownMenuItem>
-                                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <LifeBuoy className="mr-2 h-4 w-4" />Help
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </header>
-                    <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
-                       {isChatLoading ? (
-                           <div className="space-y-4">
-                               <Skeleton className="h-12 w-2/3" />
-                               <Skeleton className="h-12 w-1/2 ml-auto" />
-                               <Skeleton className="h-16 w-3/4" />
-                               <Skeleton className="h-8 w-1/3 ml-auto" />
-                           </div>
-                       ) : (
-                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
-                       )}
-                    </div>
-                    <footer className="p-4 border-t shrink-0">
-                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" type="button"><Smile className="h-5 w-5" /></Button>
-                             <Button variant="ghost" size="icon" type="button"><Paperclip className="h-5 w-5" /></Button>
-                            <Input 
-                                placeholder="Type a message" 
-                                className="flex-grow" 
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                            />
-                            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
-                                <Send className="h-5 w-5"/>
-                            </Button>
-                        </form>
-                    </footer>
-                </>
-             ) : (
-                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <MessageSquare className="h-16 w-16 mb-4"/>
-                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                    <p>Choose a conversation to start messaging.</p>
-                 </div>
-             )}
-        </main>
+            </>
+        )}
     </div>
   );
 }
