@@ -115,7 +115,7 @@ const recentTransactionsData = [
         status: "Fulfilled",
         total: 12500.00,
         type: "Listed Product",
-        date: new Date(),
+        date: "2024-07-29T10:00:00.000Z",
     },
     {
         orderId: "#ORD5897",
@@ -123,7 +123,7 @@ const recentTransactionsData = [
         status: "Fulfilled",
         total: 4999.00,
         type: "Live Stream",
-        date: new Date(new Date().setDate(new Date().getDate() - 1)),
+        date: "2024-07-28T12:30:00.000Z",
     },
     {
         orderId: "#ORD5902",
@@ -131,7 +131,7 @@ const recentTransactionsData = [
         status: "Processing",
         total: 3200.00,
         type: "Live Stream",
-        date: new Date(new Date().setDate(new Date().getDate() - 3)),
+        date: "2024-07-26T18:00:00.000Z",
     },
      {
         orderId: "#ORD5905",
@@ -139,7 +139,7 @@ const recentTransactionsData = [
         status: "Pending",
         total: 7800.00,
         type: "Listed Product",
-        date: new Date(new Date().setDate(new Date().getDate() - 5)),
+        date: "2024-07-24T09:15:00.000Z",
     },
     {
         orderId: "#ORD5903",
@@ -147,7 +147,7 @@ const recentTransactionsData = [
         status: "Cancelled",
         total: 4500.00,
         type: "Listed Product",
-        date: new Date(new Date().setDate(new Date().getDate() - 10)),
+        date: "2024-07-19T11:45:00.000Z",
     }
 ];
 
@@ -550,7 +550,7 @@ export default function AdminDashboard() {
                              <Badge variant="outline">{transaction.status}</Badge>
                         </TableCell>
                          <TableCell className="hidden md:table-cell lg:hidden xl:table-cell">
-                           {formatDistanceToNow(transaction.date, { addSuffix: true })}
+                           {formatDistanceToNow(parseISO(transaction.date), { addSuffix: true })}
                         </TableCell>
                         <TableCell className="text-right">₹{transaction.total.toFixed(2)}</TableCell>
                     </TableRow>
@@ -623,3 +623,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+    
