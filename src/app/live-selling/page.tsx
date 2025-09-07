@@ -357,7 +357,7 @@ function FeedPostSkeleton() {
 }
 
 export default function LiveSellingPage() {
-  const [offerSlides, setOfferSlides] = useState(initialOfferSlides);
+  const [offerSlides, setOfferSlides] = useState<any[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [api, setApi] = useState<CarouselApi>()
@@ -386,10 +386,6 @@ export default function LiveSellingPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const loadData = useCallback(() => {
     setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
 
@@ -415,14 +411,14 @@ export default function LiveSellingPage() {
 
     const liveStreamDataRaw = localStorage.getItem('liveStream');
     setAllSellers(prevSellers => {
-        const currentSellers = [...prevSellers];
+        let currentSellers = [...liveSellers]; // Reset to base sellers
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
-            const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.id);
+             const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
 
             if (!sellerIsLive) {
-                const newSellerCard = {
-                    id: liveStreamData.seller.id,
+                 const newSellerCard = {
+                    id: liveStreamData.seller.uid,
                     name: liveStreamData.seller.name,
                     avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
                     thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
@@ -435,38 +431,40 @@ export default function LiveSellingPage() {
                     productId: liveStreamData.product.id,
                     isMyStream: true,
                 };
-                return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
+                 return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
             }
-        } else {
-            // If liveStream data is gone, remove the stream card that was marked as our own
-            return currentSellers.filter(s => !(s as any).isMyStream);
         }
         return currentSellers;
     });
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
-
-    loadData();
-
+    setIsMounted(true);
     // Simulate loading spinners
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
     const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
 
-    // Listen for storage changes from other tabs/pages
-    const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
-            loadData();
-        }
-    };
-    window.addEventListener('storage', handleStorageChange);
-
     return () => {
         clearTimeout(sellersTimer);
         clearTimeout(feedTimer);
-        window.removeEventListener('storage', handleStorageChange);
     };
+  }, []);
+  
+   useEffect(() => {
+    if (isMounted) {
+      loadData();
+      
+      const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
+              loadData();
+          }
+      };
+      window.addEventListener('storage', handleStorageChange);
+
+      return () => {
+          window.removeEventListener('storage', handleStorageChange);
+      };
+    }
   }, [isMounted, loadData]);
 
    useEffect(() => {
@@ -819,7 +817,7 @@ export default function LiveSellingPage() {
 
                     <TabsContent value="live">
                         <div className="mb-6">
-                        {offerSlides.length === 0 ? (
+                        {!isMounted || offerSlides.length === 0 ? (
                             <Skeleton className="w-full aspect-[3/1] rounded-lg" />
                         ) : (
                             <div>
