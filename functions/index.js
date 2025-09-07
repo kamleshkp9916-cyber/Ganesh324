@@ -1,76 +1,49 @@
+const { onRequest } = require("firebase-functions/v2/https");
+const sgMail = require("@sendgrid/mail");
 
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+// Exported function uses secret SENDGRID_KEY injected at runtime
+exports.sendEmail = onRequest(
+  { secrets: ["SENDGRID_KEY"] },
+  async (req, res) => {
+    try {
+      // Allow only POST
+      if (req.method !== "POST") {
+        return res.status(405).send({ error: "Use POST" });
+      }
 
-const {setGlobalOptions} = require("firebase-functions");
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+      const body = req.body || {};
+      const to = body.to || null;
+      const subject = body.subject || null;
+      const text = body.text || null;
+      const html = body.html || null;
 
-admin.initializeApp();
+      if (!to || !subject || (!text && !html)) {
+        return res.status(400).json({ error: "Missing required fields: to, subject, text/html" });
+      }
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+      const SENDGRID_KEY = process.env.SENDGRID_KEY;
+      if (!SENDGRID_KEY) {
+        console.error("Missing SENDGRID_KEY env var");
+        return res.status(500).json({ error: "Server misconfigured" });
+      }
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+      sgMail.setApiKey(SENDGRID_KEY);
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+      const msg = {
+        to,
+        from: "kamleshkp9916@gmail.com", // <- ensure this sender is VERIFIED in SendGrid
+        subject,
+        text: text || "",
+        html: html || ""
+      };
 
-exports.helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+      await sgMail.send(msg);
 
-
-/**
- * Triggered when a new user signs up.
- * This function creates a corresponding user document in Firestore.
- */
-exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
-  logger.info(`New user created: ${user.uid}`, {structuredData: true});
-
-  const { uid, email, displayName, photoURL } = user;
-
-  const userData = {
-    uid,
-    email,
-    displayName: displayName || 'New User',
-    photoURL: photoURL || `https://placehold.co/128x128.png?text=${(displayName || 'U').charAt(0)}`,
-    role: 'customer', // Default role for all new sign-ups
-    followers: 0,
-    following: 0,
-    bio: "",
-    location: "",
-    phone: "",
-    addresses: [],
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  };
-
-  try {
-    await admin.firestore().collection('users').doc(uid).set(userData);
-    logger.info(`Successfully created Firestore document for user: ${uid}`);
-
-    // Placeholder for sending a welcome email
-    // In a real app, you would integrate an email service like SendGrid or Mailgun here.
-    logger.info(`(Placeholder) Sending welcome email to ${email}`);
-
-  } catch (error) {
-    logger.error(`Error creating Firestore document for user: ${uid}`, {error, structuredData: true});
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error("sendEmail error:", err);
+      return res.status(500).json({ error: "Email sending failed" });
+    }
   }
-});
+);
+

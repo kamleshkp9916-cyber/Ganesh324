@@ -386,56 +386,62 @@ export default function LiveSellingPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   
-  const loadData = useCallback(() => {
-    setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
+   const loadData = useCallback(() => {
+    if (typeof window !== 'undefined') {
+        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
 
-    const storedFeed = localStorage.getItem('mockFeed');
-    if (storedFeed) {
-        setMockFeed(JSON.parse(storedFeed));
-    } else {
-        setMockFeed(initialMockFeed);
-        localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
-    }
-    
-    const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-    if (storedSlidesRaw) {
-        const storedSlides = JSON.parse(storedSlidesRaw);
-        const now = new Date();
-        const activeSlides = storedSlides.filter((slide: any) => {
-            return !slide.expiresAt || new Date(slide.expiresAt) >= now;
-        });
-        setOfferSlides(activeSlides);
-    } else {
-        setOfferSlides(initialOfferSlides);
-    }
-
-    const liveStreamDataRaw = localStorage.getItem('liveStream');
-    setAllSellers(prevSellers => {
-        let currentSellers = [...liveSellers]; // Reset to base sellers
-        if (liveStreamDataRaw) {
-            const liveStreamData = JSON.parse(liveStreamDataRaw);
-             const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
-
-            if (!sellerIsLive) {
-                 const newSellerCard = {
-                    id: liveStreamData.seller.uid,
-                    name: liveStreamData.seller.name,
-                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                    thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
-                    category: liveStreamData.product.category || 'General',
-                    viewers: Math.floor(Math.random() * 5000),
-                    buyers: Math.floor(Math.random() * 100),
-                    rating: 4.5,
-                    reviews: Math.floor(Math.random() * 50),
-                    hint: liveStreamData.product.name.toLowerCase(),
-                    productId: liveStreamData.product.id,
-                    isMyStream: true,
-                };
-                 return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
-            }
+        const storedFeed = localStorage.getItem('mockFeed');
+        if (storedFeed) {
+            setMockFeed(JSON.parse(storedFeed));
+        } else {
+            setMockFeed(initialMockFeed);
+            localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
         }
-        return currentSellers;
-    });
+        
+        const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+        if (storedSlidesRaw) {
+            const storedSlides = JSON.parse(storedSlidesRaw);
+            const now = new Date();
+            const activeSlides = storedSlides.filter((slide: any) => {
+                return !slide.expiresAt || new Date(slide.expiresAt) >= now;
+            });
+            setOfferSlides(activeSlides);
+        } else {
+            setOfferSlides(initialOfferSlides);
+        }
+
+        const liveStreamDataRaw = localStorage.getItem('liveStream');
+        setAllSellers(prevSellers => {
+            let currentSellers = [...liveSellers];
+            if (liveStreamDataRaw) {
+                const liveStreamData = JSON.parse(liveStreamDataRaw);
+                const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
+
+                if (!sellerIsLive) {
+                    const newSellerCard = {
+                        id: liveStreamData.seller.uid,
+                        name: liveStreamData.seller.name,
+                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                        thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
+                        category: liveStreamData.product.category || 'General',
+                        viewers: Math.floor(Math.random() * 5000),
+                        buyers: Math.floor(Math.random() * 100),
+                        rating: 4.5,
+                        reviews: Math.floor(Math.random() * 50),
+                        hint: liveStreamData.product.name.toLowerCase(),
+                        productId: liveStreamData.product.id,
+                        isMyStream: true,
+                        hasAuction: liveStreamData.isAuction,
+                    };
+                    return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
+                } else {
+                    // Update existing seller's stream info
+                    return currentSellers.map(s => s.id === liveStreamData.seller.uid ? { ...s, isMyStream: true, hasAuction: liveStreamData.isAuction } : s);
+                }
+            }
+            return currentSellers.map(s => ({ ...s, isMyStream: false }));
+        });
+    }
   }, []);
 
   useEffect(() => {
@@ -443,6 +449,9 @@ export default function LiveSellingPage() {
     // Simulate loading spinners
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
     const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
+
+    // Initial shuffle for suggested users on mount
+    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
 
     return () => {
         clearTimeout(sellersTimer);
@@ -548,10 +557,6 @@ export default function LiveSellingPage() {
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, mockFeed]);
-
-  useEffect(() => {
-    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
-  }, []);
   
 
   const handleReply = (sellerName: string) => {
