@@ -605,8 +605,8 @@ export default function LiveSellingPage() {
     }
 };
 
- const renderTabs = (isHeader: boolean) => (
-    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "hidden md:inline-flex")}>
+ const renderTabs = () => (
+    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
@@ -638,7 +638,7 @@ export default function LiveSellingPage() {
                 </div>
                  <div className="hidden md:flex flex-1 justify-center">
                     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-                        {renderTabs(true)}
+                       {renderTabs()}
                     </Tabs>
                 </div>
 
@@ -805,9 +805,9 @@ export default function LiveSellingPage() {
             <main>
               <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div className="sticky top-[65px] md:top-[65px] bg-background/95 backdrop-blur-sm z-20 py-2 md:hidden">
+                     <div className="sticky top-[60px] md:top-[65px] bg-background/95 backdrop-blur-sm z-20 py-2 md:hidden">
                         <div className="flex justify-center px-4">
-                            {renderTabs(false)}
+                            {renderTabs()}
                         </div>
                     </div>
                     
@@ -1018,7 +1018,7 @@ export default function LiveSellingPage() {
                        </div>
                     </TabsContent>
 
-                    <TabsContent value="feeds" className="w-full">
+                    <TabsContent value="feeds" className="w-full pb-20">
                          <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
