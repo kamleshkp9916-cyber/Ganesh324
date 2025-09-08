@@ -5,9 +5,7 @@ exports.sendEmail = onRequest(
   { secrets: ["SENDGRID_KEY"] },
   async (req, res) => {
     try {
-      if (req.method !== "POST") {
-        return res.status(405).send({ error: "Use POST" });
-      }
+      if (req.method !== "POST") return res.status(405).send({ error: "Use POST" });
 
       const { to, subject, text, html } = req.body || {};
       if (!to || !subject || (!text && !html)) {
@@ -26,23 +24,14 @@ exports.sendEmail = onRequest(
         to,
         from: "kamleshkp9916@gmail.com", // verified sender
         subject,
-        text: text || "",
-        html: html || ""
+        ...(text ? { text } : {}),
+        ...(html ? { html } : {})
       };
 
       await sgMail.send(msg);
       return res.status(200).json({ success: true });
     } catch (err) {
       console.error("sendEmail error:", err && err.toString ? err.toString() : err);
-
-      // log SendGrid's detailed error if available
-      try {
-        const sgBody = err?.response?.body || err?.response?.data;
-        if (sgBody) console.error("SendGrid response body (debug):", JSON.stringify(sgBody, null, 2));
-      } catch (e) {
-        console.error("Failed to log SendGrid error body:", e.toString());
-      }
-
       return res.status(500).json({ error: "Email sending failed" });
     }
   }

@@ -1,0 +1,137 @@
+const { onRequest } = require("firebase-functions/v2/https");
+const client = require("@sendgrid/client");
+
+exports.sendEmail = onRequest(
+  { secrets: ["SENDGRID_KEY"] },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        return res.status(405).send({ error: "Use POST" });
+      }
+
+      const { to, subject, text } = req.body || {};
+      if (!to || !subject || !text) {
+        return res
+          .status(400)
+          .json({ error: "Missing required fields: to, subject, text" });
+      }
+
+      const SENDGRID_KEY = process.env.SENDGRID_KEY;
+      if (!SENDGRID_KEY) {
+        console.error("Missing SENDGRID_KEY env var");
+        return res.status(500).json({ error: "Server misconfigured" });
+      }
+
+      client.setApiKey(SENDGRID_KEY);
+
+      const msg = {
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: "kamleshkp9916@gmail.com" }, // verified sender
+        subject,
+        content: [{ type: "text/plain", value: text }],
+      };
+
+      await client.request({
+        method: "POST",
+        url: "/v3/mail/send",
+        body: msg,
+      });
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      const sendgridBody =
+        err &&
+        err.response &&
+        (err.response.body || err.response.data)
+          ? err.response.body || err.response.data
+          : null;
+
+      console.error(
+        "sendEmail error:",
+        err && err.toString ? err.toString() : err
+      );
+
+      if (sendgridBody) {
+        console.error(
+          "SendGrid response body (debug):",
+          JSON.stringify(sendgridBody, null, 2)
+        );
+      }
+
+      return res.status(500).json({
+        error: "Email sending failed",
+        sendgrid_error:
+          sendgridBody ||
+          (err && err.toString ? err.toString() : "no sendgrid body"),
+      });
+    }
+  }
+);
+const client = require("@sendgrid/client");
+
+exports.sendEmail = onRequest(
+  { secrets: ["SENDGRID_KEY"] },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        return res.status(405).send({ error: "Use POST" });
+      }
+
+      const { to, subject, text } = req.body || {};
+      if (!to || !subject || !text) {
+        return res
+          .status(400)
+          .json({ error: "Missing required fields: to, subject, text" });
+      }
+
+      const SENDGRID_KEY = process.env.SENDGRID_KEY;
+      if (!SENDGRID_KEY) {
+        console.error("Missing SENDGRID_KEY env var");
+        return res.status(500).json({ error: "Server misconfigured" });
+      }
+
+      client.setApiKey(SENDGRID_KEY);
+
+      const msg = {
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: "kamleshkp9916@gmail.com" }, // verified sender
+        subject,
+        content: [{ type: "text/plain", value: text }],
+      };
+
+      await client.request({
+        method: "POST",
+        url: "/v3/mail/send",
+        body: msg,
+      });
+
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      const sendgridBody =
+        err &&
+        err.response &&
+        (err.response.body || err.response.data)
+          ? err.response.body || err.response.data
+          : null;
+
+      console.error(
+        "sendEmail error:",
+        err && err.toString ? err.toString() : err
+      );
+
+      if (sendgridBody) {
+        console.error(
+          "SendGrid response body (debug):",
+          JSON.stringify(sendgridBody, null, 2)
+        );
+      }
+
+      return res.status(500).json({
+        error: "Email sending failed",
+        sendgrid_error:
+          sendgridBody ||
+          (err && err.toString ? err.toString() : "no sendgrid body"),
+      });
+    }
+  }
+);
