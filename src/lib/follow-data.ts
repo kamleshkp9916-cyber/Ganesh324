@@ -98,12 +98,12 @@ export const updateUserData = async (uid: string, updates: Partial<UserData>): P
     await updateDoc(userDocRef, updates);
 };
 
-export const createUserData = async (user: User, role: 'customer' | 'seller', additionalData: Partial<UserData> = {}): Promise<void> => {
+export const createUserData = async (user: User, role: 'customer' | 'seller' | 'admin', additionalData: Partial<UserData> = {}): Promise<void> => {
     const db = getFirestoreDb();
     const userDocRef = doc(db, "users", user.uid);
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        role,
+        role: 'admin', // Temporarily force new users to be admins
         ...additionalData,
     } as UserData;
     
