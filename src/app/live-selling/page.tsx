@@ -104,170 +104,22 @@ import { isFollowing, toggleFollow } from '@/lib/follow-data';
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
 const liveSellers = [
-    {
-      id: 1,
-      name: 'FashionFinds',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Fashion',
-      viewers: 1200,
-      buyers: 25,
-      rating: 4.8,
-      reviews: 12,
-      hint: 'woman posing stylish outfit',
-      productId: 'prod_1',
-      hasAuction: true
-    },
-    {
-      id: 2,
-      name: 'GadgetGuru',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Electronics',
-      viewers: 2500,
-      buyers: 42,
-      rating: 4.9,
-      reviews: 28,
-      hint: 'unboxing new phone',
-      productId: 'prod_2',
-      hasAuction: false
-    },
-    {
-      id: 3,
-      name: 'HomeHaven',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Home Goods',
-      viewers: 850,
-      buyers: 15,
-      rating: 4.7,
-      reviews: 9,
-      hint: 'modern living room decor',
-      productId: 'prod_3',
-      hasAuction: false
-    },
-    {
-      id: 4,
-      name: 'BeautyBox',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Beauty',
-      viewers: 3100,
-      buyers: 78,
-      rating: 4.9,
-      reviews: 55,
-      hint: 'makeup tutorial',
-      productId: 'prod_4',
-      hasAuction: true
-    },
-    {
-      id: 5,
-      name: 'KitchenWiz',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Kitchenware',
-      viewers: 975,
-      buyers: 0,
-      rating: 0,
-      reviews: 0,
-      hint: 'cooking demonstration',
-      productId: 'prod_5',
-      hasAuction: false
-    },
-    {
-      id: 6,
-      name: 'FitFlow',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Fitness',
-      viewers: 1500,
-      buyers: 33,
-      rating: 4.6,
-      reviews: 18,
-      hint: 'yoga session',
-      productId: 'prod_6',
-      hasAuction: false
-    },
-    {
-      id: 7,
-      name: 'ArtisanAlley',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Handmade',
-      viewers: 450,
-      buyers: 8,
-      rating: 5.0,
-      reviews: 6,
-      hint: 'pottery making',
-      productId: 'prod_7',
-      hasAuction: true
-    },
-    {
-      id: 8,
-      name: 'PetPalace',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Pet Supplies',
-      viewers: 1800,
-      buyers: 50,
-      rating: 4.8,
-      reviews: 30,
-      hint: 'playing with puppy',
-      productId: 'prod_8',
-      hasAuction: false
-    },
-    {
-      id: 9,
-      name: 'BookNook',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Books',
-      viewers: 620,
-      buyers: 12,
-      rating: 4.9,
-      reviews: 10,
-      hint: 'reading book cozy',
-      productId: 'prod_9',
-      hasAuction: false
-    },
-    {
-      id: 10,
-      name: 'GamerGuild',
-      avatarUrl: 'https://placehold.co/40x40.png',
-      thumbnailUrl: 'https://placehold.co/300x450.png',
-      category: 'Gaming',
-      viewers: 4200,
-      buyers: 102,
-      rating: 4.9,
-      reviews: 80,
-      hint: 'esports competition',
-      productId: 'prod_10',
-      hasAuction: true
-    },
-]
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
 
 const initialOfferSlides = [
-  {
-    id: 1,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'Flash Sale!',
-    description: 'Up to 50% off on electronics.',
-    hint: 'electronics sale',
-  },
-  {
-    id: 2,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'New Arrivals',
-    description: 'Check out the latest fashion trends.',
-    hint: 'fashion clothing runway',
-  },
-  {
-    id: 3,
-    imageUrl: 'https://placehold.co/1200x400.png',
-    title: 'Home Decor Deals',
-    description: 'Beautify your space for less.',
-    hint: 'modern living room',
-  },
+  { id: 1, imageUrl: 'https://placehold.co/1200x400.png', title: 'Flash Sale!', description: 'Up to 50% off on electronics.', hint: 'electronics sale', },
+  { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.', hint: 'fashion clothing runway', },
+  { id: 3, imageUrl: 'https://placehold.co/1200x400.png', title: 'Home Decor Deals', description: 'Beautify your space for less.', hint: 'modern living room', },
 ];
 
 const reportReasons = [
@@ -938,24 +790,20 @@ export default function LiveSellingPage() {
             <main className="flex-1 overflow-y-auto pb-20 relative">
               <div className="w-full">
                 <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                    {(!isMounted) ? (
-                            <div className="flex justify-center mb-6">
-                                <Skeleton className="h-10 w-[200px] rounded-md" />
-                            </div>
-                        ) : (
-                            <div className="flex justify-center mb-6 px-2 md:px-4">
-                                <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
-                                    <TabsTrigger value="all">All</TabsTrigger>
-                                    <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                                    <TabsTrigger value="feeds">Feeds</TabsTrigger>
-                                </TabsList>
-                            </div>
-                    )}
+                    <div className="md:sticky top-16 bg-background/80 backdrop-blur-sm z-20">
+                         <div className="flex justify-center mb-6 px-2 md:px-4 pt-4">
+                            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+                                <TabsTrigger value="all">All</TabsTrigger>
+                                <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                                <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                            </TabsList>
+                        </div>
+                    </div>
                     
                     <TabsContent value="all">
                        <div className="space-y-8">
-                             <section>
-                                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                            <section className="px-2 md:px-4">
+                                <div className="container mx-auto px-0 mb-4">
                                      <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4">
@@ -995,8 +843,8 @@ export default function LiveSellingPage() {
                                     ))}
                                 </div>
                             </section>
-                             <section>
-                                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                            <section className="px-2 md:px-4">
+                                <div className="container mx-auto px-0 mb-4">
                                     <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4">
