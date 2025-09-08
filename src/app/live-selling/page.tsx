@@ -790,8 +790,8 @@ export default function LiveSellingPage() {
             <main className="flex-1 overflow-y-auto pb-20 relative">
               <div className="w-full">
                 <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                    <div className="md:sticky top-[65px] bg-background/80 backdrop-blur-sm z-20">
-                         <div className="flex justify-center mb-6 px-2 md:px-4 pt-4">
+                    <div className="sticky top-[60px] md:top-[64px] bg-background/80 backdrop-blur-sm z-20 py-2">
+                         <div className="flex justify-center px-2 md:px-4">
                             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -800,71 +800,69 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                     
-                    <TabsContent value="all" className="px-2 md:px-4">
-                       <div className="space-y-8">
-                            <section>
-                                <div className="container mx-auto px-0 mb-4">
-                                     <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4">
-                                     {topLiveStreams.map((seller: any) => (
-                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
-                                        <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                            <Image 
-                                                src={seller.thumbnailUrl} 
-                                                alt={`Live stream from ${seller.name}`} 
-                                                width={300} 
-                                                height={450} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint={seller.hint}
-                                            />
-                                        </Link>
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex items-start gap-2">
-                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                    <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
-                                                </Link>
-                                                <div className="flex-1">
-                                                     <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
-                                                </div>
+                    <TabsContent value="all" className="space-y-8 pt-4">
+                       <section>
+                            <div className="px-2 md:px-4 mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
+                                {topLiveStreams.map((seller: any) => (
+                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
+                                    <Link href={`/stream/${seller.id}`} className="cursor-pointer">
+                                        <Image 
+                                            src={seller.thumbnailUrl} 
+                                            alt={`Live stream from ${seller.name}`} 
+                                            width={300} 
+                                            height={450} 
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={seller.hint}
+                                        />
+                                    </Link>
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                        <div className="flex items-start gap-2">
+                                            <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
+                                            </Link>
+                                            <div className="flex-1">
+                                                 <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            ))}
+                            </div>
+                        </section>
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {filterButtons.slice(1, 5).map(filter => (
+                                     <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => { setActiveTab('live'); setActiveFilter(filter); }}>{filter}</Button>
                                 ))}
+                            </div>
+                        </section>
+                        <section>
+                             <div className="px-2 md:px-4 mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4 px-2 md:px-4">
+                               {filteredLiveSellers.slice(0, 10).map((seller: any) => (
+                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                    <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                        <Image 
+                                            src={seller.thumbnailUrl.replace('450', '300')} 
+                                            alt={`Product from ${seller.name}`} 
+                                            width={300} 
+                                            height={300} 
+                                            className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={seller.hint}
+                                        />
+                                    </Link>
                                 </div>
-                            </section>
-                            <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {filterButtons.slice(1, 5).map(filter => (
-                                         <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => { setActiveTab('live'); setActiveFilter(filter); }}>{filter}</Button>
-                                    ))}
-                                </div>
-                            </section>
-                            <section>
-                                <div className="container mx-auto px-0 mb-4">
-                                    <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4">
-                                   {filteredLiveSellers.slice(0, 10).map((seller: any) => (
-                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                        <Link href={`/product/${seller.productId}`} className="cursor-pointer">
-                                            <Image 
-                                                src={seller.thumbnailUrl.replace('450', '300')} 
-                                                alt={`Product from ${seller.name}`} 
-                                                width={300} 
-                                                height={300} 
-                                                className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint={seller.hint}
-                                            />
-                                        </Link>
-                                    </div>
-                                ))}
-                                </div>
-                            </section>
-                       </div>
+                            ))}
+                            </div>
+                        </section>
                     </TabsContent>
 
                     <TabsContent value="live">
