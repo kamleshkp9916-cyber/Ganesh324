@@ -77,6 +77,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Skeleton } from "@/components/ui/skeleton"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -229,17 +230,21 @@ export default function AdminSettingsPage() {
   const { toast } = useToast()
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
   const [isSendingWarning, setIsSendingWarning] = useState(false)
+  
   const [contentList, setContentList] = useState(initialFlaggedContent);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [slides, setSlides] = useState<Slide[]>([]);
+  
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
-  const [slides, setSlides] = useState<Slide[]>([]);
   const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
+  const [isMounted, setIsMounted] = useState(false);
 
 
   // Load data from local storage on mount
   useEffect(() => {
+    setIsMounted(true);
     const storedCoupons = localStorage.getItem(COUPONS_KEY);
     if (storedCoupons) {
         const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
@@ -255,6 +260,23 @@ export default function AdminSettingsPage() {
     } else {
         setSlides(initialSlides);
     }
+
+    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
+        id: initialFlaggedContent.length + index + 1,
+        type: 'Chat Message',
+        content: `Reported comment: "${comment.message}"`,
+        targetId: comment.streamId,
+        reporter: 'User',
+        status: 'Pending',
+    }));
+
+    setContentList(prev => {
+        const existingIds = new Set(prev.map(item => item.content));
+        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
+        return [...prev, ...uniqueNewItems];
+    });
+
   }, []);
 
   const saveCoupons = (newCoupons: Coupon[]) => {
@@ -306,24 +328,6 @@ export default function AdminSettingsPage() {
       setEditingSlide(slide);
       setIsSlideFormOpen(true);
   };
-
-  useEffect(() => {
-    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
-        id: initialFlaggedContent.length + index + 1,
-        type: 'Chat Message',
-        content: `Reported comment: "${comment.message}"`,
-        targetId: comment.streamId,
-        reporter: 'User',
-        status: 'Pending',
-    }));
-
-    setContentList(prev => {
-        const existingIds = new Set(prev.map(item => item.content));
-        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
-        return [...prev, ...uniqueNewItems];
-    });
-  }, []);
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -380,8 +384,13 @@ export default function AdminSettingsPage() {
   }
 
 
-  if (loading || userData?.role !== 'admin') {
+  if (loading || !isMounted) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
+  }
+
+  if (userData?.role !== 'admin') {
+      router.replace('/');
+      return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 
   return (
@@ -451,7 +460,9 @@ export default function AdminSettingsPage() {
                                 </div>
                                 <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openSlideForm(slide)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSlide(slide.id!)}><Trash2 className="h-4 w-4" /></Button></div>
                             </div>
-                        )) : (<p className="text-center text-muted-foreground py-4">No promotional slides have been created yet.</p>)}
+                        )) : (
+                            isMounted ? <p className="text-center text-muted-foreground py-4">No promotional slides have been created yet.</p> : <Skeleton className="w-full h-24" />
+                        )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -469,7 +480,9 @@ export default function AdminSettingsPage() {
                                 </div>
                                 <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button></div>
                             </div>
-                        )) : (<p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p>)}
+                        )) : (
+                            isMounted ? <p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p> : <Skeleton className="w-full h-24" />
+                        )}
                     </CardContent>
                 </Card>
                 
@@ -543,5 +556,3 @@ export default function AdminSettingsPage() {
     </>
   )
 }
-
-    
