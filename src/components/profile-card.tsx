@@ -119,7 +119,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
-  const [sellerPosts, setSellerPosts] = useState<any[]>([]);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
   const [isFollowingState, setIsFollowingState] = useState(false);
@@ -214,7 +214,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
             ...doc.data(),
             timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
-        setSellerPosts(postsData);
+        setUserPosts(postsData);
     });
     
     setTimeout(() => {
@@ -487,23 +487,24 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
 
               <div className="w-full max-w-full mx-auto">
-                  <Tabs defaultValue={profileData.role === 'seller' ? "products" : "recent"} className="w-full">
+                  <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
                       <ScrollArea className="w-full whitespace-nowrap">
                             <TabsList className="inline-flex">
-                              {profileData.role === 'seller' ? (
-                                  <>
-                                      <TabsTrigger value="products">Listed Products</TabsTrigger>
-                                      <TabsTrigger value="posts">Posts</TabsTrigger>
-                                  </>
-                              ) : (
-                                  <>
-                                      <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
-                                      <TabsTrigger value="reviews">My Reviews</TabsTrigger>
-                                      <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                                  </>
+                              {isOwnProfile && (
+                                <TabsTrigger value="posts">My Posts</TabsTrigger>
                               )}
+                              {profileData.role === 'seller' && (
+                                <TabsTrigger value="products">Listed Products</TabsTrigger>
+                              )}
+                              {profileData.role === 'customer' && !isOwnProfile && <p className="p-2 text-sm text-muted-foreground">This is a customer profile.</p>}
+                              
                                {(isOwnProfile) && (
-                                <TabsTrigger value="orders">Orders</TabsTrigger>
+                                <>
+                                    <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
+                                    <TabsTrigger value="reviews">My Reviews</TabsTrigger>
+                                    <TabsTrigger value="achievements">Achievements</TabsTrigger>
+                                    <TabsTrigger value="orders">Orders</TabsTrigger>
+                                </>
                                )}
                           </TabsList>
                       </ScrollArea>
@@ -603,12 +604,12 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
                         <TabsContent value="posts" className="mt-4 space-y-4">
-                          {isOwnProfile && profileData.role === 'seller' && ( 
+                          {isOwnProfile && ( 
                               <div className="mb-6 sticky top-20 z-40">
                                     <CreatePostForm />
                               </div>
                           )}
-                            {sellerPosts.length > 0 ? sellerPosts.map(post => (
+                            {userPosts.length > 0 ? userPosts.map(post => (
                               <Card key={post.id} className="overflow-hidden">
                                   <div className="p-4">
                                       <div className="flex items-center gap-3 mb-3">
@@ -649,7 +650,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   </div>
                               </Card>
                           )) : (
-                              <p className="text-muted-foreground text-center py-8">This seller hasn't posted anything yet.</p>
+                              <p className="text-muted-foreground text-center py-8">No posts yet.</p>
                           )}
                       </TabsContent>
                       

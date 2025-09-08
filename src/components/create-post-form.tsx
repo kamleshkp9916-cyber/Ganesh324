@@ -13,7 +13,8 @@ import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
+import { getUserByDisplayName } from "@/lib/follow-data";
 
 
 export interface PostData {
@@ -63,6 +64,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 
         setIsSubmitting(true);
         try {
+            const db = getFirestoreDb();
             let mediaUrl: string | null = null;
             let mediaType: 'image' | 'video' | null = null;
             
@@ -75,8 +77,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 mediaType = media.type;
             }
 
-            const db = getFirestoreDb();
-            await addDoc(collection(db, "posts"), {
+            // Extract tags
+            const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
+            
+            const postDocRef = await addDoc(collection(db, "posts"), {
                 sellerId: user.uid,
                 sellerName: userData.displayName,
                 avatarUrl: userData.photoURL,
@@ -87,7 +91,28 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 location: location,
                 likes: 0,
                 replies: 0,
+                tags: tags,
             });
+
+            // Create notifications for tagged users
+            for (const tagName of tags) {
+                const taggedUser = await getUserByDisplayName(tagName);
+                if (taggedUser && taggedUser.uid !== user.uid) {
+                    await addDoc(collection(db, `users/${taggedUser.uid}/notifications`), {
+                        type: 'tag',
+                        message: `${userData.displayName} tagged you in a post.`,
+                        postId: postDocRef.id,
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        fromUser: {
+                            uid: user.uid,
+                            displayName: userData.displayName,
+                            photoURL: userData.photoURL
+                        }
+                    });
+                }
+            }
+
 
             setContent("");
             setMedia(null);
