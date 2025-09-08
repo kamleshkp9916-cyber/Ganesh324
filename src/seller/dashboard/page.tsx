@@ -111,13 +111,13 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-        const sellerDetails = localStorage.getItem('sellerDetails');
-        if (!sellerDetails) {
-            router.push('/seller/register');
-        }
+    if (isMounted) {
+      const sellerDetails = localStorage.getItem('sellerDetails');
+      if (!sellerDetails) {
+          router.push('/seller/register');
+      }
     }
-  }, [router]);
+  }, [router, isMounted]);
 
   if (!isMounted || loading) {
     return (
