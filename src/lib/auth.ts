@@ -118,24 +118,23 @@ export function useAuthActions() {
         }
     };
 
-    const handleCustomerSignUp = async (values: any, isAdminSignup: boolean = false) => {
-         const auth = getFirebaseAuth();
+    const signUpUser = async (values: any, role: 'customer' | 'admin') => {
+        const auth = getFirebaseAuth();
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-          const user = userCredential.user;
-          const displayName = `${values.firstName} ${values.lastName}`;
-          
-          await updateProfile(user, { displayName: displayName });
-          
-          await createUserData(user, isAdminSignup ? 'admin' : 'customer', { userId: values.userId, phone: values.phone });
-          
-          await sendEmailVerification(user);
-          
-          toast({
-            title: "Account Created!",
-            description: "A verification email has been sent. Please check your inbox.",
-          });
-          
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+            const user = userCredential.user;
+            const displayName = `${values.firstName} ${values.lastName}`;
+            
+            await updateProfile(user, { displayName: displayName });
+            
+            await createUserData(user, role, { userId: values.userId, phone: values.phone });
+            
+            await sendEmailVerification(user);
+            
+            toast({
+                title: "Account Created!",
+                description: "A verification email has been sent. Please check your inbox.",
+            });
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
             switch (error.code) {
@@ -159,8 +158,16 @@ export function useAuthActions() {
                 description: errorMessage,
                 variant: "destructive",
             });
-            throw error;
+            throw error; // Re-throw to be caught by the form handler
         }
+    };
+    
+    const handleCustomerSignUp = async (values: any) => {
+        await signUpUser(values, 'customer');
+    };
+    
+    const handleAdminSignUp = async (values: any) => {
+        await signUpUser(values, 'admin');
     };
     
     const handleSellerSignUp = async (values: any) => {
@@ -304,5 +311,5 @@ export function useAuthActions() {
         }
     };
 
-    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleSellerSignUp, updateUserProfile };
+    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleAdminSignUp, handleSellerSignUp, updateUserProfile };
 }

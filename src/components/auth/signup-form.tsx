@@ -73,7 +73,7 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
-  const { handleCustomerSignUp, handleGoogleSignIn } = useAuthActions();
+  const { handleCustomerSignUp, handleAdminSignUp, handleGoogleSignIn } = useAuthActions();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -89,7 +89,11 @@ export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await handleCustomerSignUp(values, isAdminSignup);
+      if (isAdminSignup) {
+        await handleAdminSignUp(values);
+      } else {
+        await handleCustomerSignUp(values);
+      }
     } catch (error) {
       // Error is already toasted in the auth action
     } finally {
