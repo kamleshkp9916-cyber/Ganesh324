@@ -628,6 +628,17 @@ export default function LiveSellingPage() {
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
 
+                <div className="hidden md:flex flex-1 justify-center">
+                    <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-full max-w-sm">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="all">All</TabsTrigger>
+                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+
+
                 <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
                      {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
@@ -787,10 +798,10 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1">
+            <main className="flex-1 overflow-y-auto">
               <div className="w-full">
-                <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                    <div className="sticky top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm z-20 py-2">
+                <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <div className="md:hidden sticky top-[60px] bg-background/95 backdrop-blur-sm z-20 py-2">
                         <div className="flex justify-center">
                             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="all">All</TabsTrigger>
@@ -1007,7 +1018,7 @@ export default function LiveSellingPage() {
                        </div>
                     </TabsContent>
 
-                    <TabsContent value="feeds" className="w-full pb-20">
+                    <TabsContent value="feeds" className="w-full">
                          <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
