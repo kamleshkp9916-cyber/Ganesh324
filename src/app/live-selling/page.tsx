@@ -607,7 +607,7 @@ export default function LiveSellingPage() {
   };
 
   const topLiveStreams = useMemo(() => {
-    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 4);
   }, [allSellers]);
 
   const filteredLiveSellers = useMemo(() => {
@@ -956,7 +956,7 @@ export default function LiveSellingPage() {
                        <div className="space-y-8">
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                      {topLiveStreams.map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
@@ -1000,11 +1000,11 @@ export default function LiveSellingPage() {
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <Link href={`/product/${seller.productId}`} className="cursor-pointer">
                                             <Image 
-                                                src={seller.thumbnailUrl} 
+                                                src={seller.thumbnailUrl.replace('450', '300')} 
                                                 alt={`Product from ${seller.name}`} 
                                                 width={300} 
-                                                height={450} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                height={300} 
+                                                className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint={seller.hint}
                                             />
                                         </Link>
