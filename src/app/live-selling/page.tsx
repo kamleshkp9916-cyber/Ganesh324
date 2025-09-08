@@ -82,12 +82,13 @@ import {
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import { CreatePostForm, PostData } from '@/components/create-post-form';
+import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
-import { Logo } from '@/components/logo';
 import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { GoLiveDialog } from '@/components/go-live-dialog';
+import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { getFirestoreDb } from '@/lib/firebase';
+import { formatDistanceToNow } from 'date-fns';
 
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
@@ -258,24 +259,6 @@ const initialOfferSlides = [
   },
 ];
 
-const initialFollowing = [
-    { id: 'user1', name: 'CoolCat', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user2', name: 'GamerGirl92', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user3', name: 'TechWizard', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user4', name: 'StyleSavvy', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user5', name: 'FoodieFinds', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user6', name: 'AdventureJunkie', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user7', name: 'BookWorm', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'user8', name: 'DIYDan', avatar: 'https://placehold.co/40x40.png' },
-];
-
-const initialMockFeed = [
-    { id: 1, sellerName: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 hours ago', content: 'Just went live with a new collection of summer dresses! 👗☀️', productImageUrl: 'https://placehold.co/400x300.png', hint: 'summer dresses fashion', likes: 120, replies: 15, location: null },
-    { id: 2, sellerName: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '5 hours ago', content: 'Unboxing the new X-1 Drone. You won\'t believe the camera quality! Join the stream now!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'drone flying', likes: 350, replies: 42, location: 'New York, USA' },
-    { id: 3, sellerName: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '1 day ago', content: 'Restocked our popular ceramic vase collection. They sell out fast!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'ceramic vases', likes: 88, replies: 9, location: null },
-    { id: 4, sellerName: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', timestamp: '2 days ago', content: 'My new skincare routine is a game changer. Live tutorial this Friday!', productImageUrl: 'https://placehold.co/400x300.png', hint: 'skincare products', likes: 210, replies: 25, location: 'Los Angeles, USA' },
-];
-
 const reportReasons = [
     { id: "spam", label: "It's spam" },
     { id: "hate", label: "Hate speech or symbols" },
@@ -364,8 +347,7 @@ export default function LiveSellingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const { user, userData, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
-  const [followingList, setFollowingList] = useState(initialFollowing);
-  const [mockFeed, setMockFeed] = useState<(typeof initialMockFeed)>([]);
+  const [feed, setFeed] = useState<any[]>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -389,14 +371,6 @@ export default function LiveSellingPage() {
    const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
-
-        const storedFeed = localStorage.getItem('mockFeed');
-        if (storedFeed) {
-            setMockFeed(JSON.parse(storedFeed));
-        } else {
-            setMockFeed(initialMockFeed);
-            localStorage.setItem('mockFeed', JSON.stringify(initialMockFeed));
-        }
         
         const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
         if (storedSlidesRaw) {
@@ -448,14 +422,27 @@ export default function LiveSellingPage() {
     setIsMounted(true);
     // Simulate loading spinners
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
-    const feedTimer = setTimeout(() => setIsLoadingFeed(false), 2500);
 
     // Initial shuffle for suggested users on mount
     setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
 
+    // Listen for real-time post updates from Firestore
+    const db = getFirestoreDb();
+    const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+    
+    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+        const postsData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+        }));
+        setFeed(postsData);
+        setIsLoadingFeed(false);
+    });
+
     return () => {
         clearTimeout(sellersTimer);
-        clearTimeout(feedTimer);
+        unsubscribe();
     };
   }, []);
   
@@ -464,7 +451,7 @@ export default function LiveSellingPage() {
       loadData();
       
       const handleStorageChange = (event: StorageEvent) => {
-          if (event.key === 'liveStream' || event.key === 'mockFeed' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
+          if (event.key === 'liveStream' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
               loadData();
           }
       };
@@ -487,31 +474,6 @@ export default function LiveSellingPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchRef]);
-
-  const handleCreatePost = (data: PostData) => {
-    if (!user || !userData) return;
-    const newPost = {
-        id: mockFeed.length + 1,
-        sellerName: userData.displayName || 'You',
-        avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
-        timestamp: 'just now',
-        content: data.content,
-        productImageUrl: data.media?.url || null,
-        hint: 'user uploaded content',
-        likes: 0,
-        replies: 0,
-        location: data.location || null,
-    };
-    
-    const updatedFeed = [newPost, ...mockFeed];
-    setMockFeed(updatedFeed);
-    localStorage.setItem('mockFeed', JSON.stringify(updatedFeed));
-    
-    toast({
-        title: "Post Created!",
-        description: "Your post has been successfully shared.",
-    });
-  };
 
   const handleAuthAction = (cb?: () => void) => {
     if (!user) {
@@ -551,12 +513,12 @@ export default function LiveSellingPage() {
   }, [searchTerm, allSellers, activeFilter]);
 
   const filteredFeed = useMemo(() => {
-    if (!searchTerm) return mockFeed;
-    return mockFeed.filter(item => 
+    if (!searchTerm) return feed;
+    return feed.filter(item => 
         item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, mockFeed]);
+  }, [searchTerm, feed]);
   
 
   const handleReply = (sellerName: string) => {
@@ -567,14 +529,7 @@ export default function LiveSellingPage() {
       }
     });
   };
-  
-  const handleUnfollow = (e: React.MouseEvent, userId: string) => {
-    e.stopPropagation();
-    handleAuthAction(() => {
-        setFollowingList(currentList => currentList.filter(user => user.id !== userId));
-    });
-  };
-  
+
   const handleShare = (postId: number) => {
     const link = `${window.location.origin}/post/${postId}`;
     navigator.clipboard.writeText(link);
@@ -743,7 +698,7 @@ export default function LiveSellingPage() {
                                         </DropdownMenuItem>
                                         {userData?.role === 'customer' && (
                                             <DropdownMenuItem asChild>
-                                                <Link href="/seller/register"><Briefcase className="mr-2 h-4 w-4" /><span>Become a Seller</span></Link>
+                                                <Link href="/seller/kyc"><Briefcase className="mr-2 h-4 w-4" /><span>Become a Seller</span></Link>
                                             </DropdownMenuItem>
                                         )}
                                         <DropdownMenuItem asChild>
@@ -1052,9 +1007,13 @@ export default function LiveSellingPage() {
                                         <div className="px-4 pb-4">
                                             <div className="flex flex-col items-center gap-4 text-center">
                                                 <p className="text-sm mb-2">{item.content}</p>
-                                                {item.productImageUrl &&
+                                                {item.mediaUrl &&
                                                     <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                        <Image src={item.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={item.hint} />
+                                                        {item.mediaType === 'video' ? (
+                                                            <video src={item.mediaUrl} controls className="w-full h-auto object-cover" />
+                                                        ) : (
+                                                            <Image src={item.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
+                                                        )}
                                                     </div>
                                                 }
                                             </div>
@@ -1168,12 +1127,7 @@ export default function LiveSellingPage() {
                             </div>
                           </div>
                            {user && (
-                                <CreatePostForm
-                                ref={createPostFormRef}
-                                replyTo={replyTo}
-                                onClearReply={() => setReplyTo(null)}
-                                onCreatePost={handleCreatePost}
-                                />
+                                <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
                             )}
                     </TabsContent>
                 </Tabs>

@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -30,9 +30,10 @@ import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
 import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData, updateUserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
-import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
+import { getFirebaseDb } from '@/lib/firebase';
 import { getStatusFromTimeline } from '@/lib/order-data';
+import { formatDistanceToNow } from 'date-fns';
 
 
 const mockReviews = [
@@ -40,12 +41,6 @@ const mockReviews = [
     { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: null, hint: null, productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
     { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
 ];
-
-const mockUserOrders = [
-    { id: "#STREAM5896", products: [{name: 'Vintage Camera', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Delivered', completed: true }], total: 12500.00, orderDate: 'Jul 27, 2024' },
-    { id: "#STREAM5897", products: [{name: 'Wireless Headphones', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Shipped', completed: true }], total: 4999.00, orderDate: 'Jul 26, 2024' },
-    { id: "#STREAM5902", products: [{name: 'Leather Backpack', imageUrl: 'https://placehold.co/100x100.png'}], timeline: [{ status: 'Cancelled by user', completed: true }], total: 3200.00, orderDate: 'Jul 22, 2024' },
-]
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
 
@@ -201,10 +196,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
       if (event.key === getProductsKey(displayName)) {
         loadSellerProducts();
       }
-      if (event.key === 'mockFeed') {
-        const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
-        setSellerPosts(globalFeed.filter((p: any) => p.sellerName === displayName));
-      }
       if(event.key?.startsWith('following_')) {
           loadFollowData();
       }
@@ -214,8 +205,17 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     loadSellerProducts();
 
-    const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
-    setSellerPosts(globalFeed.filter((p: any) => p.sellerName === displayName));
+    // Listen to firestore posts
+    const db = getFirestoreDb();
+    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+        const postsData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+        }));
+        setSellerPosts(postsData);
+    });
     
     setTimeout(() => {
         setIsLoadingContent(false);
@@ -224,9 +224,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     window.addEventListener('storage', handleStorageChange);
     return () => {
         window.removeEventListener('storage', handleStorageChange);
+        unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileData.role, displayName]);
+  }, [profileData.role, displayName, profileData.uid]);
 
 
   const productCategories = useMemo(() => {
@@ -269,36 +270,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     toast({
         title: "Added to Wishlist!",
         description: `${product.name} has been added to your wishlist.`
-    });
-  };
-  
-  const handleCreatePost = (data: PostData) => {
-    if (!user) return;
-    
-    const newPost = {
-        id: Date.now(),
-        sellerName: displayName,
-        avatarUrl: profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`,
-        timestamp: 'just now',
-        content: data.content,
-        productImageUrl: data.media?.url || null,
-        hint: 'user uploaded content',
-        likes: 0,
-        replies: 0,
-        location: data.location || null,
-    };
-    
-    // Update the global feed
-    const globalFeed = JSON.parse(localStorage.getItem('mockFeed') || '[]');
-    const updatedGlobalFeed = [newPost, ...globalFeed];
-    localStorage.setItem('mockFeed', JSON.stringify(updatedGlobalFeed));
-    
-    // Dispatch a storage event to notify other tabs/pages
-    window.dispatchEvent(new StorageEvent('storage', { key: 'mockFeed' }));
-
-    toast({
-        title: "Post Created!",
-        description: "Your post has been successfully shared on the main feed.",
     });
   };
   
@@ -634,7 +605,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         <TabsContent value="posts" className="mt-4 space-y-4">
                           {isOwnProfile && profileData.role === 'seller' && ( 
                               <div className="mb-6 sticky top-20 z-40">
-                                    <CreatePostForm onCreatePost={handleCreatePost} />
+                                    <CreatePostForm />
                               </div>
                           )}
                             {sellerPosts.length > 0 ? sellerPosts.map(post => (
@@ -653,9 +624,13 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   </div>
                                   <div className="px-4 pb-4">
                                       <p className="text-sm mb-2">{post.content}</p>
-                                      {post.productImageUrl &&
+                                       {post.mediaUrl &&
                                           <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                              <Image src={post.productImageUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" data-ai-hint={post.hint} />
+                                              {post.mediaType === 'video' ? (
+                                                  <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
+                                              ) : (
+                                                  <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
+                                              )}
                                           </div>
                                       }
                                   </div>

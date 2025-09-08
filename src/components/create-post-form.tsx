@@ -3,7 +3,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, MapPin, Smile, X, Image as ImageIcon } from "lucide-react";
+import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
@@ -11,6 +11,10 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
+import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 
 export interface PostData {
     content: string;
@@ -21,7 +25,7 @@ export interface PostData {
 interface CreatePostFormProps {
   replyTo?: string | null;
   onClearReply?: () => void;
-  onCreatePost: (data: PostData) => void;
+  onCreatePost?: (data: PostData) => void; // Make optional, as we'll handle creation internally
 }
 
 const emojis = [
@@ -37,13 +41,15 @@ const emojis = [
 ];
 
 export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, onCreatePost }, ref) => {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
+    const { toast } = useToast();
     const [content, setContent] = useState("");
-    const [media, setMedia] = useState<{type: 'video' | 'image', url: string} | null>(null);
+    const [media, setMedia] = useState<{type: 'video' | 'image', file: File, url: string} | null>(null);
     const [location, setLocation] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const videoInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
 
     useEffect(() => {
         if (replyTo) {
@@ -53,37 +59,70 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         }
     }, [replyTo]);
   
-    const handlePost = () => {
-        if (!content.trim()) return;
-        onCreatePost({ content, media, location });
-        setContent("");
-        setMedia(null);
-        setLocation(null);
-        onClearReply?.();
-    };
+    const handlePost = async () => {
+        if (!content.trim() || !user || !userData) return;
 
-    const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            if (file.type.startsWith('video/')) {
-                 const videoUrl = URL.createObjectURL(file);
-                 setMedia({ type: 'video', url: videoUrl });
-                 toast({ title: 'Video attached!' });
-            } else {
-                toast({ variant: 'destructive', title: 'Invalid File', description: 'Please select a video file.' });
+        setIsSubmitting(true);
+        try {
+            let mediaUrl: string | null = null;
+            let mediaType: 'image' | 'video' | null = null;
+            
+            if (media) {
+                const storage = getFirebaseStorage();
+                const filePath = `posts/${user.uid}/${Date.now()}_${media.file.name}`;
+                const fileRef = storageRef(storage, filePath);
+                const uploadTask = await uploadString(fileRef, media.url, 'data_url');
+                mediaUrl = await getDownloadURL(uploadTask.ref);
+                mediaType = media.type;
             }
+
+            const db = getFirestoreDb();
+            await addDoc(collection(db, "posts"), {
+                sellerId: user.uid,
+                sellerName: userData.displayName,
+                avatarUrl: userData.photoURL,
+                timestamp: serverTimestamp(),
+                content: content,
+                mediaUrl: mediaUrl,
+                mediaType: mediaType,
+                location: location,
+                likes: 0,
+                replies: 0,
+            });
+
+            setContent("");
+            setMedia(null);
+            setLocation(null);
+            onClearReply?.();
+            toast({
+                title: "Post Created!",
+                description: "Your post has been successfully shared.",
+            });
+
+        } catch (error) {
+            console.error("Error creating post:", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to create your post. Please try again."
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
-    
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
         const file = event.target.files?.[0];
         if (file) {
-            if (file.type.startsWith('image/')) {
-                 const imageUrl = URL.createObjectURL(file);
-                 setMedia({ type: 'image', url: imageUrl });
-                 toast({ title: 'Image attached!' });
+            if (file.type.startsWith(type + '/')) {
+                 const reader = new FileReader();
+                 reader.onload = (e) => {
+                     setMedia({ type, file, url: e.target?.result as string });
+                     toast({ title: `${type === 'image' ? 'Image' : 'Video'} attached!` });
+                 };
+                 reader.readAsDataURL(file);
             } else {
-                toast({ variant: 'destructive', title: 'Invalid File', description: 'Please select an image file.' });
+                toast({ variant: 'destructive', title: 'Invalid File', description: `Please select a ${type} file.` });
             }
         }
     };
@@ -147,11 +186,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     </div>
                 </div>
                 <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
-                    <input type="file" accept="video/*" ref={videoInputRef} onChange={handleVideoUpload} className="hidden" />
+                    <input type="file" accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
                         <Video className="mr-2 h-5 w-5" /> Video
                     </Button>
-                    <input type="file" accept="image/*" ref={imageInputRef} onChange={handleImageUpload} className="hidden" />
+                    <input type="file" accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()}>
                         <ImageIcon className="mr-2 h-5 w-5" /> Image
                     </Button>
@@ -161,8 +200,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handlePost} 
-                        disabled={!content.trim()}
+                        disabled={!content.trim() || isSubmitting}
                     >
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                         Send
                     </Button>
                 </div>
