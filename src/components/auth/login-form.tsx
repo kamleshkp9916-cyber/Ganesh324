@@ -144,9 +144,11 @@ export function LoginForm() {
                 </FormItem>
                 )}
             />
-             <Link href="/forgot-password" className="inline-block text-sm underline text-primary">
-                Forgot your password?
-            </Link>
+             <Button asChild variant="link" className="p-0 h-auto">
+                <Link href="/forgot-password">
+                    Forgot your password?
+                </Link>
+            </Button>
         </div>
         <Button 
           type="submit" 
