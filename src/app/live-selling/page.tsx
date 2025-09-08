@@ -297,8 +297,6 @@ export default function LiveSellingPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
-  const [isTabsScrolled, setIsTabsScrolled] = useState(false);
-  const tabsRef = useRef<HTMLDivElement>(null);
   
    const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -390,21 +388,10 @@ export default function LiveSellingPage() {
         setFeed(postsData);
         setIsLoadingFeed(false);
     });
-    
-    // Scroll listener for the sticky tabs animation
-    const handleScroll = () => {
-        if (tabsRef.current) {
-            // The header height is ~65px. We check if scrollY is past that point.
-            setIsTabsScrolled(window.scrollY > tabsRef.current.offsetTop - 65);
-        }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
 
     return () => {
         clearTimeout(sellersTimer);
         unsubscribe();
-        window.removeEventListener('scroll', handleScroll);
     };
   }, [feedFilter, user, followingIds]);
   
@@ -619,11 +606,7 @@ export default function LiveSellingPage() {
 };
 
  const renderTabs = (isHeader: boolean) => (
-    <TabsList className={cn(
-        "w-full grid-cols-3 sm:w-auto sm:inline-flex",
-        isHeader ? "transition-opacity duration-300" : "",
-        isHeader && !isTabsScrolled ? "opacity-0" : "opacity-100"
-    )}>
+    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "hidden md:inline-flex")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
@@ -654,7 +637,7 @@ export default function LiveSellingPage() {
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
                  <div className="hidden md:flex flex-1 justify-center">
-                    <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-full max-w-sm">
+                    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
                         {renderTabs(true)}
                     </Tabs>
                 </div>
@@ -799,7 +782,7 @@ export default function LiveSellingPage() {
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={signOut}>
+                                    <DropdownMenuItem onClick={() => signOut()}>
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Log Out</span>
                                     </DropdownMenuItem>
@@ -822,8 +805,8 @@ export default function LiveSellingPage() {
             <main>
               <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div ref={tabsRef} className={cn("sticky md:top-[64px] bg-background/95 backdrop-blur-sm z-20 py-2", isTabsScrolled && "md:hidden")}>
-                        <div className="flex justify-center">
+                     <div className="sticky top-[65px] md:top-[65px] bg-background/95 backdrop-blur-sm z-20 py-2 md:hidden">
+                        <div className="flex justify-center px-4">
                             {renderTabs(false)}
                         </div>
                     </div>
