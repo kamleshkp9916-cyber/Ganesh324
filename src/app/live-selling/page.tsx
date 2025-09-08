@@ -935,15 +935,15 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20 relative">
-              <div className="max-w-7xl mx-auto">
+            <main className="flex-1 overflow-y-auto pb-20 relative">
+              <div className="w-full">
                 <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
                             <div className="flex justify-center mb-6">
                                 <Skeleton className="h-10 w-[200px] rounded-md" />
                             </div>
                         ) : (
-                            <div className="flex justify-center mb-6">
+                            <div className="flex justify-center mb-6 px-2 md:px-4">
                                 <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                                     <TabsTrigger value="all">All</TabsTrigger>
                                     <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -954,8 +954,10 @@ export default function LiveSellingPage() {
                     
                     <TabsContent value="all">
                        <div className="space-y-8">
-                            <section>
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+                             <section>
+                                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                                     <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4">
                                      {topLiveStreams.map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
@@ -985,7 +987,7 @@ export default function LiveSellingPage() {
                                 ))}
                                 </div>
                             </section>
-                            <section>
+                            <section className="container mx-auto px-4 sm:px-6 lg:px-8">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {filterButtons.slice(1, 5).map(filter => (
@@ -994,7 +996,9 @@ export default function LiveSellingPage() {
                                 </div>
                             </section>
                              <section>
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                                <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                                    <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                                </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4">
                                    {filteredLiveSellers.slice(0, 10).map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
@@ -1016,143 +1020,145 @@ export default function LiveSellingPage() {
                     </TabsContent>
 
                     <TabsContent value="live">
-                        <div className="mb-6">
-                        {!isMounted || offerSlides.length === 0 ? (
-                            <Skeleton className="w-full aspect-[3/1] rounded-lg" />
-                        ) : (
-                            <div>
-                                <Carousel
-                                    className="w-full"
-                                    plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
-                                    opts={{ loop: true }}
-                                    setApi={setApi}
-                                >
-                                    <CarouselContent>
-                                        {offerSlides.map((slide) => (
-                                        <CarouselItem key={slide.id}>
-                                            <Card className="overflow-hidden bg-card">
-                                            <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1] md:aspect-[4/1]">
-                                                <Image
-                                                src={slide.imageUrl}
-                                                alt={slide.title}
-                                                fill
-                                                style={{objectFit: 'cover'}}
-                                                className="brightness-75"
-                                                data-ai-hint={slide.hint}
-                                                />
-                                                <div className="absolute text-center text-primary-foreground p-4">
-                                                <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
-                                                <p className="text-sm md:text-lg">{slide.description}</p>
-                                                </div>
-                                            </CardContent>
-                                            </Card>
-                                        </CarouselItem>
+                       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="mb-6">
+                            {!isMounted || offerSlides.length === 0 ? (
+                                <Skeleton className="w-full aspect-[3/1] rounded-lg" />
+                            ) : (
+                                <div>
+                                    <Carousel
+                                        className="w-full"
+                                        plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+                                        opts={{ loop: true }}
+                                        setApi={setApi}
+                                    >
+                                        <CarouselContent>
+                                            {offerSlides.map((slide) => (
+                                            <CarouselItem key={slide.id}>
+                                                <Card className="overflow-hidden bg-card">
+                                                <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1] md:aspect-[4/1]">
+                                                    <Image
+                                                    src={slide.imageUrl}
+                                                    alt={slide.title}
+                                                    fill
+                                                    style={{objectFit: 'cover'}}
+                                                    className="brightness-75"
+                                                    data-ai-hint={slide.hint}
+                                                    />
+                                                    <div className="absolute text-center text-primary-foreground p-4">
+                                                    <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
+                                                    <p className="text-sm md:text-lg">{slide.description}</p>
+                                                    </div>
+                                                </CardContent>
+                                                </Card>
+                                            </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                    </Carousel>
+                                    <div className="flex justify-center gap-2 mt-4">
+                                        {offerSlides.map((_, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => api?.scrollTo(index)}
+                                                className={cn(
+                                                    "h-2 w-2 rounded-full transition-colors",
+                                                    index === currentSlide ? 'bg-primary' : 'bg-muted'
+                                                )}
+                                            />
                                         ))}
-                                    </CarouselContent>
-                                </Carousel>
-                                <div className="flex justify-center gap-2 mt-4">
-                                    {offerSlides.map((_, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => api?.scrollTo(index)}
-                                            className={cn(
-                                                "h-2 w-2 rounded-full transition-colors",
-                                                index === currentSlide ? 'bg-primary' : 'bg-muted'
-                                            )}
-                                        />
+                                    </div>
+                                </div>
+                            )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {filterButtons.map((filter) => (
+                                <Button 
+                                    key={filter} 
+                                    variant={activeFilter === filter ? 'default' : 'outline'} 
+                                    size="sm" 
+                                    className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
+                                    onClick={() => setActiveFilter(filter)}
+                                >
+                                    {filter}
+                                </Button>
+                                ))}
+                                <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
+                                    Filters
+                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+
+                             {isLoadingSellers ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {Array.from({ length: 12 }).map((_, index) => (
+                                        <LiveSellerSkeleton key={index} />
                                     ))}
                                 </div>
-                            </div>
-                        )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {filterButtons.map((filter) => (
-                            <Button 
-                                key={filter} 
-                                variant={activeFilter === filter ? 'default' : 'outline'} 
-                                size="sm" 
-                                className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                onClick={() => setActiveFilter(filter)}
-                            >
-                                {filter}
-                            </Button>
-                            ))}
-                            <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
-                                Filters
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </div>
-
-                         {isLoadingSellers ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {Array.from({ length: 12 }).map((_, index) => (
-                                    <LiveSellerSkeleton key={index} />
-                                ))}
-                            </div>
-                         ) : filteredLiveSellers.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {filteredLiveSellers.map((seller: any) => (
-                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                        <div className="absolute top-2 left-2 z-10">
-                                            <Badge variant="destructive">
-                                                LIVE
-                                            </Badge>
-                                        </div>
-                                         {seller.isMyStream && (
-                                            <div className="absolute top-10 left-2 z-10">
-                                                <Badge variant="secondary" className="bg-purple text-purple-foreground">
-                                                    Your Stream
+                             ) : filteredLiveSellers.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {filteredLiveSellers.map((seller: any) => (
+                                        <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                            <div className="absolute top-2 left-2 z-10">
+                                                <Badge variant="destructive">
+                                                    LIVE
                                                 </Badge>
                                             </div>
-                                        )}
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                                <Users className="w-3 h-3 mr-1.5" />
-                                                {seller.viewers}
-                                            </Badge>
-                                        </div>
+                                             {seller.isMyStream && (
+                                                <div className="absolute top-10 left-2 z-10">
+                                                    <Badge variant="secondary" className="bg-purple text-purple-foreground">
+                                                        Your Stream
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                                    <Users className="w-3 h-3 mr-1.5" />
+                                                    {seller.viewers}
+                                                </Badge>
+                                            </div>
 
-                                        <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                            <Image 
-                                                src={seller.thumbnailUrl} 
-                                                alt={`Live stream from ${seller.name}`} 
-                                                width={300} 
-                                                height={450} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint={seller.hint}
-                                            />
-                                        </Link>
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex items-start gap-2">
-                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                    <Avatar className="h-8 w-8 border-2 border-primary">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                </Link>
-                                                <div className="flex-1">
-                                                     <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
-                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                            <Link href={`/stream/${seller.id}`} className="cursor-pointer">
+                                                <Image 
+                                                    src={seller.thumbnailUrl} 
+                                                    alt={`Live stream from ${seller.name}`} 
+                                                    width={300} 
+                                                    height={450} 
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    data-ai-hint={seller.hint}
+                                                />
+                                            </Link>
+                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <div className="flex items-start gap-2">
+                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
                                                     </Link>
-                                                    {seller.hasAuction && (
-                                                        <Badge variant="purple" className="mt-1">
-                                                            <Gavel className="mr-1 h-3 w-3" />
-                                                            Auction
-                                                        </Badge>
-                                                    )}
+                                                    <div className="flex-1">
+                                                         <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        </Link>
+                                                        {seller.hasAuction && (
+                                                            <Badge variant="purple" className="mt-1">
+                                                                <Gavel className="mr-1 h-3 w-3" />
+                                                                Auction
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                             <div className="text-center py-12 text-muted-foreground">
-                                <p className="text-lg font-semibold">No results found</p>
-                                <p>Try searching for something else or changing the filter.</p>
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            ) : (
+                                 <div className="text-center py-12 text-muted-foreground">
+                                    <p className="text-lg font-semibold">No results found</p>
+                                    <p>Try searching for something else or changing the filter.</p>
+                                </div>
+                            )}
+                       </div>
                     </TabsContent>
 
                     <TabsContent value="feeds" className="w-full">
@@ -1184,7 +1190,7 @@ export default function LiveSellingPage() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                          </AlertDialog>
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
