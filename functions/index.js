@@ -3,6 +3,7 @@ const { onRequest } = require("firebase-functions/v2/http");
 const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
 const admin = require("firebase-admin");
+const client = require("@sendgrid/client");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -116,101 +117,88 @@ exports.sendWelcomeEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] }).auth
   }
 });
 
+// Replaced the Firestore-triggered function with a robust HTTP-triggered one for notifications.
+exports.sendNotificationEmail = onRequest(
+  { secrets: ["SENDGRID_KEY"] },
+  async (req, res) => {
+    try {
+      if (req.method !== "POST") {
+        return res.status(405).json({ error: "Use POST" });
+      }
+      
+      const body = req.body || {};
+      const subject = body.subject;
+      const text = body.text || null;
+      const html = body.html || null;
+      const fromEmail = body.from || "kamleshkp9916@gmail.com";
+      const recipients = body.recipients || [];
 
-// New function to send emails based on notifications created in Firestore
-exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] }).firestore.document('notifications/{notificationId}').onCreate(async (snap, context) => {
-    const notificationData = snap.data();
-    if (!notificationData) {
-        console.log("No data associated with the event");
-        return;
-    }
+      if (!subject || (!text && !html) || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({
+          error: "Missing required fields: subject, (text or html), recipients (non-empty array)"
+        });
+      }
 
-    const SENDGRID_KEY = process.env.SENDGRID_KEY;
-    if (!SENDGRID_KEY) {
-        console.error("Missing SENDGRID_KEY env var. Cannot send notification email.");
-        return;
-    }
-    sgMail.setApiKey(SENDGRID_KEY);
+      const SENDGRID_KEY = process.env.SENDGRID_KEY;
+      if (!SENDGRID_KEY) {
+        console.error("Missing SENDGRID_KEY env var");
+        return res.status(500).json({ error: "Server misconfigured" });
+      }
 
-    const { type, title, message, userId } = notificationData;
+      client.setApiKey(SENDGRID_KEY);
 
-    if (type === 'announcement') {
-        // Send to all users
-        try {
-            const usersSnapshot = await db.collection('users').get();
-            if (usersSnapshot.empty) {
-                console.log("No users found to send announcement to.");
-                return;
-            }
-
-            const emails = usersSnapshot.docs.map(doc => doc.data().email).filter(email => !!email);
-            
-            if (emails.length === 0) {
-                 console.log("No valid user emails found.");
-                return;
-            }
-            
-            const msg = {
-                to: emails,
-                from: {
-                    email: "kamleshkp9916@gmail.com",
-                    name: "StreamCart"
-                },
-                subject: `Announcement: ${title}`,
-                html: `<h2>${title}</h2><p>${message}</p>`,
-                isMultiple: true,
-            };
-
-            await sgMail.send(msg);
-            console.log(`Announcement email sent to ${emails.length} users.`);
-
-        } catch (error) {
-            console.error("Error sending announcement email:", error.toString());
-            if (error.response) {
-                console.error(error.response.body)
-            }
+      const personalizations = recipients.map((r) => {
+        if (typeof r === "string") {
+          return { to: [{ email: r }] };
+        } else {
+          const p = { to: [{ email: r.email }] };
+          if (r.name) p.to[0].name = r.name;
+          if (r.data && typeof r.data === "object") {
+            p.dynamic_template_data = r.data;
+          }
+          return p;
         }
-    } else if (type === 'warning') {
-        // Send to a specific user
-        try {
-            if (!userId) {
-                console.error("Warning notification is missing userId.");
-                return;
-            }
-            
-            // Try to fetch user by UID first, then by email as a fallback
-            let userDoc = await db.collection('users').doc(userId).get();
-            let userEmail;
+      });
 
-            if (userDoc.exists) {
-                userEmail = userDoc.data().email;
-            } else {
-                 const usersQuery = await db.collection('users').where('email', '==', userId).limit(1).get();
-                 if (!usersQuery.empty) {
-                     userEmail = usersQuery.docs[0].data().email;
-                 }
-            }
-            
-            if (!userEmail) {
-                console.error(`Could not find email for user: ${userId}`);
-                return;
-            }
+      const MAX_PER_BATCH = 500;
+      const batches = [];
+      for (let i = 0; i < personalizations.length; i += MAX_PER_BATCH) {
+        batches.push(personalizations.slice(i, i + MAX_PER_BATCH));
+      }
 
-            const msg = {
-                to: userEmail,
-                from: "kamleshkp9916@gmail.com",
-                subject: `Important: A Warning Regarding Your Account`,
-                html: `<h2>Warning</h2><p>This is a formal warning regarding your StreamCart account.</p><p><strong>Message from Admin:</strong> ${message}</p><p>Please adhere to our community guidelines to avoid further action.</p>`,
-            };
+      const content = [];
+      if (text) content.push({ type: "text/plain", value: text });
+      if (html) content.push({ type: "text/html", value: html });
 
-            await sgMail.send(msg);
-            console.log(`Warning email sent to ${userEmail}`);
+      for (const batchPersonalizations of batches) {
+        const msg = {
+          personalizations: batchPersonalizations,
+          from: { email: fromEmail },
+          subject,
+          content
+        };
+        await client.request({
+          method: "POST",
+          url: "/v3/mail/send",
+          body: msg
+        });
+      }
 
-        } catch (error) {
-            console.error(`Error sending warning email to ${userId}:`, error);
-             if (error.response) {
-                console.error(error.response.body)
-            }
-        }
+      return res.status(200).json({ success: true, sent: recipients.length });
+    } catch (err) {
+      try {
+        const sgBody = err && err.response && (err.response.body || err.response.data)
+          ? (err.response.body || err.response.data)
+          : null;
+        console.error("sendNotificationEmail error:", err && err.toString ? err.toString() : err);
+        if (sgBody) console.error("SendGrid response body (debug):", JSON.stringify(sgBody, null, 2));
+      } catch (logErr) {
+        console.error("Error logging send error:", logErr);
+      }
+
+      return res.status(500).json({ error: "Email sending failed" });
     }
-});
+  }
+);
+
+    
