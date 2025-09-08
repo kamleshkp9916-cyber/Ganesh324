@@ -76,6 +76,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -471,38 +472,45 @@ export default function AdminSettingsPage() {
                         )) : (<p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p>)}
                     </CardContent>
                 </Card>
-
-                <Card>
-                    <CardHeader><CardTitle>App-wide Announcement</CardTitle><CardDescription>Send a notification to all users of the app. Use for feature updates, policy changes, or important announcements.</CardDescription></CardHeader>
-                    <CardContent>
-                       <Form {...announcementForm}>
-                         <form onSubmit={announcementForm.handleSubmit(onSendAnnouncement)} className="space-y-4">
-                           <FormField control={announcementForm.control} name="title" render={({ field }) => (
-                               <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., New Feature Added!" {...field} /></FormControl><FormMessage /></FormItem>
-                           )}/>
-                            <FormField control={announcementForm.control} name="message" render={({ field }) => (
-                               <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl><FormMessage /></FormItem>
-                           )}/>
-                            <Button type="submit" disabled={isSendingAnnouncement}>{isSendingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Send className="mr-2 h-4 w-4" /> Send to All Users</Button>
-                         </form>
-                       </Form>
-                    </CardContent>
-                </Card>
-
+                
                  <Card>
-                    <CardHeader><CardTitle>Send Warning</CardTitle><CardDescription>Send a direct warning notification to a specific user (seller or buyer).</CardDescription></CardHeader>
+                    <CardHeader>
+                        <CardTitle>User Notifications</CardTitle>
+                        <CardDescription>Send notifications to all users or a specific user.</CardDescription>
+                    </CardHeader>
                     <CardContent>
-                        <Form {...warningForm}>
-                            <form onSubmit={warningForm.handleSubmit(onSendWarning)} className="space-y-4">
-                                <FormField control={warningForm.control} name="userId" render={({ field }) => (
-                                    <FormItem><FormLabel>User ID or Email</FormLabel><FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={warningForm.control} name="message" render={({ field }) => (
-                                    <FormItem><FormLabel>Warning Message</FormLabel><FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                 <Button type="submit" variant="destructive" disabled={isSendingWarning}>{isSendingWarning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Annoyed className="mr-2 h-4 w-4" /> Send Warning</Button>
-                            </form>
-                        </Form>
+                        <Tabs defaultValue="announcement">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="announcement">Announcement</TabsTrigger>
+                                <TabsTrigger value="warning">Warning</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="announcement" className="pt-4">
+                                <Form {...announcementForm}>
+                                    <form onSubmit={announcementForm.handleSubmit(onSendAnnouncement)} className="space-y-4">
+                                    <FormField control={announcementForm.control} name="title" render={({ field }) => (
+                                        <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., New Feature Added!" {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                        <FormField control={announcementForm.control} name="message" render={({ field }) => (
+                                        <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl><FormMessage /></FormItem>
+                                    )}/>
+                                        <Button type="submit" disabled={isSendingAnnouncement}>{isSendingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Send className="mr-2 h-4 w-4" /> Send to All Users</Button>
+                                    </form>
+                                </Form>
+                            </TabsContent>
+                            <TabsContent value="warning" className="pt-4">
+                                 <Form {...warningForm}>
+                                    <form onSubmit={warningForm.handleSubmit(onSendWarning)} className="space-y-4">
+                                        <FormField control={warningForm.control} name="userId" render={({ field }) => (
+                                            <FormItem><FormLabel>User ID or Email</FormLabel><FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} /></FormControl><FormMessage /></FormItem>
+                                        )}/>
+                                        <FormField control={warningForm.control} name="message" render={({ field }) => (
+                                            <FormItem><FormLabel>Warning Message</FormLabel><FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} /></FormControl><FormMessage /></FormItem>
+                                        )}/>
+                                        <Button type="submit" variant="destructive" disabled={isSendingWarning}>{isSendingWarning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Annoyed className="mr-2 h-4 w-4" /> Send Warning</Button>
+                                    </form>
+                                </Form>
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
 
@@ -535,3 +543,5 @@ export default function AdminSettingsPage() {
     </>
   )
 }
+
+    
