@@ -244,39 +244,40 @@ export default function AdminSettingsPage() {
 
   // Load data from local storage on mount
   useEffect(() => {
-    setIsMounted(true);
-    const storedCoupons = localStorage.getItem(COUPONS_KEY);
-    if (storedCoupons) {
-        const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
-        setCoupons(parsedCoupons);
-    } else {
-        setCoupons(initialCoupons);
+    if (typeof window !== 'undefined') {
+        setIsMounted(true);
+        const storedCoupons = localStorage.getItem(COUPONS_KEY);
+        if (storedCoupons) {
+            const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
+            setCoupons(parsedCoupons);
+        } else {
+            setCoupons(initialCoupons);
+        }
+
+        const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+        if (storedSlides) {
+            const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
+            setSlides(parsedSlides);
+        } else {
+            setSlides(initialSlides);
+        }
+
+        const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+        const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
+            id: initialFlaggedContent.length + index + 1,
+            type: 'Chat Message',
+            content: `Reported comment: "${comment.message}"`,
+            targetId: comment.streamId,
+            reporter: 'User',
+            status: 'Pending',
+        }));
+
+        setContentList(prev => {
+            const existingIds = new Set(prev.map(item => item.content));
+            const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
+            return [...prev, ...uniqueNewItems];
+        });
     }
-
-    const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-    if (storedSlides) {
-        const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
-        setSlides(parsedSlides);
-    } else {
-        setSlides(initialSlides);
-    }
-
-    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
-        id: initialFlaggedContent.length + index + 1,
-        type: 'Chat Message',
-        content: `Reported comment: "${comment.message}"`,
-        targetId: comment.streamId,
-        reporter: 'User',
-        status: 'Pending',
-    }));
-
-    setContentList(prev => {
-        const existingIds = new Set(prev.map(item => item.content));
-        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
-        return [...prev, ...uniqueNewItems];
-    });
-
   }, []);
 
   const saveCoupons = (newCoupons: Coupon[]) => {
@@ -342,11 +343,15 @@ export default function AdminSettingsPage() {
   const onSendAnnouncement = async (values: z.infer<typeof announcementSchema>) => {
     setIsSendingAnnouncement(true)
     try {
-        await sendAnnouncement(values.title, values.message)
-        toast({ title: "Announcement Sent!", description: "Your announcement has been sent to all users." })
-        announcementForm.reset()
-    } catch (error) {
-        toast({ variant: "destructive", title: "Error Sending Announcement", description: "Could not send the announcement. Please try again." })
+        const result = await sendAnnouncement(values.title, values.message)
+        if (result.success) {
+            toast({ title: "Announcement Sent!", description: result.message })
+            announcementForm.reset()
+        } else {
+             toast({ variant: "destructive", title: "Announcement Failed", description: result.message || "Could not send the announcement. Please check server logs." })
+        }
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Error Sending Announcement", description: error.message || "An unknown error occurred. Please try again." })
     } finally {
         setIsSendingAnnouncement(false)
     }
@@ -384,7 +389,7 @@ export default function AdminSettingsPage() {
   }
 
 
-  if (loading || !isMounted) {
+  if (!isMounted || loading) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 
