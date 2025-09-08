@@ -5,7 +5,7 @@ import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase';
 import { createUserData, getUserData, UserData, updateUserData } from "@/lib/follow-data";
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
