@@ -652,7 +652,8 @@ export default function LiveSellingPage() {
                 <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
-                 <div className={cn("hidden md:flex flex-1 justify-center transition-opacity duration-300", isScrolled ? "opacity-100" : "opacity-0")}>
+                
+                <div className={cn("hidden md:flex flex-1 justify-center items-center transition-opacity duration-300", isScrolled ? "opacity-100" : "opacity-0 pointer-events-none")}>
                     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
                        {renderTabs(true)}
                     </Tabs>
@@ -821,8 +822,8 @@ export default function LiveSellingPage() {
             <main>
               <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 md:opacity-0 transition-opacity", isScrolled && "md:opacity-0", !isScrolled && "md:opacity-100")}>
-                        <div className="flex justify-center px-4">
+                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto" : "opacity-100")}>
+                        <div className={cn("flex justify-center px-4", isScrolled && "hidden")}>
                             {renderTabs()}
                         </div>
                     </div>
@@ -1292,5 +1293,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-    
