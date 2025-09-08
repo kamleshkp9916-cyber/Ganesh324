@@ -50,6 +50,9 @@ import {
   Send,
   ArrowUp,
   ArrowDown,
+  Tv,
+  Tags,
+  Flame,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -57,7 +60,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -89,7 +92,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
-import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction } from "firebase/firestore";
@@ -425,7 +428,7 @@ export default function LiveSellingPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("live");
+  const [activeTab, setActiveTab] = useState("all");
   const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -950,8 +953,66 @@ export default function LiveSellingPage() {
                     )}
                     
                     <TabsContent value="all">
-                        {/* Content for the new "All" tab will go here */}
-                         <p className="text-center text-muted-foreground">"All" tab content coming soon.</p>
+                       <div className="space-y-8">
+                            <section>
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                     {topLiveStreams.map((seller: any) => (
+                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
+                                        <Link href={`/stream/${seller.id}`} className="cursor-pointer">
+                                            <Image 
+                                                src={seller.thumbnailUrl} 
+                                                alt={`Live stream from ${seller.name}`} 
+                                                width={300} 
+                                                height={450} 
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={seller.hint}
+                                            />
+                                        </Link>
+                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                            <div className="flex items-start gap-2">
+                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                    <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
+                                                </Link>
+                                                <div className="flex-1">
+                                                     <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                </div>
+                            </section>
+                            <section>
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {filterButtons.slice(1, 5).map(filter => (
+                                         <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => { setActiveTab('live'); setActiveFilter(filter); }}>{filter}</Button>
+                                    ))}
+                                </div>
+                            </section>
+                             <section>
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                   {filteredLiveSellers.slice(0, 5).map((seller: any) => (
+                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                            <Image 
+                                                src={seller.thumbnailUrl} 
+                                                alt={`Product from ${seller.name}`} 
+                                                width={300} 
+                                                height={450} 
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={seller.hint}
+                                            />
+                                        </Link>
+                                    </div>
+                                ))}
+                                </div>
+                            </section>
+                       </div>
                     </TabsContent>
 
                     <TabsContent value="live">
