@@ -298,12 +298,10 @@ export default function LiveSellingPage() {
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
-  
-  const [isScrolled, setIsScrolled] = useState(false);
-  const tabsRef = useRef<HTMLDivElement>(null);
-  
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
 
+  const [isScrolled, setIsScrolled] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -504,7 +502,8 @@ export default function LiveSellingPage() {
   const filteredProducts = useMemo(() => {
     const products = liveSellers.map(seller => {
         const product = productDetails[seller.productId as keyof typeof productDetails];
-        return product ? { ...seller, product } : null;
+        if (!product) return null;
+        return { ...seller, product };
     }).filter(Boolean);
 
     if (productCategoryFilter === 'All') {
@@ -567,7 +566,7 @@ export default function LiveSellingPage() {
     api.on('reInit', onSelect)
   }, [api, onSelect]);
   
-  const handleScroll = useCallback(() => {
+   const handleScroll = useCallback(() => {
     if (tabsRef.current) {
       const { top } = tabsRef.current.getBoundingClientRect();
       const headerHeight = 65; // Height of the main header
@@ -639,14 +638,13 @@ export default function LiveSellingPage() {
     }
 };
 
-  const renderTabs = (isHeader: boolean = false) => (
-    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "bg-transparent")}>
+  const renderTabs = (isSticky: boolean) => (
+    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isSticky && "bg-transparent")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
     </TabsList>
   );
-
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -665,15 +663,14 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <div className="flex-1 flex flex-col">
-            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
                  <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
                     <div className="flex-1 flex justify-start items-center">
                         <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
 
-                    <div className={cn(
-                        "hidden md:flex flex-1 justify-center items-center transition-opacity duration-300",
+                     <div className={cn(
+                        "absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
                        {renderTabs(true)}
@@ -838,14 +835,8 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2", isScrolled ? "hidden" : "md:hidden")}>
-                    <div className={cn("flex justify-center px-4")}>
-                        {renderTabs()}
-                    </div>
-                </div>
-
-                <div className={cn("hidden md:flex justify-center sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 border-b", isScrolled ? "md:hidden" : "")} ref={tabsRef}>
-                    {renderTabs()}
+                 <div ref={tabsRef} className={cn("flex justify-center pt-2 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
+                    {renderTabs(false)}
                 </div>
                 
                 <div className="pb-20">
@@ -1334,9 +1325,8 @@ export default function LiveSellingPage() {
                             )}
                     </TabsContent>
                 </div>
-            </Tabs>
             <Footer />
-        </div>
+        </Tabs>
     </div>
   );
 }
