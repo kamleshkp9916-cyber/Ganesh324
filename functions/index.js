@@ -1,5 +1,5 @@
 
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest } = require("firebase-functions/v2/http");
 const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
 const admin = require("firebase-admin");
@@ -150,18 +150,26 @@ exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] })
                 return;
             }
             
+            const personalizations = emails.map(email => ({ to: [{ email }] }));
+            
             const msg = {
-                to: emails,
-                from: "kamleshkp9916@gmail.com",
+                personalizations: personalizations,
+                from: {
+                    email: "kamleshkp9916@gmail.com",
+                    name: "StreamCart"
+                },
                 subject: `Announcement: ${title}`,
                 html: `<h2>${title}</h2><p>${message}</p>`,
             };
 
-            await sgMail.sendMultiple(msg);
+            await sgMail.send(msg);
             console.log(`Announcement email sent to ${emails.length} users.`);
 
         } catch (error) {
-            console.error("Error sending announcement email:", error);
+            console.error("Error sending announcement email:", error.toString());
+            if (error.response) {
+                console.error(error.response.body)
+            }
         }
     } else if (type === 'warning') {
         // Send to a specific user
