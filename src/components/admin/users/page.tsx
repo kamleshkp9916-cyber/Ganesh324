@@ -172,18 +172,6 @@ export default function AdminUsersPage() {
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
     setAllUsersState(usersList as UserData[]);
-
-    // Automatically promote the specified user
-    const userToMakeAdmin = usersList.find(u => u.email === 'kamleshkp9916@gmail.com');
-    if (userToMakeAdmin && userToMakeAdmin.role !== 'admin') {
-        await updateUserData(userToMakeAdmin.uid, { role: 'admin' });
-        toast({
-            title: "Admin Promoted",
-            description: `${userToMakeAdmin.displayName} has been promoted to administrator.`,
-        });
-        // Re-fetch to reflect the change immediately
-        fetchUsers();
-    }
   };
 
   useEffect(() => {
@@ -553,5 +541,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
