@@ -554,16 +554,18 @@ export default function LiveSellingPage() {
   }, [api, onSelect]);
   
   const handleScroll = useCallback(() => {
-      if (tabsRef.current) {
-          const { top } = tabsRef.current.getBoundingClientRect();
-          const headerHeight = 65;
-          setIsScrolled(top <= headerHeight);
-      }
+    if (tabsRef.current) {
+      const { top } = tabsRef.current.getBoundingClientRect();
+      const headerHeight = 65; // Height of the main header
+      setIsScrolled(top <= headerHeight);
+    }
   }, []);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+      window.addEventListener('scroll', handleScroll);
+      return () => {
+          window.removeEventListener('scroll', handleScroll);
+      };
   }, [handleScroll]);
 
   const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
@@ -878,6 +880,7 @@ export default function LiveSellingPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
                                 {filteredLiveSellers.slice(0, 10).map((seller: any) => {
                                     const product = productDetails[seller.productId as keyof typeof productDetails];
+                                    if (!product) return null; // FIX: Add this guard clause
                                     return (
                                         <Card key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                             <Link href={`/product/${seller.productId}`} className="cursor-pointer">
