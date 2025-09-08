@@ -150,7 +150,9 @@ exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] })
                 return;
             }
             
-            const personalizations = emails.map(email => ({ to: [{ email }] }));
+            const personalizations = emails.map(email => ({
+                to: [{ email: email }]
+            }));
             
             const msg = {
                 personalizations: personalizations,
