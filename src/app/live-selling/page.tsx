@@ -100,6 +100,7 @@ import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow } from '@/lib/follow-data';
+import { productDetails } from '@/lib/product-data';
 
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
@@ -552,17 +553,18 @@ export default function LiveSellingPage() {
     api.on('reInit', onSelect)
   }, [api, onSelect]);
   
-  useEffect(() => {
-    const handleScroll = () => {
+  const handleScroll = useCallback(() => {
       if (tabsRef.current) {
-        const { top } = tabsRef.current.getBoundingClientRect();
-        const headerHeight = 65;
-        setIsScrolled(top <= headerHeight);
+          const { top } = tabsRef.current.getBoundingClientRect();
+          const headerHeight = 65;
+          setIsScrolled(top <= headerHeight);
       }
-    };
+  }, []);
+
+  useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
     const db = getFirestoreDb();
@@ -649,21 +651,18 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
-                    {/* Left Section */}
+                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
                     <div className="flex-1 flex justify-start items-center">
                         <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
 
-                    {/* Center Section - Header Tabs */}
                     <div className={cn(
                         "hidden md:flex flex-1 justify-center items-center transition-opacity duration-300",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
-                        {renderTabs(true)}
+                       {renderTabs(true)}
                     </div>
 
-                    {/* Right Section */}
                     <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
                         {(!isMounted || authLoading) ? (
                             <Skeleton className="h-9 w-24 rounded-full" />
@@ -823,7 +822,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none" : "opacity-100")}>
+                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled && "opacity-0 pointer-events-none")}>
                     <div className={cn("flex justify-center px-4")}>
                         {renderTabs()}
                     </div>
@@ -876,21 +875,37 @@ export default function LiveSellingPage() {
                             <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4 px-2 md:px-4">
-                            {filteredLiveSellers.slice(0, 10).map((seller: any) => (
-                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                    <Link href={`/product/${seller.productId}`} className="cursor-pointer">
-                                        <Image 
-                                            src={seller.thumbnailUrl.replace('450', '300')} 
-                                            alt={`Product from ${seller.name}`} 
-                                            width={300} 
-                                            height={300} 
-                                            className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={seller.hint}
-                                        />
-                                    </Link>
-                                </div>
-                            ))}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
+                                {filteredLiveSellers.slice(0, 10).map((seller: any) => {
+                                    const product = productDetails[seller.productId as keyof typeof productDetails];
+                                    return (
+                                        <Card key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                            <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                                <div className="overflow-hidden">
+                                                    <Image 
+                                                        src={seller.thumbnailUrl.replace('450', '300')} 
+                                                        alt={`Product from ${seller.name}`} 
+                                                        width={300} 
+                                                        height={300} 
+                                                        className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+                                                        data-ai-hint={seller.hint}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                                                    <p className="font-bold text-lg">{product.price}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                        <div className="flex items-center gap-1 text-amber-500">
+                                                            <Star className="h-4 w-4 fill-current"/>
+                                                            <span>{seller.rating}</span>
+                                                        </div>
+                                                        <span>({seller.buyers} buyers)</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         </section>
                     </TabsContent>
