@@ -308,7 +308,7 @@ export default function CartPage() {
                             <CardContent className="space-y-4">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>₹{subtotal.toLocaleString('en-IN', { minimumFraction Digits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 {appliedCoupon && (
                                      <div className="flex justify-between items-center text-success">
@@ -407,5 +407,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-    
