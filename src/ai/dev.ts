@@ -7,3 +7,4 @@ import "./flows/contact-flow.ts";
 import "./flows/executive-chat-flow.ts";
 import "./flows/kyc-flow.ts";
 import "./flows/notification-flow.ts";
+import "./flows/impersonation-flow.ts";

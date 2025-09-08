@@ -21,6 +21,7 @@ import {
   Wallet,
   Send,
   ShieldAlert,
+  LogIn,
 } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
@@ -76,6 +77,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -88,7 +90,7 @@ const mockPayouts = [
     { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
 ];
 
-const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void }) => {
+const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => setIsMounted(true), []);
 
@@ -125,12 +127,17 @@ const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin }: { users: any
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                         <DropdownMenuItem onSelect={() => onImpersonate(u)}>
+                                            <LogIn className="mr-2 h-4 w-4" />
+                                            Login as User
+                                        </DropdownMenuItem>
                                         {u.role !== 'admin' && (
                                             <DropdownMenuItem onSelect={() => onMakeAdmin(u)}>
                                                 <ShieldAlert className="mr-2 h-4 w-4" />
                                                 Make Admin
                                             </DropdownMenuItem>
                                         )}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             Delete Account
@@ -204,6 +211,33 @@ export default function AdminUsersPage() {
       setUserToPromote(userToPromote);
       setIsPromoteAlertOpen(true);
   };
+
+  const handleImpersonateUser = async (userToImpersonate: any) => {
+    if (!user || user.uid === userToImpersonate.uid) {
+        toast({ variant: 'destructive', title: "Cannot impersonate yourself."});
+        return;
+    }
+    
+    try {
+        toast({ title: "Generating login token..." });
+        const { token } = await createImpersonationToken(userToImpersonate.uid);
+        
+        // Store the token and current admin's ID to allow returning
+        localStorage.setItem('impersonationToken', token);
+        localStorage.setItem('adminToken', await user.getIdToken()); // Or some other way to re-authenticate as admin
+
+        // Open new tab and sign in with the custom token
+        const newTab = window.open('/', '_blank');
+        if (newTab) {
+            newTab.focus();
+        } else {
+             toast({ variant: 'destructive', title: "Popup blocked", description: "Please allow popups for this site."});
+        }
+    } catch (error) {
+        console.error("Impersonation error:", error);
+        toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
+    }
+  }
 
   const confirmDeleteUser = async () => {
       if (!userToDelete) return;
@@ -453,7 +487,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} />
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -464,7 +498,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} />
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -475,7 +509,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all site administrators.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} />
+                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
