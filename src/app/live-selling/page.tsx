@@ -824,7 +824,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled && "opacity-0 pointer-events-none")}>
+                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 transition-opacity md:hidden", isScrolled ? "opacity-100" : "opacity-0 pointer-events-none")}>
                     <div className={cn("flex justify-center px-4")}>
                         {renderTabs()}
                     </div>
