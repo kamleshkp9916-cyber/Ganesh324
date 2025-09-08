@@ -649,17 +649,20 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <div className="flex-1 flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
-                <div className="flex items-center gap-2">
+                {/* Left Section */}
+                <div className="flex-1 flex justify-start items-center">
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
-                
-                <div className={cn("hidden md:flex flex-1 justify-center items-center transition-opacity duration-300", isScrolled ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-                       {renderTabs(true)}
-                    </Tabs>
+
+                {/* Center Section - Header Tabs */}
+                <div className={cn(
+                    "hidden md:flex flex-1 justify-center items-center transition-opacity duration-300",
+                    isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}>
+                    {renderTabs(true)}
                 </div>
 
-
+                {/* Right Section */}
                 <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
                      {(!isMounted || authLoading) ? (
                         <Skeleton className="h-9 w-24 rounded-full" />
@@ -819,16 +822,15 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main>
-              <div className="w-full">
+            <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto" : "opacity-100")}>
-                        <div className={cn("flex justify-center px-4", isScrolled && "hidden")}>
+                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none" : "opacity-100")}>
+                        <div className={cn("flex justify-center px-4 md:hidden")}>
                             {renderTabs()}
                         </div>
                     </div>
                     
-                    <TabsContent value="all" className="space-y-8 pt-4 pb-20">
+                    <TabsContent value="all" className="space-y-8 pb-20">
                        <section>
                             <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
@@ -1287,7 +1289,6 @@ export default function LiveSellingPage() {
                     </TabsContent>
                 </Tabs>
                 </div>
-            </main>
             <Footer />
         </div>
     </div>
