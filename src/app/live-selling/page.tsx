@@ -297,6 +297,8 @@ export default function LiveSellingPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
+  const [isTabsScrolled, setIsTabsScrolled] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
   
    const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -388,10 +390,21 @@ export default function LiveSellingPage() {
         setFeed(postsData);
         setIsLoadingFeed(false);
     });
+    
+    // Scroll listener for the sticky tabs animation
+    const handleScroll = () => {
+        if (tabsRef.current) {
+            // The header height is ~65px. We check if scrollY is past that point.
+            setIsTabsScrolled(window.scrollY > tabsRef.current.offsetTop - 65);
+        }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
 
     return () => {
         clearTimeout(sellersTimer);
         unsubscribe();
+        window.removeEventListener('scroll', handleScroll);
     };
   }, [feedFilter, user, followingIds]);
   
@@ -605,6 +618,19 @@ export default function LiveSellingPage() {
     }
 };
 
+ const renderTabs = (isHeader: boolean) => (
+    <TabsList className={cn(
+        "w-full grid-cols-3 sm:w-auto sm:inline-flex",
+        isHeader ? "transition-opacity duration-300" : "",
+        isHeader && !isTabsScrolled ? "opacity-0" : "opacity-100"
+    )}>
+        <TabsTrigger value="all">All</TabsTrigger>
+        <TabsTrigger value="live">Live Shopping</TabsTrigger>
+        <TabsTrigger value="feeds">Feeds</TabsTrigger>
+    </TabsList>
+ );
+
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -627,14 +653,9 @@ export default function LiveSellingPage() {
                 <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
-
-                <div className="hidden md:flex flex-1 justify-center">
+                 <div className="hidden md:flex flex-1 justify-center">
                     <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-full max-w-sm">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="all">All</TabsTrigger>
-                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
-                        </TabsList>
+                        {renderTabs(true)}
                     </Tabs>
                 </div>
 
@@ -798,16 +819,12 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto">
+            <main>
               <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <div className="md:hidden sticky top-[60px] bg-background/95 backdrop-blur-sm z-20 py-2">
+                     <div ref={tabsRef} className={cn("sticky md:top-[64px] bg-background/95 backdrop-blur-sm z-20 py-2", isTabsScrolled && "md:hidden")}>
                         <div className="flex justify-center">
-                            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
-                                <TabsTrigger value="all">All</TabsTrigger>
-                                <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                                <TabsTrigger value="feeds">Feeds</TabsTrigger>
-                            </TabsList>
+                            {renderTabs(false)}
                         </div>
                     </div>
                     
