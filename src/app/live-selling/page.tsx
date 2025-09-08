@@ -790,7 +790,7 @@ export default function LiveSellingPage() {
             <main className="flex-1 overflow-y-auto pb-20 relative">
               <div className="w-full">
                 <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                    <div className="md:sticky top-16 bg-background/80 backdrop-blur-sm z-20">
+                    <div className="md:sticky top-[65px] bg-background/80 backdrop-blur-sm z-20">
                          <div className="flex justify-center mb-6 px-2 md:px-4 pt-4">
                             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="all">All</TabsTrigger>
@@ -800,9 +800,9 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                     
-                    <TabsContent value="all">
+                    <TabsContent value="all" className="px-2 md:px-4">
                        <div className="space-y-8">
-                            <section className="px-2 md:px-4">
+                            <section>
                                 <div className="container mx-auto px-0 mb-4">
                                      <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                                 </div>
@@ -843,7 +843,7 @@ export default function LiveSellingPage() {
                                     ))}
                                 </div>
                             </section>
-                            <section className="px-2 md:px-4">
+                            <section>
                                 <div className="container mx-auto px-0 mb-4">
                                     <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                                 </div>
