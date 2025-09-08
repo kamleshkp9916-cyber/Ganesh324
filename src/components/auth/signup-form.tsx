@@ -208,10 +208,12 @@ export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean 
         <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
-        <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
-          <GoogleIcon className="mr-2" />
-          Get Started With Google
-        </Button>
+        {!isAdminSignup && (
+          <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
+            <GoogleIcon className="mr-2" />
+            Get Started With Google
+          </Button>
+        )}
 
         {!isAdminSignup && (
           <>
