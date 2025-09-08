@@ -531,7 +531,7 @@ export default function LiveSellingPage() {
   };
 
 
-  const filterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
+  const filterButtons = ['Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
 
   const onSelect = useCallback((api: CarouselApi) => {
     if (!api) return;
@@ -971,7 +971,7 @@ export default function LiveSellingPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-2 mb-6">
-                                {filterButtons.map((filter) => (
+                                {['All', ...filterButtons].map((filter) => (
                                 <Button 
                                     key={filter} 
                                     variant={activeFilter === filter ? 'default' : 'outline'} 
