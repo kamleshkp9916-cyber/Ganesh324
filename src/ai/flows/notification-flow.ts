@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
+import * as admin from 'firebase-admin';
 
 // Schema for sending a broadcast announcement
 const SendAnnouncementSchema = z.object({
@@ -86,24 +87,65 @@ const sendWarningFlow = ai.defineFlow(
   {
     name: 'sendWarningFlow',
     inputSchema: SendWarningSchema,
-    outputSchema: z.object({ success: z.boolean() }),
+    outputSchema: z.object({ success: z.boolean(), message: z.string() }),
   },
   async ({ userId, message }) => {
     getFirebaseAdminApp();
     const db = getFirestore();
+    let userEmail: string | undefined;
+
+    // 1. Determine if userId is an email or UID and get the email address
+    if (userId.includes('@')) {
+        userEmail = userId;
+    } else {
+        try {
+            const userRecord = await admin.auth().getUser(userId);
+            userEmail = userRecord.email;
+        } catch (error) {
+            console.error(`Could not find user with UID: ${userId}`, error);
+            return { success: false, message: "User not found. Please provide a valid UID or email." };
+        }
+    }
     
-    // In a real app, you might want to resolve email to UID here
-    // For now, we'll just store the provided userId (which could be email or UID)
+    if (!userEmail) {
+        return { success: false, message: "Could not determine user's email address." };
+    }
+
+    // 2. Add notification to the database (for in-app display)
     await db.collection('notifications').add({
       type: 'warning',
       message,
-      userId: userId,
+      userId: userId, // Store the original identifier
       createdAt: FieldValue.serverTimestamp(),
-      read: false, // Warnings should be dismissible
+      read: false,
     });
-    
-    console.log(`Warning sent to user: ${userId}`);
-    return { success: true };
+
+    // 3. Call the sendNotificationEmail HTTP function to send an email
+    const functionUrl = "https://us-central1-streamcart-login.cloudfunctions.net/sendNotificationEmail";
+     try {
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subject: "Warning from StreamCart",
+                html: `<p>You have received a warning from a StreamCart administrator:</p><br><p><strong>${message}</strong></p><br><p>Please review our community guidelines. Further violations may result in account suspension.</p>`,
+                recipients: [userEmail]
+            }),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            console.error("Failed to send warning email via HTTP function:", response.status, errorBody);
+            throw new Error(`HTTP function failed with status ${response.status}: ${errorBody.error || 'Unknown error'}`);
+        }
+        
+        console.log(`Warning email sent to ${userEmail}`);
+        return { success: true, message: `Warning successfully sent to ${userEmail}.` };
+
+    } catch (error: any) {
+        console.error("Error calling sendNotificationEmail function for warning:", error);
+        return { success: false, message: error.message || "An unknown error occurred while sending the email." };
+    }
   }
 );
 
@@ -111,6 +153,6 @@ export async function sendAnnouncement(title: string, message: string): Promise<
   return sendAnnouncementFlow({ title, message });
 }
 
-export async function sendWarning(userId: string, message: string): Promise<{ success: boolean }> {
+export async function sendWarning(userId: string, message: string): Promise<{ success: boolean; message: string; }> {
   return sendWarningFlow({ userId, message });
 }

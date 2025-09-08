@@ -360,11 +360,15 @@ export default function AdminSettingsPage() {
   const onSendWarning = async (values: z.infer<typeof warningSchema>) => {
     setIsSendingWarning(true)
     try {
-        await sendWarning(values.userId, values.message)
-        toast({ title: "Warning Sent!", description: `A warning has been sent to ${values.userId}.` })
-        warningForm.reset()
-    } catch (error) {
-        toast({ variant: "destructive", title: "Error Sending Warning", description: "Could not send the warning. Please check the user ID and try again." })
+        const result = await sendWarning(values.userId, values.message)
+        if (result.success) {
+            toast({ title: "Warning Sent!", description: result.message })
+            warningForm.reset()
+        } else {
+            toast({ variant: "destructive", title: "Warning Failed", description: result.message || "Could not send the warning. Please check the user ID and try again." })
+        }
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Error Sending Warning", description: error.message || "Could not send the warning. Please try again." })
     } finally {
         setIsSendingWarning(false)
     }
