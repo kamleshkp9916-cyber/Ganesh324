@@ -25,7 +25,6 @@ export interface PostData {
 interface CreatePostFormProps {
   replyTo?: string | null;
   onClearReply?: () => void;
-  onCreatePost?: (data: PostData) => void; // Make optional, as we'll handle creation internally
 }
 
 const emojis = [
@@ -40,7 +39,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, onCreatePost }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
