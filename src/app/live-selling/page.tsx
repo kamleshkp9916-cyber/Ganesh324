@@ -787,11 +787,11 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <main className="flex-1 overflow-y-auto pb-20 relative">
+            <main className="flex-1">
               <div className="w-full">
                 <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                    <div className="sticky top-[60px] md:top-[64px] bg-background/80 backdrop-blur-sm z-20 py-2">
-                         <div className="flex justify-center px-2 md:px-4">
+                    <div className="sticky top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm z-20 py-2">
+                        <div className="flex justify-center">
                             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -800,9 +800,9 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                     
-                    <TabsContent value="all" className="space-y-8 pt-4">
+                    <TabsContent value="all" className="space-y-8 pt-4 pb-20">
                        <section>
-                            <div className="px-2 md:px-4 mb-4">
+                            <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
@@ -843,7 +843,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section>
-                             <div className="px-2 md:px-4 mb-4">
+                             <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4 px-2 md:px-4">
@@ -865,7 +865,7 @@ export default function LiveSellingPage() {
                         </section>
                     </TabsContent>
 
-                    <TabsContent value="live">
+                    <TabsContent value="live" className="pb-20">
                        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="mb-6">
                             {!isMounted || offerSlides.length === 0 ? (
@@ -1007,7 +1007,7 @@ export default function LiveSellingPage() {
                        </div>
                     </TabsContent>
 
-                    <TabsContent value="feeds" className="w-full">
+                    <TabsContent value="feeds" className="w-full pb-20">
                          <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
