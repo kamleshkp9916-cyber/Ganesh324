@@ -607,7 +607,7 @@ export default function LiveSellingPage() {
   };
 
   const topLiveStreams = useMemo(() => {
-    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 4);
+    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 8);
   }, [allSellers]);
 
   const filteredLiveSellers = useMemo(() => {
@@ -956,7 +956,7 @@ export default function LiveSellingPage() {
                        <div className="space-y-8">
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4">
                                      {topLiveStreams.map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
@@ -995,8 +995,8 @@ export default function LiveSellingPage() {
                             </section>
                              <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                   {filteredLiveSellers.slice(0, 5).map((seller: any) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4">
+                                   {filteredLiveSellers.slice(0, 10).map((seller: any) => (
                                     <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                         <Link href={`/product/${seller.productId}`} className="cursor-pointer">
                                             <Image 
