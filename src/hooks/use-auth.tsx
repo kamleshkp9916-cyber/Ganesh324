@@ -4,8 +4,8 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase';
-import { createUserData, getUserData, UserData, updateUserData } from "@/lib/follow-data";
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { createUserData, getUserData, UserData } from "@/lib/follow-data";
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -32,14 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (firebaseUser) {
         setUser(firebaseUser);
-
-        // ONE-TIME ADMIN PROMOTION LOGIC
-        if (firebaseUser.email === 'kamleshkp9916@gmail.com') {
-            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-            if (userDoc.exists() && userDoc.data().role !== 'admin') {
-                await updateUserData(firebaseUser.uid, { role: 'admin' });
-            }
-        }
         
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const unsubscribeFirestore = onSnapshot(userDocRef, async (doc) => {

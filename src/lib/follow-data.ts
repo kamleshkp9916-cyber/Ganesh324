@@ -101,9 +101,18 @@ export const updateUserData = async (uid: string, updates: Partial<UserData>): P
 export const createUserData = async (user: User, role: 'customer' | 'seller' | 'admin', additionalData: Partial<UserData> = {}): Promise<void> => {
     const db = getFirestoreDb();
     const userDocRef = doc(db, "users", user.uid);
+    
+    // Predefined list of admin emails
+    const ADMIN_EMAILS = ["kamleshkp9916@gmail.com"];
+
+    let userRole = role;
+    if (user.email && ADMIN_EMAILS.includes(user.email)) {
+        userRole = 'admin';
+    }
+
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        role, // Use the role passed to the function
+        role: userRole,
         ...additionalData,
     } as UserData;
     
