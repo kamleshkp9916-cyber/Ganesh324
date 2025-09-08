@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile } from "firebase/auth";
@@ -119,7 +118,7 @@ export function useAuthActions() {
         }
     };
 
-    const handleCustomerSignUp = async (values: any) => {
+    const handleCustomerSignUp = async (values: any, isAdmin: boolean = false) => {
          const auth = getFirebaseAuth();
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
@@ -128,7 +127,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
           
-          await createUserData(user, 'customer', { userId: values.userId, phone: values.phone });
+          await createUserData(user, isAdmin ? 'admin' : 'customer', { userId: values.userId, phone: values.phone });
           
           await sendEmailVerification(user);
           

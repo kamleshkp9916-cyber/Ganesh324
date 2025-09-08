@@ -71,7 +71,7 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
     )
 }
 
-export function SignupForm() {
+export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
   const { handleCustomerSignUp, handleGoogleSignIn } = useAuthActions();
   
@@ -89,7 +89,7 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await handleCustomerSignUp(values);
+      await handleCustomerSignUp(values, isAdminSignup);
     } catch (error) {
       // Error is already toasted in the auth action
     } finally {
@@ -213,19 +213,23 @@ export function SignupForm() {
           Get Started With Google
         </Button>
 
-        <div className="text-center text-xs text-muted-foreground">
-            By creating an account, you agree to our{" "}
-            <Link href="/terms-and-conditions" className="underline hover:text-primary">
-                Terms & Conditions
-            </Link>
-            .
-        </div>
-         <div className="mt-4 text-center text-sm flex items-center justify-center gap-2">
-            Any Query ?{" "}
-            <Link href="/help" className="underline font-semibold text-primary flex items-center gap-1">
-              Get Help <BotIcon className="w-4 h-4" />
-            </Link>
-        </div>
+        {!isAdminSignup && (
+          <>
+            <div className="text-center text-xs text-muted-foreground">
+                By creating an account, you agree to our{" "}
+                <Link href="/terms-and-conditions" className="underline hover:text-primary">
+                    Terms & Conditions
+                </Link>
+                .
+            </div>
+             <div className="mt-4 text-center text-sm flex items-center justify-center gap-2">
+                Any Query ?{" "}
+                <Link href="/help" className="underline font-semibold text-primary flex items-center gap-1">
+                  Get Help <BotIcon className="w-4 h-4" />
+                </Link>
+            </div>
+          </>
+        )}
       </form>
     </Form>
   );

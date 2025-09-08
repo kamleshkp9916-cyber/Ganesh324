@@ -103,7 +103,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
     const userDocRef = doc(db, "users", user.uid);
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        role: 'admin', // Temporarily force new users to be admins
+        role, // Use the role passed to the function
         ...additionalData,
     } as UserData;
     
