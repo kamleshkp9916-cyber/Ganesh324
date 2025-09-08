@@ -2,6 +2,11 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+const db = admin.firestore();
+
 
 // Existing function to send email via HTTP request
 exports.sendEmail = onRequest(
@@ -109,4 +114,93 @@ exports.sendWelcomeEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] }).auth
         console.error("Failed to log SendGrid error body:", e.toString());
       }
   }
+});
+
+
+// New function to send emails based on notifications created in Firestore
+exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] }).firestore.document('notifications/{notificationId}').onCreate(async (snap, context) => {
+    const notificationData = snap.data();
+    if (!notificationData) {
+        console.log("No data associated with the event");
+        return;
+    }
+
+    const SENDGRID_KEY = process.env.SENDGRID_KEY;
+    if (!SENDGRID_KEY) {
+        console.error("Missing SENDGRID_KEY env var. Cannot send notification email.");
+        return;
+    }
+    sgMail.setApiKey(SENDGRID_KEY);
+
+    const { type, title, message, userId } = notificationData;
+
+    if (type === 'announcement') {
+        // Send to all users
+        try {
+            const usersSnapshot = await db.collection('users').get();
+            if (usersSnapshot.empty) {
+                console.log("No users found to send announcement to.");
+                return;
+            }
+
+            const emails = usersSnapshot.docs.map(doc => doc.data().email).filter(email => !!email);
+            
+            if (emails.length === 0) {
+                 console.log("No valid user emails found.");
+                return;
+            }
+            
+            const msg = {
+                to: emails,
+                from: "kamleshkp9916@gmail.com",
+                subject: `Announcement: ${title}`,
+                html: `<h2>${title}</h2><p>${message}</p>`,
+            };
+
+            await sgMail.sendMultiple(msg);
+            console.log(`Announcement email sent to ${emails.length} users.`);
+
+        } catch (error) {
+            console.error("Error sending announcement email:", error);
+        }
+    } else if (type === 'warning') {
+        // Send to a specific user
+        try {
+            if (!userId) {
+                console.error("Warning notification is missing userId.");
+                return;
+            }
+            
+            // Try to fetch user by UID first, then by email as a fallback
+            let userDoc = await db.collection('users').doc(userId).get();
+            let userEmail;
+
+            if (userDoc.exists) {
+                userEmail = userDoc.data().email;
+            } else {
+                 const usersQuery = await db.collection('users').where('email', '==', userId).limit(1).get();
+                 if (!usersQuery.empty) {
+                     userEmail = usersQuery.docs[0].data().email;
+                 }
+            }
+            
+            if (!userEmail) {
+                console.error(`Could not find email for user: ${userId}`);
+                return;
+            }
+
+            const msg = {
+                to: userEmail,
+                from: "kamleshkp9916@gmail.com",
+                subject: `Important: A Warning Regarding Your Account`,
+                html: `<h2>Warning</h2><p>This is a formal warning regarding your StreamCart account.</p><p><strong>Message from Admin:</strong> ${message}</p><p>Please adhere to our community guidelines to avoid further action.</p>`,
+            };
+
+            await sgMail.send(msg);
+            console.log(`Warning email sent to ${userEmail}`);
+
+        } catch (error) {
+            console.error(`Error sending warning email to ${userId}:`, error);
+        }
+    }
 });
