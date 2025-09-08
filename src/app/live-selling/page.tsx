@@ -298,7 +298,11 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
   
-   const loadData = useCallback(() => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+
+  const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         
@@ -547,6 +551,18 @@ export default function LiveSellingPage() {
     api.on('select', onSelect);
     api.on('reInit', onSelect)
   }, [api, onSelect]);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tabsRef.current) {
+        const { top } = tabsRef.current.getBoundingClientRect();
+        const headerHeight = 65;
+        setIsScrolled(top <= headerHeight);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
     const db = getFirestoreDb();
@@ -605,8 +621,8 @@ export default function LiveSellingPage() {
     }
 };
 
- const renderTabs = () => (
-    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+ const renderTabs = (isHeader: boolean = false) => (
+    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "bg-transparent")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
@@ -636,9 +652,9 @@ export default function LiveSellingPage() {
                 <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                 </div>
-                 <div className="hidden md:flex flex-1 justify-center">
+                 <div className={cn("hidden md:flex flex-1 justify-center transition-opacity duration-300", isScrolled ? "opacity-100" : "opacity-0")}>
                     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-                       {renderTabs()}
+                       {renderTabs(true)}
                     </Tabs>
                 </div>
 
@@ -805,7 +821,7 @@ export default function LiveSellingPage() {
             <main>
               <div className="w-full">
                 <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div className="sticky top-[60px] md:top-[65px] bg-background/95 backdrop-blur-sm z-20 py-2 md:hidden">
+                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 md:opacity-0 transition-opacity", isScrolled && "md:opacity-0", !isScrolled && "md:opacity-100")}>
                         <div className="flex justify-center px-4">
                             {renderTabs()}
                         </div>
@@ -1276,3 +1292,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
