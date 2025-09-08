@@ -93,6 +93,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, upda
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
+import { isFollowing, toggleFollow } from '@/lib/follow-data';
 
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
@@ -272,22 +273,6 @@ const reportReasons = [
     { id: "bullying", label: "Bullying or harassment" },
 ];
 
-const trendingTopics = [
-    { id: 1, topic: 'VintageFinds', posts: '1.2k posts' },
-    { id: 2, topic: 'TechDeals', posts: '3.4k posts' },
-    { id: 3, topic: 'SummerFashion', posts: '5.6k posts' },
-    { id: 4, topic: 'HomeDecor', posts: '890 posts' },
-];
-
-const allSuggestedUsers = [
-    { id: 'retro', name: 'RetroClicks', handle: '@retroclicks', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'savvy', name: 'StyleSavvy', handle: '@stylesavvy', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'diy', name: 'DIYDan', handle: '@diydan', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'artisan', name: 'ArtisanAlley', handle: '@artisanalley', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'gamer', name: 'GamerGuild', handle: '@gamerguild', avatar: 'https://placehold.co/40x40.png' },
-    { id: 'book', name: 'BookNook', handle: '@booknook', avatar: 'https://placehold.co/40x40.png' },
-];
-
 const mockNotifications = [
     { id: 1, title: 'Your order has shipped!', description: 'Your Vintage Camera is on its way.', time: '15m ago', read: false, href: '/orders' },
     { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false, href: '/seller/profile?userId=GadgetGuru' },
@@ -357,7 +342,8 @@ export default function LiveSellingPage() {
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("live");
-  const [suggestedUsers, setSuggestedUsers] = useState<typeof allSuggestedUsers>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -422,13 +408,25 @@ export default function LiveSellingPage() {
     }
   }, []);
 
+  const trendingTopics = useMemo(() => {
+    const hashtagCounts: { [key: string]: number } = {};
+    feed.forEach(post => {
+      const hashtags = post.content.match(/#\w+/g) || [];
+      hashtags.forEach((tag: string) => {
+        const cleanedTag = tag.substring(1);
+        hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
+      });
+    });
+    return Object.entries(hashtagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+  }, [feed]);
+
   useEffect(() => {
     setIsMounted(true);
     // Simulate loading spinners
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
-
-    // Initial shuffle for suggested users on mount
-    setSuggestedUsers(shuffleArray([...allSuggestedUsers]).slice(0, 3));
 
     // Listen for real-time post updates from Firestore
     const db = getFirestoreDb();
@@ -478,6 +476,31 @@ export default function LiveSellingPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchRef]);
+  
+  const handleFollowToggle = async (targetId: string) => {
+    if (!user) {
+        handleAuthAction();
+        return;
+    }
+    await toggleFollow(user.uid, targetId);
+    setFollowingIds(prev =>
+      prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
+    );
+  };
+  
+   useEffect(() => {
+    const checkFollowing = async () => {
+        if (!user) return;
+        const promises = suggestedUsers.map(u => isFollowing(user.uid, u.uid));
+        const results = await Promise.all(promises);
+        const following = suggestedUsers.filter((u, index) => results[index]);
+        setFollowingIds(following.map(u => u.uid));
+    };
+
+    if (suggestedUsers.length > 0) {
+        checkFollowing();
+    }
+  }, [user, suggestedUsers]);
 
   const handleAuthAction = (cb?: () => void) => {
     if (!user) {
@@ -755,7 +778,7 @@ export default function LiveSellingPage() {
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
-                                            <Link href="/settings"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
+                                            <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
@@ -825,7 +848,7 @@ export default function LiveSellingPage() {
                             <div className="flex justify-center mb-6">
                                 <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
                                     <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                                    <TabsTrigger value="feeds" disabled={!user}>Feeds</TabsTrigger>
+                                    <TabsTrigger value="feeds">Feeds</TabsTrigger>
                                 </TabsList>
                             </div>
                     )}
@@ -1125,8 +1148,8 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        {trendingTopics.map(topic => (
-                                            <div key={topic.id} className="text-sm cursor-pointer group">
+                                        {trendingTopics.map((topic, index) => (
+                                            <div key={index} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
@@ -1141,19 +1164,25 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {suggestedUsers.map(user => (
-                                            <div key={user.id} className="flex items-center justify-between">
+                                         {suggestedUsers.map(u => (
+                                            <div key={u.id} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={user.avatar} alt={user.name} />
-                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                        <AvatarImage src={u.avatar} alt={u.name} />
+                                                        <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold text-sm">{user.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{user.handle}</p>
+                                                        <p className="font-semibold text-sm">{u.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{u.handle}</p>
                                                     </div>
                                                 </div>
-                                                <Button size="sm" variant="outline" onClick={() => handleAuthAction()}>Follow</Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant={followingIds.includes(u.uid) ? "outline" : "default"}
+                                                    onClick={() => handleFollowToggle(u.uid)}
+                                                >
+                                                    {followingIds.includes(u.uid) ? 'Following' : 'Follow'}
+                                                </Button>
                                             </div>
                                         ))}
                                     </CardContent>

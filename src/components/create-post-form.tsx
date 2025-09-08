@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
@@ -15,6 +16,13 @@ import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import { getUserByDisplayName } from "@/lib/follow-data";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 
 export interface PostData {
@@ -47,6 +55,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [media, setMedia] = useState<{type: 'video' | 'image', file: File, url: string} | null>(null);
     const [location, setLocation] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+    const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
     
     const videoInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +68,16 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setContent("");
         }
     }, [replyTo]);
+    
+    useEffect(() => {
+        if (userData?.role === 'seller' || userData?.role === 'admin') {
+            const productsKey = `sellerProducts_${userData.displayName}`;
+            const storedProducts = localStorage.getItem(productsKey);
+            if (storedProducts) {
+                setSellerProducts(JSON.parse(storedProducts));
+            }
+        }
+    }, [userData]);
   
     const handlePost = async () => {
         if (!content.trim() || !user || !userData) return;
@@ -77,7 +97,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 mediaType = media.type;
             }
 
-            // Extract tags
             const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
             
             const postDocRef = await addDoc(collection(db, "posts"), {
@@ -92,9 +111,14 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 likes: 0,
                 replies: 0,
                 tags: tags,
+                taggedProduct: taggedProduct ? {
+                    id: taggedProduct.id,
+                    name: taggedProduct.name,
+                    price: taggedProduct.price,
+                    image: taggedProduct.images[0]?.preview,
+                } : null,
             });
 
-            // Create notifications for tagged users
             for (const tagName of tags) {
                 const taggedUser = await getUserByDisplayName(tagName);
                 if (taggedUser && taggedUser.uid !== user.uid) {
@@ -117,6 +141,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setContent("");
             setMedia(null);
             setLocation(null);
+            setTaggedProduct(null);
             onClearReply?.();
             toast({
                 title: "Post Created!",
@@ -153,7 +178,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 
 
     const handleGetLocation = () => {
-        // Simulate getting location
         setLocation("New York, USA");
         toast({ title: 'Location added!' });
     };
@@ -221,6 +245,17 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
                         <MapPin className="mr-2 h-5 w-5" /> Location
                     </Button>
+                     {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
+                        <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))}>
+                             <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
+                                <Tag className="mr-2 h-5 w-5" />
+                                <SelectValue placeholder="Tag Product" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )}
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handlePost} 
