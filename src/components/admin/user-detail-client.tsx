@@ -32,6 +32,7 @@ import {
   Truck,
   CheckCircle2,
   Home,
+  ShieldAlert,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 import Link from "next/link"
@@ -61,7 +62,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth.tsx"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { getUserData, UserData } from "@/lib/follow-data";
+import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { getStatusFromTimeline } from "@/lib/order-data";
@@ -69,6 +70,19 @@ import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 type Order = {
     orderId: string;
@@ -138,6 +152,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeView, setActiveView] = useState<ViewType>('orders');
   const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -190,6 +205,18 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     
     fetchAllData();
   }, [userId]);
+  
+  const handleMakeAdmin = async () => {
+    if (!profileData) return;
+    
+    await updateUserData(profileData.uid, { role: 'admin' });
+    setProfileData(prev => prev ? { ...prev, role: 'admin' } : null);
+
+    toast({
+        title: "Success!",
+        description: `${profileData.displayName} is now an administrator.`
+    });
+  };
 
   if (adminLoading) {
     return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -351,6 +378,28 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         Message
                     </Link>
                 </Button>
+                 {profileData.role !== 'admin' && (
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button>
+                                <ShieldAlert className="mr-2 h-4 w-4" />
+                                Make Admin
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to grant administrator privileges to {profileData.displayName}? This action is irreversible.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleMakeAdmin}>Confirm</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
             </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -371,7 +420,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         </Badge>
                                     )}
                                     </CardTitle>
-                                     <Badge variant={profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                                     <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
                                 </div>
                             </div>
                         </CardHeader>
