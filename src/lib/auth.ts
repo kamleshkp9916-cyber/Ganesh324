@@ -118,7 +118,7 @@ export function useAuthActions() {
         }
     };
 
-    const handleCustomerSignUp = async (values: any, isAdmin: boolean = false) => {
+    const handleCustomerSignUp = async (values: any, isAdminSignup: boolean = false) => {
          const auth = getFirebaseAuth();
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
@@ -127,7 +127,7 @@ export function useAuthActions() {
           
           await updateProfile(user, { displayName: displayName });
           
-          await createUserData(user, isAdmin ? 'admin' : 'customer', { userId: values.userId, phone: values.phone });
+          await createUserData(user, isAdminSignup ? 'admin' : 'customer', { userId: values.userId, phone: values.phone });
           
           await sendEmailVerification(user);
           
