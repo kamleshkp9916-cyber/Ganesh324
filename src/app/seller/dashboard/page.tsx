@@ -124,21 +124,26 @@ export default function SellerDashboard() {
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     // This effect runs once when the component mounts and the user data is available.
     // It checks if the welcome dialog should be shown to a new seller.
-    if (!loading && userData?.role === 'seller') {
+    if (isMounted && !loading && userData?.role === 'seller') {
         const welcomeShown = localStorage.getItem(SELLER_WELCOME_KEY);
         if (!welcomeShown) {
             setShowWelcomeDialog(true);
             localStorage.setItem(SELLER_WELCOME_KEY, 'true');
         }
     }
-  }, [userData, loading]);
+  }, [userData, loading, isMounted]);
 
 
-  if (loading || !user || !userData) {
+  if (!isMounted || loading || !user || !userData) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
