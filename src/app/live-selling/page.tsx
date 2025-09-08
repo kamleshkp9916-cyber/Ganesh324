@@ -48,6 +48,8 @@ import {
   RadioTower,
   Trash2,
   Send,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -932,20 +934,25 @@ export default function LiveSellingPage() {
             
             <main className="flex-1 overflow-y-auto p-2 md:p-4 pb-20 relative">
               <div className="max-w-7xl mx-auto">
-                <Tabs defaultValue="live" className="w-full" onValueChange={setActiveTab}>
+                <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
                     {(!isMounted) ? (
                             <div className="flex justify-center mb-6">
                                 <Skeleton className="h-10 w-[200px] rounded-md" />
                             </div>
                         ) : (
                             <div className="flex justify-center mb-6">
-                                <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
+                                <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+                                    <TabsTrigger value="all">All</TabsTrigger>
                                     <TabsTrigger value="live">Live Shopping</TabsTrigger>
                                     <TabsTrigger value="feeds">Feeds</TabsTrigger>
                                 </TabsList>
                             </div>
                     )}
                     
+                    <TabsContent value="all">
+                        {/* Content for the new "All" tab will go here */}
+                         <p className="text-center text-muted-foreground">"All" tab content coming soon.</p>
+                    </TabsContent>
 
                     <TabsContent value="live">
                         <div className="mb-6">
