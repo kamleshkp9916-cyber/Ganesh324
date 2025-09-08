@@ -7,15 +7,18 @@ export function getFirebaseAdminApp() {
     return admin.apps[0];
   }
 
+  // Explicitly check for environment variables to provide a clearer error message.
+  if (!process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+      throw new Error("Firebase Admin credentials (FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are not set in the environment. Please check your .env file.");
+  }
+
   try {
-    const credential =
-      process.env.GCLOUD_PROJECT && process.env.GOOGLE_APPLICATION_CREDENTIALS
-        ? admin.credential.applicationDefault()
-        : admin.credential.cert({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-          });
+    const credential = admin.credential.cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Replace escaped newlines from the .env file with actual newlines
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    });
 
     return admin.initializeApp({
       credential,
