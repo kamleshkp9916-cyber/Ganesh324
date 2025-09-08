@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -89,8 +88,9 @@ import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
@@ -280,17 +280,6 @@ const mockNotifications = [
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
 
-// Function to shuffle an array
-const shuffleArray = (array: any[]) => {
-    let currentIndex = array.length, randomIndex;
-    while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-    }
-    return array;
-};
-
 function LiveSellerSkeleton() {
     return (
         <div className="group relative rounded-lg overflow-hidden shadow-lg">
@@ -329,7 +318,7 @@ function FeedPostSkeleton() {
     );
 }
 
-function CommentDialog({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
+function CommentSheet({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
     const { user, userData } = useAuth();
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
@@ -372,20 +361,20 @@ function CommentDialog({ postId, trigger }: { postId: string, trigger: React.Rea
     };
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent className="h-[80vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>Comments</DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="flex-1 -mx-6 px-6">
+         <Sheet>
+            <SheetTrigger asChild>{trigger}</SheetTrigger>
+            <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Comments</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-1 px-4">
                     {isLoading ? (
-                        <div className="space-y-4">
+                        <div className="space-y-4 py-4">
                              <Skeleton className="h-10 w-full" />
                              <Skeleton className="h-10 w-full" />
                         </div>
                     ) : comments.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-4 py-4">
                             {comments.map(comment => (
                                 <div key={comment.id} className="flex items-start gap-3">
                                     <Avatar className="h-8 w-8">
@@ -406,7 +395,7 @@ function CommentDialog({ postId, trigger }: { postId: string, trigger: React.Rea
                         <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
                     )}
                 </ScrollArea>
-                <DialogFooter>
+                <DialogFooter className="p-4 border-t">
                     <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
                         <Input 
                             placeholder="Add a comment..."
@@ -416,8 +405,8 @@ function CommentDialog({ postId, trigger }: { postId: string, trigger: React.Rea
                         <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
                     </form>
                 </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     )
 }
 
@@ -450,6 +439,7 @@ export default function LiveSellingPage() {
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
+  const [feedFilter, setFeedFilter] = useState('global');
   
    const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -518,12 +508,19 @@ export default function LiveSellingPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Simulate loading spinners
-    const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 2000);
+    const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
 
-    // Listen for real-time post updates from Firestore
     const db = getFirestoreDb();
-    const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+    let postsQuery;
+
+    if (feedFilter === 'following' && user) {
+        // This is a simplified version. A real app would need to fetch the list of followed UIDs first.
+        // For this demo, we'll assume a small list of followed UIDs.
+        const followedUIDs = followingIds.length > 0 ? followingIds : [user.uid]; // Show own posts if not following anyone
+        postsQuery = query(collection(db, "posts"), where("sellerId", "in", followedUIDs), orderBy("timestamp", "desc"));
+    } else {
+        postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+    }
     
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
@@ -539,7 +536,7 @@ export default function LiveSellingPage() {
         clearTimeout(sellersTimer);
         unsubscribe();
     };
-  }, []);
+  }, [feedFilter, user, followingIds]);
   
    useEffect(() => {
     if (isMounted) {
@@ -722,17 +719,34 @@ export default function LiveSellingPage() {
   };
 
   const handleLikePost = async (postId: string) => {
-    if (!user) {
-        handleAuthAction();
-        return;
-    }
+    if (!handleAuthAction()) return;
+
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    // This is a simplified like. A real app would track who liked it.
-    await updateDoc(postRef, {
-        likes: increment(1)
-    });
-  };
+    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const likeDoc = await transaction.get(likeRef);
+            if (likeDoc.exists()) {
+                // User has already liked, so unlike
+                transaction.delete(likeRef);
+                transaction.update(postRef, { likes: increment(-1) });
+            } else {
+                // User has not liked, so like
+                transaction.set(likeRef, { likedAt: serverTimestamp() });
+                transaction.update(postRef, { likes: increment(1) });
+            }
+        });
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not update like status. Please try again."
+        });
+    }
+};
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -1104,6 +1118,10 @@ export default function LiveSellingPage() {
                          </AlertDialog>
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                             <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
+                                    <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => handleAuthAction(() => setFeedFilter('following'))}>Following</Button>
+                                </div>
                               {isLoadingFeed ? (
                                 <>
                                     <FeedPostSkeleton />
@@ -1199,15 +1217,15 @@ export default function LiveSellingPage() {
                                         <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
                                             <div className="flex items-center gap-4">
                                                 <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleLikePost(item.id)}>
-                                                    <Heart className="mr-2 h-4 w-4" />
-                                                    <span>{item.likes}</span>
+                                                    <Heart className={cn("w-4 h-4", item.likes > 0 && "fill-destructive text-destructive")} />
+                                                    <span>{item.likes || 0}</span>
                                                 </button>
-                                                <CommentDialog
+                                                <CommentSheet
                                                     postId={item.id}
                                                     trigger={
                                                         <button className="flex items-center gap-1.5 hover:text-primary">
-                                                            <MessageSquare className="mr-2 h-4 w-4" />
-                                                            <span>{item.replies}</span>
+                                                            <MessageSquare className="w-4 h-4" />
+                                                            <span>{item.replies || 0}</span>
                                                         </button>
                                                     }
                                                 />
