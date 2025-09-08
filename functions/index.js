@@ -150,18 +150,15 @@ exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] })
                 return;
             }
             
-            const personalizations = emails.map(email => ({
-                to: [{ email: email }]
-            }));
-            
             const msg = {
-                personalizations: personalizations,
+                to: emails,
                 from: {
                     email: "kamleshkp9916@gmail.com",
                     name: "StreamCart"
                 },
                 subject: `Announcement: ${title}`,
                 html: `<h2>${title}</h2><p>${message}</p>`,
+                isMultiple: true,
             };
 
             await sgMail.send(msg);
@@ -211,6 +208,9 @@ exports.sendNotificationEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] })
 
         } catch (error) {
             console.error(`Error sending warning email to ${userId}:`, error);
+             if (error.response) {
+                console.error(error.response.body)
+            }
         }
     }
 });
