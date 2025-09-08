@@ -48,6 +48,7 @@ import {
   Gavel,
   RadioTower,
   Trash2,
+  Send,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -87,9 +88,9 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
-import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
@@ -326,6 +327,98 @@ function FeedPostSkeleton() {
             </div>
         </Card>
     );
+}
+
+function CommentDialog({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
+    const { user, userData } = useAuth();
+    const [comments, setComments] = useState<any[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const db = getFirestoreDb();
+        const commentsQuery = query(collection(db, `posts/${postId}/comments`), orderBy("timestamp", "asc"));
+        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+            }));
+            setComments(commentsData);
+            setIsLoading(false);
+        });
+        return () => unsubscribe();
+    }, [postId]);
+
+    const handlePostComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newComment.trim() || !user || !userData) return;
+        
+        const db = getFirestoreDb();
+        await addDoc(collection(db, `posts/${postId}/comments`), {
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL,
+            text: newComment.trim(),
+            timestamp: serverTimestamp(),
+        });
+
+        // Also increment the replies count on the post
+        await updateDoc(doc(db, 'posts', postId), {
+            replies: increment(1)
+        });
+
+        setNewComment("");
+    };
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>{trigger}</DialogTrigger>
+            <DialogContent className="h-[80vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Comments</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="flex-1 -mx-6 px-6">
+                    {isLoading ? (
+                        <div className="space-y-4">
+                             <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : comments.length > 0 ? (
+                        <div className="space-y-4">
+                            {comments.map(comment => (
+                                <div key={comment.id} className="flex items-start gap-3">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={comment.authorAvatar} />
+                                        <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow bg-muted p-2 rounded-lg">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <p className="font-semibold">{comment.authorName}</p>
+                                            <p className="text-muted-foreground">{comment.timestamp}</p>
+                                        </div>
+                                        <p className="text-sm">{comment.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
+                    )}
+                </ScrollArea>
+                <DialogFooter>
+                    <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
+                        <Input 
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                        />
+                        <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
+                    </form>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
 }
 
 export default function LiveSellingPage() {
@@ -640,20 +733,6 @@ export default function LiveSellingPage() {
         likes: increment(1)
     });
   };
-  const handleCommentPost = async (postId: string) => {
-    if (!user) {
-        handleAuthAction();
-        return;
-    }
-    const db = getFirestoreDb();
-    const postRef = doc(db, 'posts', postId);
-    await updateDoc(postRef, {
-        replies: increment(1)
-    });
-    // For demo, just increments. A real app would open a comment modal.
-    toast({ title: "Comment added (simulation)!" });
-  };
-
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -1123,10 +1202,15 @@ export default function LiveSellingPage() {
                                                     <Heart className="mr-2 h-4 w-4" />
                                                     <span>{item.likes}</span>
                                                 </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleCommentPost(item.id)}>
-                                                    <MessageSquare className="mr-2 h-4 w-4" />
-                                                    <span>{item.replies}</span>
-                                                </button>
+                                                <CommentDialog
+                                                    postId={item.id}
+                                                    trigger={
+                                                        <button className="flex items-center gap-1.5 hover:text-primary">
+                                                            <MessageSquare className="mr-2 h-4 w-4" />
+                                                            <span>{item.replies}</span>
+                                                        </button>
+                                                    }
+                                                />
                                             </div>
                                             {item.location && <span className="text-xs">{item.location}</span>}
                                         </div>
