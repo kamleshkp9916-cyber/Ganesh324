@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -46,6 +47,7 @@ import {
   Briefcase,
   Gavel,
   RadioTower,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -86,9 +88,10 @@ import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
-import { getFirestoreDb } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment } from "firebase/firestore";
+import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
+import { ref as storageRef, deleteObject } from 'firebase/storage';
 
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
@@ -574,6 +577,60 @@ export default function LiveSellingPage() {
     api.on('reInit', onSelect)
   }, [api, onSelect]);
 
+  const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
+    const db = getFirestoreDb();
+    const postRef = doc(db, 'posts', postId);
+    
+    try {
+        await deleteDoc(postRef);
+
+        if (mediaUrl) {
+            const storage = getFirebaseStorage();
+            const mediaRef = storageRef(storage, mediaUrl);
+            await deleteObject(mediaRef);
+        }
+
+        toast({
+            title: "Post Deleted",
+            description: "Your post has been successfully removed.",
+        });
+    } catch (error) {
+        console.error("Error deleting post: ", error);
+        toast({
+            variant: 'destructive',
+            title: "Error",
+            description: "Could not delete the post. Please try again."
+        });
+    }
+  };
+
+  const handleLikePost = async (postId: string) => {
+    if (!user) {
+        handleAuthAction();
+        return;
+    }
+    const db = getFirestoreDb();
+    const postRef = doc(db, 'posts', postId);
+    // This is a simplified like. A real app would track who liked it.
+    await updateDoc(postRef, {
+        likes: increment(1)
+    });
+  };
+  const handleCommentPost = async (postId: string) => {
+    if (!user) {
+        handleAuthAction();
+        return;
+    }
+    const db = getFirestoreDb();
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+        replies: increment(1)
+    });
+    // For demo, just increments. A real app would open a comment modal.
+    toast({ title: "Comment added (simulation)!" });
+  };
+
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -696,11 +753,9 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
                                         </DropdownMenuItem>
-                                        {userData?.role === 'customer' && (
-                                            <DropdownMenuItem asChild>
-                                                <Link href="/seller/kyc"><Briefcase className="mr-2 h-4 w-4" /><span>Become a Seller</span></Link>
-                                            </DropdownMenuItem>
-                                        )}
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/settings"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
                                             <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
                                         </DropdownMenuItem>
@@ -967,11 +1022,31 @@ export default function LiveSellingPage() {
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreHorizontal className="w-4 h-4 rotate-90" />
+                                                            <MoreHorizontal className="w-4 h-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                         {user && user.uid === item.sellerId && (
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
+                                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                                        <span>Delete Post</span>
+                                                                    </DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        )}
                                                         <DropdownMenuItem onClick={() => handleShare(item.id)}>
                                                             <Share2 className="mr-2 h-4 w-4" />
                                                             <span>Share</span>
@@ -1020,11 +1095,11 @@ export default function LiveSellingPage() {
                                         </div>
                                         <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
                                             <div className="flex items-center gap-4">
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleAuthAction()}>
+                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleLikePost(item.id)}>
                                                     <Heart className="mr-2 h-4 w-4" />
                                                     <span>{item.likes}</span>
                                                 </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleReply(item.sellerName)}>
+                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleCommentPost(item.id)}>
                                                     <MessageSquare className="mr-2 h-4 w-4" />
                                                     <span>{item.replies}</span>
                                                 </button>

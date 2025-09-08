@@ -3,77 +3,159 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Wallet, ShieldCheck, Banknote, Plus, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AddBankForm, WithdrawForm } from '@/components/settings-forms';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useAuthActions } from '@/lib/auth';
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '../ui/input-otp';
 
-interface BankAccount {
-    id: number;
-    bankName: string;
-    accountNumber: string;
-    ifsc: string;
+
+const surveyReasons = [
+    "I'm not using StreamCart anymore",
+    "I'm switching to a different platform",
+    "I have privacy concerns",
+    "I receive too many notifications",
+    "I had a bad experience",
+    "Other"
+];
+
+function DeleteAccountFlow() {
+    const [step, setStep] = useState(1);
+    const [reason, setReason] = useState("");
+    const [otp, setOtp] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { toast } = useToast();
+    const { signOut } = useAuthActions();
+
+    const handleConfirmDeletion = () => {
+        if (otp !== '123456') {
+            toast({ variant: 'destructive', title: "Invalid OTP", description: "The OTP entered is incorrect." });
+            return;
+        }
+
+        setIsDeleting(true);
+        toast({ title: "Deleting Account...", description: "Your account and data are being permanently removed." });
+
+        // Simulate backend deletion
+        setTimeout(() => {
+            setIsDeleting(false);
+            signOut();
+            toast({ title: "Account Deleted", description: "Your account has been successfully deleted." });
+        }, 2000);
+    };
+
+    if (step === 1) {
+        return (
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to leave?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. All your data, including order history, reviews, and profile information, will be permanently deleted.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => setStep(2)}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        );
+    }
+    
+    if (step === 2) {
+         return (
+             <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>We're sad to see you go</AlertDialogTitle>
+                    <AlertDialogDescription>Please tell us why you are leaving. Your feedback is valuable.</AlertDialogDescription>
+                </AlertDialogHeader>
+                 <div className="space-y-2 py-4">
+                    {surveyReasons.map(r => (
+                        <div key={r} className="flex items-center">
+                            <input type="radio" id={r} name="reason" value={r} onChange={(e) => setReason(e.target.value)} className="h-4 w-4" />
+                            <Label htmlFor={r} className="ml-2">{r}</Label>
+                        </div>
+                    ))}
+                 </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setStep(1)}>Back</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => setStep(3)} disabled={!reason}>Next</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+         );
+    }
+    
+    if (step === 3) {
+         return (
+             <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Final Confirmation</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        To confirm deletion, please enter the OTP sent to your registered mobile number.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="flex flex-col items-center gap-4 py-4">
+                     <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setStep(2)}>Back</AlertDialogCancel>
+                    <AlertDialogAction 
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        onClick={handleConfirmDeletion}
+                        disabled={otp.length !== 6 || isDeleting}
+                    >
+                        {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Delete My Account Permanently
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+         );
+    }
+
+    return null;
 }
 
-export default function SettingPage() {
+
+export default function SettingsPage() {
     const router = useRouter();
     const { user, loading } = useAuth();
+    const { signOut } = useAuthActions();
     const [isMounted, setIsMounted] = useState(false);
-    const [sellerDetails, setSellerDetails] = useState<any>(null);
-    const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([
-        { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456', ifsc: 'HDFC0001234' },
-    ]);
 
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined') {
-            const storedDetails = localStorage.getItem('sellerDetails');
-            if (storedDetails) {
-                setSellerDetails(JSON.parse(storedDetails));
-            }
-        }
     }, []);
-    
-    const handleAddBankAccount = (data: Omit<BankAccount, 'id'>) => {
-        const newAccount = {
-            ...data,
-            id: Date.now(),
-            accountNumber: `XXXX-XXXX-XX${data.accountNumber.slice(-4)}`,
-        };
-        setBankAccounts(prev => [...prev, newAccount]);
-    };
-
-    const handleDeleteBankAccount = (id: number) => {
-        setBankAccounts(prev => prev.filter(acc => acc.id !== id));
-    };
 
     if (!isMounted || loading) {
         return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
     }
-    
+
     if (!user) {
-        return (
-             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-                 <h2 className="text-2xl font-semibold mb-4">Access Denied</h2>
-                 <p className="text-muted-foreground mb-6">Please log in to view your settings.</p>
-                 <Button onClick={() => router.push('/')}>Go to Login</Button>
-            </div>
-        );
+        router.replace('/');
+        return null;
     }
-    
-    if (!sellerDetails) {
-        return (
-             <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-                 <h2 className="text-2xl font-semibold mb-4">Seller Account Not Found</h2>
-                 <p className="text-muted-foreground mb-6">You need to register as a seller to access these settings.</p>
-                 <Button onClick={() => router.push('/seller/register')}>Register as Seller</Button>
-            </div>
-        );
-    }
+
+    const settingsItems = [
+        { icon: <User className="w-5 h-5" />, label: 'Edit Profile', href: '/profile' },
+        { icon: <Shield className="w-5 h-5" />, label: 'Privacy & Security', href: '/privacy-and-security' },
+        { icon: <Bell className="w-5 h-5" />, label: 'Notifications', href: '/settings/notifications' },
+        { icon: <HelpCircle className="w-5 h-5" />, label: 'Help & Support', href: '/help' },
+    ];
 
     return (
         <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
@@ -81,104 +163,59 @@ export default function SettingPage() {
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-xl font-bold">Account & Wallet</h1>
+                <h1 className="text-xl font-bold">Settings</h1>
                 <div className="w-10"></div>
             </header>
 
             <main className="flex-grow p-4 md:p-6 lg:p-8">
-                <div className="max-w-4xl mx-auto grid gap-8">
+                <div className="max-w-2xl mx-auto space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <Wallet className="h-6 w-6 text-primary" />
-                                <span>Wallet</span>
-                            </CardTitle>
-                            <CardDescription>View your balance and manage withdrawals.</CardDescription>
+                            <CardTitle>Account Settings</CardTitle>
+                            <CardDescription>Manage your profile, privacy, and notification settings.</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2">
-                             <div className="flex flex-col p-6 bg-primary/10 rounded-lg">
-                                <p className="text-sm text-muted-foreground">Available Balance</p>
-                                <p className="text-3xl font-bold tracking-tight">₹5,000.00</p>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button size="lg" className="w-full md:w-auto">Withdraw Balance</Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Withdraw Funds</DialogTitle>
-                                            <DialogDescription>
-                                                Enter the amount you wish to withdraw and select a bank account.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <WithdrawForm bankAccounts={bankAccounts} />
-                                    </DialogContent>
-                                </Dialog>
+                        <CardContent>
+                            <div className="space-y-1">
+                                {settingsItems.map(item => (
+                                    <Button key={item.label} variant="ghost" className="w-full justify-start text-base p-4 h-auto" asChild>
+                                        <Link href={item.href}>
+                                            {item.icon}
+                                            <span className="ml-4">{item.label}</span>
+                                        </Link>
+                                    </Button>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-3">
-                                <ShieldCheck className="h-6 w-6 text-primary" />
-                                <span>Identity Verification</span>
-                            </CardTitle>
-                            <CardDescription>Your verified PAN and Aadhar details.</CardDescription>
+                            <CardTitle>Danger Zone</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <p className="font-medium">PAN Card</p>
-                                <p className="font-mono text-muted-foreground">{`******${sellerDetails.pan.slice(-4)}`}</p>
+                             <div className="flex items-center justify-between p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+                                <div>
+                                    <h4 className="font-semibold text-destructive">Delete Account</h4>
+                                    <p className="text-xs text-destructive/80">Permanently delete your account and all associated data.</p>
+                                </div>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <DeleteAccountFlow />
+                                </AlertDialog>
                             </div>
                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <p className="font-medium">Aadhar Card</p>
-                                <p className="font-mono text-muted-foreground">{`********${sellerDetails.aadhar.slice(-4)}`}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between">
-                                 <div className="flex items-center gap-3">
-                                    <Banknote className="h-6 w-6 text-primary" />
-                                    <span>Bank Accounts</span>
+                                <div>
+                                    <h4 className="font-semibold">Log Out</h4>
+                                    <p className="text-xs text-muted-foreground">End your current session on this device.</p>
                                 </div>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm"><Plus className="mr-2 h-4 w-4" /> Add New</Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                         <DialogHeader>
-                                            <DialogTitle>Add New Bank Account</DialogTitle>
-                                        </DialogHeader>
-                                        <AddBankForm onSave={handleAddBankAccount} />
-                                    </DialogContent>
-                                </Dialog>
-                            </CardTitle>
-                             <CardDescription>Manage your linked bank accounts for withdrawals.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                           {bankAccounts.length > 0 ? (
-                                bankAccounts.map(account => (
-                                    <div key={account.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                        <div>
-                                            <p className="font-semibold">{account.bankName}</p>
-                                            <p className="text-sm text-muted-foreground font-mono">{account.accountNumber}</p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-4 w-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteBankAccount(account.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))
-                           ) : (
-                                <div className="text-center text-muted-foreground py-8">No bank accounts added.</div>
-                           )}
+                                <Button variant="outline" size="sm" onClick={() => signOut()}>
+                                    <LogOut className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
