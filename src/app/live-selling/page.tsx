@@ -543,6 +543,14 @@ export default function LiveSellingPage() {
     });
   };
 
+  const handleCategorySelect = (category: string) => {
+    setProductCategoryFilter(category);
+  };
+  
+  const handleLiveFilterSelect = (filter: string) => {
+    setActiveLiveFilter(filter);
+    setActiveTab('live');
+  };
 
   const liveStreamFilterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty'];
 
@@ -671,14 +679,9 @@ export default function LiveSellingPage() {
 
                      <div className={cn(
                         "absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
-                        "sticky-tabs",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
-                       <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex bg-transparent">
-                            <TabsTrigger value="all">All</TabsTrigger>
-                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
-                        </TabsList>
+                       {renderTabs(true)}
                     </div>
 
                     <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
@@ -840,12 +843,8 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
-                    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds">Feeds</TabsTrigger>
-                    </TabsList>
+                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 transition-opacity duration-300", isScrolled && "opacity-0")}>
+                    {renderTabs(false)}
                 </div>
                 
                 <div className="pb-20">
@@ -893,7 +892,7 @@ export default function LiveSellingPage() {
                                             variant={productCategoryFilter === filter ? 'default' : 'outline'}
                                             size="sm" 
                                             className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                            onClick={() => setProductCategoryFilter(filter)}
+                                            onClick={() => handleCategorySelect(filter)}
                                         >
                                             {filter}
                                         </Button>
