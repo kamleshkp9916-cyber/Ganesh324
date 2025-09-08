@@ -298,6 +298,7 @@ export default function LiveSellingPage() {
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
+  const [feedFilter, setFeedFilter] = useState('global');
 
   const [isScrolled, setIsScrolled] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -673,7 +674,11 @@ export default function LiveSellingPage() {
                         "sticky-tabs",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
-                       {renderTabs(true)}
+                       <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex bg-transparent">
+                            <TabsTrigger value="all">All</TabsTrigger>
+                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                        </TabsList>
                     </div>
 
                     <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
@@ -836,7 +841,11 @@ export default function LiveSellingPage() {
                 </header>
                 
                  <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
-                    {renderTabs(false)}
+                    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                    </TabsList>
                 </div>
                 
                 <div className="pb-20">
