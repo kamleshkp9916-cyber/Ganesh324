@@ -1,15 +1,16 @@
-
-import type {Metadata} from 'next';
-import { Inter } from 'next/font/google'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { ClientLayout } from './client-layout';
+import { ThemeProvider } from '@/components/theme-provider';
 
-const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'StreamCart',
-  description: 'Your one-stop shop for live shopping. Discover, engage, and buy in real-time.',
+  description:
+    'Your one-stop shop for live shopping. Discover, engage, and buy in real-time.',
 };
 
 export default function RootLayout({
@@ -19,10 +20,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
+          inter.variable
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClientLayout>{children}</ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   );
