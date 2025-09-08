@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     const isMe = msg.sender === 'customer' || msg.sender === currentUserName;
@@ -148,14 +149,7 @@ export default function MessagePage() {
   const [newMessage, setNewMessage] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   const filteredConversations = useMemo(() => {
     if (!searchTerm) return conversations;
