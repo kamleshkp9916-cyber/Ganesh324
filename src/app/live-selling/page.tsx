@@ -648,190 +648,190 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <div className="flex-1 flex flex-col">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
-                {/* Left Section */}
-                <div className="flex-1 flex justify-start items-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
-                </div>
-
-                {/* Center Section - Header Tabs */}
-                <div className={cn(
-                    "hidden md:flex flex-1 justify-center items-center transition-opacity duration-300",
-                    isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
-                )}>
-                    {renderTabs(true)}
-                </div>
-
-                {/* Right Section */}
-                <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
-                     {(!isMounted || authLoading) ? (
-                        <Skeleton className="h-9 w-24 rounded-full" />
-                    ) : user ? (
-                        <div className="flex items-center gap-1 sm:gap-2">
-                             {userData?.role === 'seller' && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button size="sm">
-                                            <RadioTower className="mr-2 h-4 w-4" /> Go Live
-                                        </Button>
-                                    </DialogTrigger>
-                                    <GoLiveDialog />
-                                </Dialog>
-                            )}
-                            <div ref={searchRef} className="relative flex items-center">
-                                 <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-10 w-10 rounded-full flex-shrink-0"
-                                  onClick={() => setIsSearchExpanded(p => !p)}
-                                >
-                                    <Search className="h-5 w-5 text-muted-foreground" />
-                                </Button>
-                                 <Input
-                                    placeholder="Search..."
-                                    className={cn(
-                                        "bg-muted rounded-full pl-4 pr-10 h-10 transition-all duration-300 ease-in-out",
-                                        isSearchExpanded ? 'w-32 sm:w-48' : 'w-0 border-transparent p-0'
-                                    )}
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
-                                        <Bell />
-                                        {unreadCount > 0 && (
-                                            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                            </span>
-                                        )}
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-80">
-                                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    {notifications.map(n => (
-                                        <Link key={n.id} href={n.href} passHref>
-                                            <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
-                                                <div className="flex justify-between w-full">
-                                                    <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
-                                                    <p className="text-xs text-muted-foreground">{n.time}</p>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground">{n.description}</p>
-                                            </DropdownMenuItem>
-                                        </Link>
-                                    ))}
-                                    {notifications.length === 0 && (
-                                        <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Avatar className="h-9 w-9 cursor-pointer">
-                                        <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={userData?.displayName || "User"} />
-                                        <AvatarFallback>{userData?.displayName ? userData.displayName.charAt(0) : 'U'}</AvatarFallback>
-                                    </Avatar>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-64 bg-background" align="end" forceMount>
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{userData?.displayName}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                            </p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
-                                        </DropdownMenuItem>
-                                         <DropdownMenuItem asChild>
-                                            <Link href="/cart" className="flex items-center justify-between">
-                                                <div className="flex items-center"><ShoppingCart className="mr-2 h-4 w-4" /><span>My Cart</span></div>
-                                                {cartCount > 0 && <Badge variant="destructive">{cartCount}</Badge>}
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                     <DropdownMenuGroup>
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>
-                                                <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                                                <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                                                <span>Theme</span>
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem onClick={() => setTheme("light")}>
-                                                        <Sun className="mr-2 h-4 w-4" />
-                                                        <span>Light</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setTheme("dark")}>
-                                                        <Moon className="mr-2 h-4 w-4" />
-                                                        <span>Dark</span>
-                                                    </DropdownMenuItem>
-                                                     <DropdownMenuItem onClick={() => setTheme("system")}>
-                                                        <Laptop className="mr-2 h-4 w-4" />
-                                                        <span>System</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => signOut()}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Log Out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <Button asChild variant="outline" size="sm">
-                                <Link href="/">Login</Link>
-                            </Button>
-                            <Button asChild size="sm">
-                                    <Link href="/signup">Create Account</Link>
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </header>
-            
-            <div className="w-full">
-                <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                     <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none" : "opacity-100")}>
-                        <div className={cn("flex justify-center px-4 md:hidden")}>
-                            {renderTabs()}
-                        </div>
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
+                    {/* Left Section */}
+                    <div className="flex-1 flex justify-start items-center">
+                        <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
-                    
-                    <TabsContent value="all" className="space-y-8 pb-20">
-                       <section>
+
+                    {/* Center Section - Header Tabs */}
+                    <div className={cn(
+                        "hidden md:flex flex-1 justify-center items-center transition-opacity duration-300",
+                        isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
+                    )}>
+                        {renderTabs(true)}
+                    </div>
+
+                    {/* Right Section */}
+                    <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2">
+                        {(!isMounted || authLoading) ? (
+                            <Skeleton className="h-9 w-24 rounded-full" />
+                        ) : user ? (
+                            <div className="flex items-center gap-1 sm:gap-2">
+                                {userData?.role === 'seller' && (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button size="sm">
+                                                <RadioTower className="mr-2 h-4 w-4" /> Go Live
+                                            </Button>
+                                        </DialogTrigger>
+                                        <GoLiveDialog />
+                                    </Dialog>
+                                )}
+                                <div ref={searchRef} className="relative flex items-center">
+                                    <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-10 w-10 rounded-full flex-shrink-0"
+                                    onClick={() => setIsSearchExpanded(p => !p)}
+                                    >
+                                        <Search className="h-5 w-5 text-muted-foreground" />
+                                    </Button>
+                                    <Input
+                                        placeholder="Search..."
+                                        className={cn(
+                                            "bg-muted rounded-full pl-4 pr-10 h-10 transition-all duration-300 ease-in-out",
+                                            isSearchExpanded ? 'w-32 sm:w-48' : 'w-0 border-transparent p-0'
+                                        )}
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
+                                            <Bell />
+                                            {unreadCount > 0 && (
+                                                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                                </span>
+                                            )}
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-80">
+                                        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {notifications.map(n => (
+                                            <Link key={n.id} href={n.href} passHref>
+                                                <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                                    <div className="flex justify-between w-full">
+                                                        <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                                        <p className="text-xs text-muted-foreground">{n.time}</p>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">{n.description}</p>
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        ))}
+                                        {notifications.length === 0 && (
+                                            <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Avatar className="h-9 w-9 cursor-pointer">
+                                            <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={userData?.displayName || "User"} />
+                                            <AvatarFallback>{userData?.displayName ? userData.displayName.charAt(0) : 'U'}</AvatarFallback>
+                                        </Avatar>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-64 bg-background" align="end" forceMount>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">{userData?.displayName}</p>
+                                                <p className="text-xs leading-none text-muted-foreground">
+                                                {user.email}
+                                                </p>
+                                            </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>My Profile</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/cart" className="flex items-center justify-between">
+                                                    <div className="flex items-center"><ShoppingCart className="mr-2 h-4 w-4" /><span>My Cart</span></div>
+                                                    {cartCount > 0 && <Badge variant="destructive">{cartCount}</Badge>}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/wallet"><Wallet className="mr-2 h-4 w-4" /><span>Wallet</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/orders"><ShoppingBag className="mr-2 h-4 w-4" /><span>Orders</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/setting"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/message"><MessageSquare className="mr-2 h-4 w-4" /><span>Message</span></Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>
+                                                    <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                                                    <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                                                    <span>Theme</span>
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        <DropdownMenuItem onClick={() => setTheme("light")}>
+                                                            <Sun className="mr-2 h-4 w-4" />
+                                                            <span>Light</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => setTheme("dark")}>
+                                                            <Moon className="mr-2 h-4 w-4" />
+                                                            <span>Dark</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => setTheme("system")}>
+                                                            <Laptop className="mr-2 h-4 w-4" />
+                                                            <span>System</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/help"><LifeBuoy className="mr-2 h-4 w-4" /><span>Help 24/7</span></Link>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => signOut()}>
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            <span>Log Out</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href="/">Login</Link>
+                                </Button>
+                                <Button asChild size="sm">
+                                        <Link href="/signup">Create Account</Link>
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </header>
+                
+                <div ref={tabsRef} className={cn("sticky z-20 top-[60px] md:top-[64px] bg-background/95 backdrop-blur-sm py-2 transition-opacity", isScrolled ? "opacity-0 pointer-events-none" : "opacity-100")}>
+                    <div className={cn("flex justify-center px-4")}>
+                        {renderTabs()}
+                    </div>
+                </div>
+                
+                <div className="pb-20">
+                    <TabsContent value="all" className="space-y-8">
+                    <section>
                             <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
@@ -856,7 +856,7 @@ export default function LiveSellingPage() {
                                                 <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
                                             </Link>
                                             <div className="flex-1">
-                                                 <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
+                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
                                             </div>
                                         </div>
                                     </div>
@@ -868,16 +868,16 @@ export default function LiveSellingPage() {
                             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {filterButtons.slice(1, 5).map(filter => (
-                                     <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => { setActiveTab('live'); setActiveFilter(filter); }}>{filter}</Button>
+                                    <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => { setActiveTab('live'); setActiveFilter(filter); }}>{filter}</Button>
                                 ))}
                             </div>
                         </section>
                         <section>
-                             <div className="px-4 mb-4">
+                            <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-4 px-2 md:px-4">
-                               {filteredLiveSellers.slice(0, 10).map((seller: any) => (
+                            {filteredLiveSellers.slice(0, 10).map((seller: any) => (
                                 <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                     <Link href={`/product/${seller.productId}`} className="cursor-pointer">
                                         <Image 
@@ -895,8 +895,8 @@ export default function LiveSellingPage() {
                         </section>
                     </TabsContent>
 
-                    <TabsContent value="live" className="pb-20">
-                       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <TabsContent value="live">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="mb-6">
                             {!isMounted || offerSlides.length === 0 ? (
                                 <Skeleton className="w-full aspect-[3/1] rounded-lg" />
@@ -965,13 +965,13 @@ export default function LiveSellingPage() {
                                 </Button>
                             </div>
 
-                             {isLoadingSellers ? (
+                            {isLoadingSellers ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {Array.from({ length: 12 }).map((_, index) => (
                                         <LiveSellerSkeleton key={index} />
                                     ))}
                                 </div>
-                             ) : filteredLiveSellers.length > 0 ? (
+                            ) : filteredLiveSellers.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {filteredLiveSellers.map((seller: any) => (
                                         <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
@@ -980,7 +980,7 @@ export default function LiveSellingPage() {
                                                     LIVE
                                                 </Badge>
                                             </div>
-                                             {seller.isMyStream && (
+                                            {seller.isMyStream && (
                                                 <div className="absolute top-10 left-2 z-10">
                                                     <Badge variant="secondary" className="bg-purple text-purple-foreground">
                                                         Your Stream
@@ -1013,7 +1013,7 @@ export default function LiveSellingPage() {
                                                         </Avatar>
                                                     </Link>
                                                     <div className="flex-1">
-                                                         <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                        <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
                                                             <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
                                                         </Link>
                                                         {seller.hasAuction && (
@@ -1029,16 +1029,16 @@ export default function LiveSellingPage() {
                                     ))}
                                 </div>
                             ) : (
-                                 <div className="text-center py-12 text-muted-foreground">
+                                <div className="text-center py-12 text-muted-foreground">
                                     <p className="text-lg font-semibold">No results found</p>
                                     <p>Try searching for something else or changing the filter.</p>
                                 </div>
                             )}
-                       </div>
+                    </div>
                     </TabsContent>
 
-                    <TabsContent value="feeds" className="w-full pb-20">
-                         <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                    <TabsContent value="feeds" className="w-full">
+                        <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                 <AlertDialogTitle>Report Post</AlertDialogTitle>
@@ -1065,19 +1065,19 @@ export default function LiveSellingPage() {
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
-                         </AlertDialog>
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
+                        </AlertDialog>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
                                     <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => handleAuthAction(() => setFeedFilter('following'))}>Following</Button>
                                 </div>
-                              {isLoadingFeed ? (
+                            {isLoadingFeed ? (
                                 <>
                                     <FeedPostSkeleton />
                                     <FeedPostSkeleton />
                                 </>
-                              ) : filteredFeed.length > 0 ? (
+                            ) : filteredFeed.length > 0 ? (
                                 filteredFeed.map((item) => (
                                     <Card key={item.id} className="overflow-hidden">
                                         <div className="p-4">
@@ -1098,7 +1098,7 @@ export default function LiveSellingPage() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                         {user && user.uid === item.sellerId && (
+                                                        {user && user.uid === item.sellerId && (
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
                                                                     <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
@@ -1184,12 +1184,12 @@ export default function LiveSellingPage() {
                                         </div>
                                     </Card>
                                 ))
-                              ) : (
+                            ) : (
                                 <div className="text-center py-12 text-muted-foreground">
                                     <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
                                     <p>Try searching for something else in the feed.</p>
                                 </div>
-                              )}
+                            )}
                             </div>
                             <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
                                 <Card>
@@ -1216,7 +1216,7 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                         {suggestedUsers.map(u => (
+                                        {suggestedUsers.map(u => (
                                             <div key={u.id} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-10 w-10">
@@ -1282,13 +1282,13 @@ export default function LiveSellingPage() {
                                     </CardContent>
                                 </Card>
                             </div>
-                          </div>
-                           {user && (
+                        </div>
+                        {user && (
                                 <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
                             )}
                     </TabsContent>
-                </Tabs>
                 </div>
+            </Tabs>
             <Footer />
         </div>
     </div>
