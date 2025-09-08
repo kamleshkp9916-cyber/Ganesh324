@@ -297,7 +297,6 @@ export default function LiveSellingPage() {
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
-  const [feedFilter, setFeedFilter] = useState('global');
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -671,6 +670,7 @@ export default function LiveSellingPage() {
 
                      <div className={cn(
                         "absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
+                        "sticky-tabs",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
                        {renderTabs(true)}
@@ -835,7 +835,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("flex justify-center pt-2 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
+                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
                     {renderTabs(false)}
                 </div>
                 
