@@ -639,13 +639,13 @@ export default function LiveSellingPage() {
     }
 };
 
- const renderTabs = (isHeader: boolean = false) => (
+  const renderTabs = (isHeader: boolean = false) => (
     <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "bg-transparent")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
     </TabsList>
- );
+  );
 
 
   return (
@@ -838,10 +838,14 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 transition-opacity md:hidden", isScrolled ? "opacity-100" : "opacity-0 pointer-events-none")}>
+                <div ref={tabsRef} className={cn("sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2", isScrolled ? "hidden" : "md:hidden")}>
                     <div className={cn("flex justify-center px-4")}>
                         {renderTabs()}
                     </div>
+                </div>
+
+                <div className={cn("hidden md:flex justify-center sticky z-20 top-[65px] bg-background/95 backdrop-blur-sm py-2 border-b", isScrolled ? "md:hidden" : "")} ref={tabsRef}>
+                    {renderTabs()}
                 </div>
                 
                 <div className="pb-20">
