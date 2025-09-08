@@ -398,7 +398,6 @@ export default function AdminSettingsPage() {
   }
 
   if (userData?.role !== 'admin') {
-      router.replace('/');
       return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 

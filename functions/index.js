@@ -1,204 +1,163 @@
+// functions/index.js
+'use strict';
 
-const { onRequest } = require("firebase-functions/v2/http");
-const functions = require("firebase-functions");
-const sgMail = require("@sendgrid/mail");
-const admin = require("firebase-admin");
-const client = require("@sendgrid/client");
+const admin = require('firebase-admin');
+const { onRequest } = require('firebase-functions/v2/https');
+const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
+const sgMail = require('@sendgrid/mail');
 
-admin.initializeApp();
-const db = admin.firestore();
+/**
+ * Admin SDK initialization:
+ * - If FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are present, use cert init (useful locally).
+ * - Otherwise fall back to default application credentials (GCP runtime service account).
+ */
+if (!admin.apps.length) {
+  if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PROJECT_ID) {
+    // private key will usually have literal "\n" sequences when stored in env; convert them
+    const fixedPrivateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
 
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: fixedPrivateKey,
+      }),
+    });
+    console.log('Admin SDK initialized from env cert');
+  } else {
+    admin.initializeApp();
+    console.log('Admin SDK initialized with default application credentials');
+  }
+}
 
-// Existing function to send email via HTTP request
+/**
+ * Configure SendGrid API key.
+ * In Cloud Functions you should configure SENDGRID_KEY as a Secret (you already have this).
+ * Locally you can set SENDGRID_KEY env var.
+ */
+if (process.env.SENDGRID_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_KEY);
+} else {
+  console.warn('SENDGRID_KEY not set in env; send attempts will fail until it is configured.');
+}
+
+/**
+ * Utility: normalize recipients.
+ * Accept either:
+ *   to: "single@domain" OR to: ["one@domain","two@domain"]
+ * Returns array of { email } for personalizations or a single string for simple send.
+ */
+function normalizeRecipients(to) {
+  if (!to) return [];
+  if (Array.isArray(to)) return to.map((e) => ({ email: String(e).trim() }));
+  return [{ email: String(to).trim() }];
+}
+
+/**
+ * Main function: sendEmail
+ *
+ * POST payload (JSON) examples:
+ * Single recipient:
+ * {
+ *   "to":"user@example.com",
+ *   "subject":"Hello",
+ *   "text":"plain text body",
+ *   "html":"<b>HTML body</b>"
+ * }
+ *
+ * Multiple recipients (keeps recipients private via personalizations):
+ * {
+ *   "to":["a@example.com","b@example.com"],
+ *   "subject":"Announcement",
+ *   "text":"announcement text"
+ * }
+ *
+ * Optional: overrideFrom: "verified@your-sender.com" (if you want to change per-call)
+ */
 exports.sendEmail = onRequest(
-  { secrets: ["SENDGRID_KEY"] },
+  { secrets: ['SENDGRID_KEY'] },
   async (req, res) => {
     try {
-      if (req.method !== "POST") {
-        return res.status(405).send({ error: "Use POST" });
+      if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
       }
 
-      const { to, subject, text, html } = req.body || {};
+      const body = req.body || {};
+      const to = body.to || body.recipients || null; // accept different keys
+      const subject = body.subject || null;
+      const text = body.text || '';
+      const html = body.html || '';
+
       if (!to || !subject || (!text && !html)) {
-        return res.status(400).json({ error: "Missing required fields: to, subject, text/html" });
+        return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
       }
 
-      const SENDGRID_KEY = process.env.SENDGRID_KEY;
-      if (!SENDGRID_KEY) {
-        console.error("Missing SENDGRID_KEY env var");
-        return res.status(500).json({ error: "Server misconfigured" });
+      // Sender email: use env if set (recommended), otherwise fallback to your verified single sender
+      const FROM_EMAIL = process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com';
+
+      // ensure SendGrid key present
+      if (!process.env.SENDGRID_KEY) {
+        console.error('SENDGRID_KEY is not set in environment; aborting send.');
+        return res.status(500).json({ error: 'SendGrid API key not configured' });
       }
 
-      sgMail.setApiKey(SENDGRID_KEY);
+      // Build message
+      // If multiple recipients provided, use personalizations so recipients cannot see each other.
+      const recipients = normalizeRecipients(to);
 
-      // build the message object without empty content fields
-      const msg = {
-        to,
-        from: "kamleshkp9916@gmail.com", // your verified single sender
-        subject,
+      // Build content array ensuring non-empty strings (SendGrid rejects empty content items)
+      const content = [];
+      if (text && String(text).trim().length > 0) content.push({ type: 'text/plain', value: String(text) });
+      if (html && String(html).trim().length > 0) content.push({ type: 'text/html', value: String(html) });
+
+      if (content.length === 0) {
+        return res.status(400).json({ error: 'Both text and html are empty after trimming' });
+      }
+
+      let msg = {
+        from: FROM_EMAIL,
+        subject: subject,
+        content: content,
+        mail_settings: {
+          /* example: sandbox_mode: { enable: true } */
+        },
       };
 
-      // only include text/html if non-empty strings
-      if (typeof text === "string" && text.trim().length > 0) {
-        msg.text = text;
-      }
-      if (typeof html === "string" && html.trim().length > 0) {
-        msg.html = html;
-      }
-
-      // final sanity: require at least one content field
-      if (!msg.text && !msg.html) {
-        return res.status(400).json({ error: "Missing required fields: text or html must be present and non-empty" });
+      if (recipients.length === 1) {
+        // Single recipient -> simple to field
+        msg.to = recipients[0].email;
+      } else {
+        // Multiple recipients -> personalizations: each recipient gets its own personalization
+        msg.personalizations = recipients.map((r) => ({ to: [r] }));
       }
 
+      // Optional: reply-to (if provided)
+      if (body.replyTo) msg.replyTo = { email: body.replyTo };
 
-      await sgMail.send(msg);
-      return res.status(200).json({ success: true });
+      // Send
+      const result = await sgMail.send(msg, false); // second param false avoids implicit multiple sends
+      // sgMail.send returns an array for multiple recipients; include helpful info
+      console.log('SendGrid result:', Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode);
+      return res.status(200).json({ success: true, debug: Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode });
     } catch (err) {
-      console.error("sendEmail error:", err && err.toString ? err.toString() : err);
-
-      // log SendGrid's detailed error if available
+      // grab SendGrid response body if present
+      let sgBody = null;
       try {
-        const sgBody = err?.response?.body || err?.response?.data;
-        if (sgBody) console.error("SendGrid response body (debug):", JSON.stringify(sgBody, null, 2));
-      } catch (e) {
-        console.error("Failed to log SendGrid error body:", e.toString());
-      }
-
-      return res.status(500).json({ error: "Email sending failed" });
-    }
-  }
-);
-
-
-// New function to send a welcome email on user signup
-exports.sendWelcomeEmail = functions.runWith({ secrets: ["SENDGRID_KEY"] }).auth.user().onCreate(async (user) => {
-  const SENDGRID_KEY = process.env.SENDGRID_KEY;
-  if (!SENDGRID_KEY) {
-    console.error("Missing SENDGRID_KEY env var. Cannot send welcome email.");
-    return;
-  }
-  sgMail.setApiKey(SENDGRID_KEY);
-
-  const msg = {
-    to: user.email,
-    from: "kamleshkp9916@gmail.com",
-    subject: "Welcome to StreamCart!",
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Welcome to StreamCart, ${user.displayName || 'Friend'}!</h2>
-        <p>We're thrilled to have you join our community of live shoppers and sellers.</p>
-        <p>With StreamCart, you can:</p>
-        <ul>
-          <li>Discover unique products through live video streams.</li>
-          <li>Interact with sellers in real-time.</li>
-          <li>Shop with confidence and have fun!</li>
-        </ul>
-        <p>To get started, check out the latest <a href="https://your-app-url/live-selling">live streams</a>.</p>
-        <p>Happy shopping!</p>
-        <br>
-        <p>The StreamCart Team</p>
-      </div>
-    `,
-  };
-
-  try {
-    await sgMail.send(msg);
-    console.log(`Welcome email sent to ${user.email}`);
-  } catch (error) {
-    console.error("Error sending welcome email:", error);
-     // log SendGrid's detailed error if available
-      try {
-        const sgBody = error?.response?.body || error?.response?.data;
-        if (sgBody) console.error("SendGrid response body (debug):", JSON.stringify(sgBody, null, 2));
-      } catch (e) {
-        console.error("Failed to log SendGrid error body:", e.toString());
-      }
-  }
-});
-
-// Replaced the Firestore-triggered function with a robust HTTP-triggered one for notifications.
-exports.sendNotificationEmail = onRequest(
-  { secrets: ["SENDGRID_KEY"] },
-  async (req, res) => {
-    try {
-      if (req.method !== "POST") {
-        return res.status(405).json({ error: "Use POST" });
-      }
-      
-      const body = req.body || {};
-      const subject = body.subject;
-      const text = body.text || null;
-      const html = body.html || null;
-      const fromEmail = body.from || "kamleshkp9916@gmail.com";
-      const recipients = body.recipients || [];
-
-      if (!subject || (!text && !html) || !Array.isArray(recipients) || recipients.length === 0) {
-        return res.status(400).json({
-          error: "Missing required fields: subject, (text or html), recipients (non-empty array)"
-        });
-      }
-
-      const SENDGRID_KEY = process.env.SENDGRID_KEY;
-      if (!SENDGRID_KEY) {
-        console.error("Missing SENDGRID_KEY env var");
-        return res.status(500).json({ error: "Server misconfigured" });
-      }
-
-      client.setApiKey(SENDGRID_KEY);
-
-      const personalizations = recipients.map((r) => {
-        if (typeof r === "string") {
-          return { to: [{ email: r }] };
-        } else {
-          const p = { to: [{ email: r.email }] };
-          if (r.name) p.to[0].name = r.name;
-          if (r.data && typeof r.data === "object") {
-            p.dynamic_template_data = r.data;
-          }
-          return p;
+        if (err && err.response && (err.response.body || err.response.data)) {
+          sgBody = err.response.body || err.response.data;
         }
+      } catch (e) {
+        console.error('Failed to extract sendgrid body:', e && e.toString ? e.toString() : e);
+      }
+
+      console.error('sendEmail error:', err && err.toString ? err.toString() : err);
+      if (sgBody) console.error('SendGrid response body (debug):', JSON.stringify(sgBody, null, 2));
+
+      // Return structured error for debugging
+      return res.status(500).json({
+        error: 'Email sending failed',
+        sendgrid_error: sgBody || (err && err.toString ? err.toString() : 'no sendgrid body available'),
       });
-
-      const MAX_PER_BATCH = 500;
-      const batches = [];
-      for (let i = 0; i < personalizations.length; i += MAX_PER_BATCH) {
-        batches.push(personalizations.slice(i, i + MAX_PER_BATCH));
-      }
-
-      const content = [];
-      if (text) content.push({ type: "text/plain", value: text });
-      if (html) content.push({ type: "text/html", value: html });
-
-      for (const batchPersonalizations of batches) {
-        const msg = {
-          personalizations: batchPersonalizations,
-          from: { email: fromEmail },
-          subject,
-          content
-        };
-        await client.request({
-          method: "POST",
-          url: "/v3/mail/send",
-          body: msg
-        });
-      }
-
-      return res.status(200).json({ success: true, sent: recipients.length });
-    } catch (err) {
-      try {
-        const sgBody = err && err.response && (err.response.body || err.response.data)
-          ? (err.response.body || err.response.data)
-          : null;
-        console.error("sendNotificationEmail error:", err && err.toString ? err.toString() : err);
-        if (sgBody) console.error("SendGrid response body (debug):", JSON.stringify(sgBody, null, 2));
-      } catch (logErr) {
-        console.error("Error logging send error:", logErr);
-      }
-
-      return res.status(500).json({ error: "Email sending failed" });
     }
   }
 );
-
-    
