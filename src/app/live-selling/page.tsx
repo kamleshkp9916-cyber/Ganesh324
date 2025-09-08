@@ -295,12 +295,14 @@ export default function LiveSellingPage() {
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
   
   const [isScrolled, setIsScrolled] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
+  
+  const [productCategoryFilter, setProductCategoryFilter] = useState('All');
 
 
   const loadData = useCallback(() => {
@@ -471,13 +473,8 @@ export default function LiveSellingPage() {
     let sellers = [...allSellers];
 
     // Filter by category
-    if (activeFilter !== 'All' && activeFilter !== 'Popular') {
-        sellers = sellers.filter(seller => seller.category === activeFilter);
-    }
-
-    // Sort by popularity if selected
-    if (activeFilter === 'Popular') {
-        sellers.sort((a, b) => b.viewers - a.viewers);
+    if (activeLiveFilter !== 'All') {
+        sellers = sellers.filter(seller => seller.category === activeLiveFilter);
     }
     
     // Filter by search term
@@ -489,7 +486,7 @@ export default function LiveSellingPage() {
     }
 
     return sellers;
-  }, [searchTerm, allSellers, activeFilter]);
+  }, [searchTerm, allSellers, activeLiveFilter]);
 
   const filteredFeed = useMemo(() => {
     if (!searchTerm) return feed;
@@ -498,6 +495,23 @@ export default function LiveSellingPage() {
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, feed]);
+
+  const productCategories = useMemo(() => {
+    const categories = new Set(Object.values(productDetails).map(p => p.category));
+    return ['All', ...Array.from(categories)];
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const products = liveSellers.map(seller => {
+        const product = productDetails[seller.productId as keyof typeof productDetails];
+        return product ? { ...seller, product } : null;
+    }).filter(Boolean);
+
+    if (productCategoryFilter === 'All') {
+      return products;
+    }
+    return products.filter(item => item?.product.category === productCategoryFilter);
+  }, [productCategoryFilter]);
   
 
   const handleReply = (sellerName: string) => {
@@ -531,7 +545,7 @@ export default function LiveSellingPage() {
   };
 
 
-  const filterButtons = ['Fashion', 'Electronics', 'Home Goods', 'Beauty', 'Popular'];
+  const liveStreamFilterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty'];
 
   const onSelect = useCallback((api: CarouselApi) => {
     if (!api) return;
@@ -624,11 +638,6 @@ export default function LiveSellingPage() {
         });
     }
 };
-
-  const handleCategorySelect = (filter: string) => {
-    setActiveFilter(filter);
-    setActiveTab('live');
-  };
 
  const renderTabs = (isHeader: boolean = false) => (
     <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isHeader && "bg-transparent")}>
@@ -871,11 +880,21 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Trending Categories</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {filterButtons.slice(1, 5).map(filter => (
-                                    <Button key={filter} variant="outline" className="h-16 text-lg" onClick={() => handleCategorySelect(filter)}>{filter}</Button>
-                                ))}
+                            <div className="mb-4">
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Product Categories</h2>
+                                 <div className="flex flex-wrap gap-2">
+                                    {productCategories.map(filter => (
+                                        <Button 
+                                            key={filter} 
+                                            variant={productCategoryFilter === filter ? 'default' : 'outline'}
+                                            size="sm" 
+                                            className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
+                                            onClick={() => setProductCategoryFilter(filter)}
+                                        >
+                                            {filter}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
                         </section>
                         <section>
@@ -883,20 +902,20 @@ export default function LiveSellingPage() {
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
-                                {filteredLiveSellers.slice(0, 10).map((seller: any) => {
-                                    const product = productDetails[seller.productId as keyof typeof productDetails];
-                                    if (!product) return null;
+                                {filteredProducts.map((item: any) => {
+                                    if (!item || !item.product) return null;
+                                    const { product } = item;
                                     return (
-                                        <Card key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
-                                            <Link href={`/product/${seller.productId}`} className="cursor-pointer">
+                                        <Card key={item.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                            <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
-                                                        src={seller.thumbnailUrl.replace('450', '300')} 
-                                                        alt={`Product from ${seller.name}`} 
+                                                        src={item.thumbnailUrl.replace('450', '300')} 
+                                                        alt={`Product from ${item.name}`} 
                                                         width={300} 
                                                         height={300} 
                                                         className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                                        data-ai-hint={seller.hint}
+                                                        data-ai-hint={item.hint}
                                                     />
                                                 </div>
                                                 <div className="p-3">
@@ -905,9 +924,9 @@ export default function LiveSellingPage() {
                                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                                         <div className="flex items-center gap-1 text-amber-500">
                                                             <Star className="h-4 w-4 fill-current"/>
-                                                            <span>{seller.rating}</span>
+                                                            <span>{item.rating}</span>
                                                         </div>
-                                                        <span>({seller.buyers} buyers)</span>
+                                                        <span>({item.buyers} buyers)</span>
                                                     </div>
                                                 </div>
                                             </Link>
@@ -971,13 +990,13 @@ export default function LiveSellingPage() {
                             </div>
 
                             <div className="flex flex-wrap gap-2 mb-6">
-                                {['All', ...filterButtons].map((filter) => (
+                                {liveStreamFilterButtons.map((filter) => (
                                 <Button 
                                     key={filter} 
-                                    variant={activeFilter === filter ? 'default' : 'outline'} 
+                                    variant={activeLiveFilter === filter ? 'default' : 'outline'} 
                                     size="sm" 
                                     className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                    onClick={() => setActiveFilter(filter)}
+                                    onClick={() => setActiveLiveFilter(filter)}
                                 >
                                     {filter}
                                 </Button>
