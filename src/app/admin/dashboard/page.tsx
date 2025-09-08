@@ -194,7 +194,11 @@ export default function AdminDashboard() {
   const [salesFilter, setSalesFilter] = useState("This Month");
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
+  const [isMounted, setIsMounted] = useState(false);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -226,6 +230,8 @@ export default function AdminDashboard() {
   }, [allOrders]);
 
   const salesFigures = useMemo(() => {
+    if (!isMounted) return { sales: '+0', percent: '+0%' }; // Return default value on server
+    
     const now = new Date();
     let filteredOrders = allOrders;
 
@@ -257,9 +263,9 @@ export default function AdminDashboard() {
       sales: `+${filteredOrders.length}`,
       percent: "+0%" // Placeholder
     };
-  }, [salesFilter, allOrders]);
+  }, [salesFilter, allOrders, isMounted]);
   
-  if (loading || !userData || userData.role !== 'admin') {
+  if (loading || !userData || userData.role !== 'admin' || !isMounted) {
     return (
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />

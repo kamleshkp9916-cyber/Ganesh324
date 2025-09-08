@@ -87,7 +87,11 @@ const mockPayouts = [
     { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
 ];
 
-const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => (
+const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => {
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => setIsMounted(true), []);
+
+    return (
     <>
         <Table>
             <TableHeader>
@@ -104,7 +108,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                             <div className="font-medium">{u.name || u.displayName}</div>
                             <div className="text-sm text-muted-foreground">{u.email}</div>
                         </TableCell>
-                         <TableCell className="hidden md:table-cell">{new Date(u.date || Date.now()).toLocaleDateString()}</TableCell>
+                         <TableCell className="hidden md:table-cell">{isMounted ? new Date(u.date || Date.now()).toLocaleDateString() : '...'}</TableCell>
                         <TableCell className="text-right">
                              <div className="flex items-center justify-end gap-2">
                                 <Button variant="outline" size="sm" onClick={() => onViewDetails(u)}>
@@ -137,7 +141,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
             </div>
         </CardFooter>
     </>
-);
+)};
 
 export default function AdminUsersPage() {
   const { user, userData, loading } = useAuth();
@@ -487,3 +491,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
