@@ -733,7 +733,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                         ))}
                                                     </div>
                                                     <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                    <p className="text-xs text-muted-foreground mt-2 text-right">{new Date(review.date).toLocaleDateString()}</p>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        {review.paymentMethod && (
+                                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                                <PaymentIcon method={review.paymentMethod} />
+                                                                <span>{paymentLabel(review.paymentMethod)}</span>
+                                                            </div>
+                                                        )}
+                                                         <p className="text-xs text-muted-foreground text-right">{new Date(review.date).toLocaleDateString()}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Card>
