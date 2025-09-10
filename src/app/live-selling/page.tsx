@@ -53,6 +53,7 @@ import {
   Tv,
   Tags,
   Flame,
+  TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -302,7 +303,7 @@ export default function LiveSellingPage() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
-
+  
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
@@ -323,26 +324,31 @@ export default function LiveSellingPage() {
         let currentSellers = [...liveSellers];
         
         if (liveStreamDataRaw) {
-            const liveStreamData = JSON.parse(liveStreamDataRaw);
-            const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
+            try {
+                const liveStreamData = JSON.parse(liveStreamDataRaw);
+                const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller?.uid);
 
-            if (!sellerIsLive) {
-                const newSellerCard = {
-                    id: liveStreamData.seller.uid,
-                    name: liveStreamData.seller.name,
-                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                    thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
-                    category: liveStreamData.product.category || 'General',
-                    viewers: Math.floor(Math.random() * 5000),
-                    buyers: Math.floor(Math.random() * 100),
-                    rating: 4.5,
-                    reviews: Math.floor(Math.random() * 50),
-                    hint: liveStreamData.product.name.toLowerCase(),
-                    productId: liveStreamData.product.id,
-                    isMyStream: true,
-                    hasAuction: liveStreamData.isAuction,
-                };
-                currentSellers = [newSellerCard, ...currentSellers];
+                if (liveStreamData.seller && !sellerIsLive) {
+                    const newSellerCard = {
+                        id: liveStreamData.seller.uid,
+                        name: liveStreamData.seller.name,
+                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                        thumbnailUrl: liveStreamData.product?.image?.preview || 'https://placehold.co/300x450.png',
+                        category: liveStreamData.product?.category || 'General',
+                        viewers: Math.floor(Math.random() * 5000),
+                        buyers: Math.floor(Math.random() * 100),
+                        rating: 4.5,
+                        reviews: Math.floor(Math.random() * 50),
+                        hint: liveStreamData.product?.name?.toLowerCase() || 'live stream',
+                        productId: liveStreamData.product?.id,
+                        isMyStream: true,
+                        hasAuction: liveStreamData.isAuction,
+                    };
+                    currentSellers = [newSellerCard, ...currentSellers];
+                }
+            } catch (error) {
+                console.error("Error parsing live stream data from localStorage", error);
+                localStorage.removeItem('liveStream');
             }
         }
         setAllSellers(currentSellers.map(s => ({ ...s, isMyStream: s.id === user?.uid })));
@@ -364,6 +370,10 @@ export default function LiveSellingPage() {
       .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
+  const mostReachedPosts = useMemo(() => {
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
+  }, [feed]);
+
   useEffect(() => {
     setIsMounted(true);
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
@@ -372,10 +382,13 @@ export default function LiveSellingPage() {
     let postsQuery;
 
     if (feedFilter === 'following' && user) {
-        // This is a simplified version. A real app would need to fetch the list of followed UIDs first.
-        // For this demo, we'll assume a small list of followed UIDs.
-        const followedUIDs = followingIds.length > 0 ? followingIds : [user.uid]; // Show own posts if not following anyone
-        postsQuery = query(collection(db, "posts"), where("sellerId", "in", followedUIDs), orderBy("timestamp", "desc"));
+        if (followingIds.length > 0) {
+            postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
+        } else {
+             setFeed([]);
+             setIsLoadingFeed(false);
+             return;
+        }
     } else {
         postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
     }
@@ -538,7 +551,7 @@ export default function LiveSellingPage() {
     });
   };
   
-  const handleCategorySelect = (category: string) => {
+  const handleProductCategorySelect = (category: string) => {
     setProductCategoryFilter(category);
   };
   
@@ -572,7 +585,7 @@ export default function LiveSellingPage() {
    const handleScroll = useCallback(() => {
     if (tabsRef.current) {
       const { top } = tabsRef.current.getBoundingClientRect();
-      const headerHeight = 65; // Height of the main header
+      const headerHeight = 64; // Height of the main header
       setIsScrolled(top <= headerHeight);
     }
   }, []);
@@ -641,12 +654,14 @@ export default function LiveSellingPage() {
     }
 };
 
-  const renderTabs = (isSticky: boolean) => (
-    <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex", isSticky && "bg-transparent")}>
+  const renderTabs = (isSticky: boolean = false) => (
+    <div className={cn("primary-tabs flex justify-center py-2", !isSticky && "border-b-2 border-border mb-4")}>
+      <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
-    </TabsList>
+      </TabsList>
+    </div>
   );
 
   return (
@@ -672,8 +687,8 @@ export default function LiveSellingPage() {
                         <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
 
-                     <div className={cn(
-                        "absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
+                    <div ref={tabsRef} className={cn(
+                        "sticky-tabs absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
                        {renderTabs(true)}
@@ -838,9 +853,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 transition-opacity duration-300", isScrolled && "opacity-0")}>
-                    {renderTabs(false)}
-                </div>
+                 {renderTabs(false)}
                 
                 <div className="pb-20">
                     <TabsContent value="all" className="space-y-8">
@@ -887,7 +900,7 @@ export default function LiveSellingPage() {
                                             variant={productCategoryFilter === filter ? 'default' : 'outline'}
                                             size="sm" 
                                             className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                            onClick={() => handleCategorySelect(filter)}
+                                            onClick={() => handleProductCategorySelect(filter)}
                                         >
                                             {filter}
                                         </Button>
@@ -904,7 +917,7 @@ export default function LiveSellingPage() {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
                                     return (
-                                        <Card key={item.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Card key={product.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                             <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
@@ -931,6 +944,30 @@ export default function LiveSellingPage() {
                                         </Card>
                                     );
                                 })}
+                            </div>
+                        </section>
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="mb-4">
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
+                            </div>
+                            <div className="space-y-4">
+                                {mostReachedPosts.map(post => (
+                                     <Card key={post.id} className="overflow-hidden">
+                                        <div className="p-4">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm">{post.content}</p>
+                                        </div>
+                                    </Card>
+                                ))}
                             </div>
                         </section>
                     </TabsContent>
