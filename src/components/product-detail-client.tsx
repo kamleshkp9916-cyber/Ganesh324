@@ -771,7 +771,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="flex-grow">
                                         <div className="flex items-center justify-between">
                                             <h5 className="font-semibold">{review.author}</h5>
-                                            <p className="text-xs text-muted-foreground">{format(new Date(review.date), 'dd MMM yyyy')}</p>
+                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                         </div>
                                          <div className="flex items-center gap-1 mt-1">
                                              {[...Array(5)].map((_, i) => (
