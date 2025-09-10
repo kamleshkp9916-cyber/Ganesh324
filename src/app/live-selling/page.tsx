@@ -428,7 +428,7 @@ export default function LiveSellingPage() {
           window.removeEventListener('storage', handleStorageChange);
       };
     }
-  }, [isMounted, loadData]);
+  }, [isMounted, loadData, activeTab]);
 
    useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -1405,6 +1405,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-
-    
