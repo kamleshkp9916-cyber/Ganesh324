@@ -302,7 +302,7 @@ export default function LiveSellingPage() {
   const [feedFilter, setFeedFilter] = useState('global');
 
   const [isScrolled, setIsScrolled] = useState(false);
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const primaryTabsRef = useRef<HTMLDivElement>(null);
   
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -583,8 +583,8 @@ export default function LiveSellingPage() {
   }, [api, onSelect]);
   
    const handleScroll = useCallback(() => {
-    if (tabsRef.current) {
-      const { top } = tabsRef.current.getBoundingClientRect();
+    if (primaryTabsRef.current) {
+      const { top } = primaryTabsRef.current.getBoundingClientRect();
       const headerHeight = 64; // Height of the main header
       setIsScrolled(top <= headerHeight);
     }
@@ -655,7 +655,7 @@ export default function LiveSellingPage() {
 };
 
   const renderTabs = (isSticky: boolean = false) => (
-    <div className={cn("primary-tabs flex justify-center py-2", !isSticky && "border-b-2 border-border mb-4")}>
+    <div className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "mb-4")}>
       <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -687,7 +687,7 @@ export default function LiveSellingPage() {
                         <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
 
-                    <div ref={tabsRef} className={cn(
+                    <div className={cn(
                         "sticky-tabs absolute left-1/2 -translate-x-1/2 transition-opacity duration-300",
                         isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
@@ -853,7 +853,9 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 {renderTabs(false)}
+                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0")}>
+                    {renderTabs(false)}
+                 </div>
                 
                 <div className="pb-20">
                     <TabsContent value="all" className="space-y-8">
@@ -917,7 +919,7 @@ export default function LiveSellingPage() {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
                                     return (
-                                        <Card key={product.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Card key={item.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                             <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
