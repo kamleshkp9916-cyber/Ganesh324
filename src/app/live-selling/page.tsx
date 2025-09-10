@@ -257,9 +257,6 @@ function CommentSheet({ postId, trigger }: { postId: string, trigger: React.Reac
     )
 }
 
-const HERO_SLIDER_LAST_SEEN_KEY = 'streamcart_hero_slider_last_seen';
-const HERO_SLIDER_CONTENT_VERSION_KEY = 'streamcart_hero_slider_version';
-
 export default function LiveSellingPage() {
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
@@ -337,7 +334,7 @@ export default function LiveSellingPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Show slider every time for logged-in users, otherwise hide.
+    // Show slider every time for logged-in users.
     if (user) {
         setShowHeroSlider(true);
     } else {
