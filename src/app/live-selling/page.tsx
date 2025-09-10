@@ -320,38 +320,34 @@ export default function LiveSellingPage() {
         }
 
         const liveStreamDataRaw = localStorage.getItem('liveStream');
-        setAllSellers(prevSellers => {
-            let currentSellers = [...liveSellers];
-            if (liveStreamDataRaw) {
-                const liveStreamData = JSON.parse(liveStreamDataRaw);
-                const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
+        let currentSellers = [...liveSellers];
+        
+        if (liveStreamDataRaw) {
+            const liveStreamData = JSON.parse(liveStreamDataRaw);
+            const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller.uid);
 
-                if (!sellerIsLive) {
-                    const newSellerCard = {
-                        id: liveStreamData.seller.uid,
-                        name: liveStreamData.seller.name,
-                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                        thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
-                        category: liveStreamData.product.category || 'General',
-                        viewers: Math.floor(Math.random() * 5000),
-                        buyers: Math.floor(Math.random() * 100),
-                        rating: 4.5,
-                        reviews: Math.floor(Math.random() * 50),
-                        hint: liveStreamData.product.name.toLowerCase(),
-                        productId: liveStreamData.product.id,
-                        isMyStream: true,
-                        hasAuction: liveStreamData.isAuction,
-                    };
-                    return [newSellerCard, ...currentSellers.filter(s => s.id !== newSellerCard.id)];
-                } else {
-                    // Update existing seller's stream info
-                    return currentSellers.map(s => s.id === liveStreamData.seller.uid ? { ...s, isMyStream: true, hasAuction: liveStreamData.isAuction } : s);
-                }
+            if (!sellerIsLive) {
+                const newSellerCard = {
+                    id: liveStreamData.seller.uid,
+                    name: liveStreamData.seller.name,
+                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                    thumbnailUrl: liveStreamData.product.image.preview || 'https://placehold.co/300x450.png',
+                    category: liveStreamData.product.category || 'General',
+                    viewers: Math.floor(Math.random() * 5000),
+                    buyers: Math.floor(Math.random() * 100),
+                    rating: 4.5,
+                    reviews: Math.floor(Math.random() * 50),
+                    hint: liveStreamData.product.name.toLowerCase(),
+                    productId: liveStreamData.product.id,
+                    isMyStream: true,
+                    hasAuction: liveStreamData.isAuction,
+                };
+                currentSellers = [newSellerCard, ...currentSellers];
             }
-            return currentSellers.map(s => ({ ...s, isMyStream: false }));
-        });
+        }
+        setAllSellers(currentSellers.map(s => ({ ...s, isMyStream: s.id === user?.uid })));
     }
-  }, []);
+  }, [user?.uid]);
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -502,7 +498,6 @@ export default function LiveSellingPage() {
   const filteredProducts = useMemo(() => {
     let products = liveSellers.map(seller => {
         const product = productDetails[seller.productId as keyof typeof productDetails];
-        if (!product) return null; // Add a check here
         return { ...seller, product };
     }).filter(item => item && item.product);
 
@@ -542,7 +537,7 @@ export default function LiveSellingPage() {
         setSelectedReportReason("");
     });
   };
-
+  
   const handleCategorySelect = (category: string) => {
     setProductCategoryFilter(category);
   };
@@ -843,7 +838,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 transition-opacity duration-300", isScrolled && "opacity-0")}>
+                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 transition-opacity duration-300", isScrolled && "opacity-0")}>
                     {renderTabs(false)}
                 </div>
                 
