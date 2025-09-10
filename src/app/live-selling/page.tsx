@@ -730,6 +730,11 @@ export default function LiveSellingPage() {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
+                                 <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex" asChild>
+                                    <Link href="/listed-products">
+                                        <ShoppingBag />
+                                    </Link>
+                                </Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="relative text-foreground rounded-full bg-card hover:bg-accent flex">
