@@ -1,0 +1,168 @@
+"use client";
+
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { StoreHeader } from '@/components/store-header';
+import { MensSidebar } from '@/components/mens-sidebar';
+import { Logo } from '@/components/logo';
+import { Input } from '@/components/ui/input';
+
+const categories = [
+    { name: "Shirts", image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=400&h=500&fit=crop", hint: "man wearing shirt" },
+    { name: "Pants & Shorts", image: "https://images.unsplash.com/photo-1542272604-787c38E2C73b?w=400&h=500&fit=crop", hint: "men's pants" },
+    { name: "Coats & Jackets", image: "https://images.unsplash.com/photo-1520975954732-35dd222996b7?w=400&h=500&fit=crop", hint: "man wearing jacket" },
+    { name: "Activewear", image: "https://images.unsplash.com/photo-1544216717-3bbf52512659?w=400&h=500&fit=crop", hint: "man in activewear" },
+    { name: "Jeans", image: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&h=500&fit=crop", hint: "man wearing jeans" },
+    { name: "Underwear & Socks", image: "https://images.unsplash.com/photo-1613031027735-d72b535804e3?w=400&h=500&fit=crop", hint: "men's underwear" },
+    { name: "Pajamas & Robes", image: "https://images.unsplash.com/photo-1576523993214-94ac33b58474?w=400&h=500&fit=crop", hint: "man in pajamas" },
+    { name: "Suits & Tuxedos", image: "https://images.unsplash.com/photo-1593030339999-d438a5a5a6a6?w=400&h=500&fit=crop", hint: "man in suit" },
+    { name: "Shoes", image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&h=500&fit=crop", hint: "men's shoes" },
+    { name: "Accessories", image: "https://images.unsplash.com/photo-1615102581648-6346305a4132?w=400&h=500&fit=crop", hint: "men's watch" },
+    { name: "Big & Tall", image: "https://images.unsplash.com/photo-1607346256330-58d35961a1a7?w=400&h=500&fit=crop", hint: "tall man" },
+    { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
+];
+
+export default function MensClothingPage() {
+  const router = useRouter();
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+       <header className="border-b sticky top-0 bg-background/95 z-50">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                    <div className="flex items-center gap-4">
+                        <Link href="/live-selling">
+                            <Logo className="h-10" />
+                        </Link>
+                    </div>
+                    <div className="hidden lg:flex flex-1 max-w-lg mx-auto">
+                        <div className="relative w-full">
+                            <Input 
+                                placeholder="Search products, brands, and more"
+                                className="rounded-full pr-10"
+                            />
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon">
+                            <Search className="h-6 w-6 lg:hidden" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <User className="h-6 w-6" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <ShoppingCart className="h-6 w-6" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </header>
+      <StoreHeader />
+
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center justify-between mb-4 lg:hidden">
+             <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <h1 className="text-2xl font-bold">Men</h1>
+             <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Menu className="h-6 w-6" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-80">
+                   <MensSidebar />
+                </SheetContent>
+            </Sheet>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Column: Sidebar (Desktop) */}
+          <aside className="hidden lg:block lg:col-span-1">
+            <MensSidebar />
+          </aside>
+
+          {/* Right Column: Main Content */}
+          <div className="lg:col-span-3 space-y-10">
+            <div className="hidden lg:block">
+                <h1 className="text-4xl font-bold">Men</h1>
+            </div>
+
+            <section>
+                <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {categories.map(category => (
+                        <Link href="#" key={category.name} className="group block text-center">
+                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
+                                <Image 
+                                    src={category.image}
+                                    alt={category.name}
+                                    width={200}
+                                    height={200}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    data-ai-hint={category.hint}
+                                />
+                            </div>
+                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                        </Link>
+                    ))}
+                </div>
+            </section>
+            
+            <section>
+                <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
+                    <CardContent className="p-0 flex flex-col md:flex-row items-center">
+                        <div className="md:w-1/2 p-8 text-center md:text-left">
+                            <h3 className="text-3xl font-bold">40% off</h3>
+                            <p className="text-xl">Top Brand Polos & Tees</p>
+                            <p className="text-sm text-muted-foreground mt-1">Limited time only.</p>
+                            <Button asChild variant="link" className="mt-4 px-0">
+                                <Link href="#">Shop Now</Link>
+                            </Button>
+                        </div>
+                        <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
+                             <Image 
+                                src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop"
+                                alt="Men's fashion promotion"
+                                layout="fill"
+                                className="object-cover"
+                                data-ai-hint="man fashion"
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </section>
+            
+            <section>
+                 <Card className="overflow-hidden relative text-white">
+                    <div className="absolute inset-0 bg-black/40 z-10" />
+                    <Image 
+                        src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop"
+                        alt="Activewear promotion"
+                        layout="fill"
+                        className="object-cover"
+                        data-ai-hint="man running"
+                    />
+                    <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
+                         <p className="text-lg">Performance Enhanced</p>
+                        <h3 className="text-4xl font-bold my-2">Activewear Collection</h3>
+                        <p className="max-w-md">Engineered to keep you cool, dry, and comfortable.</p>
+                        <Button asChild variant="link" className="mt-4 text-white">
+                            <Link href="#">Shop The Collection</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
