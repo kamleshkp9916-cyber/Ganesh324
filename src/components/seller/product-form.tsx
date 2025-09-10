@@ -30,6 +30,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { categories } from "@/lib/categories";
 
 const productFormSchema = z.object({
   id: z.string().optional(),
@@ -43,6 +44,8 @@ const productFormSchema = z.object({
   })).min(1, "Please upload at least one image."),
   listingType: z.enum(['live-stream', 'general']).default('general'),
   status: z.enum(["draft", "active", "archived"]),
+  category: z.string().min(1, "Category is required."),
+  subcategory: z.string().min(1, "Sub-category is required."),
 })
 
 export type Product = z.infer<typeof productFormSchema>;
@@ -67,6 +70,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       images: [],
       listingType: "general",
       status: "draft",
+      category: "",
+      subcategory: "",
     };
   }, [productToEdit]);
 
@@ -79,6 +84,20 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     control: form.control,
     name: "images"
   });
+
+  const selectedCategory = form.watch("category");
+  const subcategories = useMemo(() => {
+      const category = categories.find(c => c.name === selectedCategory);
+      return category?.subcategories || [];
+  }, [selectedCategory]);
+  
+  useEffect(() => {
+    // When selectedCategory changes, reset the subcategory field
+    // But only if it's a user-initiated change, not on first load with productToEdit
+    if (form.formState.isDirty) {
+        form.resetField('subcategory');
+    }
+  }, [selectedCategory, form]);
 
   useEffect(() => {
     form.reset(defaultValues);
@@ -141,6 +160,50 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map(cat => <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="subcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sub-category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a sub-category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                  <FormField
                     control={form.control}
