@@ -23,11 +23,11 @@ import { ScrollArea } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
 import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-data';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { ReviewDialog } from './delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 
 
@@ -112,7 +112,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         const fetchTaggedPosts = async () => {
             if (!product) return;
             try {
-                const db = getFirebaseDb();
+                const db = getFirestoreDb();
                 const postsRef = collection(db, "posts");
                 const q = query(postsRef, where("taggedProduct.id", "==", product.id), orderBy("timestamp", "desc"));
                 const querySnapshot = await getDocs(q);
@@ -753,7 +753,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <CardHeader className="p-0 mb-4">
                         <CardTitle>You Might Also Like</CardTitle>
                     </CardHeader>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {relatedProducts.map(p => (
                             <Link href={`/product/${p.key}`} key={p.id}>
                                 <Card className="overflow-hidden group">
