@@ -14,7 +14,7 @@ import { WomensSidebar } from '@/components/womens-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
+import { CATEGORY_BANNERS_KEY, CategoryBanner } from '@/app/admin/settings/page';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
@@ -32,23 +32,23 @@ const categories = [
     { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
-const defaultSlides: Slide[] = [
-  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop', title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
-  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop', title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
+const defaultBanners: CategoryBanner[] = [
+  { id: 1, imageUrl: "https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop", title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
+  { id: 2, imageUrl: "https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop", title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
 ];
 
 
 export default function ListedProductsPage() {
   const router = useRouter();
-  const [slides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, defaultSlides);
+  const [banners] = useLocalStorage<CategoryBanner[]>(CATEGORY_BANNERS_KEY, defaultBanners);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
       setIsMounted(true);
   }, []);
 
-  const banner1 = slides.length > 0 ? slides[0] : defaultSlides[0];
-  const banner2 = slides.length > 1 ? slides[1] : defaultSlides[1];
+  const banner1 = banners.length > 0 ? banners[0] : defaultBanners[0];
+  const banner2 = banners.length > 1 ? banners[1] : defaultBanners[1];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

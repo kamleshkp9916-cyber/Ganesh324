@@ -87,6 +87,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage"
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
+export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 
 const announcementSchema = z.object({
@@ -117,6 +118,15 @@ const slideSchema = z.object({
   expiresAt: z.date().optional(),
 });
 export type Slide = z.infer<typeof slideSchema>;
+
+const bannerSchema = z.object({
+  id: z.number(),
+  title: z.string().min(3, "Title is required."),
+  description: z.string().min(5, "Description is required."),
+  imageUrl: z.string().url("A valid image URL is required."),
+});
+export type CategoryBanner = z.infer<typeof bannerSchema>;
+
 
 const footerContentSchema = z.object({
   description: z.string().min(10, "Description is required."),
@@ -157,6 +167,11 @@ const initialCoupons: Coupon[] = [
 const initialSlides: Slide[] = [
   { id: 1, imageUrl: 'https://placehold.co/1200x400.png', title: 'Flash Sale!', description: 'Up to 50% off on electronics.', expiresAt: new Date(new Date().setDate(new Date().getDate() + 3)) },
   { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.' },
+];
+
+const initialCategoryBanners: CategoryBanner[] = [
+  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop', title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
+  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop', title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
 ];
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
@@ -250,6 +265,53 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
     );
 };
 
+const BannerForm = ({ banner, onSave, title }: { banner: CategoryBanner, onSave: (data: CategoryBanner) => void, title: string }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof bannerSchema>>({
+        resolver: zodResolver(bannerSchema),
+        defaultValues: banner,
+    });
+    
+    useEffect(() => {
+        form.reset(banner);
+    }, [banner, form]);
+
+    const onSubmit = (values: z.infer<typeof bannerSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave(values);
+            setIsLoading(false);
+        }, 500);
+    };
+
+    return (
+        <Card>
+            <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField control={form.control} name="title" render={({ field }) => (
+                            <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="description" render={({ field }) => (
+                            <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                            <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <div className="flex justify-end pt-2">
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Banner
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+};
+
 const FooterContentForm = ({ storedValue, onSave }: { storedValue: FooterContent, onSave: (data: FooterContent) => void }) => {
     const [isLoading, setIsLoading] = useState(false);
     const form = useForm<z.infer<typeof footerContentSchema>>({
@@ -326,6 +388,7 @@ export default function AdminSettingsPage() {
   const [contentList, setContentList] = useState(initialFlaggedContent);
   const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, initialSlides);
+  const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanner[]>(CATEGORY_BANNERS_KEY, initialCategoryBanners);
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
@@ -395,6 +458,16 @@ export default function AdminSettingsPage() {
       setIsSlideFormOpen(true);
   };
   
+   const handleSaveCategoryBanner = (banner: CategoryBanner) => {
+    const newBanners = [...categoryBanners];
+    const bannerIndex = newBanners.findIndex(b => b.id === banner.id);
+    if (bannerIndex > -1) {
+        newBanners[bannerIndex] = banner;
+        setCategoryBanners(newBanners);
+        toast({ title: "Banner Saved!", description: `Banner ${banner.id} has been updated.` });
+    }
+  };
+
    const handleSaveFooter = (data: FooterContent) => {
         setFooterContent(data);
         toast({ title: "Footer Content Saved!", description: "Your footer has been updated successfully." });
@@ -525,7 +598,7 @@ export default function AdminSettingsPage() {
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div><CardTitle>Promotion & Offer Management</CardTitle><CardDescription>Manage the promotional slides on the live shopping page.</CardDescription></div>
+                        <div><CardTitle>Live Shopping Page Promotions</CardTitle><CardDescription>Manage the promotional slides on the main live shopping page.</CardDescription></div>
                         <Button size="sm" onClick={() => openSlideForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Slide</Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -540,6 +613,22 @@ export default function AdminSettingsPage() {
                             </div>
                         )) : (
                             isMounted ? <p className="text-center text-muted-foreground py-4">No promotional slides have been created yet.</p> : <Skeleton className="w-full h-24" />
+                        )}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Category Page Banner Management</CardTitle>
+                        <CardDescription>Manage the two promotional banners on category pages like Women's and Men's clothing.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {categoryBanners.length > 0 ? (
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <BannerForm banner={categoryBanners[0]} onSave={handleSaveCategoryBanner} title="Top Banner" />
+                                <BannerForm banner={categoryBanners[1]} onSave={handleSaveCategoryBanner} title="Bottom Banner" />
+                            </div>
+                        ) : (
+                            isMounted ? <p className="text-center text-muted-foreground py-4">No category banners found.</p> : <Skeleton className="w-full h-48" />
                         )}
                     </CardContent>
                 </Card>
