@@ -323,9 +323,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         p => p.category === product.category && p.id !== product.id
     ).slice(0, 10);
 
-    const relatedStreams = liveSellers.filter(
-        s => s.category === product.category && s.productId !== product.key
-    ).slice(0, 6);
+    const relatedStreams = useMemo(() => {
+        const streams = liveSellers.filter(
+            s => s.category === product.category && s.productId !== product.key
+        );
+        if (streams.length > 0) return streams.slice(0, 6);
+        // Fallback to show some streams if none match the category
+        return liveSellers.filter(s => s.productId !== product.key).slice(0, 4);
+    }, [product.category, product.key]);
 
     const productSpecificDetails = [
         { label: 'Brand', value: product.brand },
@@ -865,6 +870,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     onReviewSubmit={handleReviewSubmit}
                     closeDialog={() => setIsReviewDialogOpen(false)}
                     user={user}
+                    order={undefined}
                  />
             </Dialog>
         </div>
