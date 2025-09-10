@@ -16,12 +16,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { WithdrawForm } from '@/components/settings-forms';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeProps } from '@/components/ui/badge';
 
 
 const initialTransactions = [
     { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Failed' },
     { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
     { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
 ];
@@ -151,6 +151,19 @@ export default function WalletPage() {
      // @ts-ignore
      setTransactions(prev => [newTransaction, ...prev]);
      setIsWithdrawOpen(false);
+  };
+  
+  const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
+      switch (status) {
+          case 'Completed':
+              return 'success';
+          case 'Processing':
+              return 'warning';
+          case 'Failed':
+              return 'destructive';
+          default:
+              return 'outline';
+      }
   };
 
 
@@ -306,7 +319,7 @@ export default function WalletPage() {
                                     )}>
                                         {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
                                     </p>
-                                    <Badge variant={transaction.status === 'Completed' ? 'success' : 'warning'} className="mt-1 capitalize float-right">
+                                    <Badge variant={getStatusBadgeVariant(transaction.status)} className="mt-1 capitalize float-right">
                                         {transaction.status}
                                     </Badge>
                                 </div>
