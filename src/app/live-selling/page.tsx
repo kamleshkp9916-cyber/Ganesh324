@@ -96,7 +96,6 @@ import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
-import { HeroSlider } from '@/components/hero-slider';
 
 
 const liveSellers = [
@@ -285,8 +284,6 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [feedFilter, setFeedFilter] = useState('global');
-  const [showHeroSlider, setShowHeroSlider] = useState(false);
-  const avatarClickTimer = useRef<NodeJS.Timeout | null>(null);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const primaryTabsRef = useRef<HTMLDivElement>(null);
@@ -334,32 +331,7 @@ export default function LiveSellingPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Show slider every time for logged-in users.
-    if (user) {
-        setShowHeroSlider(true);
-    } else {
-        setShowHeroSlider(false);
-    }
-  }, [user]);
-
-  const handleCloseHeroSlider = () => {
-    setShowHeroSlider(false);
-  };
-
-  const handleAvatarClick = () => {
-    if (avatarClickTimer.current) {
-        clearTimeout(avatarClickTimer.current);
-        avatarClickTimer.current = null;
-        setShowHeroSlider(true); // Double-click detected
-    } else {
-        avatarClickTimer.current = setTimeout(() => {
-            avatarClickTimer.current = null;
-            // It was a single click, navigate to profile
-            router.push('/profile');
-        }, 300); // 300ms window for double-click
-    }
-  };
-
+  }, []);
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -755,7 +727,7 @@ export default function LiveSellingPage() {
                                 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Avatar className="h-9 w-9 cursor-pointer" onClick={handleAvatarClick}>
+                                        <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push('/profile')}>
                                             <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={userData?.displayName || "User"} />
                                             <AvatarFallback>{userData?.displayName ? userData.displayName.charAt(0) : 'U'}</AvatarFallback>
                                         </Avatar>
@@ -851,8 +823,6 @@ export default function LiveSellingPage() {
                  </div>
                 
                 <div className="pb-20">
-                    {showHeroSlider && <section className="mb-8"><HeroSlider onClose={handleCloseHeroSlider} /></section>}
-
                     <TabsContent value="all" className="space-y-8">
                     <section>
                             <div className="px-4 mb-4">
