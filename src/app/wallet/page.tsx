@@ -16,13 +16,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { WithdrawForm } from '@/components/settings-forms';
+import { Badge } from '@/components/ui/badge';
 
 
 const initialTransactions = [
-    { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
-    { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
 ];
 
 const paymentMethods = [
@@ -104,7 +105,8 @@ export default function WalletPage() {
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             amount: amount,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
+            status: 'Processing'
         };
         // @ts-ignore
         setTransactions(prev => [newTransaction, ...prev]);
@@ -117,6 +119,12 @@ export default function WalletPage() {
             title: 'Deposit Successful!',
             description: `₹${amount.toFixed(2)} has been added to your wallet.`
         });
+        
+        // Simulate transaction completion
+        setTimeout(() => {
+            setTransactions(prev => prev.map(t => t.name === newTransaction.name ? {...t, status: 'Completed'} : t));
+        }, 5000);
+
     }, 2500);
   };
 
@@ -137,7 +145,8 @@ export default function WalletPage() {
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             amount: -amount,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
+            status: 'Completed'
      };
      // @ts-ignore
      setTransactions(prev => [newTransaction, ...prev]);
@@ -290,11 +299,16 @@ export default function WalletPage() {
                                 <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
                             </div>
                              <div className="ml-auto flex items-center gap-2">
-                                <div className={cn(
-                                    "font-medium text-right",
-                                    transaction.amount > 0 ? 'text-success' : 'text-foreground'
-                                )}>
-                                    {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                                <div>
+                                    <p className={cn(
+                                        "font-medium text-right",
+                                        transaction.amount > 0 ? 'text-success' : 'text-foreground'
+                                    )}>
+                                        {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                                    </p>
+                                    <Badge variant={transaction.status === 'Completed' ? 'success' : 'warning'} className="mt-1 capitalize float-right">
+                                        {transaction.status}
+                                    </Badge>
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <Download className="h-4 w-4" />
