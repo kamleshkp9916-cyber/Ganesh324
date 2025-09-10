@@ -44,9 +44,6 @@ export default function SalePage() {
                         <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
                           <ArrowLeft className="h-6 w-6" />
                         </Button>
-                        <Link href="/live-selling">
-                            <Logo className="h-10" />
-                        </Link>
                     </div>
                     <div className="hidden lg:flex flex-1 max-w-lg mx-auto">
                         <div className="relative w-full">
