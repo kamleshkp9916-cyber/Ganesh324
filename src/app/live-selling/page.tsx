@@ -336,24 +336,17 @@ export default function LiveSellingPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted) {
-      const lastSeen = localStorage.getItem(HERO_SLIDER_LAST_SEEN_KEY);
-      const storedVersion = localStorage.getItem(HERO_SLIDER_CONTENT_VERSION_KEY);
-      const currentVersion = localStorage.getItem(PROMOTIONAL_SLIDES_KEY); // Simple version check
-
-      const oneDay = 24 * 60 * 60 * 1000;
-      const shouldShow = !lastSeen || (new Date().getTime() - new Date(lastSeen).getTime() > oneDay) || (storedVersion !== currentVersion);
-      
-      if (shouldShow) {
+    setIsMounted(true);
+    // Show slider every time for logged-in users, otherwise hide.
+    if (user) {
         setShowHeroSlider(true);
-      }
+    } else {
+        setShowHeroSlider(false);
     }
-  }, [isMounted]);
+  }, [user]);
 
   const handleCloseHeroSlider = () => {
     setShowHeroSlider(false);
-    localStorage.setItem(HERO_SLIDER_LAST_SEEN_KEY, new Date().toISOString());
-    localStorage.setItem(HERO_SLIDER_CONTENT_VERSION_KEY, localStorage.getItem(PROMOTIONAL_SLIDES_KEY) || '');
   };
 
   const handleAvatarClick = () => {
