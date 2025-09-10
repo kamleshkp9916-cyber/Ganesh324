@@ -6,13 +6,13 @@ import Link from "next/link";
 const navLinks = [
     { name: "Women", href: "/listed-products" },
     { name: "Men", href: "/mens-clothing" },
-    { name: "Kids", href: "#" },
-    { name: "Home", href: "#" },
-    { name: "Electronics", href: "#" },
-    { name: "Shoes", href: "#" },
-    { name: "Handbags", href: "#" },
-    { name: "Trending", href: "#" },
-    { name: "Sale", href: "#", isSale: true },
+    { name: "Kids", href: "/kids" },
+    { name: "Home", href: "/home" },
+    { name: "Electronics", href: "/electronics" },
+    { name: "Shoes", href: "/shoes" },
+    { name: "Handbags", href: "/handbags" },
+    { name: "Trending", href: "/trending" },
+    { name: "Sale", href: "/sale", isSale: true },
 ];
 
 export function StoreHeader() {
