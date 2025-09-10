@@ -26,6 +26,9 @@ import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-dat
 import { useAuth } from '@/hooks/use-auth';
 import { ReviewDialog } from './delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirebaseDb } from '@/lib/firebase';
+import { formatDistanceToNow } from 'date-fns';
 
 
 const mockQandA = [
@@ -72,6 +75,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
+    const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
 
     const fetchProductDetails = () => {
         let details = productDetails[productId as keyof typeof productDetails] || null;
@@ -105,6 +109,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }, [productId]);
 
     useEffect(() => {
+        const fetchTaggedPosts = async () => {
+            if (!product) return;
+            try {
+                const db = getFirebaseDb();
+                const postsRef = collection(db, "posts");
+                const q = query(postsRef, where("taggedProduct.id", "==", product.id), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                const postsData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+                }));
+                setTaggedPosts(postsData);
+            } catch (error) {
+                console.error("Error fetching tagged posts:", error);
+            }
+        };
+
         if (product) {
             setSelectedImage(product.images[0]);
             document.title = product.name;
@@ -122,6 +144,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
             fetchReviews();
+            fetchTaggedPosts();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
@@ -726,11 +749,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
 
                 {/* Related Products Section */}
-                 <div className="mt-8 py-4 border-t">
+                <div className="mt-8 py-4 border-t">
                     <CardHeader className="p-0 mb-4">
                         <CardTitle>You Might Also Like</CardTitle>
                     </CardHeader>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                         {relatedProducts.map(p => (
                             <Link href={`/product/${p.key}`} key={p.id}>
                                 <Card className="overflow-hidden group">
@@ -738,14 +761,47 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                     </div>
                                     <div className="p-3">
-                                        <h4 className="font-semibold text-sm truncate">{p.name}</h4>
-                                        <p className="text-foreground font-bold">{p.price}</p>
+                                        <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
+                                        <p className="text-foreground font-bold text-sm sm:text-base">{p.price}</p>
                                     </div>
                                 </Card>
                             </Link>
                         ))}
                     </div>
                  </div>
+
+                {/* Tagged Posts Section */}
+                {taggedPosts.length > 0 && (
+                    <div className="mt-8 py-4 border-t">
+                        <CardHeader className="p-0 mb-4">
+                            <CardTitle>Related Posts</CardTitle>
+                        </CardHeader>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {taggedPosts.map(post => (
+                                <Card key={post.id} className="overflow-hidden">
+                                    <div className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{post.sellerName}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm line-clamp-3">{post.content}</p>
+                                    </div>
+                                    {post.mediaUrl && (
+                                        <div className="w-full aspect-video bg-muted relative">
+                                            <Image src={post.mediaUrl} alt="Post media" layout="fill" className="object-cover" />
+                                        </div>
+                                    )}
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </main>
             
             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
