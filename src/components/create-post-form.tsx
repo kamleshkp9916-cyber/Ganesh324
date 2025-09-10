@@ -10,12 +10,12 @@ import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
-import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
+import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore";
-import { getUserByDisplayName } from "@/lib/follow-data";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, limit } from "firebase/firestore";
+import { getUserByDisplayName, UserData } from "@/lib/follow-data";
 import {
   Select,
   SelectContent,
@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useDebounce } from "@/hooks/use-debounce";
 
 
 export interface PostData {
@@ -58,6 +59,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
     
+    // State for tagging suggestions
+    const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+    const debouncedTagQuery = useDebounce(tagging?.query, 300);
+    
     const videoInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +85,68 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             }
         }
     }, [userData]);
+
+    // Effect to fetch suggestions when tagging
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!debouncedTagQuery) {
+                setSuggestions([]);
+                return;
+            }
+            setIsSuggestionLoading(true);
+            const db = getFirestoreDb();
+            if (tagging?.type === '@') {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, 
+                    where("displayName", ">=", debouncedTagQuery), 
+                    where("displayName", "<=", debouncedTagQuery + '\uf8ff'),
+                    limit(5)
+                );
+                const querySnapshot = await getDocs(q);
+                setSuggestions(querySnapshot.docs.map(doc => doc.data() as UserData));
+            } else if (tagging?.type === '#') {
+                const filteredProducts = sellerProducts.filter(p => p.name.toLowerCase().includes(debouncedTagQuery.toLowerCase()));
+                setSuggestions(filteredProducts.slice(0, 5));
+            }
+            setIsSuggestionLoading(false);
+        };
+        
+        if (tagging) {
+            fetchSuggestions();
+        }
+    }, [debouncedTagQuery, tagging, sellerProducts]);
   
+    const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setContent(value);
+        
+        const cursorPos = e.target.selectionStart || 0;
+        const textBeforeCursor = value.substring(0, cursorPos);
+        
+        const atMatch = textBeforeCursor.match(/@(\w+)$/);
+        const hashMatch = textBeforeCursor.match(/#(\w+)$/);
+
+        if (atMatch) {
+            setTagging({ type: '@', query: atMatch[1], position: cursorPos });
+        } else if (hashMatch) {
+            setTagging({ type: '#', query: hashMatch[1], position: cursorPos });
+        } else {
+            setTagging(null);
+        }
+    };
+    
+    const handleSuggestionClick = (suggestion: any) => {
+        if (!tagging) return;
+        const textBefore = content.substring(0, tagging.position - tagging.query.length - 1);
+        const textAfter = content.substring(tagging.position);
+        
+        const tagName = tagging.type === '@' ? suggestion.displayName : suggestion.name;
+        
+        setContent(`${textBefore}${tagging.type}${tagName} ${textAfter}`);
+        setTagging(null);
+        setSuggestions([]);
+    };
+
     const handlePost = async () => {
         if (!content.trim() || !user || !userData) return;
 
@@ -208,30 +276,56 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
-                    <div className="relative flex-grow">
-                        <Input 
-                            placeholder="Share something..." 
-                            className="bg-muted rounded-full pl-4 pr-10 h-11"
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                        />
-                         <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                    <Smile className="h-5 w-5 text-muted-foreground" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80 h-64">
-                               <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                    {emojis.map((emoji, index) => (
-                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                            {emoji}
+                     <Popover open={!!tagging} onOpenChange={(open) => !open && setTagging(null)}>
+                        <PopoverAnchor asChild>
+                            <div className="relative flex-grow">
+                                <Input 
+                                    placeholder="Share something..." 
+                                    className="bg-muted rounded-full pl-4 pr-10 h-11"
+                                    value={content}
+                                    onChange={handleContentChange}
+                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                            <Smile className="h-5 w-5 text-muted-foreground" />
                                         </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 h-64">
+                                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                            {emojis.map((emoji, index) => (
+                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                    {emoji}
+                                                </Button>
+                                            ))}
+                                       </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </PopoverAnchor>
+                        <PopoverContent className="w-72 p-0">
+                            {isSuggestionLoading ? (
+                                <div className="p-4 text-center">Loading...</div>
+                            ) : suggestions.length > 0 ? (
+                                <ul className="space-y-1 p-2">
+                                    {suggestions.map((item) => (
+                                        <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
+                                            {tagging?.type === '@' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                    <span>{item.displayName}</span>
+                                                </div>
+                                            ) : (
+                                                <span>{item.name}</span>
+                                            )}
+                                        </li>
                                     ))}
-                               </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                                </ul>
+                            ) : (
+                                <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                            )}
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
                     <input type="file" accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
@@ -270,3 +364,4 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
