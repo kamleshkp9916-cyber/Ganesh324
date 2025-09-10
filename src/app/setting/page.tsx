@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthActions } from '@/lib/auth';
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
+import { Switch } from '@/components/ui/switch';
 
 
 const surveyReasons = [
@@ -26,6 +27,12 @@ const surveyReasons = [
     "I receive too many notifications",
     "I had a bad experience",
     "Other"
+];
+
+const mockLoginActivity = [
+    { id: 1, device: "Chrome on Windows", location: "Pune, IN", time: "Active now", isCurrent: true, icon: <Monitor /> },
+    { id: 2, device: "StreamCart App on Android", location: "Mumbai, IN", time: "2 hours ago", icon: <Smartphone /> },
+    { id: 3, device: "Safari on macOS", location: "Delhi, IN", time: "1 day ago", icon: <Globe /> },
 ];
 
 function DeleteAccountFlow() {
@@ -137,6 +144,14 @@ export default function SettingsPage() {
     const { user, loading } = useAuth();
     const { signOut } = useAuthActions();
     const [isMounted, setIsMounted] = useState(false);
+    const { toast } = useToast();
+    
+    const handleToggle = (setting: string, enabled: boolean) => {
+        toast({
+            title: "Setting Saved",
+            description: `${setting} notifications have been ${enabled ? 'enabled' : 'disabled'}.`
+        });
+    };
 
     useEffect(() => {
         setIsMounted(true);
@@ -154,7 +169,6 @@ export default function SettingsPage() {
     const settingsItems = [
         { icon: <User className="w-5 h-5" />, label: 'Edit Profile', href: '/profile' },
         { icon: <Shield className="w-5 h-5" />, label: 'Privacy & Security', href: '/privacy-and-security' },
-        { icon: <Bell className="w-5 h-5" />, label: 'Notifications', href: '/settings/notifications' },
         { icon: <HelpCircle className="w-5 h-5" />, label: 'Help & Support', href: '/help' },
     ];
 
@@ -172,8 +186,7 @@ export default function SettingsPage() {
                 <div className="max-w-2xl mx-auto space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Account Settings</CardTitle>
-                            <CardDescription>Manage your profile, privacy, and notification settings.</CardDescription>
+                            <CardTitle>Account</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-1">
@@ -185,6 +198,83 @@ export default function SettingsPage() {
                                         </Link>
                                     </Button>
                                 ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Account Security</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="change-password" className="font-semibold flex items-center gap-2"><KeyRound/> Change Password</Label>
+                                <Button id="change-password" variant="outline" size="sm" asChild>
+                                    <Link href="/forgot-password">Change</Link>
+                                </Button>
+                            </div>
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="2fa" className="font-semibold flex items-center gap-2"><Smartphone/> Two-Factor Authentication</Label>
+                                <Switch id="2fa" onCheckedChange={(checked) => handleToggle('2FA', checked)} />
+                            </div>
+                             <div className="p-4 border rounded-lg">
+                                <h4 className="font-semibold mb-2">Login Activity</h4>
+                                <ul className="space-y-3">
+                                    {mockLoginActivity.map(activity => (
+                                        <li key={activity.id} className="flex items-center gap-3 text-sm">
+                                            <div className="text-muted-foreground">{activity.icon}</div>
+                                            <div className="flex-grow">
+                                                <p className="font-medium">{activity.device}</p>
+                                                <p className="text-xs text-muted-foreground">{activity.location} - {activity.time}</p>
+                                            </div>
+                                            {activity.isCurrent && <Badge variant="success">Active</Badge>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline" className="w-full">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Logout From All Devices
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will log you out of all other active sessions on all devices. You will remain logged in on this device.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => toast({title: "Success", description: "You have been logged out from all other devices."})}>Confirm</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Notifications & Preferences</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="email-notifications" className="font-semibold flex items-center gap-2">Email Notifications</Label>
+                                <Switch id="email-notifications" onCheckedChange={(checked) => handleToggle('Email notifications', checked)} defaultChecked/>
+                            </div>
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="push-notifications" className="font-semibold flex items-center gap-2">Push Notifications</Label>
+                                <Button asChild variant="outline" size="sm"><Link href="/settings/notifications">Manage</Link></Button>
+                            </div>
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="auction-alerts" className="font-semibold flex items-center gap-2">Auction/Live Stream Alerts</Label>
+                                <Switch id="auction-alerts" onCheckedChange={(checked) => handleToggle('Auction alerts', checked)} defaultChecked/>
+                            </div>
+                             <div className="flex items-center justify-between p-4 border rounded-lg">
+                                <Label htmlFor="wishlist-notifications" className="font-semibold flex items-center gap-2">Wishlist Notifications</Label>
+                                <Switch id="wishlist-notifications" onCheckedChange={(checked) => handleToggle('Wishlist notifications', checked)} defaultChecked/>
                             </div>
                         </CardContent>
                     </Card>
@@ -207,15 +297,6 @@ export default function SettingsPage() {
                                     </AlertDialogTrigger>
                                     <DeleteAccountFlow />
                                 </AlertDialog>
-                            </div>
-                            <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <div>
-                                    <h4 className="font-semibold">Log Out</h4>
-                                    <p className="text-xs text-muted-foreground">End your current session on this device.</p>
-                                </div>
-                                <Button variant="outline" size="sm" onClick={() => signOut()}>
-                                    <LogOut className="h-4 w-4" />
-                                </Button>
                             </div>
                         </CardContent>
                     </Card>
