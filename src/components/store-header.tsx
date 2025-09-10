@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,13 +8,9 @@ const navLinks = [
     { name: "Men", href: "/mens-clothing" },
     { name: "Kids", href: "#" },
     { name: "Home", href: "#" },
-    { name: "Beauty", href: "#" },
+    { name: "Electronics", href: "#" },
     { name: "Shoes", href: "#" },
     { name: "Handbags", href: "#" },
-    { name: "Jewelry", href: "#" },
-    { name: "Furniture & Mattresses", href: "#" },
-    { name: "Toys", href: "#" },
-    { name: "Gifts", href: "#" },
     { name: "Trending", href: "#" },
     { name: "Sale", href: "#", isSale: true },
 ];
