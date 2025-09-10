@@ -19,11 +19,13 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemePicker } from '@/components/theme-picker';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 import { AddBankForm } from '@/components/settings-forms';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 
 const surveyReasons = [
@@ -39,6 +41,13 @@ const mockLoginActivity = [
     { id: 1, device: "Chrome on Windows", location: "Pune, IN", time: "Active now", isCurrent: true, icon: <Monitor /> },
     { id: 2, device: "StreamCart App on Android", location: "Mumbai, IN", time: "2 hours ago", icon: <Smartphone /> },
     { id: 3, device: "Safari on macOS", location: "Delhi, IN", time: "1 day ago", icon: <Globe /> },
+];
+
+const initialTransactions = [
+    { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png' },
+    { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png' },
 ];
 
 function DeleteAccountFlow() {
@@ -354,6 +363,32 @@ export default function SettingsPage() {
                                     </Dialog>
                                 </CardFooter>
                             </Card>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Recent Transactions</CardTitle>
+                                    <CardDescription>A summary of your recent wallet activity.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {initialTransactions.map((transaction, index) => (
+                                        <div key={index} className="flex items-center">
+                                            <Avatar className="h-9 w-9">
+                                                <AvatarImage src={transaction.avatar} alt="Avatar" />
+                                                <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="ml-4 space-y-1">
+                                                <p className="text-sm font-medium leading-none">{transaction.name}</p>
+                                                <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
+                                            </div>
+                                            <div className={cn(
+                                                "ml-auto font-medium",
+                                                transaction.amount > 0 ? 'text-success' : 'text-foreground'
+                                            )}>
+                                                {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
                         </TabsContent>
 
                         <TabsContent value="appearance" className="space-y-8">
@@ -477,6 +512,4 @@ export default function SettingsPage() {
             </main>
         </div>
     );
-
-    
 }
