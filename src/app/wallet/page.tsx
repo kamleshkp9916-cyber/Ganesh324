@@ -275,7 +275,7 @@ export default function WalletPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardTitle>🧾 Invoices / Billing history</CardTitle>
                     <CardDescription>A summary of your recent wallet activity.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -289,12 +289,17 @@ export default function WalletPage() {
                                 <p className="text-sm font-medium leading-none">{transaction.name}</p>
                                 <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
                             </div>
-                             <div className={cn(
-                                "ml-auto font-medium",
-                                transaction.amount > 0 ? 'text-success' : 'text-foreground'
-                            )}>
-                                {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
-                            </div>
+                             <div className="ml-auto flex items-center gap-2">
+                                <div className={cn(
+                                    "font-medium text-right",
+                                    transaction.amount > 0 ? 'text-success' : 'text-foreground'
+                                )}>
+                                    {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Download className="h-4 w-4" />
+                                </Button>
+                             </div>
                         </div>
                     ))}
                 </CardContent>
