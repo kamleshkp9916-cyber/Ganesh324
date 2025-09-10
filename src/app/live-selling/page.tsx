@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -304,6 +303,11 @@ export default function LiveSellingPage() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const primaryTabsRef = useRef<HTMLDivElement>(null);
+  
+  const liveStreamFilterButtons = useMemo(() => {
+    const categories = new Set(allSellers.map(s => s.category));
+    return ['All', ...Array.from(categories)];
+  }, [allSellers]);
   
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -863,7 +867,7 @@ export default function LiveSellingPage() {
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
                                 {topLiveStreams.map((seller: any) => (
-                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
                                     <Link href={`/stream/${seller.id}`} className="cursor-pointer">
@@ -917,7 +921,7 @@ export default function LiveSellingPage() {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
                                     return (
-                                        <Card key={product.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
                                             <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
@@ -1082,7 +1086,7 @@ export default function LiveSellingPage() {
                             ) : filteredLiveSellers.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {filteredLiveSellers.map((seller: any) => (
-                                        <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
                                             <div className="absolute top-2 left-2 z-10">
                                                 <Badge variant="destructive">
                                                     LIVE
@@ -1402,3 +1406,5 @@ export default function LiveSellingPage() {
   );
 }
 
+
+    
