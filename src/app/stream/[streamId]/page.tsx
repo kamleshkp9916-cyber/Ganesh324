@@ -350,14 +350,22 @@ export default function StreamPage() {
     
     const handleTerminateStream = () => {
         localStorage.setItem(STREAM_TERMINATED_KEY, streamId);
-        // Trigger for current tab since storage event doesn't fire on the same page
+        // If this is my own stream, also remove my live data
+        const liveStreamDataRaw = localStorage.getItem('liveStream');
+        if (liveStreamDataRaw) {
+            const liveStreamData = JSON.parse(liveStreamDataRaw);
+            if (liveStreamData.seller.uid === streamId) {
+                localStorage.removeItem('liveStream');
+            }
+        }
+        window.dispatchEvent(new Event('storage')); // Notify other tabs
+        
         setIsStreamTerminated(true);
         toast({
             variant: "destructive",
             title: "Stream Terminated",
             description: `The live stream by ${seller.name} has been stopped.`,
         });
-        // No need to redirect admin immediately, let them see the result
     };
     
     const handleReportComment = (comment: any) => {
@@ -888,5 +896,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
