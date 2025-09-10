@@ -13,7 +13,7 @@ import { MensSidebar } from '@/components/mens-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { CATEGORY_BANNERS_KEY, CategoryBanner } from '@/app/admin/settings/page';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -32,22 +32,24 @@ const categories = [
     { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
-const defaultBanners: CategoryBanner[] = [
-  { id: 1, imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop", title: '40% off', description: 'Top Brand Polos & Tees. Limited time only.' },
-  { id: 2, imageUrl: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop", title: 'Activewear Collection', description: 'Engineered to keep you cool, dry, and comfortable.' },
-];
+const defaultBanners: CategoryBanners = {
+    "Men": {
+        banner1: { title: '40% off', description: 'Top Brand Polos & Tees. Limited time only.', imageUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop' },
+        banner2: { title: 'Activewear Collection', description: 'Engineered to keep you cool, dry, and comfortable.', imageUrl: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop' }
+    }
+} as any;
 
 export default function MensClothingPage() {
   const router = useRouter();
-  const [banners] = useLocalStorage<CategoryBanner[]>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [banners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
       setIsMounted(true);
   }, []);
 
-  const banner1 = banners.length > 0 ? banners[0] : defaultBanners[0];
-  const banner2 = banners.length > 1 ? banners[1] : defaultBanners[1];
+  const banner1 = banners?.Men?.banner1;
+  const banner2 = banners?.Men?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -55,6 +57,9 @@ export default function MensClothingPage() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
+                          <ArrowLeft className="h-6 w-6" />
+                        </Button>
                         <Link href="/live-selling">
                             <Logo className="h-10" />
                         </Link>
@@ -150,7 +155,7 @@ export default function MensClothingPage() {
                                 <Image 
                                     src={banner1.imageUrl}
                                     alt={banner1.title}
-                                    layout="fill"
+                                    fill
                                     className="object-cover"
                                     data-ai-hint="man fashion"
                                 />
@@ -170,7 +175,7 @@ export default function MensClothingPage() {
                             <Image 
                                 src={banner2.imageUrl}
                                 alt={banner2.title}
-                                layout="fill"
+                                fill
                                 className="object-cover"
                                 data-ai-hint="man running"
                             />
@@ -194,3 +199,5 @@ export default function MensClothingPage() {
     </div>
   );
 }
+
+    

@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Menu, Search, ShoppingCart, User } from 'lucide-react';
+import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ import { WomensSidebar } from '@/components/womens-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { CATEGORY_BANNERS_KEY, CategoryBanner } from '@/app/admin/settings/page';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
@@ -32,23 +32,25 @@ const categories = [
     { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
-const defaultBanners: CategoryBanner[] = [
-  { id: 1, imageUrl: "https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop", title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
-  { id: 2, imageUrl: "https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop", title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
-];
+const defaultBanners: CategoryBanners = {
+    "Women": {
+        banner1: { title: '25% off', description: 'Michael Kors for her. Ends 5/15.', imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop' },
+        banner2: { title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.', imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop' }
+    }
+} as any;
 
 
 export default function ListedProductsPage() {
   const router = useRouter();
-  const [banners] = useLocalStorage<CategoryBanner[]>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
       setIsMounted(true);
   }, []);
 
-  const banner1 = banners.length > 0 ? banners[0] : defaultBanners[0];
-  const banner2 = banners.length > 1 ? banners[1] : defaultBanners[1];
+  const banner1 = banners?.Women?.banner1;
+  const banner2 = banners?.Women?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -56,6 +58,9 @@ export default function ListedProductsPage() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
+                          <ArrowLeft className="h-6 w-6" />
+                        </Button>
                         <Link href="/live-selling">
                             <Logo className="h-10" />
                         </Link>
@@ -151,7 +156,7 @@ export default function ListedProductsPage() {
                                 <Image 
                                     src={banner1.imageUrl}
                                     alt={banner1.title}
-                                    layout="fill"
+                                    fill
                                     className="object-cover"
                                     data-ai-hint="woman fashion"
                                 />
@@ -171,7 +176,7 @@ export default function ListedProductsPage() {
                             <Image 
                                 src={banner2.imageUrl}
                                 alt={banner2.title}
-                                layout="fill"
+                                fill
                                 className="object-cover"
                                 data-ai-hint="woman relaxing"
                             />
@@ -195,3 +200,5 @@ export default function ListedProductsPage() {
     </div>
   );
 }
+
+    
