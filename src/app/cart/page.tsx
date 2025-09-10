@@ -19,8 +19,8 @@ import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { createOrder } from '@/ai/flows/chat-flow';
 import { UserData, updateUserData } from '@/lib/follow-data';
+import { COUPONS_KEY } from '@/app/admin/settings/page';
 
-const COUPONS_KEY = 'streamcart_coupons';
 
 function EmptyCart() {
     const router = useRouter();

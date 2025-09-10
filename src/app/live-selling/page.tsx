@@ -102,8 +102,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
+import { PROMOTIONAL_SLIDES_KEY } from '@/app/admin/settings/page';
 
-const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },

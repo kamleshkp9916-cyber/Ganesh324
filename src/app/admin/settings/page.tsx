@@ -85,8 +85,8 @@ import { useLocalStorage } from "@/hooks/use-local-storage"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
-const COUPONS_KEY = 'streamcart_coupons';
-const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
+export const COUPONS_KEY = 'streamcart_coupons';
+export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 
 const announcementSchema = z.object({
