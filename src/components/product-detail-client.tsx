@@ -363,6 +363,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     ].filter(detail => detail.value);
 
     const productHighlights = product.highlights ? product.highlights.split('\n').filter(h => h.trim() !== '') : [];
+    
+    const isProductAvailable = product.status === 'active' && product.stock > 0;
 
     return (
         <div className="min-h-screen bg-background">
@@ -480,21 +482,26 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <div className="flex flex-col gap-2">
                              {inCart ? (
-                                <Button asChild size="lg" className="w-full">
+                                <Button asChild size="lg" className="w-full" disabled={!isProductAvailable}>
                                     <Link href="/cart">
                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                         Go to Cart
                                     </Link>
                                 </Button>
                             ) : (
-                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                <Button size="lg" className="w-full" onClick={handleAddToCart} disabled={!isProductAvailable}>
                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                     Add to Cart
                                 </Button>
                             )}
-                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
+                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow} disabled={!isProductAvailable}>
                                 Buy Now
                             </Button>
+                             {!isProductAvailable && (
+                                <div className="text-center text-sm text-destructive font-semibold p-2 bg-destructive/10 rounded-md">
+                                    This product is currently unavailable.
+                                </div>
+                            )}
                         </div>
                         
                         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
