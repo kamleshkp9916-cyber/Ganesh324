@@ -504,7 +504,7 @@ export default function LiveSellingPage() {
         const product = productDetails[seller.productId as keyof typeof productDetails];
         if (!product) return null; // Add a check here
         return { ...seller, product };
-    }).filter(Boolean);
+    }).filter(item => item && item.product);
 
     if (productCategoryFilter === 'All') {
       return products;
@@ -843,7 +843,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
+                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 transition-opacity duration-300", isScrolled && "opacity-0")}>
                     {renderTabs(false)}
                 </div>
                 
@@ -1292,7 +1292,7 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-2">
-                                        {topLiveStreams.slice(0, 2).map((seller) => (
+                                        {topLiveStreams.slice(0, 1).map((seller) => (
                                             <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
                                                 <div className="absolute top-1.5 left-1.5 z-10">
                                                     <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
