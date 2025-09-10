@@ -500,9 +500,9 @@ export default function LiveSellingPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    const products = liveSellers.map(seller => {
+    let products = liveSellers.map(seller => {
         const product = productDetails[seller.productId as keyof typeof productDetails];
-        if (!product) return null;
+        if (!product) return null; // Add a check here
         return { ...seller, product };
     }).filter(Boolean);
 
@@ -843,7 +843,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 transition-opacity duration-300", isScrolled && "opacity-0")}>
+                 <div ref={tabsRef} className={cn("primary-tabs flex justify-center pt-2 mb-6 border-b transition-opacity duration-300", isScrolled && "opacity-0")}>
                     {renderTabs(false)}
                 </div>
                 
