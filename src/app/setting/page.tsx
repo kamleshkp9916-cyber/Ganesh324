@@ -3,13 +3,11 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +17,8 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/comp
 import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemePicker } from '@/components/theme-picker';
 
 
 const surveyReasons = [
@@ -169,7 +169,6 @@ export default function SettingsPage() {
 
     const settingsItems = [
         { icon: <User className="w-5 h-5" />, label: 'Edit Profile', href: '/profile' },
-        { icon: <Shield className="w-5 h-5" />, label: 'Privacy & Security', href: '/privacy-and-security' },
         { icon: <HelpCircle className="w-5 h-5" />, label: 'Help & Support', href: '/help' },
     ];
 
@@ -184,123 +183,161 @@ export default function SettingsPage() {
             </header>
 
             <main className="flex-grow p-4 md:p-6 lg:p-8">
-                <div className="max-w-2xl mx-auto space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Account</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-1">
-                                {settingsItems.map(item => (
-                                    <Button key={item.label} variant="ghost" className="w-full justify-start text-base p-4 h-auto" asChild>
-                                        <Link href={item.href}>
-                                            {item.icon}
-                                            <span className="ml-4">{item.label}</span>
-                                        </Link>
-                                    </Button>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Account Security</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="change-password" className="font-semibold flex items-center gap-2"><KeyRound/> Change Password</Label>
-                                <Button id="change-password" variant="outline" size="sm" asChild>
-                                    <Link href="/forgot-password">Change</Link>
-                                </Button>
-                            </div>
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="2fa" className="font-semibold flex items-center gap-2"><Smartphone/> Two-Factor Authentication</Label>
-                                <Switch id="2fa" onCheckedChange={(checked) => handleToggle('2FA', checked)} />
-                            </div>
-                             <div className="p-4 border rounded-lg">
-                                <h4 className="font-semibold mb-2">Login Activity</h4>
-                                <ul className="space-y-3">
-                                    {mockLoginActivity.map(activity => (
-                                        <li key={activity.id} className="flex items-center gap-3 text-sm">
-                                            <div className="text-muted-foreground">{activity.icon}</div>
-                                            <div className="flex-grow">
-                                                <p className="font-medium">{activity.device}</p>
-                                                <p className="text-xs text-muted-foreground">{activity.location} - {activity.time}</p>
-                                            </div>
-                                            {activity.isCurrent && <Badge variant="success">Active</Badge>}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="w-full">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Logout From All Devices
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will log you out of all other active sessions on all devices. You will remain logged in on this device.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => toast({title: "Success", description: "You have been logged out from all other devices."})}>Confirm</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </CardContent>
-                    </Card>
+                <div className="max-w-4xl mx-auto">
+                    <Tabs defaultValue="account">
+                        <TabsList className="mb-6">
+                            <TabsTrigger value="account">
+                                <User className="mr-2 h-4 w-4" /> Account
+                            </TabsTrigger>
+                            <TabsTrigger value="appearance">
+                                <Palette className="mr-2 h-4 w-4" /> Appearance
+                            </TabsTrigger>
+                            <TabsTrigger value="security">
+                                <Shield className="mr-2 h-4 w-4" /> Security
+                            </TabsTrigger>
+                            <TabsTrigger value="notifications">
+                                <Bell className="mr-2 h-4 w-4" /> Notifications
+                            </TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="account" className="space-y-8">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Account Information</CardTitle>
+                                    <CardDescription>Manage your public profile and personal information.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-1">
+                                        {settingsItems.map(item => (
+                                            <Button key={item.label} variant="ghost" className="w-full justify-start text-base p-4 h-auto" asChild>
+                                                <Link href={item.href}>
+                                                    {item.icon}
+                                                    <span className="ml-4">{item.label}</span>
+                                                </Link>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Notifications & Preferences</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="email-notifications" className="font-semibold flex items-center gap-2">Email Notifications</Label>
-                                <Switch id="email-notifications" onCheckedChange={(checked) => handleToggle('Email notifications', checked)} defaultChecked/>
-                            </div>
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="push-notifications" className="font-semibold flex items-center gap-2">Push Notifications</Label>
-                                <Button asChild variant="outline" size="sm"><Link href="/settings/notifications">Manage</Link></Button>
-                            </div>
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="auction-alerts" className="font-semibold flex items-center gap-2">Auction/Live Stream Alerts</Label>
-                                <Switch id="auction-alerts" onCheckedChange={(checked) => handleToggle('Auction alerts', checked)} defaultChecked/>
-                            </div>
-                             <div className="flex items-center justify-between p-4 border rounded-lg">
-                                <Label htmlFor="wishlist-notifications" className="font-semibold flex items-center gap-2">Wishlist Notifications</Label>
-                                <Switch id="wishlist-notifications" onCheckedChange={(checked) => handleToggle('Wishlist notifications', checked)} defaultChecked/>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <TabsContent value="appearance" className="space-y-8">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Appearance</CardTitle>
+                                    <CardDescription>Customize the look and feel of the app.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <ThemePicker />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Danger Zone</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center justify-between p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-                                <div>
-                                    <h4 className="font-semibold text-destructive">Delete Account</h4>
-                                    <p className="text-xs text-destructive/80">Permanently delete your account and all associated data.</p>
-                                </div>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm">
-                                            <Trash2 className="h-4 w-4" />
+                        <TabsContent value="security" className="space-y-8">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Login & Security</CardTitle>
+                                    <CardDescription>Manage your password, authentication, and active sessions.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="change-password" className="font-semibold flex items-center gap-3"><KeyRound/> Change Password</Label>
+                                        <Button id="change-password" variant="outline" size="sm" asChild>
+                                            <Link href="/forgot-password">Change</Link>
                                         </Button>
-                                    </AlertDialogTrigger>
-                                    <DeleteAccountFlow />
-                                </AlertDialog>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="2fa" className="font-semibold flex items-center gap-3"><Smartphone/> Two-Factor Authentication</Label>
+                                        <Switch id="2fa" onCheckedChange={(checked) => handleToggle('2FA', checked)} />
+                                    </div>
+                                    <div className="p-4 border rounded-lg">
+                                        <h4 className="font-semibold mb-2">Login Activity</h4>
+                                        <ul className="space-y-3">
+                                            {mockLoginActivity.map(activity => (
+                                                <li key={activity.id} className="flex items-center gap-3 text-sm">
+                                                    <div className="text-muted-foreground">{activity.icon}</div>
+                                                    <div className="flex-grow">
+                                                        <p className="font-medium">{activity.device}</p>
+                                                        <p className="text-xs text-muted-foreground">{activity.location} - {activity.time}</p>
+                                                    </div>
+                                                    {activity.isCurrent && <Badge variant="success">Active</Badge>}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="outline" className="w-full">
+                                                <LogOut className="mr-2 h-4 w-4" />
+                                                Logout From All Devices
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will log you out of all other active sessions on all devices. You will remain logged in on this device.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => toast({title: "Success", description: "You have been logged out from all other devices."})}>Confirm</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </CardContent>
+                            </Card>
+                            
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Danger Zone</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+                                        <div>
+                                            <h4 className="font-semibold text-destructive">Delete Account</h4>
+                                            <p className="text-xs text-destructive/80">Permanently delete your account and all associated data.</p>
+                                        </div>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <DeleteAccountFlow />
+                                        </AlertDialog>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        
+                         <TabsContent value="notifications" className="space-y-8">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Notification Preferences</CardTitle>
+                                     <CardDescription>Choose what you want to be notified about.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="email-notifications" className="font-semibold flex items-center gap-2">Email Notifications</Label>
+                                        <Switch id="email-notifications" onCheckedChange={(checked) => handleToggle('Email notifications', checked)} defaultChecked/>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="push-notifications" className="font-semibold flex items-center gap-2">Push Notifications</Label>
+                                        <Button asChild variant="outline" size="sm"><Link href="/settings/notifications">Manage</Link></Button>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="auction-alerts" className="font-semibold flex items-center gap-2">Auction/Live Stream Alerts</Label>
+                                        <Switch id="auction-alerts" onCheckedChange={(checked) => handleToggle('Auction alerts', checked)} defaultChecked/>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                                        <Label htmlFor="wishlist-notifications" className="font-semibold flex items-center gap-2">Wishlist Notifications</Label>
+                                        <Switch id="wishlist-notifications" onCheckedChange={(checked) => handleToggle('Wishlist notifications', checked)} defaultChecked/>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                         </TabsContent>
+                    </Tabs>
                 </div>
             </main>
         </div>
