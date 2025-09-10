@@ -26,8 +26,8 @@ import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-dat
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { ReviewDialog } from './delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
-import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 
 
@@ -443,7 +443,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
-                            <p className="text-xs text-muted-foreground mt-1">Product Key: {product.key}</p>
+                            <div>
+                                <span className="text-xs text-muted-foreground">Product Key: </span>
+                                <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                                    {product.key}
+                                </code>
+                            </div>
                             <div className="flex items-center gap-2 mt-2">
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
@@ -898,7 +903,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                     {post.mediaUrl && (
                                         <div className="w-full aspect-video bg-muted relative">
-                                            <Image src={post.mediaUrl} alt="Post media" layout="fill" className="object-cover" />
+                                            <Image src={post.mediaUrl} alt="Post media" fill className="object-cover" />
                                         </div>
                                     )}
                                 </Card>
