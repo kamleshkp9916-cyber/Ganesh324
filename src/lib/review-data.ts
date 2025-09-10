@@ -16,7 +16,6 @@ export interface Review {
     imageUrl: string | null;
     hint?: string;
     productInfo?: string;
-    paymentMethod?: { type: string, provider?: string };
     userId?: string; // Add userId to link review to a user
 }
 

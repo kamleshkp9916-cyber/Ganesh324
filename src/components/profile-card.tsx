@@ -37,9 +37,9 @@ import { formatDistanceToNow } from 'date-fns';
 
 
 const mockReviews = [
-    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.', paymentMethod: { type: 'Cashless', provider: 'Visa **** 4567' } },
-    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: null, hint: null, productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.', paymentMethod: { type: 'Cashless', provider: 'Wallet' } },
-    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.', paymentMethod: { type: 'COD' } },
+    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.' },
+    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: null, hint: null, productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.' },
+    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.' },
 ];
 
 const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -91,17 +91,6 @@ function ReviewSkeleton() {
             </div>
         </Card>
     );
-}
-
-const PaymentIcon = ({method}: {method: {type: string, provider?: string}}) => {
-    if (method.type === 'COD') return <Truck className="w-4 h-4 text-muted-foreground" />;
-    if (method.provider?.toLowerCase().includes('wallet')) return <Wallet className="w-4 h-4 text-muted-foreground" />;
-    return <CreditCard className="w-4 h-4 text-muted-foreground" />;
-};
-
-const paymentLabel = (method: {type: string, provider?: string}) => {
-    if (method.type === 'COD') return 'Paid with Cash on Delivery';
-    return `Paid with ${method.provider}`;
 }
 
 export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
@@ -733,15 +722,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                         ))}
                                                     </div>
                                                     <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                    <div className="flex justify-between items-center mt-2">
-                                                        {review.paymentMethod && (
-                                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                                <PaymentIcon method={review.paymentMethod} />
-                                                                <span>{paymentLabel(review.paymentMethod)}</span>
-                                                            </div>
-                                                        )}
-                                                         <p className="text-xs text-muted-foreground text-right">{new Date(review.date).toLocaleDateString()}</p>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </Card>
