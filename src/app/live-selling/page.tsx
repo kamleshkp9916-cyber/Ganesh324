@@ -62,14 +62,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  type CarouselApi,
-} from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
-import Autoplay from "embla-carousel-autoplay";
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
@@ -102,7 +95,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
-import { PROMOTIONAL_SLIDES_KEY } from '@/app/admin/settings/page';
+import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
+import { HeroSlider } from '@/components/hero-slider';
 
 
 const liveSellers = [
@@ -116,12 +110,6 @@ const liveSellers = [
     { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
-];
-
-const initialOfferSlides = [
-  { id: 1, imageUrl: 'https://placehold.co/1200x400.png', title: 'Flash Sale!', description: 'Up to 50% off on electronics.', hint: 'electronics sale', },
-  { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.', hint: 'fashion clothing runway', },
-  { id: 3, imageUrl: 'https://placehold.co/1200x400.png', title: 'Home Decor Deals', description: 'Beautify your space for less.', hint: 'modern living room', },
 ];
 
 const reportReasons = [
@@ -269,12 +257,12 @@ function CommentSheet({ postId, trigger }: { postId: string, trigger: React.Reac
     )
 }
 
+const HERO_SLIDER_LAST_SEEN_KEY = 'streamcart_hero_slider_last_seen';
+const HERO_SLIDER_CONTENT_VERSION_KEY = 'streamcart_hero_slider_version';
+
 export default function LiveSellingPage() {
-  const [offerSlides, setOfferSlides] = useState<any[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
-  const [api, setApi] = useState<CarouselApi>()
-  const [currentSlide, setCurrentSlide] = useState(0)
   const { user, userData, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [feed, setFeed] = useState<any[]>([]);
@@ -300,6 +288,8 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [feedFilter, setFeedFilter] = useState('global');
+  const [showHeroSlider, setShowHeroSlider] = useState(false);
+  const [avatarClickCount, setAvatarClickCount] = useState(0);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const primaryTabsRef = useRef<HTMLDivElement>(null);
@@ -313,18 +303,6 @@ export default function LiveSellingPage() {
     if (typeof window !== 'undefined') {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         
-        const storedSlidesRaw = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-        if (storedSlidesRaw) {
-            const storedSlides = JSON.parse(storedSlidesRaw);
-            const now = new Date();
-            const activeSlides = storedSlides.filter((slide: any) => {
-                return !slide.expiresAt || new Date(slide.expiresAt) >= now;
-            });
-            setOfferSlides(activeSlides);
-        } else {
-            setOfferSlides(initialOfferSlides);
-        }
-
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             try {
@@ -344,7 +322,6 @@ export default function LiveSellingPage() {
                     isMyStream: true,
                     hasAuction: liveStreamData.isAuction,
                 };
-                 // Use a function for state update to get the most recent state
                 setAllSellers(currentSellers => {
                     const existingSellers = currentSellers.filter(s => s.id !== newSellerCard.id);
                     return [newSellerCard, ...existingSellers];
@@ -353,11 +330,42 @@ export default function LiveSellingPage() {
                 console.error("Error parsing live stream data from localStorage", error);
             }
         } else {
-            // If stream data is removed, filter out the "my stream" card
             setAllSellers(currentSellers => currentSellers.filter(s => !s.isMyStream));
         }
     }
   }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      const lastSeen = localStorage.getItem(HERO_SLIDER_LAST_SEEN_KEY);
+      const storedVersion = localStorage.getItem(HERO_SLIDER_CONTENT_VERSION_KEY);
+      const currentVersion = localStorage.getItem(PROMOTIONAL_SLIDES_KEY); // Simple version check
+
+      const oneDay = 24 * 60 * 60 * 1000;
+      const shouldShow = !lastSeen || (new Date().getTime() - new Date(lastSeen).getTime() > oneDay) || (storedVersion !== currentVersion);
+      
+      if (shouldShow) {
+        setShowHeroSlider(true);
+      }
+    }
+  }, [isMounted]);
+
+  const handleCloseHeroSlider = () => {
+    setShowHeroSlider(false);
+    localStorage.setItem(HERO_SLIDER_LAST_SEEN_KEY, new Date().toISOString());
+    localStorage.setItem(HERO_SLIDER_CONTENT_VERSION_KEY, localStorage.getItem(PROMOTIONAL_SLIDES_KEY) || '');
+  };
+
+  const handleAvatarClick = () => {
+    setAvatarClickCount(prev => prev + 1);
+    if (avatarClickCount === 1) { // On the second click
+      setShowHeroSlider(true);
+      setAvatarClickCount(0); // Reset counter
+    }
+    // Reset after a short delay if not double-clicked
+    setTimeout(() => setAvatarClickCount(0), 500); 
+  };
+
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -563,26 +571,10 @@ export default function LiveSellingPage() {
     setActiveLiveFilter(filter);
     setActiveTab('live');
   };
-
-  const onSelect = useCallback((api: CarouselApi) => {
-    if (!api) return;
-    setCurrentSlide(api.selectedScrollSnap());
-  }, []);
-
+  
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
   };
-
-
-  useEffect(() => {
-    if (!api) {
-      return
-    }
- 
-    onSelect(api);
-    api.on('select', onSelect);
-    api.on('reInit', onSelect)
-  }, [api, onSelect]);
   
    const handleScroll = useCallback(() => {
     if (primaryTabsRef.current) {
@@ -769,7 +761,7 @@ export default function LiveSellingPage() {
                                 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Avatar className="h-9 w-9 cursor-pointer">
+                                        <Avatar className="h-9 w-9 cursor-pointer" onClick={handleAvatarClick}>
                                             <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={userData?.displayName || "User"} />
                                             <AvatarFallback>{userData?.displayName ? userData.displayName.charAt(0) : 'U'}</AvatarFallback>
                                         </Avatar>
@@ -865,6 +857,8 @@ export default function LiveSellingPage() {
                  </div>
                 
                 <div className="pb-20">
+                    {showHeroSlider && <section className="mb-8"><HeroSlider onClose={handleCloseHeroSlider} /></section>}
+
                     <TabsContent value="all" className="space-y-8">
                     <section>
                             <div className="px-4 mb-4">
@@ -1014,56 +1008,6 @@ export default function LiveSellingPage() {
 
                     <TabsContent value="live">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="mb-6">
-                            {!isMounted || offerSlides.length === 0 ? (
-                                <Skeleton className="w-full aspect-[3/1] rounded-lg" />
-                            ) : (
-                                <div>
-                                    <Carousel
-                                        className="w-full"
-                                        plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
-                                        opts={{ loop: true }}
-                                        setApi={setApi}
-                                    >
-                                        <CarouselContent>
-                                            {offerSlides.map((slide) => (
-                                            <CarouselItem key={slide.id}>
-                                                <Card className="overflow-hidden bg-card">
-                                                <CardContent className="relative p-0 flex items-center justify-center aspect-[3/1] md:aspect-[4/1]">
-                                                    <Image
-                                                    src={slide.imageUrl}
-                                                    alt={slide.title}
-                                                    fill
-                                                    style={{objectFit: 'cover'}}
-                                                    className="brightness-75"
-                                                    data-ai-hint={slide.hint}
-                                                    />
-                                                    <div className="absolute text-center text-primary-foreground p-4">
-                                                    <h2 className="text-2xl md:text-4xl font-extrabold tracking-tighter">{slide.title}</h2>
-                                                    <p className="text-sm md:text-lg">{slide.description}</p>
-                                                    </div>
-                                                </CardContent>
-                                                </Card>
-                                            </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                    </Carousel>
-                                    <div className="flex justify-center gap-2 mt-4">
-                                        {offerSlides.map((_, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => api?.scrollTo(index)}
-                                                className={cn(
-                                                    "h-2 w-2 rounded-full transition-colors",
-                                                    index === currentSlide ? 'bg-primary' : 'bg-muted'
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            </div>
-
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {liveStreamFilterButtons.map((filter) => (
                                 <Button 
