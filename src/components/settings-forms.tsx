@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import Image from "next/image";
 
 // Add Bank Account Form
 const addBankFormSchema = z.object({
@@ -241,3 +242,57 @@ export function AddPaymentMethodForm({ onSave }: AddPaymentMethodProps) {
     );
 }
 
+// Add UPI Form
+const addUpiFormSchema = z.object({
+  upiId: z.string().regex(/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/, "Please enter a valid UPI ID (e.g., yourname@bank)."),
+});
+
+interface AddUpiFormProps {
+    onSave: (data: z.infer<typeof addUpiFormSchema>) => void;
+}
+
+export function AddUpiForm({ onSave }: AddUpiFormProps) {
+    const form = useForm<z.infer<typeof addUpiFormSchema>>({
+        resolver: zodResolver(addUpiFormSchema),
+        defaultValues: { upiId: "" },
+    });
+
+    const onSubmit = (values: z.infer<typeof addUpiFormSchema>) => {
+        onSave(values);
+        form.reset();
+        document.getElementById('closeUpiDialog')?.click();
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Add New UPI ID</DialogTitle>
+                <DialogDescription>Link your UPI ID for fast and easy payments.</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField control={form.control} name="upiId" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>UPI ID</FormLabel>
+                            <FormControl>
+                                 <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI Logo" width={20} height={20} />
+                                    </div>
+                                    <Input placeholder="yourname@bank" {...field} className="pl-10" />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <DialogFooter className="pt-4">
+                        <DialogClose asChild>
+                           <Button type="button" variant="secondary" id="closeUpiDialog">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit">Save UPI ID</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+    );
+}

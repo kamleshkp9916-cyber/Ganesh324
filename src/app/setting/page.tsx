@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
-import { AddBankForm, AddPaymentMethodForm } from '@/components/settings-forms';
+import { AddBankForm, AddPaymentMethodForm, AddUpiForm } from '@/components/settings-forms';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -165,6 +165,7 @@ export default function SettingsPage() {
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState<any[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    const [upiIds, setUpiIds] = useState<any[]>([]);
 
     const handleToggle = (setting: string, enabled: boolean) => {
         toast({
@@ -178,6 +179,7 @@ export default function SettingsPage() {
          if (user) {
             fetchBankAccounts(user.uid);
             fetchPaymentMethods(user.uid);
+            fetchUpiIds(user.uid);
         }
     }, [user]);
     
@@ -196,6 +198,14 @@ export default function SettingsPage() {
             { id: 1, type: 'Credit Card', provider: 'Visa', last4: '1234', isDefault: true },
         ];
         setPaymentMethods(mockMethods);
+    };
+
+    const fetchUpiIds = (userId: string) => {
+        // Mock fetching UPI IDs
+        const mockUpi = [
+            { id: 1, upiId: 'user@bank', isDefault: true },
+        ];
+        setUpiIds(mockUpi);
     };
 
     const handleAddBankAccount = async (data: any) => {
@@ -227,6 +237,19 @@ export default function SettingsPage() {
          toast({
             title: "Payment Method Added",
             description: `Card ending in ${newMethod.last4} has been saved.`
+        });
+    };
+    
+    const handleAddUpi = (data: any) => {
+        const newUpi = {
+            id: Date.now(),
+            upiId: data.upiId,
+            isDefault: upiIds.length === 0,
+        };
+        setUpiIds(prev => [...prev, newUpi]);
+        toast({
+            title: "UPI ID Added",
+            description: `${data.upiId} has been successfully linked.`
         });
     }
     
@@ -391,9 +414,10 @@ export default function SettingsPage() {
                              <Card>
                                 <CardHeader>
                                     <CardTitle>Payment Methods</CardTitle>
-                                    <CardDescription>Manage your saved cards for quick checkouts.</CardDescription>
+                                    <CardDescription>Manage your saved cards and UPI IDs for quick checkouts.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
+                                     <h4 className="font-semibold text-sm">Saved Cards</h4>
                                      {paymentMethods.map(method => (
                                         <div key={method.id} className="p-3 rounded-lg border flex justify-between items-center">
                                             <div className="flex items-center gap-3">
@@ -411,14 +435,39 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
                                     ))}
-                                    {paymentMethods.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No saved payment methods.</p>}
+                                    {paymentMethods.length === 0 && <p className="text-sm text-center text-muted-foreground py-2">No saved cards.</p>}
+
+                                    <h4 className="font-semibold text-sm pt-4">Saved UPI IDs</h4>
+                                     {upiIds.map(upi => (
+                                        <div key={upi.id} className="p-3 rounded-lg border flex justify-between items-center">
+                                            <div className="flex items-center gap-3">
+                                                 <Avatar className="h-8 w-8 bg-muted"><AvatarImage src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" /></Avatar>
+                                                <div>
+                                                    <p className="font-semibold">{upi.upiId}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {upi.isDefault && <Badge>Default</Badge>}
+                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                     {upiIds.length === 0 && <p className="text-sm text-center text-muted-foreground py-2">No saved UPI IDs.</p>}
                                 </CardContent>
-                                <CardFooter>
+                                <CardFooter className="gap-2">
                                      <Dialog>
                                         <DialogTrigger asChild>
                                             <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add New Card</Button>
                                         </DialogTrigger>
                                         <AddPaymentMethodForm onSave={handleAddPaymentMethod} />
+                                    </Dialog>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add UPI ID</Button>
+                                        </DialogTrigger>
+                                        <AddUpiForm onSave={handleAddUpi} />
                                     </Dialog>
                                 </CardFooter>
                             </Card>
