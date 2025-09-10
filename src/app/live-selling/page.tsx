@@ -321,37 +321,33 @@ export default function LiveSellingPage() {
         }
 
         const liveStreamDataRaw = localStorage.getItem('liveStream');
-        let currentSellers = [...liveSellers];
+        let currentSellers = [...liveSellers].filter(s => s.id !== user?.uid); // Filter out potential old stream
         
         if (liveStreamDataRaw) {
             try {
                 const liveStreamData = JSON.parse(liveStreamDataRaw);
-                const sellerIsLive = currentSellers.some(s => s.id === liveStreamData.seller?.uid);
-
-                if (liveStreamData.seller && !sellerIsLive) {
-                    const newSellerCard = {
-                        id: liveStreamData.seller.uid,
-                        name: liveStreamData.seller.name,
-                        avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                        thumbnailUrl: liveStreamData.product?.image?.preview || 'https://placehold.co/300x450.png',
-                        category: liveStreamData.product?.category || 'General',
-                        viewers: Math.floor(Math.random() * 5000),
-                        buyers: Math.floor(Math.random() * 100),
-                        rating: 4.5,
-                        reviews: Math.floor(Math.random() * 50),
-                        hint: liveStreamData.product?.name?.toLowerCase() || 'live stream',
-                        productId: liveStreamData.product?.id,
-                        isMyStream: true,
-                        hasAuction: liveStreamData.isAuction,
-                    };
-                    currentSellers = [newSellerCard, ...currentSellers];
-                }
+                const newSellerCard = {
+                    id: liveStreamData.seller.uid,
+                    name: liveStreamData.seller.name,
+                    avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
+                    thumbnailUrl: liveStreamData.product?.image?.preview || 'https://placehold.co/300x450.png',
+                    category: liveStreamData.product?.category || 'General',
+                    viewers: Math.floor(Math.random() * 5000),
+                    buyers: Math.floor(Math.random() * 100),
+                    rating: 4.5,
+                    reviews: Math.floor(Math.random() * 50),
+                    hint: liveStreamData.product?.name?.toLowerCase() || 'live stream',
+                    productId: liveStreamData.product?.id,
+                    isMyStream: true,
+                    hasAuction: liveStreamData.isAuction,
+                };
+                currentSellers = [newSellerCard, ...currentSellers];
             } catch (error) {
                 console.error("Error parsing live stream data from localStorage", error);
                 localStorage.removeItem('liveStream');
             }
         }
-        setAllSellers(currentSellers.map(s => ({ ...s, isMyStream: s.id === user?.uid })));
+        setAllSellers(currentSellers);
     }
   }, [user?.uid]);
 
@@ -655,7 +651,7 @@ export default function LiveSellingPage() {
 };
 
   const renderTabs = (isSticky: boolean = false) => (
-    <div className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "mb-4")}>
+    <div className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "")}>
       <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -853,7 +849,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0")}>
+                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible")}>
                     {renderTabs(false)}
                  </div>
                 
@@ -892,7 +888,7 @@ export default function LiveSellingPage() {
                             ))}
                             </div>
                         </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                             <div className="mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Product Categories</h2>
                                  <div className="flex flex-wrap gap-2">
@@ -948,11 +944,11 @@ export default function LiveSellingPage() {
                                 })}
                             </div>
                         </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                             <div className="mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden">
                                         <div className="p-4">
