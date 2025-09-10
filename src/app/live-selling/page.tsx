@@ -95,7 +95,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
-import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
+import { PromotionalCarousel } from '@/components/promotional-carousel';
 
 
 const liveSellers = [
@@ -392,7 +392,7 @@ export default function LiveSellingPage() {
       loadData();
       
       const handleStorageChange = (event: StorageEvent) => {
-          if (event.key === 'liveStream' || event.key === 'streamcart_cart' || event.key === PROMOTIONAL_SLIDES_KEY || event.key === null) {
+          if (event.key === 'liveStream' || event.key === 'streamcart_cart' || event.key === null) {
               loadData();
           }
       };
@@ -820,6 +820,10 @@ export default function LiveSellingPage() {
                 
                  <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible", "mb-6")}>
                     {renderTabs(false)}
+                 </div>
+                 
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                     <PromotionalCarousel />
                  </div>
                 
                 <div className="pb-20">
