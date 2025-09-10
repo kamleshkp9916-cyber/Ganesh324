@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus, Wallet } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus, Wallet, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
-import { AddBankForm } from '@/components/settings-forms';
+import { AddBankForm, AddPaymentMethodForm } from '@/components/settings-forms';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -164,6 +164,7 @@ export default function SettingsPage() {
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
     const handleToggle = (setting: string, enabled: boolean) => {
         toast({
@@ -176,6 +177,7 @@ export default function SettingsPage() {
         setIsMounted(true);
          if (user) {
             fetchBankAccounts(user.uid);
+            fetchPaymentMethods(user.uid);
         }
     }, [user]);
     
@@ -188,6 +190,14 @@ export default function SettingsPage() {
         setBankAccounts(mockAccounts);
     }
     
+     const fetchPaymentMethods = (userId: string) => {
+        // Mock fetching payment methods
+        const mockMethods = [
+            { id: 1, type: 'Credit Card', provider: 'Visa', last4: '1234', isDefault: true },
+        ];
+        setPaymentMethods(mockMethods);
+    };
+
     const handleAddBankAccount = async (data: any) => {
         if (!user) return;
         
@@ -204,6 +214,21 @@ export default function SettingsPage() {
             description: `${data.bankName} has been successfully linked.`
         });
     };
+
+    const handleAddPaymentMethod = (data: any) => {
+        const newMethod = {
+            id: Date.now(),
+            type: 'Credit Card',
+            provider: 'Visa', // This would be detected from card number in a real app
+            last4: data.cardNumber.slice(-4),
+            isDefault: paymentMethods.length === 0,
+        };
+        setPaymentMethods(prev => [...prev, newMethod]);
+         toast({
+            title: "Payment Method Added",
+            description: `Card ending in ${newMethod.last4} has been saved.`
+        });
+    }
     
     const handleProfileSave = async (data: any) => {
       if (user) {
@@ -360,6 +385,40 @@ export default function SettingsPage() {
                                             </DialogHeader>
                                             <AddBankForm onSave={handleAddBankAccount} />
                                         </DialogContent>
+                                    </Dialog>
+                                </CardFooter>
+                            </Card>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Payment Methods</CardTitle>
+                                    <CardDescription>Manage your saved cards for quick checkouts.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                     {paymentMethods.map(method => (
+                                        <div key={method.id} className="p-3 rounded-lg border flex justify-between items-center">
+                                            <div className="flex items-center gap-3">
+                                                <CreditCard className="h-6 w-6 text-muted-foreground" />
+                                                <div>
+                                                    <p className="font-semibold">{method.provider} ending in {method.last4}</p>
+                                                    <p className="text-sm text-muted-foreground">Expires 12/2028</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {method.isDefault && <Badge>Default</Badge>}
+                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {paymentMethods.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No saved payment methods.</p>}
+                                </CardContent>
+                                <CardFooter>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add New Card</Button>
+                                        </DialogTrigger>
+                                        <AddPaymentMethodForm onSave={handleAddPaymentMethod} />
                                     </Dialog>
                                 </CardFooter>
                             </Card>

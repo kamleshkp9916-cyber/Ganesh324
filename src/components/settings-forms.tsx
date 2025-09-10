@@ -7,7 +7,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { DialogFooter, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
@@ -181,3 +181,63 @@ export function WithdrawForm({ bankAccounts, onWithdraw, onAddAccount }: Withdra
         </Tabs>
     );
 }
+
+// Add Payment Method Form
+const addPaymentMethodSchema = z.object({
+    cardNumber: z.string().min(16, "Invalid card number").max(16, "Invalid card number"),
+    cardHolderName: z.string().min(2, "Name is required."),
+    expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid format. Use MM/YY."),
+    cvv: z.string().min(3, "Invalid CVV").max(3, "Invalid CVV"),
+});
+
+interface AddPaymentMethodProps {
+    onSave: (data: z.infer<typeof addPaymentMethodSchema>) => void;
+}
+
+export function AddPaymentMethodForm({ onSave }: AddPaymentMethodProps) {
+    const { toast } = useToast();
+    const form = useForm<z.infer<typeof addPaymentMethodSchema>>({
+        resolver: zodResolver(addPaymentMethodSchema),
+        defaultValues: { cardNumber: "", cardHolderName: "", expiryDate: "", cvv: "" },
+    });
+
+    const onSubmit = (values: z.infer<typeof addPaymentMethodSchema>) => {
+        onSave(values);
+        form.reset();
+        document.getElementById('closePaymentDialog')?.click();
+    };
+
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Add New Card</DialogTitle>
+                <DialogDescription>Your payment information is stored securely.</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField control={form.control} name="cardNumber" render={({ field }) => (
+                        <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input type="text" maxLength={16} placeholder="•••• •••• •••• ••••" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="cardHolderName" render={({ field }) => (
+                        <FormItem><FormLabel>Cardholder Name</FormLabel><FormControl><Input placeholder="Name as it appears on card" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="expiryDate" render={({ field }) => (
+                            <FormItem><FormLabel>Expiry Date</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="cvv" render={({ field }) => (
+                            <FormItem><FormLabel>CVV</FormLabel><FormControl><Input type="password" maxLength={3} {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
+                    <DialogFooter className="pt-4">
+                        <DialogClose asChild>
+                           <Button type="button" variant="secondary" id="closePaymentDialog">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit">Save Card</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+    );
+}
+
