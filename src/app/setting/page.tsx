@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus, Wallet } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
