@@ -24,24 +24,11 @@ const sidebarSections = [
     { title: "Toys & Games", links: ["Action Figures", "Dolls", "Board Games", "LEGO"] },
 ];
 
-const specialLinks = [
-    { name: "Back to School", href: "#", isRed: true },
-    { name: "Character Shop", href: "#", isRed: false },
-    { name: "Sale & Clearance", href: "#", isRed: true },
-]
-
 export function KidsSidebar() {
     return (
         <div className="w-full">
             <h2 className="text-2xl font-bold mb-4 lg:hidden">Kids</h2>
-            <div className="space-y-2 mb-4">
-                {specialLinks.map(link => (
-                    <Link key={link.name} href={link.href} className={cn("block text-sm font-medium", link.isRed ? "text-red-600 hover:text-red-700" : "text-muted-foreground hover:text-foreground")}>
-                        {link.name}
-                    </Link>
-                ))}
-            </div>
-
+            
             <Accordion type="multiple" defaultValue={["Girls' Clothing"]} className="w-full">
                 {sidebarSections.map(section => (
                     <AccordionItem value={section.title} key={section.title}>

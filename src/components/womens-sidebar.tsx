@@ -27,24 +27,11 @@ const sidebarSections = [
     { title: "Women's Brands", links: ["Brand A", "Brand B", "Brand C"] },
 ];
 
-const specialLinks = [
-    { name: "Limited-Time Specials", href: "#", isRed: true },
-    { name: "30–50% off Underwear & Lingerie", href: "#", isRed: true },
-    { name: "Sale & Clearance", href: "#", isRed: true },
-]
-
 export function WomensSidebar() {
     return (
         <div className="w-full">
             <h2 className="text-2xl font-bold mb-4 lg:hidden">Women</h2>
-            <div className="space-y-2 mb-4">
-                {specialLinks.map(link => (
-                    <Link key={link.name} href={link.href} className={cn("block text-sm font-medium", link.isRed ? "text-red-600 hover:text-red-700" : "text-muted-foreground hover:text-foreground")}>
-                        {link.name}
-                    </Link>
-                ))}
-            </div>
-
+            
             <Accordion type="multiple" defaultValue={["Women's Clothing"]} className="w-full">
                 {sidebarSections.map(section => (
                     <AccordionItem value={section.title} key={section.title}>
@@ -64,4 +51,3 @@ export function WomensSidebar() {
         </div>
     );
 }
-

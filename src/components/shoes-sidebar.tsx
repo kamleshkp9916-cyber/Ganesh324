@@ -20,21 +20,10 @@ const sidebarSections = [
     { title: "Kids' Shoes", links: ["Girls' Shoes", "Boys' Shoes"] },
 ];
 
-const specialLinks = [
-    { name: "Shoe Sale", href: "#", isRed: true },
-]
-
 export function ShoesSidebar() {
     return (
         <div className="w-full">
             <h2 className="text-2xl font-bold mb-4 lg:hidden">Shoes</h2>
-            <div className="space-y-2 mb-4">
-                {specialLinks.map(link => (
-                    <Link key={link.name} href={link.href} className={cn("block text-sm font-medium", link.isRed ? "text-red-600 hover:text-red-700" : "text-muted-foreground hover:text-foreground")}>
-                        {link.name}
-                    </Link>
-                ))}
-            </div>
 
             <Accordion type="multiple" defaultValue={["Women's Shoes"]} className="w-full">
                 {sidebarSections.map(section => (
