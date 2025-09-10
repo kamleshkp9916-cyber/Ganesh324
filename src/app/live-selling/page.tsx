@@ -320,9 +320,9 @@ export default function LiveSellingPage() {
             setOfferSlides(initialOfferSlides);
         }
 
-        const liveStreamDataRaw = localStorage.getItem('liveStream');
-        let currentSellers = [...liveSellers].filter(s => s.id !== user?.uid); // Filter out potential old stream
+        let currentSellers = [...liveSellers].filter(s => s.id !== user?.uid);
         
+        const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             try {
                 const liveStreamData = JSON.parse(liveStreamDataRaw);
@@ -341,7 +341,10 @@ export default function LiveSellingPage() {
                     isMyStream: true,
                     hasAuction: liveStreamData.isAuction,
                 };
-                currentSellers = [newSellerCard, ...currentSellers];
+                // Avoid duplicates
+                if (!currentSellers.some(s => s.id === newSellerCard.id)) {
+                    currentSellers = [newSellerCard, ...currentSellers];
+                }
             } catch (error) {
                 console.error("Error parsing live stream data from localStorage", error);
                 localStorage.removeItem('liveStream');
@@ -367,7 +370,7 @@ export default function LiveSellingPage() {
   }, [feed]);
 
   const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 6);
   }, [feed]);
 
   useEffect(() => {
@@ -651,8 +654,8 @@ export default function LiveSellingPage() {
 };
 
   const renderTabs = (isSticky: boolean = false) => (
-    <div className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "")}>
-      <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
+    <div ref={isSticky ? null : primaryTabsRef} className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "mb-6")}>
+      <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11 transition-opacity duration-300", isSticky ? "opacity-100" : isScrolled ? "opacity-0" : "opacity-100")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
         <TabsTrigger value="feeds">Feeds</TabsTrigger>
@@ -915,7 +918,7 @@ export default function LiveSellingPage() {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
                                     return (
-                                        <Card key={item.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                             <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
@@ -948,7 +951,7 @@ export default function LiveSellingPage() {
                             <div className="mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden">
                                         <div className="p-4">
