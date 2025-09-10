@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -19,6 +19,10 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemePicker } from '@/components/theme-picker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { EditProfileForm } from '@/components/edit-profile-form';
+import { EditAddressForm } from '@/components/edit-address-form';
+import { updateUserData } from '@/lib/follow-data';
 
 
 const surveyReasons = [
@@ -142,11 +146,14 @@ function DeleteAccountFlow() {
 
 export default function SettingsPage() {
     const router = useRouter();
-    const { user, loading } = useAuth();
-    const { signOut } = useAuthActions();
+    const { user, userData, loading } = useAuth();
+    const { signOut, updateUserProfile } = useAuthActions();
     const [isMounted, setIsMounted] = useState(false);
     const { toast } = useToast();
     
+    const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+
     const handleToggle = (setting: string, enabled: boolean) => {
         toast({
             title: "Setting Saved",
@@ -157,8 +164,37 @@ export default function SettingsPage() {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+    
+    const handleProfileSave = async (data: any) => {
+      if (user) {
+          const updatedData: Partial<any> = {
+              displayName: `${data.firstName} ${data.lastName}`,
+              bio: data.bio,
+              location: data.location,
+              phone: `+91 ${data.phone}`,
+              photoURL: data.photoURL,
+          };
+          
+          await updateUserProfile(user, updatedData);
+          setIsProfileDialogOpen(false);
+      }
+    };
+    
+    const handleAddressesUpdate = (newAddresses: any[]) => {
+      if(user){
+        updateUserData(user.uid, { addresses: newAddresses });
+        toast({ title: 'Addresses Updated' });
+      }
+    }
+    
+    const handleSelectAddress = (address: any) => {
+        // This is a bit of a placeholder, as the main address selection happens in the cart.
+        // But we can confirm to the user.
+        toast({ title: 'Default Address Set', description: 'This will be used for future checkouts.'});
+        setIsAddressDialogOpen(false);
+    }
 
-    if (!isMounted || loading) {
+    if (!isMounted || loading || !userData) {
         return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
     }
 
@@ -168,7 +204,6 @@ export default function SettingsPage() {
     }
 
     const settingsItems = [
-        { icon: <User className="w-5 h-5" />, label: 'Edit Profile', href: '/profile' },
         { icon: <HelpCircle className="w-5 h-5" />, label: 'Help & Support', href: '/help' },
     ];
 
@@ -208,6 +243,45 @@ export default function SettingsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-1">
+                                        <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" className="w-full justify-start text-base p-4 h-auto">
+                                                    <User className="w-5 h-5" />
+                                                    <span className="ml-4">Edit Profile</span>
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-lg w-[95vw] h-auto max-h-[85vh] flex flex-col p-0 rounded-lg">
+                                                <DialogHeader className="p-6 pb-4">
+                                                    <DialogTitle>Edit Profile</DialogTitle>
+                                                </DialogHeader>
+                                                 <EditProfileForm 
+                                                    currentUser={userData}
+                                                    onSave={handleProfileSave}
+                                                    onCancel={() => setIsProfileDialogOpen(false)}
+                                                 />
+                                            </DialogContent>
+                                        </Dialog>
+
+                                        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" className="w-full justify-start text-base p-4 h-auto">
+                                                    <Home className="w-5 h-5" />
+                                                    <span className="ml-4">Manage Addresses</span>
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                                                <DialogHeader>
+                                                    <DialogTitle>Manage Delivery Addresses</DialogTitle>
+                                                    <DialogDescription>Add, edit, or remove your saved addresses.</DialogDescription>
+                                                </DialogHeader>
+                                                <EditAddressForm
+                                                    onSave={handleSelectAddress}
+                                                    onCancel={() => setIsAddressDialogOpen(false)}
+                                                    onAddressesUpdate={handleAddressesUpdate}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+
                                         {settingsItems.map(item => (
                                             <Button key={item.label} variant="ghost" className="w-full justify-start text-base p-4 h-auto" asChild>
                                                 <Link href={item.href}>
@@ -342,4 +416,5 @@ export default function SettingsPage() {
             </main>
         </div>
     );
-}
+
+    
