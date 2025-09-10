@@ -285,7 +285,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
-    ).slice(0, 6);
+    ).slice(0, 10);
 
     const productSpecificDetails = [
         { label: 'Brand', value: product.brand },
