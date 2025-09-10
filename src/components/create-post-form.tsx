@@ -111,8 +111,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setIsSuggestionLoading(false);
         };
         
-        if (tagging) {
+        if (tagging && tagging.query.length > 0) {
             fetchSuggestions();
+        } else {
+            setSuggestions([]);
         }
     }, [debouncedTagQuery, tagging, sellerProducts]);
   
@@ -276,7 +278,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
-                     <Popover open={!!tagging} onOpenChange={(open) => !open && setTagging(null)}>
+                     <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
                         <PopoverAnchor asChild>
                             <div className="relative flex-grow">
                                 <Input 
@@ -303,7 +305,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                                 </Popover>
                             </div>
                         </PopoverAnchor>
-                        <PopoverContent className="w-72 p-0">
+                        <PopoverContent className="w-72 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                             {isSuggestionLoading ? (
                                 <div className="p-4 text-center">Loading...</div>
                             ) : suggestions.length > 0 ? (
@@ -364,4 +366,3 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
-
