@@ -2,7 +2,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useWatch, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DialogFooter, DialogClose } from "../ui/dialog"
-import { Loader2, UploadCloud, X, Ticket } from "lucide-react"
+import { Loader2, UploadCloud, X } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,12 +33,8 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const productFormSchema = z.object({
   id: z.string().optional(),
-  key: z.string().optional(),
   name: z.string().min(3, "Product name must be at least 3 characters."),
-  brand: z.string().min(2, "Brand name must be at least 2 characters."),
-  category: z.string().min(1, "Please select a category."),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
-  highlights: z.string().optional(),
   price: z.coerce.number().positive("Price must be a positive number."),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   images: z.array(z.object({
@@ -47,128 +43,30 @@ const productFormSchema = z.object({
   })).min(1, "Please upload at least one image."),
   listingType: z.enum(['live-stream', 'general']).default('general'),
   status: z.enum(["draft", "active", "archived"]),
-  offer: z.object({
-      title: z.string().optional(),
-      description: z.string().optional(),
-  }).optional(),
-  // Category specific fields
-  size: z.string().optional(),
-  color: z.string().optional(),
-  modelNumber: z.string().optional(),
-  origin: z.string().optional(),
 })
 
 export type Product = z.infer<typeof productFormSchema>;
 
-const categories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Kitchenware", "Fitness", "Handmade", "Pet Supplies", "Books", "Gaming"];
-
 interface ProductFormProps {
   onSave: (product: Product) => void;
-  productToEdit?: Product & {image?: any};
+  productToEdit?: Product;
 }
-
-const CategorySpecificFields = ({ control }: { control: any }) => {
-    const category = useWatch({ control, name: 'category' });
-
-    if (!category) return null;
-
-    return (
-        <>
-            {category === 'Fashion' && (
-                 <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={control}
-                        name="size"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Size</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select a size" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="XS">XS</SelectItem>
-                                        <SelectItem value="S">S</SelectItem>
-                                        <SelectItem value="M">M</SelectItem>
-                                        <SelectItem value="L">L</SelectItem>
-                                        <SelectItem value="XL">XL</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={control}
-                        name="color"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Color</FormLabel>
-                                <FormControl><Input placeholder="e.g., Blue" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            )}
-             {category === 'Electronics' && (
-                <FormField
-                    control={control}
-                    name="modelNumber"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Model Number</FormLabel>
-                            <FormControl><Input placeholder="e.g., A2651" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            )}
-             {['Home Goods', 'Kitchenware', 'Handmade'].includes(category) && (
-                 <FormField
-                    control={control}
-                    name="origin"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Country of Origin</FormLabel>
-                            <FormControl><Input placeholder="e.g., India" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            )}
-        </>
-    );
-};
 
 export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   
   const defaultValues = useMemo(() => {
     if (productToEdit) {
-        let images = productToEdit.images;
-        // Legacy support for single image
-        if (productToEdit.image && !productToEdit.images) {
-            images = [{ file: null, preview: productToEdit.image.preview }];
-        }
-        return { ...productToEdit, images: images || [], offer: productToEdit.offer || { title: '', description: ''} };
+      return productToEdit;
     }
     return {
       name: "",
-      brand: "",
-      category: "",
       description: "",
-      highlights: "",
       price: 0,
       stock: 0,
       images: [],
       listingType: "general",
       status: "draft",
-      offer: { title: "", description: "" },
-      size: "",
-      color: "",
-      modelNumber: "",
-      origin: "",
     };
   }, [productToEdit]);
 
@@ -189,11 +87,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   function onSubmit(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
     setTimeout(() => {
-        const productToSave = {
-            ...values,
-            key: values.key || `prod_${Date.now()}`
-        };
-        onSave(productToSave);
+        onSave(values);
         setIsSaving(false);
     }, 1000);
   }
@@ -230,42 +124,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="brand"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Brand Name</FormLabel>
-                        <FormControl>
-                            <Input placeholder="e.g. Sony, Apple, etc." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-               <CategorySpecificFields control={form.control} />
               <FormField
                 control={form.control}
                 name="description"
@@ -279,27 +137,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="highlights"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Highlights</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter each highlight on a new line..."
-                        className="resize-none"
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                     <FormDescription>
-                        List the key features of your product. Each line will be shown as a bullet point.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -385,34 +222,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                         </FormItem>
                     )}
                 />
-                
-                <div className="space-y-4 rounded-lg border p-4">
-                    <h3 className="text-base font-semibold flex items-center gap-2"><Ticket className="h-5 w-5 text-primary" /> Product Offer (Optional)</h3>
-                     <FormField
-                        control={form.control}
-                        name="offer.title"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Offer Title</FormLabel>
-                            <FormControl><Input placeholder="e.g., Launch Discount!" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="offer.description"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Offer Description</FormLabel>
-                            <FormControl><Input placeholder="e.g., Get 20% off for a limited time." {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
-
-
                  <FormField
                     control={form.control}
                     name="listingType"

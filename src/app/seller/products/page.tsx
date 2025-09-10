@@ -191,9 +191,9 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
           </TableHeader>
           <TableBody>
             {products.length > 0 ? products.map(product => (
-              <TableRow key={product.id} className={cn(product.stock === 0 && 'bg-destructive/10')}>
+              <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
-                  <Link href={`/product/${product.key}`}>
+                  <Link href={`/product/${product.id}`}>
                     {product.images && product.images.length > 0 ? (
                       <Image
                         alt={product.name}
@@ -210,10 +210,9 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
                   </Link>
                 </TableCell>
                 <TableCell className="font-medium">
-                  <Link href={`/product/${product.key}`} className="hover:underline">
+                  <Link href={`/product/${product.id}`} className="hover:underline">
                     {product.name}
                   </Link>
-                  {product.stock === 0 && <span className="text-xs text-destructive ml-2">(Sold Out)</span>}
                 </TableCell>
                 <TableCell>
                   <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
@@ -221,7 +220,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
                 <TableCell className="hidden md:table-cell">
                   ₹{product.price.toLocaleString()}
                 </TableCell>
-                <TableCell className={cn("hidden md:table-cell", product.stock === 0 && "text-destructive font-bold")}>
+                <TableCell className="hidden md:table-cell">
                   {product.stock}
                 </TableCell>
                 <TableCell>
@@ -273,44 +272,24 @@ export default function SellerProductsPage() {
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
     const router = useRouter();
-    const { toast } = useToast();
-
-    const getProductsKey = (userName: string | null | undefined) => {
-        if (!userName) return null;
-        return `sellerProducts_${userName}`;
-    }
-
+    
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined' && user) {
-            const productsKey = getProductsKey(user.displayName);
-            if (!productsKey) return;
-            
-            const storedProducts = localStorage.getItem(productsKey);
+        if (typeof window !== 'undefined') {
+            const storedProducts = localStorage.getItem('sellerProducts');
             if (storedProducts) {
                 setProducts(JSON.parse(storedProducts));
             } else {
-                // Only set initial products for the mock user for demo purposes
-                if (user.displayName === 'Samael Prajapati') {
-                    setProducts(initialProducts);
-                    localStorage.setItem(productsKey, JSON.stringify(initialProducts));
-                } else {
-                    setProducts([]);
-                }
+                setProducts(initialProducts);
             }
         }
-    }, [user]);
+    }, []);
     
     useEffect(() => {
-        if (isMounted && user) {
-             const productsKey = getProductsKey(user.displayName);
-             if (productsKey) {
-                localStorage.setItem(productsKey, JSON.stringify(products));
-                // Dispatch event so other components (like profile page) can update
-                window.dispatchEvent(new StorageEvent('storage', { key: productsKey }));
-             }
+        if (isMounted) {
+            localStorage.setItem('sellerProducts', JSON.stringify(products));
         }
-    }, [products, isMounted, user]);
+    }, [products, isMounted]);
 
     const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
     const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
@@ -326,25 +305,11 @@ export default function SellerProductsPage() {
     }
 
     const handleSaveProduct = (product: Product) => {
-        let wasInStock = true;
         if (editingProduct) {
-            const originalProduct = products.find(p => p.id === product.id);
-            if (originalProduct) {
-                wasInStock = originalProduct.stock > 0;
-            }
             setProducts(products.map(p => p.id === product.id ? product : p));
         } else {
-            setProducts(prev => [...prev, { ...product, id: product.key, key: product.key }]);
+            setProducts(prev => [...prev, { ...product, id: `prod_${Date.now()}` }]);
         }
-
-        if (product.stock === 0 && wasInStock) {
-            toast({
-                variant: "destructive",
-                title: "Product Sold Out!",
-                description: `${product.name} is now out of stock.`,
-            });
-        }
-
         setIsFormOpen(false);
         setEditingProduct(undefined);
     };
@@ -410,11 +375,11 @@ export default function SellerProductsPage() {
                       <Tabs defaultValue="all">
                       <div className="flex items-center gap-4">
                           <TabsList>
-                          <TabsTrigger value="all">All ({products.length})</TabsTrigger>
-                          <TabsTrigger value="active">Active ({activeProducts.length})</TabsTrigger>
-                          <TabsTrigger value="draft">Draft ({draftProducts.length})</TabsTrigger>
+                          <TabsTrigger value="all">All</TabsTrigger>
+                          <TabsTrigger value="active">Active</TabsTrigger>
+                          <TabsTrigger value="draft">Draft</TabsTrigger>
                           <TabsTrigger value="archived" className="hidden sm:flex">
-                              Archived ({archivedProducts.length})
+                              Archived
                           </TabsTrigger>
                           </TabsList>
                           <div className="ml-auto flex items-center gap-2">

@@ -74,9 +74,7 @@ const liveSellers = [
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user } = useAuth();
-    
     const [product, setProduct] = useState<any>(null);
-
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
@@ -90,25 +88,39 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
 
-    const fetchProductDetails = () => {
-        let details = productDetails[productId as keyof typeof productDetails] || null;
-        if (details) {
-            // Check localStorage for seller-specific updates
-            const sellerName = productToSellerMapping[details.key]?.name;
-            if (sellerName) {
-                const sellerProductsKey = `sellerProducts_${sellerName}`;
-                const storedProducts = localStorage.getItem(sellerProductsKey);
-                if (storedProducts) {
-                    const sellerProducts = JSON.parse(storedProducts);
-                    const updatedProduct = sellerProducts.find((p: any) => p.id === details.key);
-                    if (updatedProduct) {
-                         details = { ...details, ...updatedProduct };
-                    }
-                }
-            }
+    const averageRating = useMemo(() => {
+        if (reviews.length === 0) return '0.0';
+        const total = reviews.reduce((acc, review) => acc + review.rating, 0);
+        return (total / reviews.length).toFixed(1);
+    }, [reviews]);
+    
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        let streams = liveSellers.filter(
+            s => s.category === product.category && s.productId !== product.key
+        );
+        if (streams.length > 5) {
+            return streams.slice(0, 6);
         }
-        setProduct(details);
-    };
+        // Fallback to show some streams if none match the category, excluding the current one
+        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
+        
+        // Add from fallback until we have 6 total, avoiding duplicates
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,6);
+    }, [product]);
+
+    const estimatedDeliveryDate = useMemo(() => {
+        const today = new Date();
+        const deliveryDate = addDays(today, 5);
+        return format(deliveryDate, 'E, MMM dd');
+    }, []);
 
     const fetchReviews = () => {
         if (product) {
@@ -117,8 +129,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
     
     useEffect(() => {
-        fetchProductDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        const details = productDetails[productId as keyof typeof productDetails] || null;
+        setProduct(details);
     }, [productId]);
 
     useEffect(() => {
@@ -160,53 +172,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             fetchTaggedPosts();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [product]);
-
-    useEffect(() => {
-        const handleStorageChange = (event: StorageEvent) => {
-            if (event.key?.startsWith('sellerProducts_') || event.key === 'streamcart_reviews') {
-                fetchProductDetails();
-                fetchReviews();
-            }
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [product]);
-
-
-    const averageRating = useMemo(() => {
-        if (reviews.length === 0) return '0.0';
-        const total = reviews.reduce((acc, review) => acc + review.rating, 0);
-        return (total / reviews.length).toFixed(1);
-    }, [reviews]);
-
-    const estimatedDeliveryDate = useMemo(() => {
-        const today = new Date();
-        const deliveryDate = addDays(today, 5);
-        return format(deliveryDate, 'E, MMM dd');
-    }, []);
-
-    const relatedStreams = useMemo(() => {
-        if (!product) return [];
-        let streams = liveSellers.filter(
-            s => s.category === product.category && s.productId !== product.key
-        );
-        if (streams.length > 5) {
-            return streams.slice(0, 6);
-        }
-        // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
-        
-        // Add from fallback until we have 6 total, avoiding duplicates
-        let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
-            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
-                streams.push(fallbackStreams[i]);
-            }
-            i++;
-        }
-        return streams.slice(0,6);
     }, [product]);
 
 
@@ -363,8 +328,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     ].filter(detail => detail.value);
 
     const productHighlights = product.highlights ? product.highlights.split('\n').filter(h => h.trim() !== '') : [];
-    
-    const isProductAvailable = product.status === 'active' && product.stock > 0;
 
     return (
         <div className="min-h-screen bg-background">
@@ -445,12 +408,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
-                            <div>
-                                <span className="text-xs text-muted-foreground">Product Key: </span>
-                                <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-                                    {product.key}
-                                </code>
-                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Product Key: {product.key}</p>
                             <div className="flex items-center gap-2 mt-2">
                                 <div className="flex items-center gap-1">
                                     {[...Array(5)].map((_, i) => (
@@ -482,26 +440,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         
                         <div className="flex flex-col gap-2">
                              {inCart ? (
-                                <Button asChild size="lg" className="w-full" disabled={!isProductAvailable}>
+                                <Button asChild size="lg" className="w-full">
                                     <Link href="/cart">
                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                         Go to Cart
                                     </Link>
                                 </Button>
                             ) : (
-                                <Button size="lg" className="w-full" onClick={handleAddToCart} disabled={!isProductAvailable}>
+                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                     Add to Cart
                                 </Button>
                             )}
-                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow} disabled={!isProductAvailable}>
+                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
                                 Buy Now
                             </Button>
-                             {!isProductAvailable && (
-                                <div className="text-center text-sm text-destructive font-semibold p-2 bg-destructive/10 rounded-md">
-                                    This product is currently unavailable.
-                                </div>
-                            )}
                         </div>
                         
                         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
