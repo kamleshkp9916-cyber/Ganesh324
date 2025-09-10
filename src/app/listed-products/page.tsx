@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Menu, Search, ShoppingCart, User } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,6 +13,9 @@ import { StoreHeader } from '@/components/store-header';
 import { WomensSidebar } from '@/components/womens-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
     { name: "Tops", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=500&fit=crop", hint: "woman wearing top" },
@@ -29,9 +32,23 @@ const categories = [
     { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
+const defaultSlides: Slide[] = [
+  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop', title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
+  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop', title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
+];
+
 
 export default function ListedProductsPage() {
   const router = useRouter();
+  const [slides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, defaultSlides);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = slides.length > 0 ? slides[0] : defaultSlides[0];
+  const banner2 = slides.length > 1 ? slides[1] : defaultSlides[1];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -120,47 +137,56 @@ export default function ListedProductsPage() {
             </section>
             
             <section>
-                <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
-                    <CardContent className="p-0 flex flex-col md:flex-row items-center">
-                        <div className="md:w-1/2 p-8 text-center md:text-left">
-                            <h3 className="text-3xl font-bold">25% off</h3>
-                            <p className="text-xl">Michael Kors for her</p>
-                            <p className="text-sm text-muted-foreground mt-1">Ends 5/15.</p>
-                            <Button asChild variant="link" className="mt-4 px-0">
-                                <Link href="#">Shop Now</Link>
-                            </Button>
-                        </div>
-                        <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
-                             <Image 
-                                src="https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop"
-                                alt="Michael Kors promotion"
-                                layout="fill"
-                                className="object-cover"
-                                data-ai-hint="woman fashion"
-                            />
-                        </div>
-                    </CardContent>
+                 <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
+                     {isMounted && banner1 ? (
+                        <CardContent className="p-0 flex flex-col md:flex-row items-center">
+                            <div className="md:w-1/2 p-8 text-center md:text-left">
+                                <h3 className="text-3xl font-bold">{banner1.title}</h3>
+                                <p className="text-xl">{banner1.description}</p>
+                                <Button asChild variant="link" className="mt-4 px-0">
+                                    <Link href="#">Shop Now</Link>
+                                </Button>
+                            </div>
+                            <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
+                                <Image 
+                                    src={banner1.imageUrl}
+                                    alt={banner1.title}
+                                    layout="fill"
+                                    className="object-cover"
+                                    data-ai-hint="woman fashion"
+                                />
+                            </div>
+                        </CardContent>
+                    ) : (
+                         <Skeleton className="w-full h-80" />
+                    )}
                 </Card>
             </section>
             
             <section>
                  <Card className="overflow-hidden relative text-white">
-                    <div className="absolute inset-0 bg-black/40 z-10" />
-                    <Image 
-                        src="https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop"
-                        alt="State of Day promotion"
-                        layout="fill"
-                        className="object-cover"
-                        data-ai-hint="woman relaxing"
-                    />
-                    <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
-                         <p className="text-lg">Introducing</p>
-                        <h3 className="text-4xl font-bold my-2">State of Day</h3>
-                        <p className="max-w-md">Restwear, sleepwear & innerwear that takes you from sunrise to slumber.</p>
-                        <Button asChild variant="link" className="mt-4 text-white">
-                            <Link href="#">Shop Now</Link>
-                        </Button>
-                    </CardContent>
+                    {isMounted && banner2 ? (
+                        <>
+                            <div className="absolute inset-0 bg-black/40 z-10" />
+                            <Image 
+                                src={banner2.imageUrl}
+                                alt={banner2.title}
+                                layout="fill"
+                                className="object-cover"
+                                data-ai-hint="woman relaxing"
+                            />
+                            <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
+                                <p className="text-lg">Introducing</p>
+                                <h3 className="text-4xl font-bold my-2">{banner2.title}</h3>
+                                <p className="max-w-md">{banner2.description}</p>
+                                <Button asChild variant="link" className="mt-4 text-white">
+                                    <Link href="#">Shop Now</Link>
+                                </Button>
+                            </CardContent>
+                        </>
+                    ) : (
+                         <Skeleton className="w-full h-80" />
+                    )}
                 </Card>
             </section>
           </div>
