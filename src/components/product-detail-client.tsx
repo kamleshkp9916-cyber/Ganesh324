@@ -57,6 +57,19 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GamerGuild' },
 };
 
+const liveSellers = [
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
+
 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
@@ -309,6 +322,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
     ).slice(0, 10);
+
+    const relatedStreams = liveSellers.filter(
+        s => s.category === product.category && s.productId !== product.key
+    ).slice(0, 6);
 
     const productSpecificDetails = [
         { label: 'Brand', value: product.brand },
@@ -753,14 +770,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <CardHeader className="p-0 mb-4">
                         <CardTitle>You Might Also Like</CardTitle>
                     </CardHeader>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
                         {relatedProducts.map(p => (
                             <Link href={`/product/${p.key}`} key={p.id}>
                                 <Card className="overflow-hidden group">
                                     <div className="aspect-square bg-muted relative">
                                         <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                     </div>
-                                    <div className="p-3">
+                                    <div className="p-2 sm:p-3">
                                         <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
                                         <p className="text-foreground font-bold text-sm sm:text-base">{p.price}</p>
                                     </div>
@@ -769,6 +786,44 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         ))}
                     </div>
                  </div>
+
+                 {/* Related Streams Section */}
+                {relatedStreams.length > 0 && (
+                    <div className="mt-8 py-4 border-t">
+                        <CardHeader className="p-0 mb-4">
+                            <CardTitle>Related Live Streams</CardTitle>
+                        </CardHeader>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+                            {relatedStreams.map(stream => (
+                                <div key={stream.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{stream.viewers}</Badge></div>
+                                    <Link href={`/stream/${stream.id}`} className="cursor-pointer">
+                                        <Image
+                                            src={stream.thumbnailUrl}
+                                            alt={`Live stream from ${stream.name}`}
+                                            width={300}
+                                            height={450}
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={stream.hint}
+                                        />
+                                    </Link>
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                        <div className="flex items-start gap-2">
+                                            <Link href={`/seller/profile?userId=${stream.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={stream.avatarUrl} alt={stream.name} /><AvatarFallback>{stream.name.charAt(0)}</AvatarFallback></Avatar>
+                                            </Link>
+                                            <div className="flex-1">
+                                                <Link href={`/seller/profile?userId=${stream.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{stream.name}</h3></Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Tagged Posts Section */}
                 {taggedPosts.length > 0 && (
