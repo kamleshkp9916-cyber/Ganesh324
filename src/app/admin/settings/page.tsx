@@ -24,6 +24,9 @@ import {
   Image as ImageIcon,
   CalendarIcon,
   Ticket,
+  Contact,
+  Info,
+  Link2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -78,11 +81,13 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useLocalStorage } from "@/hooks/use-local-storage"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 const COUPONS_KEY = 'streamcart_coupons';
 const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
+export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -112,6 +117,29 @@ const slideSchema = z.object({
   expiresAt: z.date().optional(),
 });
 export type Slide = z.infer<typeof slideSchema>;
+
+const footerContentSchema = z.object({
+  description: z.string().min(10, "Description is required."),
+  address: z.string().min(10, "Address is required."),
+  phone: z.string().min(10, "Phone number is required."),
+  email: z.string().email("Invalid email address."),
+  facebook: z.string().url().or(z.literal("")),
+  twitter: z.string().url().or(z.literal("")),
+  linkedin: z.string().url().or(z.literal("")),
+  instagram: z.string().url().or(z.literal("")),
+});
+export type FooterContent = z.infer<typeof footerContentSchema>;
+
+const defaultFooterContent: FooterContent = {
+  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
+  address: "123 Stream St, Commerce City, IN",
+  phone: "(+91) 98765 43210",
+  email: "support@streamcart.com",
+  facebook: "https://facebook.com",
+  twitter: "https://twitter.com",
+  linkedin: "https://linkedin.com",
+  instagram: "https://instagram.com",
+};
 
 
 const initialFlaggedContent = [
@@ -222,6 +250,70 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
     );
 };
 
+const FooterContentForm = ({ storedValue, onSave }: { storedValue: FooterContent, onSave: (data: FooterContent) => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof footerContentSchema>>({
+        resolver: zodResolver(footerContentSchema),
+        defaultValues: storedValue,
+    });
+    
+    useEffect(() => {
+        form.reset(storedValue);
+    }, [storedValue, form]);
+
+    const onSubmit = (values: z.infer<typeof footerContentSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave(values);
+            setIsLoading(false);
+        }, 500);
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem><FormLabel>Footer Description</FormLabel><FormControl><Textarea placeholder="A short description about your app..." {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="address" render={({ field }) => (
+                        <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="phone" render={({ field }) => (
+                        <FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                 <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem><FormLabel>Support Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+
+                <h4 className="font-medium pt-2">Social Media Links</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="facebook" render={({ field }) => (
+                        <FormItem><FormLabel>Facebook URL</FormLabel><FormControl><Input placeholder="https://facebook.com/..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="twitter" render={({ field }) => (
+                        <FormItem><FormLabel>Twitter/X URL</FormLabel><FormControl><Input placeholder="https://x.com/..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="linkedin" render={({ field }) => (
+                        <FormItem><FormLabel>LinkedIn URL</FormLabel><FormControl><Input placeholder="https://linkedin.com/..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="instagram" render={({ field }) => (
+                        <FormItem><FormLabel>Instagram URL</FormLabel><FormControl><Input placeholder="https://instagram.com/..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Footer Content
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
+};
+
 
 export default function AdminSettingsPage() {
   const { user, userData, loading } = useAuth();
@@ -232,8 +324,9 @@ export default function AdminSettingsPage() {
   const [isSendingWarning, setIsSendingWarning] = useState(false)
   
   const [contentList, setContentList] = useState(initialFlaggedContent);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
+  const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, initialSlides);
+  const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
@@ -244,65 +337,37 @@ export default function AdminSettingsPage() {
 
   // Load data from local storage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        setIsMounted(true);
-        const storedCoupons = localStorage.getItem(COUPONS_KEY);
-        if (storedCoupons) {
-            const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
-            setCoupons(parsedCoupons);
-        } else {
-            setCoupons(initialCoupons);
-        }
+    setIsMounted(true);
+    // This part now uses the useLocalStorage hook, so direct loading is not needed.
+    // The flagging logic remains.
+    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
+        id: initialFlaggedContent.length + index + 1,
+        type: 'Chat Message',
+        content: `Reported comment: "${comment.message}"`,
+        targetId: comment.streamId,
+        reporter: 'User',
+        status: 'Pending',
+    }));
 
-        const storedSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
-        if (storedSlides) {
-            const parsedSlides = JSON.parse(storedSlides).map((s: any) => ({...s, expiresAt: s.expiresAt ? new Date(s.expiresAt) : undefined }));
-            setSlides(parsedSlides);
-        } else {
-            setSlides(initialSlides);
-        }
-
-        const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-        const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
-            id: initialFlaggedContent.length + index + 1,
-            type: 'Chat Message',
-            content: `Reported comment: "${comment.message}"`,
-            targetId: comment.streamId,
-            reporter: 'User',
-            status: 'Pending',
-        }));
-
-        setContentList(prev => {
-            const existingIds = new Set(prev.map(item => item.content));
-            const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
-            return [...prev, ...uniqueNewItems];
-        });
-    }
+    setContentList(prev => {
+        const existingIds = new Set(prev.map(item => item.content));
+        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
+        return [...prev, ...uniqueNewItems];
+    });
   }, []);
-
-  const saveCoupons = (newCoupons: Coupon[]) => {
-      setCoupons(newCoupons);
-      localStorage.setItem(COUPONS_KEY, JSON.stringify(newCoupons));
-      window.dispatchEvent(new Event('storage'));
-  };
-  
-   const saveSlides = (newSlides: Slide[]) => {
-      setSlides(newSlides);
-      localStorage.setItem(PROMOTIONAL_SLIDES_KEY, JSON.stringify(newSlides));
-      window.dispatchEvent(new Event('storage'));
-  };
 
   const handleSaveCoupon = (coupon: Coupon) => {
     const newCoupons = [...coupons];
     const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
     if (existingIndex > -1) newCoupons[existingIndex] = coupon;
     else newCoupons.unshift({ ...coupon, id: Date.now() });
-    saveCoupons(newCoupons);
+    setCoupons(newCoupons);
     toast({ title: "Coupon Saved!", description: `Coupon ${coupon.code} has been updated.` });
   };
 
   const handleDeleteCoupon = (couponId: number) => {
-      saveCoupons(coupons.filter(s => s.id !== couponId));
+      setCoupons(coupons.filter(s => s.id !== couponId));
       toast({ title: "Coupon Deleted!", variant: "destructive" });
   };
 
@@ -316,12 +381,12 @@ export default function AdminSettingsPage() {
     const existingIndex = newSlides.findIndex(s => s.id === slide.id);
     if (existingIndex > -1) newSlides[existingIndex] = slide;
     else newSlides.unshift({ ...slide, id: Date.now() });
-    saveSlides(newSlides);
+    setSlides(newSlides);
     toast({ title: "Promotional Slide Saved!" });
   };
 
   const handleDeleteSlide = (slideId: number) => {
-      saveSlides(slides.filter(s => s.id !== slideId));
+      setSlides(slides.filter(s => s.id !== slideId));
       toast({ title: "Slide Deleted!", variant: "destructive" });
   };
 
@@ -329,6 +394,11 @@ export default function AdminSettingsPage() {
       setEditingSlide(slide);
       setIsSlideFormOpen(true);
   };
+  
+   const handleSaveFooter = (data: FooterContent) => {
+        setFooterContent(data);
+        toast({ title: "Footer Content Saved!", description: "Your footer has been updated successfully." });
+    };
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -539,7 +609,16 @@ export default function AdminSettingsPage() {
                     <CardHeader><CardTitle>Content & Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms & Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
-                         <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
+                        <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
+                        
+                         <Tabs defaultValue="footer-content" className="pt-4">
+                            <TabsList className="grid w-full grid-cols-1">
+                                <TabsTrigger value="footer-content">Footer Content</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="footer-content" className="pt-4 border-t">
+                               <FooterContentForm storedValue={footerContent} onSave={handleSaveFooter} />
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
                 
