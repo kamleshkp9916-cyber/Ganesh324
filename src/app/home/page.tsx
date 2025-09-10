@@ -12,6 +12,10 @@ import { StoreHeader } from '@/components/store-header';
 import { HomeSidebar } from '@/components/home-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
     { name: "Bedding", image: "https://images.unsplash.com/photo-1550029334-a82f3a388a53?w=400&h=500&fit=crop", hint: "bedroom with bedding" },
@@ -22,8 +26,25 @@ const categories = [
     { name: "Kitchen", image: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=400&h=500&fit=crop", hint: "kitchen appliances" },
 ];
 
+const defaultBanners: CategoryBanners = {
+    "Home": {
+        banner1: { title: 'Cozy Living', description: 'Upgrade your living space with our new home decor.', imageUrl: 'https://placehold.co/800x800.png' },
+        banner2: { title: 'Kitchen Essentials', description: 'Cook up a storm with our latest kitchenware.', imageUrl: 'https://placehold.co/1200x600.png' }
+    }
+} as any;
+
+
 export default function HomePage() {
   const router = useRouter();
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = banners?.Home?.banner1;
+  const banner2 = banners?.Home?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -114,3 +135,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

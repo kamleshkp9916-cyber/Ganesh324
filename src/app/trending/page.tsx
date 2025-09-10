@@ -9,9 +9,31 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { StoreHeader } from '@/components/store-header';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
+
+const defaultBanners: CategoryBanners = {
+    "Trending": {
+        banner1: { title: 'What\'s Hot', description: 'Discover the most popular items right now.', imageUrl: 'https://placehold.co/800x800.png' },
+        banner2: { title: 'Must-Haves', description: 'The products everyone is talking about.', imageUrl: 'https://placehold.co/1200x600.png' }
+    }
+} as any;
 
 export default function TrendingPage() {
   const router = useRouter();
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = banners?.Trending?.banner1;
+  const banner2 = banners?.Trending?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -57,3 +79,5 @@ export default function TrendingPage() {
     </div>
   );
 }
+
+    

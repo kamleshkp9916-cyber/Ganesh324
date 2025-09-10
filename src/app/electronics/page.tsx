@@ -10,9 +10,32 @@ import { StoreHeader } from '@/components/store-header';
 import { ElectronicsSidebar } from '@/components/electronics-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
+
+const defaultBanners: CategoryBanners = {
+    "Electronics": {
+        banner1: { title: 'Tech Deals', description: 'Get the latest gadgets at amazing prices.', imageUrl: 'https://placehold.co/800x800.png' },
+        banner2: { title: 'Sound On', description: 'Experience immersive audio with our new headphones.', imageUrl: 'https://placehold.co/1200x600.png' }
+    }
+} as any;
+
 
 export default function ElectronicsPage() {
   const router = useRouter();
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = banners?.Electronics?.banner1;
+  const banner2 = banners?.Electronics?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -76,7 +99,7 @@ export default function ElectronicsPage() {
             <div className="hidden lg:block">
                 <h1 className="text-4xl font-bold">Electronics</h1>
             </div>
-            <div className="text-center py-20 text-muted-foreground">
+             <div className="text-center py-20 text-muted-foreground">
                 <p>Electronics content coming soon.</p>
             </div>
           </div>
@@ -85,3 +108,5 @@ export default function ElectronicsPage() {
     </div>
   );
 }
+
+    

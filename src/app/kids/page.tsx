@@ -12,6 +12,10 @@ import { StoreHeader } from '@/components/store-header';
 import { KidsSidebar } from '@/components/kids-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
     { name: "Girls' Clothing", image: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=400&h=500&fit=crop", hint: "girl wearing dress" },
@@ -22,8 +26,24 @@ const categories = [
     { name: "Backpacks", image: "https://images.unsplash.com/photo-1553062407-98eada6b5a5a?w=400&h=500&fit=crop", hint: "kids backpack" },
 ];
 
+const defaultBanners: CategoryBanners = {
+    "Kids": {
+        banner1: { title: "Kids' Corner", description: 'Fun and stylish outfits for your little ones.', imageUrl: 'https://placehold.co/800x800.png' },
+        banner2: { title: 'Playtime Favorites', description: 'Durable and fun toys for all ages.', imageUrl: 'https://placehold.co/1200x600.png' }
+    }
+} as any;
+
 export default function KidsPage() {
   const router = useRouter();
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = banners?.Kids?.banner1;
+  const banner2 = banners?.Kids?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -114,3 +134,5 @@ export default function KidsPage() {
     </div>
   );
 }
+
+    

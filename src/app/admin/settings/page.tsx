@@ -82,6 +82,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLocalStorage } from "@/hooks/use-local-storage"
+import { categories } from "@/lib/categories";
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -120,12 +121,18 @@ const slideSchema = z.object({
 export type Slide = z.infer<typeof slideSchema>;
 
 const bannerSchema = z.object({
-  id: z.number(),
   title: z.string().min(3, "Title is required."),
   description: z.string().min(5, "Description is required."),
   imageUrl: z.string().url("A valid image URL is required."),
 });
 export type CategoryBanner = z.infer<typeof bannerSchema>;
+
+export type CategoryBanners = {
+    [key: string]: {
+        banner1: CategoryBanner;
+        banner2: CategoryBanner;
+    }
+}
 
 
 const footerContentSchema = z.object({
@@ -169,10 +176,24 @@ const initialSlides: Slide[] = [
   { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.' },
 ];
 
-const initialCategoryBanners: CategoryBanner[] = [
-  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop', title: '25% off', description: 'Michael Kors for her. Ends 5/15.' },
-  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop', title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.' },
-];
+const defaultCategoryBanners: CategoryBanners = {
+    "Women": {
+        banner1: { title: '25% off', description: 'Michael Kors for her. Ends 5/15.', imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop' },
+        banner2: { title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.', imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop' }
+    },
+    "Men": {
+        banner1: { title: '40% off', description: 'Top Brand Polos & Tees. Limited time only.', imageUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop' },
+        banner2: { title: 'Activewear Collection', description: 'Engineered to keep you cool, dry, and comfortable.', imageUrl: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop' }
+    },
+    "Kids": { banner1: { title: "Kids' Corner", description: 'Fun and stylish outfits for your little ones.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Playtime Favorites', description: 'Durable and fun toys for all ages.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Home": { banner1: { title: 'Cozy Living', description: 'Upgrade your living space with our new home decor.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Kitchen Essentials', description: 'Cook up a storm with our latest kitchenware.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Electronics": { banner1: { title: 'Tech Deals', description: 'Get the latest gadgets at amazing prices.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Sound On', description: 'Experience immersive audio with our new headphones.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Shoes": { banner1: { title: 'Step Up Your Style', description: 'Find the perfect pair for any occasion.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Comfort & Style', description: 'Sneakers, boots, and more.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Handbags": { banner1: { title: 'The Perfect Accessory', description: 'Complete your look with our new handbag collection.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Carry It All', description: 'Stylish and functional bags for every need.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Trending": { banner1: { title: 'What\'s Hot', description: 'Discover the most popular items right now.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Must-Haves', description: 'The products everyone is talking about.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Sale": { banner1: { title: 'Big Savings!', description: 'Up to 70% off on selected items.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Final Clearance', description: 'Don\'t miss out on these last-chance deals.', imageUrl: 'https://placehold.co/1200x600.png' } }
+};
+
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -388,7 +409,7 @@ export default function AdminSettingsPage() {
   const [contentList, setContentList] = useState(initialFlaggedContent);
   const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, initialSlides);
-  const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanner[]>(CATEGORY_BANNERS_KEY, initialCategoryBanners);
+  const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultCategoryBanners);
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
@@ -396,6 +417,7 @@ export default function AdminSettingsPage() {
   const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].name);
 
 
   // Load data from local storage on mount
@@ -458,14 +480,15 @@ export default function AdminSettingsPage() {
       setIsSlideFormOpen(true);
   };
   
-   const handleSaveCategoryBanner = (banner: CategoryBanner) => {
-    const newBanners = [...categoryBanners];
-    const bannerIndex = newBanners.findIndex(b => b.id === banner.id);
-    if (bannerIndex > -1) {
-        newBanners[bannerIndex] = banner;
-        setCategoryBanners(newBanners);
-        toast({ title: "Banner Saved!", description: `Banner ${banner.id} has been updated.` });
-    }
+   const handleSaveCategoryBanner = (bannerNumber: 'banner1' | 'banner2', data: CategoryBanner) => {
+    setCategoryBanners(prev => ({
+        ...prev,
+        [selectedCategory]: {
+            ...prev[selectedCategory],
+            [bannerNumber]: data,
+        }
+    }));
+    toast({ title: "Banner Saved!", description: `Banner for ${selectedCategory} has been updated.` });
   };
 
    const handleSaveFooter = (data: FooterContent) => {
@@ -543,6 +566,8 @@ export default function AdminSettingsPage() {
   if (userData?.role !== 'admin') {
       return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
+  
+  const currentBanners = categoryBanners[selectedCategory] || defaultCategoryBanners[selectedCategory as keyof typeof defaultCategoryBanners];
 
   return (
     <>
@@ -619,17 +644,41 @@ export default function AdminSettingsPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>Category Page Banner Management</CardTitle>
-                        <CardDescription>Manage the two promotional banners on category pages like Women's and Men's clothing.</CardDescription>
+                        <CardDescription>Select a category to manage its two promotional banners.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        {categoryBanners.length > 0 ? (
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <BannerForm banner={categoryBanners[0]} onSave={handleSaveCategoryBanner} title="Top Banner" />
-                                <BannerForm banner={categoryBanners[1]} onSave={handleSaveCategoryBanner} title="Bottom Banner" />
+                    <CardContent className="space-y-6">
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                            <SelectTrigger className="w-full md:w-1/2">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat.name} value={cat.name}>
+                                        {cat.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {currentBanners ? (
+                             <div className="grid md:grid-cols-2 gap-6">
+                                <BannerForm
+                                    key={`${selectedCategory}-1`}
+                                    banner={currentBanners.banner1} 
+                                    onSave={(data) => handleSaveCategoryBanner('banner1', data)} 
+                                    title="Top Banner" 
+                                />
+                                <BannerForm 
+                                    key={`${selectedCategory}-2`}
+                                    banner={currentBanners.banner2} 
+                                    onSave={(data) => handleSaveCategoryBanner('banner2', data)} 
+                                    title="Bottom Banner" 
+                                />
                             </div>
                         ) : (
-                            isMounted ? <p className="text-center text-muted-foreground py-4">No category banners found.</p> : <Skeleton className="w-full h-48" />
+                             <p className="text-center text-muted-foreground py-4">Select a category to manage its banners.</p>
                         )}
+                       
                     </CardContent>
                 </Card>
                 <Card>
@@ -732,3 +781,5 @@ export default function AdminSettingsPage() {
     </>
   )
 }
+
+    

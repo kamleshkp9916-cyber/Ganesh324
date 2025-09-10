@@ -12,6 +12,10 @@ import { StoreHeader } from '@/components/store-header';
 import { ShoesSidebar } from '@/components/shoes-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
     { name: "Women's Shoes", image: "https://images.unsplash.com/photo-1590099033615-77535a093722?w=400&h=500&fit=crop", hint: "women's shoes" },
@@ -19,8 +23,24 @@ const categories = [
     { name: "Kids' Shoes", image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&h=500&fit=crop", hint: "kids shoes" },
 ];
 
+const defaultBanners: CategoryBanners = {
+    "Shoes": {
+        banner1: { title: 'Step Up Your Style', description: 'Find the perfect pair for any occasion.', imageUrl: 'https://placehold.co/800x800.png' },
+        banner2: { title: 'Comfort & Style', description: 'Sneakers, boots, and more.', imageUrl: 'https://placehold.co/1200x600.png' }
+    }
+} as any;
+
 export default function ShoesPage() {
   const router = useRouter();
+  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = banners?.Shoes?.banner1;
+  const banner2 = banners?.Shoes?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -111,3 +131,5 @@ export default function ShoesPage() {
     </div>
   );
 }
+
+    
