@@ -19,7 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemePicker } from '@/components/theme-picker';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
@@ -418,3 +418,4 @@ export default function SettingsPage() {
     );
 
     
+}
