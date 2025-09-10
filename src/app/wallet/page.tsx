@@ -20,10 +20,10 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 
 
 const initialTransactions = [
-    { name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-    { name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Failed' },
-    { name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-    { name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { id: 1, transactionId: 'TXN789012345', name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { id: 2, transactionId: 'TXN654321098', name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Failed' },
+    { id: 3, transactionId: 'TXN543210987', name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
+    { id: 4, transactionId: 'TXN432109876', name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
 ];
 
 const paymentMethods = [
@@ -101,6 +101,8 @@ export default function WalletPage() {
     setTimeout(() => {
         setBalance(prev => prev + amount);
         const newTransaction = {
+            id: Date.now(),
+            transactionId: `TXN${Date.now()}`,
             name: `${selectedPaymentMethod} Deposit`,
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -122,7 +124,7 @@ export default function WalletPage() {
         
         // Simulate transaction completion
         setTimeout(() => {
-            setTransactions(prev => prev.map(t => t.name === newTransaction.name ? {...t, status: 'Completed'} : t));
+            setTransactions(prev => prev.map(t => t.id === newTransaction.id ? {...t, status: 'Completed'} : t));
         }, 5000);
 
     }, 2500);
@@ -141,6 +143,8 @@ export default function WalletPage() {
 
      setBalance(prev => prev - amount);
      const newTransaction = {
+            id: Date.now(),
+            transactionId: `TXN${Date.now()}`,
             name: `Withdrawal to ${selectedAccount?.bankName}`,
             date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -302,14 +306,15 @@ export default function WalletPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {transactions.map((transaction, index) => (
-                        <div key={index} className="flex items-center">
+                        <div key={transaction.id} className="flex items-center">
                             <Avatar className="h-9 w-9">
                                 <AvatarImage src={transaction.avatar} alt="Avatar" />
                                 <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="ml-4 space-y-1">
                                 <p className="text-sm font-medium leading-none">{transaction.name}</p>
-                                <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
+                                <p className="text-xs text-muted-foreground">{transaction.date}, {transaction.time}</p>
+                                <p className="text-xs text-muted-foreground font-mono">ID: {transaction.transactionId}</p>
                             </div>
                              <div className="ml-auto flex items-center gap-2">
                                 <div>
