@@ -17,7 +17,7 @@ const navLinks = [
 
 export function StoreHeader() {
     return (
-        <header className="hidden lg:block bg-background text-foreground border-b sticky top-0 z-40">
+        <header className="hidden lg:block bg-background text-foreground sticky top-16 z-40">
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-center items-center">
                     {navLinks.map(link => (
