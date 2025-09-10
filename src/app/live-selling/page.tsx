@@ -352,40 +352,49 @@ export default function LiveSellingPage() {
     return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 6);
   }, [feed]);
 
-  useEffect(() => {
-    setIsMounted(true);
+ useEffect(() => {
+    if (!isMounted) return;
+
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
 
     const db = getFirestoreDb();
     let postsQuery;
 
-    if (feedFilter === 'following' && user) {
+    // Only fetch posts if the relevant tab is active
+    if (activeTab !== 'live') {
+      setIsLoadingFeed(true);
+      if (feedFilter === 'following' && user) {
         if (followingIds.length > 0) {
-            postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
+          postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
         } else {
-             setFeed([]);
-             setIsLoadingFeed(false);
-             return;
+          setFeed([]);
+          setIsLoadingFeed(false);
+          return () => clearTimeout(sellersTimer);
         }
-    } else {
+      } else {
         postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-    }
-    
-    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+      }
+      
+      const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
         setFeed(postsData);
         setIsLoadingFeed(false);
-    });
-
-    return () => {
+      });
+      
+      return () => {
         clearTimeout(sellersTimer);
         unsubscribe();
-    };
-  }, [feedFilter, user, followingIds]);
+      };
+    } else {
+      // If the active tab is 'live', we don't need to fetch posts.
+      setIsLoadingFeed(false);
+      return () => clearTimeout(sellersTimer);
+    }
+  }, [isMounted, activeTab, feedFilter, user, followingIds]);
   
    useEffect(() => {
     if (isMounted) {
@@ -402,7 +411,7 @@ export default function LiveSellingPage() {
           window.removeEventListener('storage', handleStorageChange);
       };
     }
-  }, [isMounted, loadData, activeTab]);
+  }, [isMounted, loadData]);
 
    useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
