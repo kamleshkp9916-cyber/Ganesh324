@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -189,12 +189,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const relatedStreams = useMemo(() => {
         if (!product) return [];
-        const streams = liveSellers.filter(
+        let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
         );
-        if (streams.length > 0) return streams.slice(0, 6);
-        // Fallback to show some streams if none match the category
-        return liveSellers.filter(s => s.productId !== product.key).slice(0, 4);
+        if (streams.length > 5) {
+            return streams.slice(0, 6);
+        }
+        // Fallback to show some streams if none match the category, excluding the current one
+        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
+        
+        // Add from fallback until we have 6 total, avoiding duplicates
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,6);
     }, [product]);
 
 
@@ -258,6 +270,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         toast({
             title: "Link Copied!",
             description: "Product link copied to clipboard.",
+        });
+    };
+
+    const handleReportProduct = () => {
+        toast({
+            title: "Product Reported",
+            description: "Thank you for your feedback. Our moderation team will review this product shortly.",
         });
     };
     
@@ -392,6 +411,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 >
                                     <Share2 className="h-5 w-5" />
                                 </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            size="icon"
+                                            variant="secondary"
+                                            className="h-10 w-10 rounded-full"
+                                        >
+                                            <Flag className="h-5 w-5" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report this product?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                If this product violates our community guidelines or seems suspicious, please report it. Our team will review it shortly.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleReportProduct}>Report Product</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </div>
                     </div>
