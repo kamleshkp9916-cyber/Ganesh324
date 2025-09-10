@@ -505,18 +505,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                         
                         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                            <div className="flex flex-col items-center gap-1">
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
                                 <RotateCcw className="h-6 w-6" />
                                 <span>7-Day Return Policy</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
+                            </Link>
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
                                 <Banknote className="h-6 w-6" />
                                 <span>Pay on Delivery</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-1">
+                            </Link>
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
                                 <ShieldCheck className="h-6 w-6" />
                                 <span>100% Genuine</span>
-                            </div>
+                            </Link>
                         </div>
 
                     </div>

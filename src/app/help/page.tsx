@@ -13,7 +13,6 @@ const faqData = [
     questions: [
       { q: "How can I track my order?", a: "You can track your order directly from the 'My Orders' page in your profile. Click on the order you wish to track to see its real-time status and location." },
       { q: "Can I cancel my order?", a: "Yes, you can cancel an order before it has been shipped. Go to 'My Orders', select the order, and if the 'Cancel Order' option is available, you can proceed with the cancellation." },
-      { q: "What is your return policy?", a: "We offer a 7-day return policy for most items after they have been delivered. The item must be in its original condition. To initiate a return, go to the order details page and select the 'Return Product' option." },
     ]
   },
   {
@@ -23,6 +22,14 @@ const faqData = [
       { q: "How do I get a refund?", a: "Once a return is successfully processed and the item is received by the seller, the refund amount will be credited to your original payment method or your StreamCart Wallet within 5-7 business days." },
       { q: "How do I add money to my wallet?", a: "You can add money to your wallet from the 'Wallet' section in your profile. We support various top-up methods including UPI and credit/debit cards." },
     ]
+  },
+    {
+      category: "Platform Policies",
+      questions: [
+          { q: "What is the 7-Day Return Policy?", a: "Most items on StreamCart are eligible for return within 7 days of delivery. The item must be in its original condition, with all tags and packaging intact. To initiate a return, go to your 'My Orders' page, select the delivered order, and click the 'Return Product' button. Some items, like personal care products or perishables, may not be returnable." },
+          { q: "How does 'Pay on Delivery' work?", a: "Pay on Delivery (POD) is a payment method where you can pay for your order in cash at the time of delivery. This option is available for select locations and orders. If your order is eligible, you will see the POD option at checkout. Please have the exact amount ready to avoid inconvenience." },
+          { q: "What does '100% Genuine' mean?", a: "We guarantee that all products sold on StreamCart are authentic and sourced directly from verified sellers or trusted brand partners. Our seller verification process (KYC) ensures that only legitimate businesses sell on our platform. If you ever receive a product that you believe is not genuine, please contact our support team immediately through the Help Center for a full investigation and refund." },
+      ]
   },
   {
       category: "Account & Profile",
