@@ -31,7 +31,7 @@ import { ChatPopup } from './chat-popup';
 import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData, updateUserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
 import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
-import { getFirebaseDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase';
 import { getStatusFromTimeline } from '@/lib/order-data';
 import { formatDistanceToNow } from 'date-fns';
 
