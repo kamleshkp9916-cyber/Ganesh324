@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -11,6 +12,10 @@ import { StoreHeader } from '@/components/store-header';
 import { MensSidebar } from '@/components/mens-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
     { name: "Shirts", image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=400&h=500&fit=crop", hint: "man wearing shirt" },
@@ -27,8 +32,22 @@ const categories = [
     { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
+const defaultSlides: Slide[] = [
+  { id: 1, imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop", title: '40% off', description: 'Top Brand Polos & Tees. Limited time only.' },
+  { id: 2, imageUrl: "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop", title: 'Activewear Collection', description: 'Engineered to keep you cool, dry, and comfortable.' },
+];
+
 export default function MensClothingPage() {
   const router = useRouter();
+  const [slides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, defaultSlides);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
+  const banner1 = slides.length > 0 ? slides[0] : defaultSlides[0];
+  const banner2 = slides.length > 1 ? slides[1] : defaultSlides[1];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -116,48 +135,57 @@ export default function MensClothingPage() {
                 </div>
             </section>
             
-            <section>
-                <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
-                    <CardContent className="p-0 flex flex-col md:flex-row items-center">
-                        <div className="md:w-1/2 p-8 text-center md:text-left">
-                            <h3 className="text-3xl font-bold">40% off</h3>
-                            <p className="text-xl">Top Brand Polos & Tees</p>
-                            <p className="text-sm text-muted-foreground mt-1">Limited time only.</p>
-                            <Button asChild variant="link" className="mt-4 px-0">
-                                <Link href="#">Shop Now</Link>
-                            </Button>
-                        </div>
-                        <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
-                             <Image 
-                                src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop"
-                                alt="Men's fashion promotion"
-                                layout="fill"
-                                className="object-cover"
-                                data-ai-hint="man fashion"
-                            />
-                        </div>
-                    </CardContent>
+             <section>
+                 <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
+                     {isMounted && banner1 ? (
+                        <CardContent className="p-0 flex flex-col md:flex-row items-center">
+                            <div className="md:w-1/2 p-8 text-center md:text-left">
+                                <h3 className="text-3xl font-bold">{banner1.title}</h3>
+                                <p className="text-xl">{banner1.description}</p>
+                                <Button asChild variant="link" className="mt-4 px-0">
+                                    <Link href="#">Shop Now</Link>
+                                </Button>
+                            </div>
+                            <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
+                                <Image 
+                                    src={banner1.imageUrl}
+                                    alt={banner1.title}
+                                    layout="fill"
+                                    className="object-cover"
+                                    data-ai-hint="man fashion"
+                                />
+                            </div>
+                        </CardContent>
+                    ) : (
+                         <Skeleton className="w-full h-80" />
+                    )}
                 </Card>
             </section>
             
             <section>
                  <Card className="overflow-hidden relative text-white">
-                    <div className="absolute inset-0 bg-black/40 z-10" />
-                    <Image 
-                        src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop"
-                        alt="Activewear promotion"
-                        layout="fill"
-                        className="object-cover"
-                        data-ai-hint="man running"
-                    />
-                    <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
-                         <p className="text-lg">Performance Enhanced</p>
-                        <h3 className="text-4xl font-bold my-2">Activewear Collection</h3>
-                        <p className="max-w-md">Engineered to keep you cool, dry, and comfortable.</p>
-                        <Button asChild variant="link" className="mt-4 text-white">
-                            <Link href="#">Shop The Collection</Link>
-                        </Button>
-                    </CardContent>
+                    {isMounted && banner2 ? (
+                        <>
+                            <div className="absolute inset-0 bg-black/40 z-10" />
+                            <Image 
+                                src={banner2.imageUrl}
+                                alt={banner2.title}
+                                layout="fill"
+                                className="object-cover"
+                                data-ai-hint="man running"
+                            />
+                            <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
+                                <p className="text-lg">Performance Enhanced</p>
+                                <h3 className="text-4xl font-bold my-2">{banner2.title}</h3>
+                                <p className="max-w-md">{banner2.description}</p>
+                                <Button asChild variant="link" className="mt-4 text-white">
+                                    <Link href="#">Shop The Collection</Link>
+                                </Button>
+                            </CardContent>
+                        </>
+                    ) : (
+                         <Skeleton className="w-full h-80" />
+                    )}
                 </Card>
             </section>
           </div>
