@@ -289,7 +289,7 @@ export default function LiveSellingPage() {
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [feedFilter, setFeedFilter] = useState('global');
   const [showHeroSlider, setShowHeroSlider] = useState(false);
-  const [avatarClickCount, setAvatarClickCount] = useState(0);
+  const avatarClickTimer = useRef<NodeJS.Timeout | null>(null);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const primaryTabsRef = useRef<HTMLDivElement>(null);
@@ -357,13 +357,17 @@ export default function LiveSellingPage() {
   };
 
   const handleAvatarClick = () => {
-    setAvatarClickCount(prev => prev + 1);
-    if (avatarClickCount === 1) { // On the second click
-      setShowHeroSlider(true);
-      setAvatarClickCount(0); // Reset counter
+    if (avatarClickTimer.current) {
+        clearTimeout(avatarClickTimer.current);
+        avatarClickTimer.current = null;
+        setShowHeroSlider(true); // Double-click detected
+    } else {
+        avatarClickTimer.current = setTimeout(() => {
+            avatarClickTimer.current = null;
+            // It was a single click, navigate to profile
+            router.push('/profile');
+        }, 300); // 300ms window for double-click
     }
-    // Reset after a short delay if not double-clicked
-    setTimeout(() => setAvatarClickCount(0), 500); 
   };
 
 
