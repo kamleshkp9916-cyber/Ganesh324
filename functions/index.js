@@ -1,4 +1,4 @@
-// functions/index.js
+
 'use strict';
 
 const admin = require('firebase-admin');
@@ -161,3 +161,62 @@ exports.sendEmail = onRequest(
     }
   }
 );
+
+// Function to add a bank account
+exports.addBankAccount = onRequest(async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
+    }
+    const { userId, accountNumber, ifscCode, bankName } = req.body;
+    if (!userId || !accountNumber || !ifscCode || !bankName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    try {
+        const db = admin.firestore();
+        await db.collection('bankAccounts').add({
+            userId,
+            accountNumber, // Storing unmasked, to be masked on retrieval
+            ifscCode,
+            bankName,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error("Error adding bank account:", error);
+        res.status(500).json({ error: "Could not add bank account." });
+    }
+});
+
+// Function to get bank accounts for a user
+exports.getBankAccounts = onRequest(async (req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Use GET' });
+    }
+    const userId = req.query.userId;
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+    try {
+        const db = admin.firestore();
+        const accountsRef = db.collection('bankAccounts');
+        const snapshot = await accountsRef.where('userId', '==', userId).get();
+        if (snapshot.empty) {
+            return res.status(200).json([]);
+        }
+        const accounts = snapshot.docs.map(doc => {
+            const data = doc.data();
+            // Mask account number
+            const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
+            return {
+                id: doc.id,
+                bankName: data.bankName,
+                accountNumber: maskedAccountNumber,
+                ifscCode: data.ifscCode,
+            };
+        });
+        res.status(200).json(accounts);
+    } catch (error) {
+        console.error("Error getting bank accounts:", error);
+        res.status(500).json({ error: "Could not get bank accounts." });
+    }
+});

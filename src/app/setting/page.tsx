@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus } from 'lucide-react';
+import { ArrowLeft, User, Shield, Bell, HelpCircle, LogOut, Trash2, Loader2, AlertTriangle, MessageSquare, ShieldAlert, KeyRound, Smartphone, Monitor, Globe, Palette, Home, Plus, Wallet } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { EditProfileForm } from '@/components/edit-profile-form';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
+import { AddBankForm } from '@/components/settings-forms';
 
 
 const surveyReasons = [
@@ -153,6 +154,7 @@ export default function SettingsPage() {
     
     const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState<any[]>([]);
 
     const handleToggle = (setting: string, enabled: boolean) => {
         toast({
@@ -163,7 +165,36 @@ export default function SettingsPage() {
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+         if (user) {
+            fetchBankAccounts(user.uid);
+        }
+    }, [user]);
+    
+    const fetchBankAccounts = async (userId: string) => {
+        // In a real app, this would be an API call to your getBankAccounts function
+        // For now, we will use mock data
+        const mockAccounts = [
+            { id: 1, bankName: "HDFC Bank", accountNumber: "Ending in 3456" },
+        ];
+        setBankAccounts(mockAccounts);
+    }
+    
+    const handleAddBankAccount = async (data: any) => {
+        if (!user) return;
+        
+        // Mocking the API call
+        const newAccount = {
+            id: Date.now(),
+            bankName: data.bankName,
+            accountNumber: `Ending in ${data.accountNumber.slice(-4)}`
+        };
+        setBankAccounts(prev => [...prev, newAccount]);
+        
+        toast({
+            title: "Bank Account Added",
+            description: `${data.bankName} has been successfully linked.`
+        });
+    };
     
     const handleProfileSave = async (data: any) => {
       if (user) {
@@ -220,19 +251,12 @@ export default function SettingsPage() {
             <main className="flex-grow p-4 md:p-6 lg:p-8">
                 <div className="max-w-4xl mx-auto">
                     <Tabs defaultValue="account">
-                        <TabsList className="mb-6">
-                            <TabsTrigger value="account">
-                                <User className="mr-2 h-4 w-4" /> Account
-                            </TabsTrigger>
-                            <TabsTrigger value="appearance">
-                                <Palette className="mr-2 h-4 w-4" /> Appearance
-                            </TabsTrigger>
-                            <TabsTrigger value="security">
-                                <Shield className="mr-2 h-4 w-4" /> Security
-                            </TabsTrigger>
-                            <TabsTrigger value="notifications">
-                                <Bell className="mr-2 h-4 w-4" /> Notifications
-                            </TabsTrigger>
+                        <TabsList className="mb-6 grid w-full grid-cols-2 md:grid-cols-5">
+                            <TabsTrigger value="account"><User className="mr-2 h-4 w-4" /> Account</TabsTrigger>
+                            <TabsTrigger value="funds"><Wallet className="mr-2 h-4 w-4" /> Funds</TabsTrigger>
+                            <TabsTrigger value="appearance"><Palette className="mr-2 h-4 w-4" /> Appearance</TabsTrigger>
+                            <TabsTrigger value="security"><Shield className="mr-2 h-4 w-4" /> Security</TabsTrigger>
+                            <TabsTrigger value="notifications"><Bell className="mr-2 h-4 w-4" /> Notifications</TabsTrigger>
                         </TabsList>
                         
                         <TabsContent value="account" className="space-y-8">
@@ -292,6 +316,43 @@ export default function SettingsPage() {
                                         ))}
                                     </div>
                                 </CardContent>
+                            </Card>
+                        </TabsContent>
+                        
+                        <TabsContent value="funds" className="space-y-8">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Bank Accounts for Withdrawals</CardTitle>
+                                    <CardDescription>Manage the bank accounts where you receive money.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                     {bankAccounts.map(account => (
+                                        <div key={account.id} className="p-3 rounded-lg border flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold">{account.bankName}</p>
+                                                <p className="text-sm text-muted-foreground">{account.accountNumber}</p>
+                                            </div>
+                                             <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {bankAccounts.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No bank accounts added.</p>}
+                                </CardContent>
+                                <CardFooter>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add New Bank Account</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Add Bank Account</DialogTitle>
+                                                <DialogDescription>Your details are stored securely.</DialogDescription>
+                                            </DialogHeader>
+                                            <AddBankForm onSave={handleAddBankAccount} />
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardFooter>
                             </Card>
                         </TabsContent>
 
