@@ -18,6 +18,7 @@ import { useAuthActions } from '@/lib/auth';
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from '@/components/ui/input-otp';
 import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 
 
 const surveyReasons = [
