@@ -852,7 +852,7 @@ export default function LiveSellingPage() {
                     </div>
                 </header>
                 
-                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible")}>
+                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible", "mb-6")}>
                     {renderTabs(false)}
                  </div>
                 
@@ -918,7 +918,7 @@ export default function LiveSellingPage() {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
                                     return (
-                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
+                                        <Card key={product.id} className="group relative rounded-lg overflow-hidden shadow-lg hover:shadow-primary/50 transition-shadow duration-300">
                                             <Link href={`/product/${product.key}`} className="cursor-pointer">
                                                 <div className="overflow-hidden">
                                                     <Image 
@@ -953,7 +953,7 @@ export default function LiveSellingPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                 {mostReachedPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden">
+                                     <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
                                             <div className="flex items-center gap-3 mb-3">
                                                 <Avatar className="h-10 w-10">
@@ -965,7 +965,36 @@ export default function LiveSellingPage() {
                                                     <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                 </div>
                                             </div>
-                                            <p className="text-sm">{post.content}</p>
+                                            <p className="text-sm line-clamp-2">{post.content}</p>
+                                        </div>
+                                        <div className="mt-auto px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-4">
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <Heart className="w-4 h-4" />
+                                                    <span>{post.likes || 0}</span>
+                                                </button>
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    <span>{post.replies || 0}</span>
+                                                </button>
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                        <Share2 className="mr-2 h-4 w-4" />
+                                                        <span>Share</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={submitReport}>
+                                                        <Flag className="mr-2 h-4 w-4" />
+                                                        <span>Report</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </Card>
                                 ))}
