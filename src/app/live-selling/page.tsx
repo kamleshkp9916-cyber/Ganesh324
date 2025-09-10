@@ -342,13 +342,11 @@ export default function LiveSellingPage() {
                     isMyStream: true,
                     hasAuction: liveStreamData.isAuction,
                 };
-                // Avoid duplicates
                 if (!currentSellers.some(s => s.id === newSellerCard.id)) {
                     currentSellers = [newSellerCard, ...currentSellers];
                 }
             } catch (error) {
                 console.error("Error parsing live stream data from localStorage", error);
-                localStorage.removeItem('liveStream');
             }
         }
         setAllSellers(currentSellers);
@@ -655,7 +653,7 @@ export default function LiveSellingPage() {
 };
 
   const renderTabs = (isSticky: boolean = false) => (
-    <div ref={isSticky ? null : primaryTabsRef} className={cn("primary-tabs flex justify-center py-2", isSticky ? "border-b" : "mb-6")}>
+    <div ref={isSticky ? null : primaryTabsRef} className={cn("primary-tabs flex justify-center py-2", isSticky && "border-b")}>
       <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11 transition-opacity duration-300", isSticky ? "opacity-100" : isScrolled ? "opacity-0" : "opacity-100")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -956,15 +954,34 @@ export default function LiveSellingPage() {
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                    </div>
                                                 </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <MoreHorizontal className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                            <Share2 className="mr-2 h-4 w-4" />
+                                                            <span>Share</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={submitReport}>
+                                                            <Flag className="mr-2 h-4 w-4" />
+                                                            <span>Report</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                             <p className="text-sm line-clamp-2">{post.content}</p>
                                         </div>
@@ -979,23 +996,6 @@ export default function LiveSellingPage() {
                                                     <span>{post.replies || 0}</span>
                                                 </button>
                                             </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                        <Share2 className="mr-2 h-4 w-4" />
-                                                        <span>Share</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={submitReport}>
-                                                        <Flag className="mr-2 h-4 w-4" />
-                                                        <span>Report</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
                                         </div>
                                     </Card>
                                 ))}
