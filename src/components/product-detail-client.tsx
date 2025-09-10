@@ -76,7 +76,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const { user } = useAuth();
     
     const [product, setProduct] = useState<any>(null);
-
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
@@ -187,6 +186,26 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         return format(deliveryDate, 'E, MMM dd');
     }, []);
 
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        const streams = liveSellers.filter(
+            s => s.category === product.category && s.productId !== product.key
+        );
+        if (streams.length > 0) return streams.slice(0, 6);
+        // Fallback to show some streams if none match the category
+        return liveSellers.filter(s => s.productId !== product.key).slice(0, 4);
+    }, [product]);
+
+
+    if (!product) {
+        return (
+             <div className="flex flex-col h-screen items-center justify-center">
+                <p className="text-2xl font-semibold mb-4">Product Not Found</p>
+                <Button onClick={() => router.back()}>Go Back</Button>
+            </div>
+        );
+    }
+
     const handlePincodeCheck = () => {
         if (pincode.length !== 6) {
             toast({ variant: "destructive", title: "Invalid Pincode", description: "Please enter a valid 6-digit pincode." });
@@ -275,6 +294,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         if (reviewData.id) { // Editing existing review
             updateReview(product.key, reviewData);
             toast({ title: "Review Updated!", description: "Your review has been successfully updated." });
+        } else {
+             addReview(product.key, reviewData);
+             toast({ title: "Review Submitted!", description: "Your review has been successfully submitted." });
         }
         fetchReviews(); // Re-fetch to show updated list
     };
@@ -305,15 +327,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         setIsReviewDialogOpen(true);
     };
 
-    if (!product) {
-        return (
-             <div className="flex flex-col h-screen items-center justify-center">
-                <p className="text-2xl font-semibold mb-4">Product Not Found</p>
-                <Button onClick={() => router.back()}>Go Back</Button>
-            </div>
-        );
-    }
-
     const seller = productToSellerMapping[product.key];
     const sellerProducts = Object.values(productDetails)
         .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.id !== product.id)
@@ -322,15 +335,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const relatedProducts = Object.values(productDetails).filter(
         p => p.category === product.category && p.id !== product.id
     ).slice(0, 10);
-
-    const relatedStreams = useMemo(() => {
-        const streams = liveSellers.filter(
-            s => s.category === product.category && s.productId !== product.key
-        );
-        if (streams.length > 0) return streams.slice(0, 6);
-        // Fallback to show some streams if none match the category
-        return liveSellers.filter(s => s.productId !== product.key).slice(0, 4);
-    }, [product.category, product.key]);
 
     const productSpecificDetails = [
         { label: 'Brand', value: product.brand },
@@ -715,7 +719,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="flex-grow">
                                         <div className="flex items-center justify-between">
                                             <h5 className="font-semibold">{review.author}</h5>
-                                            <p className="text-xs text-muted-foreground">{format(new Date(review.date), 'dd MMM yyyy')}</p>
+                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                         </div>
                                          <div className="flex items-center gap-1 mt-1">
                                              {[...Array(5)].map((_, i) => (
