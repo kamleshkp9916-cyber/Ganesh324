@@ -321,8 +321,6 @@ export default function LiveSellingPage() {
             setOfferSlides(initialOfferSlides);
         }
 
-        let currentSellers = [...liveSellers].filter(s => s.id !== user?.uid);
-        
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             try {
@@ -342,16 +340,20 @@ export default function LiveSellingPage() {
                     isMyStream: true,
                     hasAuction: liveStreamData.isAuction,
                 };
-                if (!currentSellers.some(s => s.id === newSellerCard.id)) {
-                    currentSellers = [newSellerCard, ...currentSellers];
-                }
+                 // Use a function for state update to get the most recent state
+                setAllSellers(currentSellers => {
+                    const existingSellers = currentSellers.filter(s => s.id !== newSellerCard.id);
+                    return [newSellerCard, ...existingSellers];
+                });
             } catch (error) {
                 console.error("Error parsing live stream data from localStorage", error);
             }
+        } else {
+            // If stream data is removed, filter out the "my stream" card
+            setAllSellers(currentSellers => currentSellers.filter(s => !s.isMyStream));
         }
-        setAllSellers(currentSellers);
     }
-  }, [user?.uid]);
+  }, []);
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -558,8 +560,6 @@ export default function LiveSellingPage() {
     setActiveTab('live');
   };
 
-  const liveStreamFilterButtons = ['All', 'Fashion', 'Electronics', 'Home Goods', 'Beauty'];
-
   const onSelect = useCallback((api: CarouselApi) => {
     if (!api) return;
     setCurrentSlide(api.selectedScrollSnap());
@@ -653,7 +653,7 @@ export default function LiveSellingPage() {
 };
 
   const renderTabs = (isSticky: boolean = false) => (
-    <div ref={isSticky ? null : primaryTabsRef} className={cn("primary-tabs flex justify-center py-2", isSticky && "border-b")}>
+    <div className={cn("primary-tabs flex justify-center py-2", isSticky && "border-b")}>
       <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11 transition-opacity duration-300", isSticky ? "opacity-100" : isScrolled ? "opacity-0" : "opacity-100")}>
         <TabsTrigger value="all">All</TabsTrigger>
         <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -950,7 +950,7 @@ export default function LiveSellingPage() {
                             <div className="mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
@@ -967,7 +967,7 @@ export default function LiveSellingPage() {
                                                 </div>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
                                                             <MoreHorizontal className="w-4 h-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
@@ -1401,3 +1401,4 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
