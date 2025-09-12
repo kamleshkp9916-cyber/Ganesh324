@@ -102,7 +102,8 @@ export default function WalletPage() {
 
   const handleWithdraw = (amount: number, bankAccountId: string) => {
      const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-     if (amount > balance) {
+     const cashAvailable = balance - blockedMargin;
+     if (amount > cashAvailable) {
         toast({
             variant: 'destructive',
             title: 'Insufficient Balance',
