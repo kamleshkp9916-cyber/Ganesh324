@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,20 +17,14 @@ import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { WithdrawForm } from '@/components/settings-forms';
 import { Badge, BadgeProps } from '@/components/ui/badge';
-
+import { Logo } from '@/components/logo';
 
 const initialTransactions = [
-    { id: 1, transactionId: 'TXN789012345', name: 'Ganesh Prajapati', date: '27 July, 2024', time: '10:30 PM', amount: -5000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-    { id: 2, transactionId: 'TXN654321098', name: 'Jane Doe', date: '26 July, 2024', time: '08:15 AM', amount: -250.00, avatar: 'https://placehold.co/40x40.png', status: 'Failed' },
-    { id: 3, transactionId: 'TXN543210987', name: 'Monthly Savings', date: '25 July, 2024', time: '09:00 AM', amount: 10000.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-    { id: 4, transactionId: 'TXN432109876', name: 'Alex Smith', date: '24 July, 2024', time: '07:45 PM', amount: -1200.00, avatar: 'https://placehold.co/40x40.png', status: 'Completed' },
-];
-
-const paymentMethods = [
-    { name: 'PhonePe', icon: 'https://cdn.worldvectorlogo.com/logos/phonepe-1.svg' },
-    { name: 'Google Pay', icon: 'https://www.vectorlogo.zone/logos/googlepay/googlepay-icon.svg' },
-    { name: 'Paytm', icon: 'https://www.vectorlogo.zone/logos/paytm/paytm-icon.svg' },
-    { name: 'Credit/Debit Card', icon: <CreditCard className="h-8 w-8 text-primary" /> },
+    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', amount: -1980.00, avatar: 'https://placehold.co/40x40.png?text=O' },
+    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O' },
+    { id: 3, transactionId: 'TXN-983990', type: 'Order', description: 'Refund + Wallet', date: 'Sep 08, 2025', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R' },
+    { id: 4, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B' },
+    { id: 5, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: 'Sep 06, 2025', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W' },
 ];
 
 const mockBankAccounts = [
@@ -41,94 +35,26 @@ const mockBankAccounts = [
 
 export default function WalletPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { toast } = useToast();
-  const [balance, setBalance] = useState(10500.00);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [transactions, setTransactions] = useState(initialTransactions);
-
-  const [isDepositOpen, setIsDepositOpen] = useState(false);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [isDepositing, setIsDepositing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
-
+  const [balance, setBalance] = useState(42580.22);
+  const [transactions] = useState(initialTransactions);
+  const [isMounted, setIsMounted] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-        // Simulate fetching a new balance
-        setBalance(balance + (Math.random() * 1000 - 500));
-        setIsRefreshing(false);
-        toast({
-            title: "Balance Updated",
-            description: "Your wallet balance has been refreshed.",
-        });
-    }, 1000);
-  };
+  if (loading || !isMounted) {
+    return <div className="h-screen w-full flex items-center justify-center bg-black"><LoadingSpinner /></div>;
+  }
 
-  const handleDeposit = () => {
-    const amount = parseFloat(depositAmount);
-    if (!amount || amount <= 0) {
-        toast({
-            variant: 'destructive',
-            title: 'Invalid Amount',
-            description: 'Please enter a valid amount to deposit.'
-        });
-        return;
-    }
-     if (!selectedPaymentMethod) {
-        toast({
-            variant: 'destructive',
-            title: 'Payment Method Required',
-            description: 'Please select a payment method to continue.'
-        });
-        return;
-    }
-
-    setIsDepositing(true);
-    toast({
-        title: 'Processing Payment...',
-        description: `Redirecting to ${selectedPaymentMethod}...`
-    });
-
-    setTimeout(() => {
-        setBalance(prev => prev + amount);
-        const newTransaction = {
-            id: Date.now(),
-            transactionId: `TXN${Date.now()}`,
-            name: `${selectedPaymentMethod} Deposit`,
-            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            amount: amount,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
-            status: 'Processing'
-        };
-        // @ts-ignore
-        setTransactions(prev => [newTransaction, ...prev]);
-        
-        setIsDepositing(false);
-        setIsDepositOpen(false);
-        setDepositAmount('');
-        setSelectedPaymentMethod(null);
-        toast({
-            title: 'Deposit Successful!',
-            description: `₹${amount.toFixed(2)} has been added to your wallet.`
-        });
-        
-        // Simulate transaction completion
-        setTimeout(() => {
-            setTransactions(prev => prev.map(t => t.id === newTransaction.id ? {...t, status: 'Completed'} : t));
-        }, 5000);
-
-    }, 2500);
-  };
+  if (!user || !userData) {
+    router.push('/');
+    return null;
+  }
 
   const handleWithdraw = (amount: number, bankAccountId: string) => {
      const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
@@ -140,204 +66,205 @@ export default function WalletPage() {
         });
         return;
      }
-
-     setBalance(prev => prev - amount);
-     const newTransaction = {
-            id: Date.now(),
-            transactionId: `TXN${Date.now()}`,
-            name: `Withdrawal to ${selectedAccount?.bankName}`,
-            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            amount: -amount,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
-            status: 'Completed'
-     };
-     // @ts-ignore
-     setTransactions(prev => [newTransaction, ...prev]);
+     toast({
+        title: "Withdrawal Initiated!",
+        description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
+    });
      setIsWithdrawOpen(false);
   };
-  
-  const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
-      switch (status) {
-          case 'Completed':
-              return 'success';
-          case 'Processing':
-              return 'warning';
-          case 'Failed':
-              return 'destructive';
-          default:
-              return 'outline';
-      }
-  };
 
-
-  if (loading || !isMounted) {
-    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
-  }
-
-  if (!user) {
-    router.push('/');
-    return null;
-  }
 
   return (
-    <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
-        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-6 w-6" />
+    <div className="min-h-screen bg-black text-gray-300 font-sans">
+      <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <Logo className="h-8 w-auto" />
+          <h1 className="text-xl font-bold text-white">StreamCart Wallet</h1>
+        </div>
+        <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                <Bell className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-bold">Wallet</h1>
-            <div className="w-10"></div>
-        </header>
-
-        <main className="flex-grow p-4 md:p-6 lg:p-8 space-y-6">
-             <div className="max-w-md mx-auto space-y-6">
-                <Card className="text-center">
-                    <CardHeader>
-                        <CardTitle>Available Balance</CardTitle>
-                        <CardDescription>This is the total amount available in your wallet.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center gap-2">
-                        <div className="flex items-center gap-4">
-                            <p className="text-4xl font-bold">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                            <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isRefreshing}>
-                                <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                 <div className="grid grid-cols-4 gap-2">
-                    <Dialog open={isDepositOpen} onOpenChange={setIsDepositOpen}>
-                        <DialogTrigger asChild>
-                             <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
-                                <CreditCard className="h-5 w-5"/>
-                                <span>UPI Deposit</span>
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Add Money to Wallet</DialogTitle>
-                                <DialogDescription>Enter an amount and choose your payment method.</DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4 space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="amount" className="text-lg font-semibold">Amount</Label>
-                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground">₹</span>
-                                        <Input 
-                                            id="amount" 
-                                            type="number" 
-                                            className="h-16 pl-10 text-4xl font-bold"
-                                            placeholder="0" 
-                                            value={depositAmount}
-                                            onChange={(e) => setDepositAmount(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                     <Label className="font-semibold">Select Payment Method</Label>
-                                     <div className="grid grid-cols-2 gap-4">
-                                        {paymentMethods.map((method) => (
-                                            <button
-                                                key={method.name}
-                                                onClick={() => setSelectedPaymentMethod(method.name)}
-                                                className={cn(
-                                                    "p-4 border rounded-lg flex flex-col items-center justify-center gap-2 transition-colors",
-                                                    selectedPaymentMethod === method.name ? "border-primary ring-2 ring-primary" : "hover:bg-muted"
-                                                )}
-                                            >
-                                                {typeof method.icon === 'string' ? 
-                                                    <Image src={method.icon} alt={method.name} width={32} height={32} /> : method.icon
-                                                }
-                                                <span className="text-sm font-medium">{method.name}</span>
-                                            </button>
-                                        ))}
-                                     </div>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button onClick={handleDeposit} disabled={isDepositing} className="w-full" size="lg">
-                                    {isDepositing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Proceed to Pay ₹{depositAmount || 0}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                    <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
-                                <Download className="h-5 w-5"/>
-                                <span>Withdraw</span>
-                            </Button>
-                        </DialogTrigger>
-                         <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Withdraw Funds</DialogTitle>
-                                <DialogDescription>
-                                    Select an account and enter the amount you wish to withdraw.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <WithdrawForm 
-                                bankAccounts={bankAccounts} 
-                                onWithdraw={handleWithdraw}
-                                onAddAccount={(newAccount) => {
-                                    setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
-                                    toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
-                                }} 
-                            />
-                        </DialogContent>
-                    </Dialog>
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
-                        <Lock className="h-5 w-5"/>
-                        <span>Blocked Margin</span>
-                    </Button>
-                     <Button variant="outline" className="h-20 flex-col gap-1 p-1 text-xs text-center">
-                        <Coins className="h-5 w-5"/>
-                        <span>Exchange to Coin</span>
-                    </Button>
-                </div>
+            <div className="flex items-center gap-2">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.photoURL || undefined} />
+                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-white font-medium hidden sm:inline">{userData.displayName}</span>
             </div>
+        </div>
+      </header>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>🧾 Invoices / Billing history</CardTitle>
-                    <CardDescription>A summary of your recent wallet activity.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {transactions.map((transaction, index) => (
-                        <div key={transaction.id} className="flex items-center">
-                            <Avatar className="h-9 w-9">
-                                <AvatarImage src={transaction.avatar} alt="Avatar" />
-                                <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="ml-4 space-y-1">
-                                <p className="text-sm font-medium leading-none">{transaction.name}</p>
-                                <p className="text-xs text-muted-foreground">{transaction.date}, {transaction.time}</p>
-                                <p className="text-xs text-muted-foreground font-mono">ID: {transaction.transactionId}</p>
-                            </div>
-                             <div className="ml-auto flex items-center gap-2">
-                                <div>
-                                    <p className={cn(
-                                        "font-medium text-right",
-                                        transaction.amount > 0 ? 'text-success' : 'text-foreground'
-                                    )}>
-                                        {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
-                                    </p>
-                                    <Badge variant={getStatusBadgeVariant(transaction.status)} className="mt-1 capitalize float-right">
-                                        {transaction.status}
-                                    </Badge>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Download className="h-4 w-4" />
-                                </Button>
-                             </div>
+      <main className="p-4 sm:p-6 lg:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-white">Account Balance</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                    <p className="text-sm text-gray-400">Total balance</p>
+                    <p className="text-5xl font-bold text-white mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                        <Card className="bg-gray-800/60 border-gray-700 p-4">
+                            <p className="text-xs text-gray-400">Cash Available</p>
+                            <p className="text-lg font-bold text-white">₹{balance.toLocaleString('en-IN')}</p>
+                        </Card>
+                         <Card className="bg-gray-800/60 border-gray-700 p-4">
+                            <p className="text-xs text-gray-400">Blocked margin</p>
+                            <p className="text-lg font-bold text-white">₹2,640.00</p>
+                             <p className="text-xs text-gray-500">Bought product balance</p>
+                        </Card>
+                         <Card className="bg-gray-800/60 border-gray-700 p-4 col-span-2">
+                            <p className="text-xs text-gray-400">Month-to-date spend</p>
+                            <p className="text-lg font-bold text-white">₹3,140</p>
+                        </Card>
+                    </div>
+                </div>
+                <div className="flex flex-col justify-between">
+                   <div>
+                       <div className="flex justify-between items-center p-3 bg-gray-800/60 border border-gray-700 rounded-lg">
+                           <div>
+                            <p className="text-xs text-gray-400">Available credit</p>
+                            <p className="text-lg font-bold text-white">₹7,500</p>
+                           </div>
+                           <div className="flex gap-1">
+                               <Badge variant="outline" className="border-yellow-400 text-yellow-400">Premium</Badge>
+                               <Badge variant="outline" className="border-green-400 text-green-400">Verified</Badge>
+                           </div>
+                       </div>
+                        <div className="flex justify-between items-center mt-4">
+                            <p className="text-xs text-gray-400">Last statement</p>
+                            <p className="text-sm font-medium text-white">Aug 31, 2025</p>
                         </div>
-                    ))}
-                </CardContent>
+                   </div>
+                    <div className="grid grid-cols-3 gap-2 mt-6">
+                        <Button className="h-20 flex-col gap-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                            <Plus className="h-5 w-5" />
+                            <span className="text-xs">Add Funds</span>
+                        </Button>
+                         <Button className="h-20 flex-col gap-1" variant="outline">
+                            <BarChart2 className="h-5 w-5"/>
+                            <span className="text-xs">View Statements</span>
+                        </Button>
+                        <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="h-20 flex-col gap-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                    <Download className="h-5 w-5" />
+                                    <span className="text-xs">Withdraw</span>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Withdraw Funds</DialogTitle>
+                                    <DialogDescription>
+                                        Select an account and enter the amount you wish to withdraw.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <WithdrawForm 
+                                    bankAccounts={bankAccounts} 
+                                    onWithdraw={handleWithdraw}
+                                    onAddAccount={(newAccount) => {
+                                        setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
+                                        toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
+                                    }} 
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+              </CardContent>
             </Card>
 
-        </main>
+            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+              <CardHeader className="flex flex-row justify-between items-center">
+                <CardTitle className="text-white">Recent Transactions</CardTitle>
+                <CardDescription>Last 7 days</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {transactions.map(t => (
+                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={t.avatar} />
+                      <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="ml-4 flex-grow">
+                      <p className="font-semibold text-white">{t.type} #{t.transactionId}</p>
+                      <p className="text-sm text-gray-400">{t.description}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className={cn("font-semibold", t.amount > 0 ? 'text-green-400' : 'text-red-400')}>
+                            {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                        </p>
+                        <p className="text-xs text-gray-500">{t.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right sidebar */}
+          <div className="space-y-6">
+             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+                 <CardHeader>
+                    <CardTitle className="text-white text-base">Quick Actions</CardTitle>
+                    <CardDescription>Do more, faster</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                         <div className="flex items-center gap-3">
+                            <ShoppingBag className="h-6 w-6 text-gray-400"/>
+                            <div>
+                                <p className="font-semibold text-white">Browse Products</p>
+                                <p className="text-xs text-gray-500">Spend from wallet</p>
+                            </div>
+                         </div>
+                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                     </Button>
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                         <div className="flex items-center gap-3">
+                            <CreditCard className="h-6 w-6 text-gray-400"/>
+                            <div>
+                                <p className="font-semibold text-white">Withdraw to Bank</p>
+                                <p className="text-xs text-gray-500">IMPS / NEFT / UPI</p>
+                            </div>
+                         </div>
+                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                     </Button>
+                 </CardContent>
+             </Card>
+             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+                 <CardHeader className="flex flex-row justify-between items-center">
+                    <CardTitle className="text-white text-base">Insights</CardTitle>
+                    <CardDescription>This month</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Spending vs. last month</p>
+                        <p className="font-semibold text-red-400">-8%</p>
+                    </div>
+                     <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Average transaction</p>
+                        <p className="font-semibold text-white">₹1,920</p>
+                    </div>
+                 </CardContent>
+             </Card>
+          </div>
+        </div>
+      </main>
+
+      <footer className="p-4 sm:p-6 mt-8 border-t border-gray-800 text-center text-xs text-gray-500">
+        <div className="flex justify-center gap-6 mb-2">
+            <a href="#" className="hover:text-white">Privacy</a>
+            <a href="#" className="hover:text-white">Terms</a>
+            <a href="#" className="hover:text-white">Support</a>
+        </div>
+        <p>© {new Date().getFullYear()} Willow Labs Inc.</p>
+      </footer>
     </div>
   );
 }

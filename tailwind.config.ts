@@ -72,6 +72,10 @@ export default {
             DEFAULT: 'hsl(var(--purple))',
             foreground: 'hsl(var(--purple-foreground))',
         },
+        gold: {
+          DEFAULT: "#f4b400",
+          foreground: "#111827"
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -132,5 +136,3 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
-
-    
