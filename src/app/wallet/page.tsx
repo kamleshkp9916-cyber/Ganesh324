@@ -24,8 +24,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const initialTransactions = [
-    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -1980.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed' },
-    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed' },
+    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
+    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', items: [{ name: 'Vintage Camera', qty: 1, unitPrice: 7240.00 }] },
     { id: 3, transactionId: 'TXN-983990', type: 'Refund', description: 'Refund + Wallet', date: 'Sep 08, 2025', time: '09:00 AM', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R', status: 'Completed' },
     { id: 4, transactionId: 'TXN-001244', type: 'Deposit', description: 'PhonePe Deposit', date: 'Sep 10, 2025', time: '11:00 AM', amount: 1000.00, avatar: 'https://placehold.co/40x40.png?text=D', status: 'Failed' },
     { id: 5, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', time: '07:45 PM', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B', status: 'Processing' },
@@ -38,38 +38,45 @@ const mockBankAccounts = [
     { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
 ];
 
-const invoiceData = {
-    invoiceNo: 'INV-2025-00981',
-    date: 'Sep 09, 2025',
-    billedTo: {
-        name: 'Alex Morgan',
-        address: '42, Palm Street, Indiranagar, Bengaluru, KA 560038'
-    },
-    soldBy: {
-        name: 'GadgetGuru',
-        address: '789 Tech Avenue, Silicon Oasis, Bengaluru, KA 560100',
-        gstin: '29ABCDE1234F1Z5'
-    },
-    paidVia: {
-        method: 'Wallet • INR (₹)',
-        transactionId: '#TXN-984213'
-    },
-    items: [
-        { id: 1, name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00, amount: 1980.00 },
-        { id: 2, name: 'Express Shipping', qty: 1, unitPrice: 120.00, amount: 120.00 }
-    ],
-    summary: {
-        subtotal: 2100.00,
-        discount: -120.00,
-        gst: 356.40,
-        totalDue: 2336.40,
-        amountPaid: 2336.40,
-        balance: 0.00
-    }
-};
-
-const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeof initialTransactions[0], open: boolean, onOpenChange: (open: boolean) => void }) => {
+const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeof initialTransactions[0] | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
     const invoiceRef = useRef<HTMLDivElement>(null);
+    
+    const invoiceData = useMemo(() => {
+        if (!transaction || !transaction.items) return null;
+
+        const subtotal = transaction.items.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
+        const discount = transaction.discount || 0;
+        const totalBeforeGst = subtotal + discount;
+        const gstAmount = totalBeforeGst * 0.18;
+        const totalDue = totalBeforeGst + gstAmount;
+
+        return {
+            invoiceNo: `INV-${transaction.transactionId.split('-')[1]}`,
+            date: transaction.date,
+            billedTo: {
+                name: 'Alex Morgan', // Mock data
+                address: '42, Palm Street, Indiranagar, Bengaluru, KA 560038'
+            },
+            soldBy: {
+                name: 'GadgetGuru', // Mock data
+                address: '789 Tech Avenue, Silicon Oasis, Bengaluru, KA 560100',
+                gstin: '29ABCDE1234F1Z5'
+            },
+            paidVia: {
+                method: transaction.description,
+                transactionId: transaction.transactionId
+            },
+            items: transaction.items.map((item, index) => ({...item, id: index + 1, amount: item.unitPrice * item.qty})),
+            summary: {
+                subtotal,
+                discount,
+                gst: gstAmount,
+                totalDue,
+                amountPaid: Math.abs(transaction.amount),
+                balance: 0.00
+            }
+        };
+    }, [transaction]);
 
     const handlePrint = () => {
         window.print();
@@ -87,12 +94,14 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`invoice-${invoiceData.invoiceNo}.pdf`);
+            pdf.save(`invoice-${invoiceData?.invoiceNo}.pdf`);
         }
     };
     
+    if (!invoiceData) return null;
+    
     return (
-        <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl p-0">
                 <style>{`
                     @media print {
@@ -186,10 +195,12 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                                 <span className="text-gray-600">Subtotal</span>
                                 <span>₹{invoiceData.summary.subtotal.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Discount</span>
-                                <span>- ₹{Math.abs(invoiceData.summary.discount).toFixed(2)}</span>
-                            </div>
+                            {invoiceData.summary.discount < 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Discount</span>
+                                    <span>- ₹{Math.abs(invoiceData.summary.discount).toFixed(2)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="text-gray-600">GST (18%)</span>
                                 <span>₹{invoiceData.summary.gst.toFixed(2)}</span>
@@ -216,7 +227,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
                     </div>
                 </div>
-                <div className="w-full mx-auto p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                 <div className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
                     <p className="text-sm text-gray-500">Thank you for your purchase.</p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
@@ -499,7 +510,13 @@ export default function WalletPage() {
                                   {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                   <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                               </p>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => setSelectedTransaction(t)}>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-gray-400 hover:text-white" 
+                                    onClick={() => setSelectedTransaction(t)}
+                                    disabled={t.type !== 'Order'}
+                                >
                                     <Download className="h-4 w-4" />
                                 </Button>
                           </div>
@@ -522,13 +539,11 @@ export default function WalletPage() {
         <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
     </div>
-    {selectedTransaction && (
-        <InvoiceDialog 
-            transaction={selectedTransaction} 
-            open={!!selectedTransaction}
-            onOpenChange={(open) => !open && setSelectedTransaction(null)}
-        />
-    )}
+    <InvoiceDialog 
+        transaction={selectedTransaction} 
+        open={!!selectedTransaction}
+        onOpenChange={(open) => !open && setSelectedTransaction(null)}
+    />
     </>
   );
 }
