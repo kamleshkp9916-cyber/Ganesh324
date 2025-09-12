@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -116,9 +117,15 @@ export default function WalletPage() {
             <div className="lg:col-span-2 space-y-6">
               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                  <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                      <CardTitle className="text-white">Account Balance</CardTitle>
-                  </div>
+                    <div className="flex items-center gap-2">
+                         <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 -ml-2" onClick={() => router.back()}>
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <CardTitle className="text-white">Account Balance</CardTitle>
+                    </div>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2">
@@ -293,7 +300,7 @@ export default function WalletPage() {
                           <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                            <div className="text-right w-36 flex items-center justify-end gap-2">
                               <p className="font-semibold text-lg text-white flex items-center gap-1">
-                                  {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
+                                {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                   <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                               </p>
                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" asChild>
