@@ -202,11 +202,11 @@ export default function WalletPage() {
                     </div>
                      <div className="flex items-center gap-4">
                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
-                        <div className="text-right">
-                            <p className={cn("font-semibold", t.amount > 0 ? 'text-green-400' : 'text-red-400')}>
+                        <div className="text-right w-32">
+                            <p className={cn("font-semibold text-lg", t.amount > 0 ? 'text-green-400' : 'text-red-400')}>
                                 {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
                             </p>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white -mr-2 -mb-2">
                                 <Download className="h-4 w-4" />
                             </Button>
                         </div>
