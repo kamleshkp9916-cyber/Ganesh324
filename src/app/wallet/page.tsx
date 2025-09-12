@@ -228,7 +228,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
                     </div>
                 </div>
-                 <DialogFooter className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                <DialogFooter className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
                     <p className="text-sm text-gray-500">Thank you for your purchase.</p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
@@ -511,15 +511,17 @@ export default function WalletPage() {
                                 {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                 <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                             </p>
-                              <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-8 w-8 text-gray-400 hover:text-white" 
-                                  onClick={() => setSelectedTransaction(t)}
-                                  disabled={t.type !== 'Order'}
-                              >
-                                  <Download className="h-4 w-4" />
-                              </Button>
+                             <DialogTrigger asChild>
+                                  <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-gray-400 hover:text-white" 
+                                      onClick={() => setSelectedTransaction(t)}
+                                      disabled={t.type !== 'Order'}
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                               </DialogTrigger>
                         </div>
                     </div>
                   </div>
