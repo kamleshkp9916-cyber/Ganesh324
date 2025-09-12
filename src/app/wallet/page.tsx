@@ -129,15 +129,15 @@ export default function WalletPage() {
                 <div className="flex flex-col justify-between">
                    <div>
                        <div className="flex justify-between items-center p-3 bg-gray-800/60 border border-gray-700 rounded-lg">
-                           <div>
-                            <p className="text-xs text-gray-400">Available credit</p>
-                            <p className="text-lg font-bold text-white">₹7,500</p>
-                           </div>
-                           <div className="flex gap-1">
-                               <Badge variant="outline" className="border-yellow-400 text-yellow-400">Premium</Badge>
-                               <Badge variant="outline" className="border-green-400 text-green-400">Verified</Badge>
+                           <div className="flex items-center gap-2">
+                            <Coins className="h-6 w-6 text-yellow-400" />
+                            <div>
+                                <p className="text-xs text-gray-400">StreamCart Coins</p>
+                                <p className="text-lg font-bold text-white">1,250</p>
+                            </div>
                            </div>
                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Earn coins on every order.</p>
                         <div className="flex justify-between items-center mt-4">
                             <p className="text-xs text-gray-400">Last statement</p>
                             <p className="text-sm font-medium text-white">Aug 31, 2025</p>
@@ -183,8 +183,10 @@ export default function WalletPage() {
 
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
               <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
-                <CardDescription>A summary of your recent wallet activity</CardDescription>
+                <div>
+                  <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
+                  <CardDescription>A summary of your recent wallet activity</CardDescription>
+                </div>
               </CardHeader>
               <CardContent className="space-y-1">
                 {transactions.map(t => (
@@ -194,7 +196,7 @@ export default function WalletPage() {
                       <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="ml-4 flex-grow">
-                      <p className="font-semibold text-white">{t.type} #{t.transactionId}</p>
+                      <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
                       <p className="text-sm text-gray-400">{t.description}</p>
                       <p className="text-xs text-gray-500">{t.date}</p>
                     </div>
