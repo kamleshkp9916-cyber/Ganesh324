@@ -274,7 +274,7 @@ export default function WalletPage() {
 
 
   return (
-    <Dialog>
+    <Dialog modal={false}>
     <div className="min-h-screen bg-black text-gray-300 font-sans">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
         <div className="flex items-center gap-3">
@@ -305,6 +305,11 @@ export default function WalletPage() {
               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                  <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-white">Account Balance</CardTitle>
+                     <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8" onClick={() => toast({ title: "Refreshing..." })}>
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-2">
@@ -343,7 +348,7 @@ export default function WalletPage() {
                               <p className="text-sm font-medium text-white">Aug 31, 2025</p>
                           </div>
                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
                           <Dialog>
                               <DialogTrigger asChild>
                                   <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
@@ -507,7 +512,7 @@ export default function WalletPage() {
         <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
     </div>
+     {filteredTransactions.map(t => <InvoiceDialog key={`dialog-${t.id}`} transaction={t} />)}
     </Dialog>
   );
 }
-
