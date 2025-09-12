@@ -92,7 +92,7 @@ export default function WalletPage() {
   }, [searchTerm, transactions]);
 
   if (loading || !isMounted) {
-    return <div className="h-screen w-full flex items-center justify-center bg-black"><LoadingSpinner /></div>;
+    return <div className="h-screen w-full flex items-center justify-center bg-background"><LoadingSpinner /></div>;
   }
 
   if (!user || !userData) {
@@ -169,19 +169,19 @@ export default function WalletPage() {
 
   return (
     <Dialog>
-    <div className="min-h-screen bg-black text-gray-300 font-sans">
-      <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => router.back()}>
               <ArrowLeft className="h-5 w-5" />
            </Button>
           <Logo className="h-8 w-auto hidden sm:block" />
-          <h1 className="text-xl font-bold text-white">Wallet</h1>
+          <h1 className="text-xl font-bold">Wallet</h1>
         </div>
         <div className="flex items-center gap-4">
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 relative">
+                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
                         <Bell className="h-5 w-5" />
                          {unreadCount > 0 && (
                             <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -215,7 +215,7 @@ export default function WalletPage() {
                     <AvatarImage src={user.photoURL || undefined} />
                     <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="text-white font-medium hidden sm:inline">{userData.displayName}</span>
+                <span className="font-medium hidden sm:inline">{userData.displayName}</span>
             </div>
         </div>
       </header>
@@ -223,30 +223,30 @@ export default function WalletPage() {
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+            <Card className="bg-card shadow-lg">
                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-white">Account Balance</CardTitle>
+                  <CardTitle>Account Balance</CardTitle>
                   <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                           <RefreshCw className="h-4 w-4" />
                       </Button>
                   </div>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                    <p className="text-sm text-gray-400">Total balance</p>
-                    <p className="text-5xl font-bold text-white mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-sm text-muted-foreground">Total balance</p>
+                    <p className="text-5xl font-bold mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     <div className="grid grid-cols-2 gap-4 mt-6">
-                        <Card className="bg-gray-800/60 border-gray-700 p-4">
-                            <p className="text-xs text-gray-400">Cash Available</p>
-                            <p className="text-lg font-bold text-white">₹{cashAvailable.toFixed(2)}</p>
+                        <Card className="bg-muted/50 p-4">
+                            <p className="text-xs text-muted-foreground">Cash Available</p>
+                            <p className="text-lg font-bold">₹{cashAvailable.toFixed(2)}</p>
                         </Card>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Card className="bg-gray-800/60 border-gray-700 p-4 cursor-pointer hover:bg-gray-800/80">
-                                    <p className="text-xs text-gray-400">Blocked Margin</p>
-                                    <p className="text-lg font-bold text-white">₹{blockedMargin.toFixed(2)}</p>
-                                    <p className="text-xs text-gray-500">For processing orders</p>
+                                <Card className="bg-muted/50 p-4 cursor-pointer hover:bg-muted">
+                                    <p className="text-xs text-muted-foreground">Blocked Margin</p>
+                                    <p className="text-lg font-bold">₹{blockedMargin.toFixed(2)}</p>
+                                    <p className="text-xs text-muted-foreground">For processing orders</p>
                                 </Card>
                             </DialogTrigger>
                             <DialogContent>
@@ -270,33 +270,33 @@ export default function WalletPage() {
                                 </div>
                             </DialogContent>
                         </Dialog>
-                         <Card className="bg-gray-800/60 border-gray-700 p-4 col-span-2">
-                            <p className="text-xs text-gray-400">Month-to-date spend</p>
-                            <p className="text-lg font-bold text-white">₹3,140</p>
+                         <Card className="bg-muted/50 p-4 col-span-2">
+                            <p className="text-xs text-muted-foreground">Month-to-date spend</p>
+                            <p className="text-lg font-bold">₹3,140</p>
                         </Card>
                     </div>
                 </div>
                 <div className="flex flex-col justify-between">
                    <div>
-                       <div className="flex justify-between items-center p-3 bg-gray-800/60 border border-gray-700 rounded-lg">
+                       <div className="flex justify-between items-center p-3 bg-muted/50 border rounded-lg">
                            <div className="flex items-center gap-2">
-                            <Coins className="h-6 w-6 text-yellow-400" />
+                            <Coins className="h-6 w-6 text-primary" />
                             <div>
-                                <p className="text-xs text-gray-400">StreamCart Coins</p>
-                                <p className="text-lg font-bold text-white">1,250</p>
+                                <p className="text-xs text-muted-foreground">StreamCart Coins</p>
+                                <p className="text-lg font-bold">1,250</p>
                             </div>
                            </div>
                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Earn coins on every order.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Earn coins on every order.</p>
                         <div className="flex justify-between items-center mt-4">
-                            <p className="text-xs text-gray-400">Last statement</p>
-                            <p className="text-sm font-medium text-white">Aug 31, 2025</p>
+                            <p className="text-xs text-muted-foreground">Last statement</p>
+                            <p className="text-sm font-medium">Aug 31, 2025</p>
                         </div>
                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90">
+                                <Button className="w-full justify-center">
                                     <Plus className="h-5 w-5" />
                                     <span>Add Funds</span>
                                 </Button>
@@ -350,64 +350,64 @@ export default function WalletPage() {
             </Card>
           </div>
           <div className="space-y-6">
-             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+             <Card className="bg-card shadow-lg">
                  <CardHeader>
-                    <CardTitle className="text-white text-base">Quick Actions</CardTitle>
+                    <CardTitle className="text-base">Quick Actions</CardTitle>
                     <CardDescription>Do more, faster</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-3">
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted">
                          <div className="flex items-center gap-3">
-                            <ShoppingBag className="h-6 w-6 text-gray-400"/>
+                            <ShoppingBag className="h-6 w-6 text-muted-foreground"/>
                             <div>
-                                <p className="font-semibold text-white">Browse Products</p>
-                                <p className="text-xs text-gray-500">Spend from wallet</p>
+                                <p className="font-semibold">Browse Products</p>
+                                <p className="text-xs text-muted-foreground">Spend from wallet</p>
                             </div>
                          </div>
-                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                         <ChevronRight className="h-5 w-5 text-muted-foreground"/>
                      </Button>
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800" disabled>
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted" disabled>
                          <div className="flex items-center gap-3">
-                            <CreditCard className="h-6 w-6 text-gray-400"/>
+                            <CreditCard className="h-6 w-6 text-muted-foreground"/>
                             <div>
-                                <p className="font-semibold text-white">Withdraw to Bank</p>
-                                <p className="text-xs text-gray-500">IMPS / NEFT / UPI</p>
+                                <p className="font-semibold">Withdraw to Bank</p>
+                                <p className="text-xs text-muted-foreground">IMPS / NEFT / UPI</p>
                             </div>
                          </div>
-                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                         <ChevronRight className="h-5 w-5 text-muted-foreground"/>
                      </Button>
                  </CardContent>
              </Card>
-             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+             <Card className="bg-card shadow-lg">
                  <CardHeader className="flex flex-row justify-between items-center">
-                    <CardTitle className="text-white text-base">Insights</CardTitle>
+                    <CardTitle className="text-base">Insights</CardTitle>
                     <CardDescription>This month</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4 text-sm">
                     <div className="flex justify-between items-center">
-                        <p className="text-gray-400">Spending vs. last month</p>
-                        <p className="font-semibold text-red-400">-8%</p>
+                        <p className="text-muted-foreground">Spending vs. last month</p>
+                        <p className="font-semibold text-red-500">-8%</p>
                     </div>
                      <div className="flex justify-between items-center">
-                        <p className="text-gray-400">Average transaction</p>
-                        <p className="font-semibold text-white">₹1,920</p>
+                        <p className="text-muted-foreground">Average transaction</p>
+                        <p className="font-semibold">₹1,920</p>
                     </div>
                  </CardContent>
              </Card>
           </div>
         </div>
         
-         <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+         <Card className="bg-card shadow-lg">
              <CardHeader className="flex flex-row justify-between items-center">
                 <div>
-                  <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
+                  <CardTitle>🧾 Invoices / Billing history</CardTitle>
                   <CardDescription>A summary of your recent wallet activity</CardDescription>
                 </div>
                  <div className="relative w-full max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                         placeholder="Search transactions..."
-                        className="bg-gray-800 border-gray-700 pl-9"
+                        className="bg-muted border-border pl-9"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -415,22 +415,22 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent className="space-y-1">
                 {filteredTransactions.map(t => (
-                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
+                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-muted/50">
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={t.avatar} />
                       <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="ml-4 flex-grow">
-                      <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
-                      <p className="text-sm text-gray-400">{t.description}</p>
-                      <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
+                      <p className="font-semibold">{t.type} <span className="font-mono text-xs text-muted-foreground">{t.transactionId}</span></p>
+                      <p className="text-sm text-muted-foreground">{t.description}</p>
+                      <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
                     </div>
                     <div className="flex items-center gap-4">
                          <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
-                                t.status === 'Failed' ? 'text-red-400' : 
-                                t.amount > 0 ? "text-green-400" : "text-white"
+                                t.status === 'Failed' ? 'text-destructive' : 
+                                t.amount > 0 ? "text-success" : "text-foreground"
                              )}>
                                 {t.status !== 'Failed' && (t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />)}
                                 <span>₹{Math.abs(t.amount).toFixed(2)}</span>
@@ -438,7 +438,7 @@ export default function WalletPage() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-gray-400 hover:text-white" 
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground" 
                                 onClick={() => handleGenerateInvoice(t.transactionId)}
                                 disabled={t.type !== 'Order' || isGeneratingInvoice === t.transactionId}
                             >
@@ -449,17 +449,17 @@ export default function WalletPage() {
                   </div>
                 ))}
                 {filteredTransactions.length === 0 && (
-                    <p className="text-center text-gray-500 py-8">No transactions found.</p>
+                    <p className="text-center text-muted-foreground py-8">No transactions found.</p>
                 )}
               </CardContent>
             </Card>
       </main>
 
-      <footer className="p-4 sm:p-6 mt-8 border-t border-gray-800 text-center text-xs text-gray-500">
+      <footer className="p-4 sm:p-6 mt-8 border-t text-center text-xs text-muted-foreground">
         <div className="flex justify-center gap-6 mb-2">
-            <a href="#" className="hover:text-white">Privacy</a>
-            <a href="#" className="hover:text-white">Terms</a>
-            <a href="#" className="hover:text-white">Support</a>
+            <a href="#" className="hover:text-primary">Privacy</a>
+            <a href="#" className="hover:text-primary">Terms</a>
+            <a href="#" className="hover:text-primary">Support</a>
         </div>
         <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
