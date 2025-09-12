@@ -44,6 +44,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
     const invoiceData = useMemo(() => {
         if (!transaction || !transaction.items) return null;
 
+        const invoiceId = `INV-${transaction.transactionId.split('-')[1]}`;
         const subtotal = transaction.items.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
         const discount = transaction.discount || 0;
         const totalBeforeGst = subtotal + discount;
@@ -51,7 +52,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
         const totalPaid = totalBeforeGst + gstAmount;
 
         return {
-            invoiceNo: `INV-${transaction.transactionId.split('-')[1]}`,
+            invoiceNo: invoiceId,
             date: transaction.date,
             billedTo: {
                 name: 'Alex Morgan', // Mock data
@@ -137,7 +138,6 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <h1 className="text-2xl font-bold text-black">StreamCart</h1>
-                            <p className="text-sm text-gray-500">Invoice</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-gray-500">Invoice No.</p>
@@ -228,14 +228,14 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
                     </div>
                 </div>
-                <DialogFooter className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                <DialogFooter className="p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
                     <p className="text-sm text-gray-500">Thank you for your purchase.</p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="mr-2 h-4 w-4" />
                             Print
                         </Button>
-                        <Button onClick={handleDownloadPdf} className="bg-orange-500 text-white hover:bg-orange-600">
+                        <Button onClick={handleDownloadPdf} className="bg-primary text-primary-foreground hover:bg-primary/90">
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                         </Button>
@@ -300,7 +300,7 @@ export default function WalletPage() {
 
 
   return (
-    <>
+    <Dialog onOpenChange={(open) => !open && setSelectedTransaction(null)}>
     <div className="min-h-screen bg-black text-gray-300 font-sans">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
         <div className="flex items-center gap-3">
@@ -376,7 +376,7 @@ export default function WalletPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                <Button className="w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90">
                                     <Plus className="h-5 w-5" />
                                     <span>Add Funds</span>
                                 </Button>
@@ -401,7 +401,7 @@ export default function WalletPage() {
                         </Button>
                         <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
                             <DialogTrigger asChild>
-                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                <Button className="w-full justify-center" variant="outline">
                                     <Download className="h-5 w-5" />
                                     <span>Withdraw</span>
                                 </Button>
@@ -547,6 +547,6 @@ export default function WalletPage() {
         open={!!selectedTransaction}
         onOpenChange={(open) => !open && setSelectedTransaction(null)}
     />
-    </>
+    </Dialog>
   );
 }
