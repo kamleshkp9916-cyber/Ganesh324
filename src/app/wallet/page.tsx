@@ -366,11 +366,11 @@ export default function WalletPage() {
                     <div className="flex items-center gap-4">
                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
-                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
+                            <p className={cn("font-semibold text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-red-400' : 
                                 t.amount > 0 ? "text-green-400" : "text-white"
                              )}>
-                                {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
+                                {t.status !== 'Failed' && (t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />)}
                                 <span>₹{Math.abs(t.amount).toFixed(2)}</span>
                             </p>
                             <Button 
