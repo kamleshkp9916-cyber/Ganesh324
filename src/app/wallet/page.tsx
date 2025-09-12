@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -80,8 +80,11 @@ export default function WalletPage() {
     <div className="min-h-screen bg-black text-gray-300 font-sans">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <Logo className="h-8 w-auto" />
-          <h1 className="text-xl font-bold text-white">StreamCart Wallet</h1>
+           <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5" />
+           </Button>
+          <Logo className="h-8 w-auto hidden sm:block" />
+          <h1 className="text-xl font-bold text-white">Wallet</h1>
         </div>
         <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
@@ -100,14 +103,10 @@ export default function WalletPage() {
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
                     <CardTitle className="text-white">Account Balance</CardTitle>
                 </div>
                 <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
@@ -152,10 +151,27 @@ export default function WalletPage() {
                         </div>
                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
-                        <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
-                            <Plus className="h-5 w-5" />
-                            <span>Add Funds</span>
-                        </Button>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                    <Plus className="h-5 w-5" />
+                                    <span>Add Funds</span>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add Funds via UPI</DialogTitle>
+                                    <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
+                                </DialogHeader>
+                                <div className="flex flex-col items-center gap-4 py-4">
+                                    <div className="bg-white p-4 rounded-lg">
+                                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
+                                    <p className="font-semibold">streamcart@mock</p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                          <Button className="w-full justify-center" variant="outline">
                             <BarChart2 className="h-5 w-5"/>
                             <span>View Statements</span>
@@ -191,7 +207,6 @@ export default function WalletPage() {
 
           </div>
 
-          {/* Right sidebar */}
           <div className="space-y-6">
              <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                  <CardHeader>
@@ -282,7 +297,7 @@ export default function WalletPage() {
             <a href="#" className="hover:text-white">Terms</a>
             <a href="#" className="hover:text-white">Support</a>
         </div>
-        <p>© {new Date().getFullYear()} Willow Labs Inc.</p>
+        <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
     </div>
   );
