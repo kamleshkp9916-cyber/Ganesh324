@@ -97,7 +97,7 @@ export default function WalletPage() {
         </div>
       </header>
 
-      <main className="p-4 sm:p-6 lg:p-8">
+      <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Main content */}
@@ -189,40 +189,6 @@ export default function WalletPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-              <CardHeader className="flex flex-row justify-between items-center">
-                <div>
-                  <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
-                  <CardDescription>A summary of your recent wallet activity</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {transactions.map(t => (
-                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={t.avatar} />
-                      <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="ml-4 flex-grow">
-                      <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
-                      <p className="text-sm text-gray-400">{t.description}</p>
-                      <p className="text-xs text-gray-500">{t.date}</p>
-                    </div>
-                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
-                         <div className="text-right w-32 flex items-center justify-end gap-2">
-                             <p className={cn("font-semibold text-lg text-white")}>
-                                {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                            </p>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
-                                <Download className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Right sidebar */}
@@ -273,6 +239,41 @@ export default function WalletPage() {
              </Card>
           </div>
         </div>
+        
+         <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+              <CardHeader className="flex flex-row justify-between items-center">
+                <div>
+                  <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
+                  <CardDescription>A summary of your recent wallet activity</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {transactions.map(t => (
+                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={t.avatar} />
+                      <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="ml-4 flex-grow">
+                      <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
+                      <p className="text-sm text-gray-400">{t.description}</p>
+                      <p className="text-xs text-gray-500">{t.date}</p>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                         <div className="text-right w-32 flex items-center justify-end gap-2">
+                             <p className={cn("font-semibold text-lg text-white")}>
+                                {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                            </p>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                                <Download className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
       </main>
 
       <footer className="p-4 sm:p-6 mt-8 border-t border-gray-800 text-center text-xs text-gray-500">
