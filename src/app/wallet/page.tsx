@@ -55,7 +55,7 @@ export default function WalletPage() {
   const { user, userData, loading } = useAuth();
   const { toast } = useToast();
   const [balance, setBalance] = useState(42580.22);
-  const [transactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState(initialTransactions);
   const [isMounted, setIsMounted] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
@@ -111,6 +111,23 @@ export default function WalletPage() {
         });
         return;
      }
+
+     const now = new Date();
+     const newTransaction = {
+        id: Date.now(),
+        transactionId: `WD-${Math.floor(1000 + Math.random() * 9000)}`,
+        type: 'Withdrawal',
+        description: `To ${selectedAccount?.bankName}`,
+        date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        amount: -amount,
+        avatar: 'https://placehold.co/40x40.png?text=W',
+        status: 'Completed',
+     };
+     // @ts-ignore
+     setTransactions(prev => [newTransaction, ...prev]);
+     setBalance(prev => prev - amount);
+
      toast({
         title: "Withdrawal Initiated!",
         description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
@@ -409,7 +426,7 @@ export default function WalletPage() {
                       <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-red-400' : 
