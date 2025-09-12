@@ -114,9 +114,14 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between">
+               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                     <CardTitle className="text-white">Account Balance</CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => toast({ title: 'Refreshing Balance...' })}>
+                        <RefreshCw className="h-4 w-4" />
+                    </Button>
                 </div>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -291,9 +296,9 @@ export default function WalletPage() {
                     <div className="flex items-center gap-4">
                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
-                            <p className={cn("font-semibold text-lg text-white")}>
-                                {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4 text-green-400" /> : <ArrowDown className="inline-block h-4 w-4 text-red-400" />}
-                                ₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                            <p className="font-semibold text-lg text-white flex items-center gap-1">
+                                {t.amount > 0 ? <ArrowUp className="h-4 w-4 text-green-400" /> : <ArrowDown className="h-4 w-4 text-red-400" />}
+                                <span>₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
                             </p>
                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                                 <Download className="h-4 w-4" />
