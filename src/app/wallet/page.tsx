@@ -68,6 +68,14 @@ export default function WalletPage() {
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
   };
+  
+    const processingTransactions = useMemo(() => {
+    return transactions.filter(t => t.status === 'Processing');
+  }, [transactions]);
+  
+  const blockedMargin = useMemo(() => {
+    return processingTransactions.reduce((acc, t) => acc + Math.abs(t.amount), 0);
+  }, [processingTransactions]);
 
 
   useEffect(() => {
@@ -110,16 +118,26 @@ export default function WalletPage() {
   };
   
   const handleGenerateInvoice = (transactionId: string) => {
+    if (isGeneratingInvoice) return;
+
+    const transaction = transactions.find(t => t.transactionId === transactionId);
+    if (!transaction || transaction.type !== 'Order') {
+        toast({
+            variant: "destructive",
+            title: "Invoice Not Available",
+            description: "Invoices can only be generated for completed orders.",
+        });
+        return;
+    }
+    
     setIsGeneratingInvoice(transactionId);
     toast({
         title: "Generating Invoice...",
         description: "Please wait while we prepare your invoice.",
     });
 
-    // Simulate API call to a third-party invoice generator
     setTimeout(() => {
         setIsGeneratingInvoice(null);
-        // In a real app, you would get a URL back from the API
         const invoiceUrl = `/invoice/${transactionId}`; 
         window.open(invoiceUrl, '_blank');
         toast({
@@ -202,13 +220,37 @@ export default function WalletPage() {
                     <div className="grid grid-cols-2 gap-4 mt-6">
                         <Card className="bg-gray-800/60 border-gray-700 p-4">
                             <p className="text-xs text-gray-400">Cash Available</p>
-                            <p className="text-lg font-bold text-white">₹{balance.toFixed(2)}</p>
+                            <p className="text-lg font-bold text-white">₹{(balance - blockedMargin).toFixed(2)}</p>
                         </Card>
-                         <Card className="bg-gray-800/60 border-gray-700 p-4">
-                            <p className="text-xs text-gray-400">Blocked Margin</p>
-                            <p className="text-lg font-bold text-white">₹2,640.00</p>
-                             <p className="text-xs text-gray-500">Bought product balance</p>
-                        </Card>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Card className="bg-gray-800/60 border-gray-700 p-4 cursor-pointer hover:bg-gray-800/80">
+                                    <p className="text-xs text-gray-400">Blocked Margin</p>
+                                    <p className="text-lg font-bold text-white">₹{blockedMargin.toFixed(2)}</p>
+                                    <p className="text-xs text-gray-500">For processing orders</p>
+                                </Card>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Blocked Margin Details</DialogTitle>
+                                    <DialogDescription>Funds held for orders that are currently being processed.</DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-2 py-4">
+                                    {processingTransactions.map(t => (
+                                        <div key={t.id} className="flex justify-between items-center text-sm p-2 bg-muted rounded-md">
+                                            <div>
+                                                <p className="font-semibold">{t.description}</p>
+                                                <p className="text-xs text-muted-foreground">{t.transactionId}</p>
+                                            </div>
+                                            <p className="font-semibold">₹{Math.abs(t.amount).toFixed(2)}</p>
+                                        </div>
+                                    ))}
+                                    {processingTransactions.length === 0 && (
+                                        <p className="text-center text-sm text-muted-foreground py-4">No funds are currently blocked.</p>
+                                    )}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                          <Card className="bg-gray-800/60 border-gray-700 p-4 col-span-2">
                             <p className="text-xs text-gray-400">Month-to-date spend</p>
                             <p className="text-lg font-bold text-white">₹3,140</p>
@@ -364,7 +406,7 @@ export default function WalletPage() {
                       <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-100">{t.status}</Badge>
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-red-400' : 
