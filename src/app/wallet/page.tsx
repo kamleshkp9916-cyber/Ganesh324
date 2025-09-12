@@ -20,6 +20,14 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const initialTransactions = [
     { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ key: 'prod_1', name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { key: 'prod_1_ship', name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
@@ -30,6 +38,11 @@ const initialTransactions = [
     { id: 6, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: 'Sep 06, 2025', time: '02:00 PM', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W', status: 'Completed' },
 ];
 
+const mockNotifications = [
+    { id: 1, title: 'Deposit Successful', description: '₹1,000.00 has been added to your wallet.', time: '5m ago', read: false, href: '#' },
+    { id: 2, title: 'Order Payment', description: 'You paid ₹2,336.40 for order #TXN-984213.', time: '1h ago', read: false, href: '#' },
+    { id: 3, title: 'Withdrawal Processed', description: 'Your withdrawal of ₹20,000.00 is successful.', time: '4h ago', read: true, href: '#' },
+];
 
 const mockBankAccounts = [
     { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
@@ -48,6 +61,14 @@ export default function WalletPage() {
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
   const [searchTerm, setSearchTerm] = useState('');
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState(mockNotifications);
+
+  const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+  
+  const markAsRead = (id: number) => {
+    setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -121,9 +142,37 @@ export default function WalletPage() {
           <h1 className="text-xl font-bold text-white">Wallet</h1>
         </div>
         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
-                <Bell className="h-5 w-5" />
-            </Button>
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 relative">
+                        <Bell className="h-5 w-5" />
+                         {unreadCount > 0 && (
+                            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                        )}
+                    </Button>
+                </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {notifications.map(n => (
+                        <Link key={n.id} href={n.href} passHref>
+                            <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                <div className="flex justify-between w-full">
+                                    <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                    <p className="text-xs text-muted-foreground">{n.time}</p>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{n.description}</p>
+                            </DropdownMenuItem>
+                        </Link>
+                    ))}
+                    {notifications.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
             <div className="flex items-center gap-2">
                 <Avatar className="h-9 w-9">
                     <AvatarImage src={user.photoURL || undefined} />
