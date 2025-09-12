@@ -379,6 +379,24 @@ export default function SettingsPage() {
                         <TabsContent value="funds" className="space-y-8">
                              <Card>
                                 <CardHeader>
+                                    <CardTitle>Wallet Balance</CardTitle>
+                                     <CardDescription>View your current balance and recent transactions.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">Available Balance</p>
+                                        <p className="text-3xl font-bold">₹42,580.22</p>
+                                    </div>
+                                    <Button asChild>
+                                        <Link href="/wallet">
+                                            <Wallet className="mr-2 h-4 w-4" />
+                                            View Wallet
+                                        </Link>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader>
                                     <CardTitle>Bank Accounts for Withdrawals</CardTitle>
                                     <CardDescription>Manage the bank accounts where you receive money.</CardDescription>
                                 </CardHeader>
@@ -470,32 +488,6 @@ export default function SettingsPage() {
                                         <AddUpiForm onSave={handleAddUpi} />
                                     </Dialog>
                                 </CardFooter>
-                            </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Recent Transactions</CardTitle>
-                                    <CardDescription>A summary of your recent wallet activity.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {initialTransactions.map((transaction, index) => (
-                                        <div key={index} className="flex items-center">
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={transaction.avatar} alt="Avatar" />
-                                                <AvatarFallback>{transaction.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="ml-4 space-y-1">
-                                                <p className="text-sm font-medium leading-none">{transaction.name}</p>
-                                                <p className="text-sm text-muted-foreground">{transaction.date}, {transaction.time}</p>
-                                            </div>
-                                            <div className={cn(
-                                                "ml-auto font-medium",
-                                                transaction.amount > 0 ? 'text-success' : 'text-foreground'
-                                            )}>
-                                                {transaction.amount > 0 ? '+' : ''}₹{Math.abs(transaction.amount).toLocaleString('en-IN')}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </CardContent>
                             </Card>
                         </TabsContent>
 
