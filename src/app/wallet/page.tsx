@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, ArrowLeft } from 'lucide-react';
+import { RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, Search, Printer, ArrowLeft, Minus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -364,13 +364,13 @@ export default function WalletPage() {
                       <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-100">{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-red-400' : 
                                 t.amount > 0 ? "text-green-400" : "text-white"
                              )}>
-                                {t.status !== 'Failed' && (t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />)}
+                                {t.status !== 'Failed' && (t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />)}
                                 <span>₹{Math.abs(t.amount).toFixed(2)}</span>
                             </p>
                             <Button 
