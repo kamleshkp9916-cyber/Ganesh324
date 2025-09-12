@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -64,7 +63,7 @@ const invoiceData = {
     }
 };
 
-const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransactions[0] }) => {
+const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeof initialTransactions[0], open: boolean, onOpenChange: (open: boolean) => void }) => {
     const invoiceRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = () => {
@@ -76,7 +75,7 @@ const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransaction
         if (input) {
             const canvas = await html2canvas(input, {
                  scale: 2,
-                 backgroundColor: '#111827'
+                 backgroundColor: '#ffffff'
             });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -88,136 +87,145 @@ const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransaction
     };
     
     return (
-        <DialogContent className="max-w-4xl p-0">
-             <style>{`
-                @media print {
-                    body * {
-                        visibility: hidden;
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-4xl p-0">
+                <style>{`
+                    @media print {
+                        body * {
+                            visibility: hidden;
+                        }
+                        #printable-order, #printable-order * {
+                            visibility: visible;
+                        }
+                        #printable-order {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            background-color: #ffffff !important;
+                            color: #000000 !important;
+                            -webkit-print-color-adjust: exact;
+                        }
+                        .no-print {
+                            display: none !important;
+                        }
+                        .invoice-container * {
+                            color: #000000 !important;
+                        }
+                        .invoice-container .bg-gray-800\\/50 {
+                           background-color: #f3f4f6 !important;
+                        }
+                         .invoice-container .border-gray-700 {
+                           border-color: #d1d5db !important;
+                        }
                     }
-                    #printable-order, #printable-order * {
-                        visibility: visible;
-                    }
-                    #printable-order {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        background-color: #111827 !important;
-                        -webkit-print-color-adjust: exact;
-                    }
-                    .no-print {
-                        display: none !important;
-                    }
-                }
-            `}</style>
-            <div ref={invoiceRef} id="printable-order" className="invoice-container w-full bg-gray-900 text-gray-300 p-8">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-8">
-                    <div className="flex items-center gap-4">
-                        <Logo className="h-8 w-auto text-white" />
+                `}</style>
+                <div ref={invoiceRef} id="printable-order" className="invoice-container w-full bg-white text-gray-800 p-8">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-8">
                         <div>
-                            <h1 className="text-2xl font-bold text-white">StreamCart Wallet</h1>
-                            <p className="text-sm text-gray-400">Invoice</p>
+                            <h1 className="text-2xl font-bold text-black">StreamCart Wallet</h1>
+                            <p className="text-sm text-gray-500">Invoice</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-gray-500">Invoice No.</p>
+                            <p className="font-semibold text-black">{invoiceData.invoiceNo}</p>
+                            <p className="text-sm text-gray-500 mt-2">Date</p>
+                            <p className="font-semibold text-black">{invoiceData.date}</p>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-sm text-gray-400">Invoice No.</p>
-                        <p className="font-semibold text-white">{invoiceData.invoiceNo}</p>
-                        <p className="text-sm text-gray-400 mt-2">Date</p>
-                        <p className="font-semibold text-white">{invoiceData.date}</p>
+
+                    {/* Billing Info */}
+                    <div className="grid grid-cols-2 gap-8 mb-8">
+                        <Card className="bg-gray-100 border-gray-200 p-4">
+                            <h2 className="text-sm font-semibold text-gray-600 mb-2">Billed To</h2>
+                            <p className="font-bold text-black">{invoiceData.billedTo.name}</p>
+                            <p className="text-sm text-gray-500">{invoiceData.billedTo.address}</p>
+                        </Card>
+                        <Card className="bg-gray-100 border-gray-200 p-4">
+                            <h2 className="text-sm font-semibold text-gray-600 mb-2">Paid Via</h2>
+                            <p className="font-bold text-black">{invoiceData.paidVia.method}</p>
+                            <p className="text-sm text-gray-500">Transaction {invoiceData.paidVia.transactionId}</p>
+                        </Card>
                     </div>
-                </div>
 
-                {/* Billing Info */}
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                    <Card className="bg-gray-800/50 border-gray-700 p-4">
-                        <h2 className="text-sm font-semibold text-gray-400 mb-2">Billed To</h2>
-                        <p className="font-bold text-white">{invoiceData.billedTo.name}</p>
-                        <p className="text-sm text-gray-400">{invoiceData.billedTo.address}</p>
-                    </Card>
-                    <Card className="bg-gray-800/50 border-gray-700 p-4">
-                        <h2 className="text-sm font-semibold text-gray-400 mb-2">Paid Via</h2>
-                        <p className="font-bold text-white">{invoiceData.paidVia.method}</p>
-                        <p className="text-sm text-gray-400">Transaction {invoiceData.paidVia.transactionId}</p>
-                    </Card>
-                </div>
-
-                {/* Items Table */}
-                <div className="w-full overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-gray-700">
-                                <th className="py-2 pr-4 font-semibold">Item</th>
-                                <th className="py-2 px-4 font-semibold text-center">Qty</th>
-                                <th className="py-2 px-4 font-semibold text-right">Unit Price</th>
-                                <th className="py-2 pl-4 font-semibold text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {invoiceData.items.map(item => (
-                                <tr key={item.id} className="border-b border-gray-800">
-                                    <td className="py-3 pr-4">{item.name}</td>
-                                    <td className="py-3 px-4 text-center">{item.qty}</td>
-                                    <td className="py-3 px-4 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                                    <td className="py-3 pl-4 text-right">₹{item.amount.toFixed(2)}</td>
+                    {/* Items Table */}
+                    <div className="w-full overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-300">
+                                    <th className="py-2 pr-4 font-semibold">Item</th>
+                                    <th className="py-2 px-4 font-semibold text-center">Qty</th>
+                                    <th className="py-2 px-4 font-semibold text-right">Unit Price</th>
+                                    <th className="py-2 pl-4 font-semibold text-right">Amount</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {invoiceData.items.map(item => (
+                                    <tr key={item.id} className="border-b border-gray-200">
+                                        <td className="py-3 pr-4">{item.name}</td>
+                                        <td className="py-3 px-4 text-center">{item.qty}</td>
+                                        <td className="py-3 px-4 text-right">₹{item.unitPrice.toFixed(2)}</td>
+                                        <td className="py-3 pl-4 text-right">₹{item.amount.toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-                {/* Summary */}
-                <div className="flex justify-end mt-8">
-                    <div className="w-full max-w-sm space-y-3">
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Subtotal</span>
-                            <span>₹{invoiceData.summary.subtotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Discount</span>
-                            <span>- ₹{Math.abs(invoiceData.summary.discount).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">GST (18%)</span>
-                            <span>₹{invoiceData.summary.gst.toFixed(2)}</span>
-                        </div>
-                        <Separator className="bg-gray-700 my-2" />
-                        <div className="flex justify-between items-center font-bold text-lg">
-                            <span className="text-white">Total Due (INR)</span>
-                            <span className="text-white">₹{invoiceData.summary.totalDue.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Amount Paid</span>
-                            <span>₹{invoiceData.summary.amountPaid.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Balance</span>
-                            <span>₹{invoiceData.summary.balance.toFixed(2)}</span>
+                    {/* Summary */}
+                    <div className="flex justify-end mt-8">
+                        <div className="w-full max-w-sm space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Subtotal</span>
+                                <span>₹{invoiceData.summary.subtotal.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Discount</span>
+                                <span>- ₹{Math.abs(invoiceData.summary.discount).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">GST (18%)</span>
+                                <span>₹{invoiceData.summary.gst.toFixed(2)}</span>
+                            </div>
+                            <Separator className="bg-gray-300 my-2" />
+                            <div className="flex justify-between items-center font-bold text-lg">
+                                <span className="text-black">Total Due (INR)</span>
+                                <span className="text-black">₹{invoiceData.summary.totalDue.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Amount Paid</span>
+                                <span>₹{invoiceData.summary.amountPaid.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Balance</span>
+                                <span>₹{invoiceData.summary.balance.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <Separator className="bg-gray-700 mt-8" />
+                    <Separator className="bg-gray-300 mt-8" />
 
-                {/* Footer */}
-                <div className="mt-8">
-                    <p className="text-sm text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
+                    {/* Footer */}
+                    <div className="mt-8">
+                        <p className="text-sm text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
+                    </div>
                 </div>
-            </div>
-             <div className="w-full mx-auto p-6 flex justify-between items-center bg-gray-900 rounded-b-lg no-print">
-                 <p className="text-sm text-gray-400">Thank you for your purchase.</p>
-                <div className="flex gap-4">
-                    <Button variant="outline" onClick={handlePrint}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print
-                    </Button>
-                    <Button onClick={handleDownloadPdf} className="bg-yellow-500 text-black hover:bg-yellow-600">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                    </Button>
+                <div className="w-full mx-auto p-6 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                    <p className="text-sm text-gray-500">Thank you for your purchase.</p>
+                    <div className="flex gap-4">
+                        <Button variant="outline" onClick={handlePrint}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
+                        <Button onClick={handleDownloadPdf} className="bg-orange-500 text-white hover:bg-orange-600">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </DialogContent>
+            </DialogContent>
+        </Dialog>
     );
 };
 
@@ -232,6 +240,7 @@ export default function WalletPage() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState<typeof initialTransactions[0] | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -240,9 +249,9 @@ export default function WalletPage() {
   const filteredTransactions = useMemo(() => {
     if (!searchTerm) return transactions;
     return transactions.filter(t => 
-        t.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (t.transactionId && t.transactionId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (t.type && t.type.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, transactions]);
 
@@ -274,7 +283,7 @@ export default function WalletPage() {
 
 
   return (
-    <Dialog modal={false}>
+    <>
     <div className="min-h-screen bg-black text-gray-300 font-sans">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
         <div className="flex items-center gap-3">
@@ -482,15 +491,13 @@ export default function WalletPage() {
                       <div className="flex items-center gap-4">
                           <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                            <div className="text-right w-36 flex items-center justify-end gap-2">
-                              <p className="font-semibold text-lg text-white flex items-center gap-1">
+                              <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? "text-green-400" : "text-white")}>
                                   {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                   <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                               </p>
-                               <DialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => setSelectedTransaction(t)}>
                                     <Download className="h-4 w-4" />
-                                  </Button>
-                               </DialogTrigger>
+                                </Button>
                           </div>
                       </div>
                     </div>
@@ -512,7 +519,13 @@ export default function WalletPage() {
         <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
     </div>
-     {filteredTransactions.map(t => <InvoiceDialog key={`dialog-${t.id}`} transaction={t} />)}
-    </Dialog>
+    {selectedTransaction && (
+        <InvoiceDialog 
+            transaction={selectedTransaction} 
+            open={!!selectedTransaction}
+            onOpenChange={(open) => !open && setSelectedTransaction(null)}
+        />
+    )}
+    </>
   );
 }
