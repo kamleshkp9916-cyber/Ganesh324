@@ -255,7 +255,7 @@ export default function WalletPage() {
                          </div>
                          <ChevronRight className="h-5 w-5 text-gray-600"/>
                      </Button>
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800" disabled>
                          <div className="flex items-center gap-3">
                             <CreditCard className="h-6 w-6 text-gray-400"/>
                             <div>
