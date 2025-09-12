@@ -103,8 +103,16 @@ export default function WalletPage() {
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-white">Account Balance</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800" onClick={() => router.back()}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <CardTitle className="text-white">Account Balance</CardTitle>
+                </div>
+                <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                    <RefreshCw className="h-5 w-5" />
+                </Button>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
@@ -143,7 +151,7 @@ export default function WalletPage() {
                             <p className="text-sm font-medium text-white">Aug 31, 2025</p>
                         </div>
                    </div>
-                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 mt-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
                         <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
                             <Plus className="h-5 w-5" />
                             <span>Add Funds</span>
@@ -202,11 +210,11 @@ export default function WalletPage() {
                     </div>
                      <div className="flex items-center gap-4">
                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
-                         <div className="text-right w-32">
-                            <p className="font-semibold text-lg text-white">
+                         <div className="text-right w-32 flex items-center justify-end gap-2">
+                             <p className={cn("font-semibold text-lg text-white")}>
                                 {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
                             </p>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white -mr-2 -mb-2">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                                 <Download className="h-4 w-4" />
                             </Button>
                         </div>
