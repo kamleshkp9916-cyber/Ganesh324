@@ -3,13 +3,13 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -44,10 +44,20 @@ export default function WalletPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  const filteredTransactions = useMemo(() => {
+    if (!searchTerm) return transactions;
+    return transactions.filter(t => 
+        t.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, transactions]);
 
   if (loading || !isMounted) {
     return <div className="h-screen w-full flex items-center justify-center bg-black"><LoadingSpinner /></div>;
@@ -102,16 +112,12 @@ export default function WalletPage() {
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
           <div className="lg:col-span-2 space-y-6">
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                     <CardTitle className="text-white">Account Balance</CardTitle>
                 </div>
-                <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
-                    <RefreshCw className="h-5 w-5" />
-                </Button>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
@@ -206,7 +212,6 @@ export default function WalletPage() {
             </Card>
 
           </div>
-
           <div className="space-y-6">
              <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                  <CardHeader>
@@ -256,14 +261,23 @@ export default function WalletPage() {
         </div>
         
          <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-              <CardHeader className="flex flex-row justify-between items-center">
+             <CardHeader className="flex flex-row justify-between items-center">
                 <div>
                   <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
                   <CardDescription>A summary of your recent wallet activity</CardDescription>
                 </div>
+                 <div className="relative w-full max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                        placeholder="Search transactions..."
+                        className="bg-gray-800 border-gray-700 pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
               </CardHeader>
               <CardContent className="space-y-1">
-                {transactions.map(t => (
+                {filteredTransactions.map(t => (
                   <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
                     <Avatar className="h-9 w-9">
                       <AvatarImage src={t.avatar} />
@@ -274,11 +288,12 @@ export default function WalletPage() {
                       <p className="text-sm text-gray-400">{t.description}</p>
                       <p className="text-xs text-gray-500">{t.date}</p>
                     </div>
-                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
-                         <div className="text-right w-32 flex items-center justify-end gap-2">
-                             <p className={cn("font-semibold text-lg text-white")}>
-                                {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                    <div className="flex items-center gap-4">
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
+                         <div className="text-right w-36 flex items-center justify-end gap-2">
+                            <p className={cn("font-semibold text-lg text-white")}>
+                                {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4 text-green-400" /> : <ArrowDown className="inline-block h-4 w-4 text-red-400" />}
+                                ₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
                             </p>
                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
                                 <Download className="h-4 w-4" />
@@ -287,6 +302,9 @@ export default function WalletPage() {
                     </div>
                   </div>
                 ))}
+                {filteredTransactions.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No transactions found.</p>
+                )}
               </CardContent>
             </Card>
       </main>
