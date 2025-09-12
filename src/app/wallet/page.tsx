@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer } from 'lucide-react';
+import { RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,6 +44,11 @@ const invoiceData = {
     billedTo: {
         name: 'Alex Morgan',
         address: '42, Palm Street, Indiranagar, Bengaluru, KA 560038'
+    },
+    soldBy: {
+        name: 'GadgetGuru',
+        address: '789 Tech Avenue, Silicon Oasis, Bengaluru, KA 560100',
+        gstin: '29ABCDE1234F1Z5'
     },
     paidVia: {
         method: 'Wallet • INR (₹)',
@@ -87,7 +92,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
     };
     
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
             <DialogContent className="max-w-4xl p-0">
                 <style>{`
                     @media print {
@@ -122,9 +127,9 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                 `}</style>
                 <div ref={invoiceRef} id="printable-order" className="invoice-container w-full bg-white text-gray-800 p-8">
                     {/* Header */}
-                    <div className="flex justify-between items-start mb-8">
+                    <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-2xl font-bold text-black">StreamCart Wallet</h1>
+                            <h1 className="text-2xl font-bold text-black">StreamCart</h1>
                             <p className="text-sm text-gray-500">Invoice</p>
                         </div>
                         <div className="text-right">
@@ -136,37 +141,38 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                     </div>
 
                     {/* Billing Info */}
-                    <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                         <Card className="bg-gray-100 border-gray-200 p-4">
-                            <h2 className="text-sm font-semibold text-gray-600 mb-2">Billed To</h2>
+                            <h2 className="text-xs font-semibold text-gray-600 mb-1">BILLED TO</h2>
                             <p className="font-bold text-black">{invoiceData.billedTo.name}</p>
-                            <p className="text-sm text-gray-500">{invoiceData.billedTo.address}</p>
+                            <p className="text-xs text-gray-500">{invoiceData.billedTo.address}</p>
                         </Card>
-                        <Card className="bg-gray-100 border-gray-200 p-4">
-                            <h2 className="text-sm font-semibold text-gray-600 mb-2">Paid Via</h2>
-                            <p className="font-bold text-black">{invoiceData.paidVia.method}</p>
-                            <p className="text-sm text-gray-500">Transaction {invoiceData.paidVia.transactionId}</p>
+                         <Card className="bg-gray-100 border-gray-200 p-4">
+                            <h2 className="text-xs font-semibold text-gray-600 mb-1">SOLD BY</h2>
+                            <p className="font-bold text-black">{invoiceData.soldBy.name}</p>
+                            <p className="text-xs text-gray-500">{invoiceData.soldBy.address}</p>
+                             <p className="text-xs text-gray-500 mt-1">GSTIN: {invoiceData.soldBy.gstin}</p>
                         </Card>
                     </div>
 
                     {/* Items Table */}
-                    <div className="w-full overflow-x-auto">
-                        <table className="w-full text-left">
+                    <div className="w-full overflow-x-auto mb-6">
+                        <table className="w-full text-left text-sm">
                             <thead>
                                 <tr className="border-b border-gray-300">
-                                    <th className="py-2 pr-4 font-semibold">Item</th>
-                                    <th className="py-2 px-4 font-semibold text-center">Qty</th>
-                                    <th className="py-2 px-4 font-semibold text-right">Unit Price</th>
-                                    <th className="py-2 pl-4 font-semibold text-right">Amount</th>
+                                    <th className="py-2 pr-2 font-semibold">Item</th>
+                                    <th className="py-2 px-2 font-semibold text-center">Qty</th>
+                                    <th className="py-2 px-2 font-semibold text-right">Unit Price</th>
+                                    <th className="py-2 pl-2 font-semibold text-right">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {invoiceData.items.map(item => (
                                     <tr key={item.id} className="border-b border-gray-200">
-                                        <td className="py-3 pr-4">{item.name}</td>
-                                        <td className="py-3 px-4 text-center">{item.qty}</td>
-                                        <td className="py-3 px-4 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                                        <td className="py-3 pl-4 text-right">₹{item.amount.toFixed(2)}</td>
+                                        <td className="py-2 pr-2">{item.name}</td>
+                                        <td className="py-2 px-2 text-center">{item.qty}</td>
+                                        <td className="py-2 px-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
+                                        <td className="py-2 pl-2 text-right">₹{item.amount.toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -174,8 +180,8 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                     </div>
 
                     {/* Summary */}
-                    <div className="flex justify-end mt-8">
-                        <div className="w-full max-w-sm space-y-3">
+                    <div className="flex justify-end">
+                        <div className="w-full max-w-xs space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Subtotal</span>
                                 <span>₹{invoiceData.summary.subtotal.toFixed(2)}</span>
@@ -188,32 +194,31 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                                 <span className="text-gray-600">GST (18%)</span>
                                 <span>₹{invoiceData.summary.gst.toFixed(2)}</span>
                             </div>
-                            <Separator className="bg-gray-300 my-2" />
-                            <div className="flex justify-between items-center font-bold text-lg">
+                            <Separator className="bg-gray-300 my-1" />
+                            <div className="flex justify-between items-center font-bold text-base">
                                 <span className="text-black">Total Due (INR)</span>
                                 <span className="text-black">₹{invoiceData.summary.totalDue.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Amount Paid</span>
-                                <span>₹{invoiceData.summary.amountPaid.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Balance</span>
-                                <span>₹{invoiceData.summary.balance.toFixed(2)}</span>
-                            </div>
                         </div>
                     </div>
-
-                    <Separator className="bg-gray-300 mt-8" />
+                    
+                    <Card className="bg-gray-100 border-gray-200 p-4 mt-6">
+                        <h2 className="text-xs font-semibold text-gray-600 mb-1">PAYMENT DETAILS</h2>
+                         <div className="flex justify-between text-sm">
+                             <p>Paid via {invoiceData.paidVia.method}</p>
+                             <p className="font-bold text-black">₹{invoiceData.summary.amountPaid.toFixed(2)}</p>
+                         </div>
+                         <p className="text-xs text-gray-500">Transaction ID: {invoiceData.paidVia.transactionId}</p>
+                    </Card>
 
                     {/* Footer */}
-                    <div className="mt-8">
-                        <p className="text-sm text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
+                    <div className="mt-6 text-center">
+                        <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
                     </div>
                 </div>
-                <div className="w-full mx-auto p-6 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                <div className="w-full mx-auto p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
                     <p className="text-sm text-gray-500">Thank you for your purchase.</p>
-                    <div className="flex gap-4">
+                    <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
                             <Printer className="mr-2 h-4 w-4" />
                             Print
@@ -308,8 +313,7 @@ export default function WalletPage() {
       </header>
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                  <CardHeader className="flex flex-row items-center justify-between">
@@ -458,7 +462,7 @@ export default function WalletPage() {
                    </CardContent>
                </Card>
             </div>
-          </div>
+        </div>
         
            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
                <CardHeader className="flex flex-row justify-between items-center">
@@ -507,7 +511,6 @@ export default function WalletPage() {
                   )}
                 </CardContent>
               </Card>
-        </div>
       </main>
 
       <footer className="p-4 sm:p-6 mt-8 border-t border-gray-800 text-center text-xs text-gray-500">
