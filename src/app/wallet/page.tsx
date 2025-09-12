@@ -38,214 +38,6 @@ const mockBankAccounts = [
     { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
 ];
 
-const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeof initialTransactions[0] | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
-    const invoiceRef = useRef<HTMLDivElement>(null);
-    
-    const invoiceData = useMemo(() => {
-        if (!transaction || !transaction.items) return null;
-
-        const invoiceId = `INV-${transaction.transactionId.split('-')[1]}`;
-        const subtotal = transaction.items.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
-        const discount = transaction.discount || 0;
-        const totalBeforeGst = subtotal + discount;
-        const gstAmount = totalBeforeGst * 0.18; // 18% GST
-        const totalPaid = totalBeforeGst + gstAmount;
-
-        return {
-            invoiceNo: invoiceId,
-            date: transaction.date,
-            billedTo: {
-                name: 'Alex Morgan', // Mock data
-                address: '42, Palm Street, Indiranagar, Bengaluru, KA 560038'
-            },
-            soldBy: {
-                name: 'GadgetGuru', // Mock data
-                address: '789 Tech Avenue, Silicon Oasis, Bengaluru, KA 560100',
-                gstin: '29ABCDE1234F1Z5'
-            },
-            paidVia: {
-                method: transaction.description,
-                transactionId: transaction.transactionId
-            },
-            items: transaction.items.map((item, index) => ({...item, id: index + 1, amount: item.unitPrice * item.qty})),
-            summary: {
-                subtotal,
-                discount,
-                gst: gstAmount,
-                totalPaid: totalPaid,
-            }
-        };
-    }, [transaction]);
-
-    const handlePrint = () => {
-        window.print();
-    };
-
-    const handleDownloadPdf = async () => {
-        const input = invoiceRef.current;
-        if (input) {
-            const canvas = await html2canvas(input, {
-                 scale: 2,
-                 backgroundColor: '#ffffff' // Ensure white background for PDF
-            });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`invoice-${invoiceData?.invoiceNo}.pdf`);
-        }
-    };
-    
-    if (!invoiceData) return null;
-    
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl p-0" modal={false}>
-                <style>{`
-                    @media print {
-                        body * {
-                            visibility: hidden;
-                        }
-                        #printable-order, #printable-order * {
-                            visibility: visible;
-                        }
-                        #printable-order {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                            background-color: #ffffff !important;
-                            color: #000000 !important;
-                            -webkit-print-color-adjust: exact;
-                        }
-                        .no-print {
-                            display: none !important;
-                        }
-                        .invoice-container * {
-                            color: #000000 !important;
-                        }
-                        .invoice-container .bg-gray-100 {
-                           background-color: #f3f4f6 !important;
-                        }
-                         .invoice-container .border-gray-200 {
-                           border-color: #d1d5db !important;
-                        }
-                    }
-                `}</style>
-                <div ref={invoiceRef} id="printable-order" className="invoice-container w-full bg-white text-gray-800 p-8">
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h1 className="text-2xl font-bold text-black">StreamCart</h1>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500">Invoice No.</p>
-                            <p className="font-semibold text-black">{invoiceData.invoiceNo}</p>
-                            <p className="text-sm text-gray-500 mt-2">Date</p>
-                            <p className="font-semibold text-black">{invoiceData.date}</p>
-                        </div>
-                    </div>
-
-                    {/* Billing Info */}
-                    <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                        <Card className="bg-gray-100 border-gray-200 p-4">
-                            <h2 className="text-xs font-semibold text-gray-600 mb-1">BILLED TO</h2>
-                            <p className="font-bold text-black">{invoiceData.billedTo.name}</p>
-                            <p className="text-xs text-gray-500">{invoiceData.billedTo.address}</p>
-                        </Card>
-                         <Card className="bg-gray-100 border-gray-200 p-4">
-                            <h2 className="text-xs font-semibold text-gray-600 mb-1">SOLD BY</h2>
-                            <p className="font-bold text-black">{invoiceData.soldBy.name}</p>
-                            <p className="text-xs text-gray-500">{invoiceData.soldBy.address}</p>
-                             <p className="text-xs text-gray-500 mt-1">GSTIN: {invoiceData.soldBy.gstin}</p>
-                        </Card>
-                    </div>
-
-                    {/* Items Table */}
-                    <div className="w-full overflow-x-auto mb-6">
-                        <table className="w-full text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-300">
-                                    <th className="py-2 pr-2 font-semibold">Item</th>
-                                    <th className="py-2 px-2 font-semibold text-center">Qty</th>
-                                    <th className="py-2 px-2 font-semibold text-right">Unit Price</th>
-                                    <th className="py-2 pl-2 font-semibold text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {invoiceData.items.map(item => (
-                                    <tr key={item.id} className="border-b border-gray-200">
-                                        <td className="py-2 pr-2">
-                                            {item.name}
-                                            {item.key && <p className="text-xs text-gray-400 font-mono">({item.key})</p>}
-                                        </td>
-                                        <td className="py-2 px-2 text-center">{item.qty}</td>
-                                        <td className="py-2 px-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                                        <td className="py-2 pl-2 text-right">₹{item.amount.toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Summary */}
-                    <div className="flex justify-end">
-                        <div className="w-full max-w-xs space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Subtotal</span>
-                                <span>₹{invoiceData.summary.subtotal.toFixed(2)}</span>
-                            </div>
-                            {invoiceData.summary.discount < 0 && (
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Discount</span>
-                                    <span>- ₹{Math.abs(invoiceData.summary.discount).toFixed(2)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">GST (18%)</span>
-                                <span>₹{invoiceData.summary.gst.toFixed(2)}</span>
-                            </div>
-                            <Separator className="bg-gray-300 my-1" />
-                            <div className="flex justify-between items-center font-bold text-base">
-                                <span className="text-black">Total Paid</span>
-                                <span className="text-black">₹{invoiceData.summary.totalPaid.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <Card className="bg-gray-100 border-gray-200 p-4 mt-6">
-                        <h2 className="text-xs font-semibold text-gray-600 mb-1">PAYMENT DETAILS</h2>
-                         <div className="flex justify-between text-sm">
-                             <p>Paid via {invoiceData.paidVia.method}</p>
-                             <p className="font-bold text-black">₹{invoiceData.summary.totalPaid.toFixed(2)}</p>
-                         </div>
-                         <p className="text-xs text-gray-500">Transaction ID: {invoiceData.paidVia.transactionId}</p>
-                    </Card>
-
-                    {/* Footer */}
-                    <div className="mt-6 text-center">
-                        <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
-                    </div>
-                </div>
-                <DialogFooter className="p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
-                    <p className="text-sm text-gray-500">Thank you for your purchase.</p>
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={handlePrint}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print
-                        </Button>
-                        <Button onClick={handleDownloadPdf} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
-                        </Button>
-                    </div>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
 
 export default function WalletPage() {
   const router = useRouter();
@@ -257,7 +49,7 @@ export default function WalletPage() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTransaction, setSelectedTransaction] = useState<typeof initialTransactions[0] | null>(null);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -297,10 +89,30 @@ export default function WalletPage() {
     });
      setIsWithdrawOpen(false);
   };
+  
+  const handleGenerateInvoice = (transactionId: string) => {
+    setIsGeneratingInvoice(transactionId);
+    toast({
+        title: "Generating Invoice...",
+        description: "Please wait while we prepare your invoice.",
+    });
+
+    // Simulate API call to a third-party invoice generator
+    setTimeout(() => {
+        setIsGeneratingInvoice(null);
+        // In a real app, you would get a URL back from the API
+        const invoiceUrl = `/invoice/${transactionId}`; 
+        window.open(invoiceUrl, '_blank');
+        toast({
+            title: "Invoice Ready!",
+            description: "Your invoice has been opened in a new tab.",
+        });
+    }, 2000);
+  };
 
 
   return (
-    <Dialog onOpenChange={(open) => !open && setSelectedTransaction(null)}>
+    <Dialog>
     <div className="min-h-screen bg-black text-gray-300 font-sans">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
         <div className="flex items-center gap-3">
@@ -511,17 +323,15 @@ export default function WalletPage() {
                                 {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                 <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                             </p>
-                             <DialogTrigger asChild>
-                                  <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-8 w-8 text-gray-400 hover:text-white" 
-                                      onClick={() => setSelectedTransaction(t)}
-                                      disabled={t.type !== 'Order'}
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                               </DialogTrigger>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-gray-400 hover:text-white" 
+                                onClick={() => handleGenerateInvoice(t.transactionId)}
+                                disabled={t.type !== 'Order' || isGeneratingInvoice === t.transactionId}
+                            >
+                                {isGeneratingInvoice === t.transactionId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            </Button>
                         </div>
                     </div>
                   </div>
@@ -542,11 +352,8 @@ export default function WalletPage() {
         <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
       </footer>
     </div>
-    <InvoiceDialog 
-        transaction={selectedTransaction} 
-        open={!!selectedTransaction}
-        onOpenChange={(open) => !open && setSelectedTransaction(null)}
-    />
     </Dialog>
   );
 }
+
+    
