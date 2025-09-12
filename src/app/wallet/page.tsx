@@ -24,8 +24,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const initialTransactions = [
-    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
-    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', items: [{ name: 'Vintage Camera', qty: 1, unitPrice: 7240.00 }] },
+    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ key: 'prod_1', name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { key: 'prod_1_ship', name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
+    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', items: [{ key: 'prod_2', name: 'Vintage Camera', qty: 1, unitPrice: 7240.00 }] },
     { id: 3, transactionId: 'TXN-983990', type: 'Refund', description: 'Refund + Wallet', date: 'Sep 08, 2025', time: '09:00 AM', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R', status: 'Completed' },
     { id: 4, transactionId: 'TXN-001244', type: 'Deposit', description: 'PhonePe Deposit', date: 'Sep 10, 2025', time: '11:00 AM', amount: 1000.00, avatar: 'https://placehold.co/40x40.png?text=D', status: 'Failed' },
     { id: 5, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', time: '07:45 PM', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B', status: 'Processing' },
@@ -47,8 +47,8 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
         const subtotal = transaction.items.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
         const discount = transaction.discount || 0;
         const totalBeforeGst = subtotal + discount;
-        const gstAmount = totalBeforeGst * 0.18;
-        const totalDue = totalBeforeGst + gstAmount;
+        const gstAmount = totalBeforeGst * 0.18; // 18% GST
+        const totalPaid = totalBeforeGst + gstAmount;
 
         return {
             invoiceNo: `INV-${transaction.transactionId.split('-')[1]}`,
@@ -71,9 +71,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                 subtotal,
                 discount,
                 gst: gstAmount,
-                totalDue,
-                amountPaid: Math.abs(transaction.amount),
-                balance: 0.00
+                totalPaid: totalPaid,
             }
         };
     }, [transaction]);
@@ -87,7 +85,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
         if (input) {
             const canvas = await html2canvas(input, {
                  scale: 2,
-                 backgroundColor: '#ffffff'
+                 backgroundColor: '#ffffff' // Ensure white background for PDF
             });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -102,7 +100,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
     
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl p-0">
+            <DialogContent className="max-w-4xl p-0" modal={false}>
                 <style>{`
                     @media print {
                         body * {
@@ -126,10 +124,10 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         .invoice-container * {
                             color: #000000 !important;
                         }
-                        .invoice-container .bg-gray-800\\/50 {
+                        .invoice-container .bg-gray-100 {
                            background-color: #f3f4f6 !important;
                         }
-                         .invoice-container .border-gray-700 {
+                         .invoice-container .border-gray-200 {
                            border-color: #d1d5db !important;
                         }
                     }
@@ -178,7 +176,10 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                             <tbody>
                                 {invoiceData.items.map(item => (
                                     <tr key={item.id} className="border-b border-gray-200">
-                                        <td className="py-2 pr-2">{item.name}</td>
+                                        <td className="py-2 pr-2">
+                                            {item.name}
+                                            {item.key && <p className="text-xs text-gray-400 font-mono">({item.key})</p>}
+                                        </td>
                                         <td className="py-2 px-2 text-center">{item.qty}</td>
                                         <td className="py-2 px-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
                                         <td className="py-2 pl-2 text-right">₹{item.amount.toFixed(2)}</td>
@@ -207,8 +208,8 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                             </div>
                             <Separator className="bg-gray-300 my-1" />
                             <div className="flex justify-between items-center font-bold text-base">
-                                <span className="text-black">Total Due (INR)</span>
-                                <span className="text-black">₹{invoiceData.summary.totalDue.toFixed(2)}</span>
+                                <span className="text-black">Total Paid</span>
+                                <span className="text-black">₹{invoiceData.summary.totalPaid.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -217,7 +218,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         <h2 className="text-xs font-semibold text-gray-600 mb-1">PAYMENT DETAILS</h2>
                          <div className="flex justify-between text-sm">
                              <p>Paid via {invoiceData.paidVia.method}</p>
-                             <p className="font-bold text-black">₹{invoiceData.summary.amountPaid.toFixed(2)}</p>
+                             <p className="font-bold text-black">₹{invoiceData.summary.totalPaid.toFixed(2)}</p>
                          </div>
                          <p className="text-xs text-gray-500">Transaction ID: {invoiceData.paidVia.transactionId}</p>
                     </Card>
@@ -227,7 +228,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                         <p className="text-xs text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
                     </div>
                 </div>
-                 <div className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
+                 <DialogFooter className="w-full p-4 flex justify-between items-center bg-gray-50 rounded-b-lg no-print">
                     <p className="text-sm text-gray-500">Thank you for your purchase.</p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={handlePrint}>
@@ -239,7 +240,7 @@ const InvoiceDialog = ({ transaction, open, onOpenChange }: { transaction: typeo
                             Download PDF
                         </Button>
                     </div>
-                </div>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
@@ -325,209 +326,209 @@ export default function WalletPage() {
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-white">Account Balance</CardTitle>
-                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white h-8 w-8" onClick={() => toast({ title: "Refreshing..." })}>
-                            <RefreshCw className="h-4 w-4" />
-                        </Button>
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+               <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-white">Account Balance</CardTitle>
+                  <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800">
+                          <RefreshCw className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2">
+                    <p className="text-sm text-gray-400">Total balance</p>
+                    <p className="text-5xl font-bold text-white mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                        <Card className="bg-gray-800/60 border-gray-700 p-4">
+                            <p className="text-xs text-gray-400">Cash Available</p>
+                            <p className="text-lg font-bold text-white">₹{balance.toLocaleString('en-IN')}</p>
+                        </Card>
+                         <Card className="bg-gray-800/60 border-gray-700 p-4">
+                            <p className="text-xs text-gray-400">Blocked Margin</p>
+                            <p className="text-lg font-bold text-white">₹2,640.00</p>
+                             <p className="text-xs text-gray-500">Bought product balance</p>
+                        </Card>
+                         <Card className="bg-gray-800/60 border-gray-700 p-4 col-span-2">
+                            <p className="text-xs text-gray-400">Month-to-date spend</p>
+                            <p className="text-lg font-bold text-white">₹3,140</p>
+                        </Card>
                     </div>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2">
-                      <p className="text-sm text-gray-400">Total balance</p>
-                      <p className="text-5xl font-bold text-white mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                      <div className="grid grid-cols-2 gap-4 mt-6">
-                          <Card className="bg-gray-800/60 border-gray-700 p-4">
-                              <p className="text-xs text-gray-400">Cash Available</p>
-                              <p className="text-lg font-bold text-white">₹{balance.toLocaleString('en-IN')}</p>
-                          </Card>
-                           <Card className="bg-gray-800/60 border-gray-700 p-4">
-                              <p className="text-xs text-gray-400">Blocked Margin</p>
-                              <p className="text-lg font-bold text-white">₹2,640.00</p>
-                               <p className="text-xs text-gray-500">Bought product balance</p>
-                          </Card>
-                           <Card className="bg-gray-800/60 border-gray-700 p-4 col-span-2">
-                              <p className="text-xs text-gray-400">Month-to-date spend</p>
-                              <p className="text-lg font-bold text-white">₹3,140</p>
-                          </Card>
-                      </div>
-                  </div>
-                  <div className="flex flex-col justify-between">
-                     <div>
-                         <div className="flex justify-between items-center p-3 bg-gray-800/60 border border-gray-700 rounded-lg">
-                             <div className="flex items-center gap-2">
-                              <Coins className="h-6 w-6 text-yellow-400" />
-                              <div>
-                                  <p className="text-xs text-gray-400">StreamCart Coins</p>
-                                  <p className="text-lg font-bold text-white">1,250</p>
-                              </div>
-                             </div>
+                </div>
+                <div className="flex flex-col justify-between">
+                   <div>
+                       <div className="flex justify-between items-center p-3 bg-gray-800/60 border border-gray-700 rounded-lg">
+                           <div className="flex items-center gap-2">
+                            <Coins className="h-6 w-6 text-yellow-400" />
+                            <div>
+                                <p className="text-xs text-gray-400">StreamCart Coins</p>
+                                <p className="text-lg font-bold text-white">1,250</p>
+                            </div>
+                           </div>
+                       </div>
+                        <p className="text-xs text-gray-500 mt-1">Earn coins on every order.</p>
+                        <div className="flex justify-between items-center mt-4">
+                            <p className="text-xs text-gray-400">Last statement</p>
+                            <p className="text-sm font-medium text-white">Aug 31, 2025</p>
+                        </div>
+                   </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                    <Plus className="h-5 w-5" />
+                                    <span>Add Funds</span>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add Funds via UPI</DialogTitle>
+                                    <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
+                                </DialogHeader>
+                                <div className="flex flex-col items-center gap-4 py-4">
+                                    <div className="bg-white p-4 rounded-lg">
+                                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
+                                    <p className="font-semibold">streamcart@mock</p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                         <Button className="w-full justify-center" variant="outline">
+                            <BarChart2 className="h-5 w-5"/>
+                            <span>View Statements</span>
+                        </Button>
+                        <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                    <Download className="h-5 w-5" />
+                                    <span>Withdraw</span>
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Withdraw Funds</DialogTitle>
+                                    <DialogDescription>
+                                        Select an account and enter the amount you wish to withdraw.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <WithdrawForm 
+                                    bankAccounts={bankAccounts} 
+                                    onWithdraw={handleWithdraw}
+                                    onAddAccount={(newAccount) => {
+                                        setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
+                                        toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
+                                    }} 
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+                 <CardHeader>
+                    <CardTitle className="text-white text-base">Quick Actions</CardTitle>
+                    <CardDescription>Do more, faster</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                         <div className="flex items-center gap-3">
+                            <ShoppingBag className="h-6 w-6 text-gray-400"/>
+                            <div>
+                                <p className="font-semibold text-white">Browse Products</p>
+                                <p className="text-xs text-gray-500">Spend from wallet</p>
+                            </div>
                          </div>
-                          <p className="text-xs text-gray-500 mt-1">Earn coins on every order.</p>
-                          <div className="flex justify-between items-center mt-4">
-                              <p className="text-xs text-gray-400">Last statement</p>
-                              <p className="text-sm font-medium text-white">Aug 31, 2025</p>
-                          </div>
-                     </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
-                          <Dialog>
-                              <DialogTrigger asChild>
-                                  <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
-                                      <Plus className="h-5 w-5" />
-                                      <span>Add Funds</span>
-                                  </Button>
-                              </DialogTrigger>
-                               <DialogContent>
-                                  <DialogHeader>
-                                      <DialogTitle>Add Funds via UPI</DialogTitle>
-                                      <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
-                                  </DialogHeader>
-                                  <div className="flex flex-col items-center gap-4 py-4">
-                                      <div className="bg-white p-4 rounded-lg">
-                                          <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                      </div>
-                                      <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                      <p className="font-semibold">streamcart@mock</p>
-                                  </div>
-                              </DialogContent>
-                          </Dialog>
-                           <Button className="w-full justify-center" variant="outline">
-                              <BarChart2 className="h-5 w-5"/>
-                              <span>View Statements</span>
-                          </Button>
-                          <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                              <DialogTrigger asChild>
-                                  <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
-                                      <Download className="h-5 w-5" />
-                                      <span>Withdraw</span>
-                                  </Button>
-                              </DialogTrigger>
-                               <DialogContent>
-                                  <DialogHeader>
-                                      <DialogTitle>Withdraw Funds</DialogTitle>
-                                      <DialogDescription>
-                                          Select an account and enter the amount you wish to withdraw.
-                                      </DialogDescription>
-                                  </DialogHeader>
-                                  <WithdrawForm 
-                                      bankAccounts={bankAccounts} 
-                                      onWithdraw={handleWithdraw}
-                                      onAddAccount={(newAccount) => {
-                                          setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
-                                          toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
-                                      }} 
-                                  />
-                              </DialogContent>
-                          </Dialog>
-                      </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="space-y-6">
-               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-                   <CardHeader>
-                      <CardTitle className="text-white text-base">Quick Actions</CardTitle>
-                      <CardDescription>Do more, faster</CardDescription>
-                   </CardHeader>
-                   <CardContent className="space-y-3">
-                       <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
-                           <div className="flex items-center gap-3">
-                              <ShoppingBag className="h-6 w-6 text-gray-400"/>
-                              <div>
-                                  <p className="font-semibold text-white">Browse Products</p>
-                                  <p className="text-xs text-gray-500">Spend from wallet</p>
-                              </div>
-                           </div>
-                           <ChevronRight className="h-5 w-5 text-gray-600"/>
-                       </Button>
-                       <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
-                           <div className="flex items-center gap-3">
-                              <CreditCard className="h-6 w-6 text-gray-400"/>
-                              <div>
-                                  <p className="font-semibold text-white">Withdraw to Bank</p>
-                                  <p className="text-xs text-gray-500">IMPS / NEFT / UPI</p>
-                              </div>
-                           </div>
-                           <ChevronRight className="h-5 w-5 text-gray-600"/>
-                       </Button>
-                   </CardContent>
-               </Card>
-               <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-                   <CardHeader className="flex flex-row justify-between items-center">
-                      <CardTitle className="text-white text-base">Insights</CardTitle>
-                      <CardDescription>This month</CardDescription>
-                   </CardHeader>
-                   <CardContent className="space-y-4 text-sm">
-                      <div className="flex justify-between items-center">
-                          <p className="text-gray-400">Spending vs. last month</p>
-                          <p className="font-semibold text-red-400">-8%</p>
-                      </div>
-                       <div className="flex justify-between items-center">
-                          <p className="text-gray-400">Average transaction</p>
-                          <p className="font-semibold text-white">₹1,920</p>
-                      </div>
-                   </CardContent>
-               </Card>
-            </div>
+                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                     </Button>
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-gray-800">
+                         <div className="flex items-center gap-3">
+                            <CreditCard className="h-6 w-6 text-gray-400"/>
+                            <div>
+                                <p className="font-semibold text-white">Withdraw to Bank</p>
+                                <p className="text-xs text-gray-500">IMPS / NEFT / UPI</p>
+                            </div>
+                         </div>
+                         <ChevronRight className="h-5 w-5 text-gray-600"/>
+                     </Button>
+                 </CardContent>
+             </Card>
+             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+                 <CardHeader className="flex flex-row justify-between items-center">
+                    <CardTitle className="text-white text-base">Insights</CardTitle>
+                    <CardDescription>This month</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Spending vs. last month</p>
+                        <p className="font-semibold text-red-400">-8%</p>
+                    </div>
+                     <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Average transaction</p>
+                        <p className="font-semibold text-white">₹1,920</p>
+                    </div>
+                 </CardContent>
+             </Card>
+          </div>
         </div>
         
-           <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
-               <CardHeader className="flex flex-row justify-between items-center">
-                  <div>
-                    <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
-                    <CardDescription>A summary of your recent wallet activity</CardDescription>
-                  </div>
-                   <div className="relative w-full max-w-xs">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input 
-                          placeholder="Search transactions..."
-                          className="bg-gray-800 border-gray-700 pl-9"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-1">
-                  {filteredTransactions.map(t => (
-                    <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={t.avatar} />
-                        <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="ml-4 flex-grow">
-                        <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
-                        <p className="text-sm text-gray-400">{t.description}</p>
-                        <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                          <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
-                           <div className="text-right w-36 flex items-center justify-end gap-2">
-                              <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? "text-green-400" : "text-white")}>
-                                  {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
-                                  <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
-                              </p>
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-gray-400 hover:text-white" 
-                                    onClick={() => setSelectedTransaction(t)}
-                                    disabled={t.type !== 'Order'}
-                                >
-                                    <Download className="h-4 w-4" />
-                                </Button>
-                          </div>
-                      </div>
+         <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
+             <CardHeader className="flex flex-row justify-between items-center">
+                <div>
+                  <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
+                  <CardDescription>A summary of your recent wallet activity</CardDescription>
+                </div>
+                 <div className="relative w-full max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                        placeholder="Search transactions..."
+                        className="bg-gray-800 border-gray-700 pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {filteredTransactions.map(t => (
+                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-gray-800/50">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={t.avatar} />
+                      <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="ml-4 flex-grow">
+                      <p className="font-semibold text-white">{t.type} <span className="font-mono text-xs text-gray-500">{t.transactionId}</span></p>
+                      <p className="text-sm text-gray-400">{t.description}</p>
+                      <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
                     </div>
-                  ))}
-                  {filteredTransactions.length === 0 && (
-                      <p className="text-center text-gray-500 py-8">No transactions found.</p>
-                  )}
-                </CardContent>
-              </Card>
+                    <div className="flex items-center gap-4">
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
+                         <div className="text-right w-36 flex items-center justify-end gap-2">
+                            <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? "text-green-400" : "text-white")}>
+                                {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
+                                <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
+                            </p>
+                              <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 text-gray-400 hover:text-white" 
+                                  onClick={() => setSelectedTransaction(t)}
+                                  disabled={t.type !== 'Order'}
+                              >
+                                  <Download className="h-4 w-4" />
+                              </Button>
+                        </div>
+                    </div>
+                  </div>
+                ))}
+                {filteredTransactions.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">No transactions found.</p>
+                )}
+              </CardContent>
+            </Card>
       </main>
 
       <footer className="p-4 sm:p-6 mt-8 border-t border-gray-800 text-center text-xs text-gray-500">
