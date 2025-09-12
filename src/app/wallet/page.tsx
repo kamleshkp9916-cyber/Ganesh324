@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -18,6 +17,7 @@ import Image from 'next/image';
 import { WithdrawForm } from '@/components/settings-forms';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Logo } from '@/components/logo';
+import Link from 'next/link';
 
 const initialTransactions = [
     { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -1980.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed' },
@@ -118,11 +118,6 @@ export default function WalletPage() {
                  <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center gap-2">
                       <CardTitle className="text-white">Account Balance</CardTitle>
-                  </div>
-                  <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => toast({ title: 'Refreshing Balance...' })}>
-                          <RefreshCw className="h-4 w-4" />
-                      </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -298,11 +293,13 @@ export default function WalletPage() {
                           <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                            <div className="text-right w-36 flex items-center justify-end gap-2">
                               <p className="font-semibold text-lg text-white flex items-center gap-1">
-                                  {t.amount > 0 ? <ArrowUp className="h-4 w-4 text-green-400" /> : <ArrowDown className="h-4 w-4 text-red-400" />}
+                                  {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
                                   <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                               </p>
-                               <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
-                                  <Download className="h-4 w-4" />
+                               <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" asChild>
+                                  <Link href={`/invoice/${t.transactionId}`}>
+                                    <Download className="h-4 w-4" />
+                                  </Link>
                               </Button>
                           </div>
                       </div>
