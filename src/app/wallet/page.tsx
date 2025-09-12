@@ -148,6 +148,7 @@ export default function WalletPage() {
     }, 2000);
   };
 
+  const cashAvailable = balance - blockedMargin;
 
   return (
     <Dialog>
@@ -221,7 +222,7 @@ export default function WalletPage() {
                     <div className="grid grid-cols-2 gap-4 mt-6">
                         <Card className="bg-gray-800/60 border-gray-700 p-4">
                             <p className="text-xs text-gray-400">Cash Available</p>
-                            <p className="text-lg font-bold text-white">₹{(balance - blockedMargin).toFixed(2)}</p>
+                            <p className="text-lg font-bold text-white">₹{cashAvailable.toFixed(2)}</p>
                         </Card>
                         <Dialog>
                             <DialogTrigger asChild>
@@ -316,6 +317,7 @@ export default function WalletPage() {
                                     </DialogDescription>
                                 </DialogHeader>
                                 <WithdrawForm 
+                                    cashAvailable={cashAvailable}
                                     bankAccounts={bankAccounts} 
                                     onWithdraw={handleWithdraw}
                                     onAddAccount={(newAccount) => {

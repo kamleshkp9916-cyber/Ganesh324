@@ -79,22 +79,28 @@ export function AddBankForm({ onSave, onComplete }: AddBankFormProps) {
 
 
 // Withdraw Form
-const withdrawFormSchema = z.object({
-  amount: z.coerce.number().positive("Amount must be greater than 0."),
+const createWithdrawFormSchema = (cashAvailable: number) => z.object({
+  amount: z.coerce.number()
+    .positive("Amount must be greater than 0.")
+    .max(cashAvailable, `Withdrawal amount cannot exceed available cash of ₹${cashAvailable.toFixed(2)}.`),
   bankAccountId: z.string({ required_error: "You must select a bank account." }),
 });
 
+
 interface WithdrawFormProps {
+    cashAvailable: number;
     bankAccounts: { id: number; bankName: string; accountNumber: string; }[];
     onWithdraw: (amount: number, bankAccountId: string) => void;
     onAddAccount: (account: z.infer<typeof addBankFormSchema>) => void;
 }
 
-export function WithdrawForm({ bankAccounts, onWithdraw, onAddAccount }: WithdrawFormProps) {
+export function WithdrawForm({ cashAvailable, bankAccounts, onWithdraw, onAddAccount }: WithdrawFormProps) {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("withdraw");
     
+    const withdrawFormSchema = createWithdrawFormSchema(cashAvailable);
+
     const form = useForm<z.infer<typeof withdrawFormSchema>>({
         resolver: zodResolver(withdrawFormSchema),
     });
@@ -105,10 +111,6 @@ export function WithdrawForm({ bankAccounts, onWithdraw, onAddAccount }: Withdra
         setTimeout(() => {
             setIsLoading(false);
             onWithdraw(values.amount, values.bankAccountId);
-            toast({
-                title: "Withdrawal Initiated!",
-                description: `₹${values.amount} is on its way to your account.`,
-            });
             document.getElementById('closeWithdrawDialog')?.click();
         }, 1500);
     };
@@ -124,7 +126,7 @@ export function WithdrawForm({ bankAccounts, onWithdraw, onAddAccount }: Withdra
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <FormField control={form.control} name="amount" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Amount</FormLabel>
+                                <FormLabel>Amount (Available: ₹{cashAvailable.toFixed(2)})</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
