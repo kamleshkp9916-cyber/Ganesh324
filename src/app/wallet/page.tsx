@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,12 +20,14 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Logo } from '@/components/logo';
 
 const initialTransactions = [
-    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', amount: -1980.00, avatar: 'https://placehold.co/40x40.png?text=O' },
-    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O' },
-    { id: 3, transactionId: 'TXN-983990', type: 'Order', description: 'Refund + Wallet', date: 'Sep 08, 2025', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R' },
-    { id: 4, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B' },
-    { id: 5, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: 'Sep 06, 2025', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W' },
+    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', amount: -1980.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed' },
+    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed' },
+    { id: 3, transactionId: 'TXN-983990', type: 'Refund', description: 'Refund + Wallet', date: 'Sep 08, 2025', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R', status: 'Completed' },
+    { id: 4, transactionId: 'TXN-001244', type: 'Deposit', description: 'PhonePe Deposit', date: 'Sep 10, 2025', amount: 1000.00, avatar: 'https://placehold.co/40x40.png?text=D', status: 'Failed' },
+    { id: 5, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B', status: 'Processing' },
+    { id: 6, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: 'Sep 06, 2025', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W', status: 'Completed' },
 ];
+
 
 const mockBankAccounts = [
     { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
@@ -114,7 +116,7 @@ export default function WalletPage() {
                             <p className="text-lg font-bold text-white">₹{balance.toLocaleString('en-IN')}</p>
                         </Card>
                          <Card className="bg-gray-800/60 border-gray-700 p-4">
-                            <p className="text-xs text-gray-400">Blocked margin</p>
+                            <p className="text-xs text-gray-400">Blocked Margin</p>
                             <p className="text-lg font-bold text-white">₹2,640.00</p>
                              <p className="text-xs text-gray-500">Bought product balance</p>
                         </Card>
@@ -181,8 +183,8 @@ export default function WalletPage() {
 
             <Card className="bg-gray-900/50 border-gray-800 shadow-xl">
               <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle className="text-white">Recent Transactions</CardTitle>
-                <CardDescription>Last 7 days</CardDescription>
+                <CardTitle className="text-white">🧾 Invoices / Billing history</CardTitle>
+                <CardDescription>A summary of your recent wallet activity</CardDescription>
               </CardHeader>
               <CardContent className="space-y-1">
                 {transactions.map(t => (
@@ -194,12 +196,18 @@ export default function WalletPage() {
                     <div className="ml-4 flex-grow">
                       <p className="font-semibold text-white">{t.type} #{t.transactionId}</p>
                       <p className="text-sm text-gray-400">{t.description}</p>
+                      <p className="text-xs text-gray-500">{t.date}</p>
                     </div>
-                    <div className="text-right">
-                        <p className={cn("font-semibold", t.amount > 0 ? 'text-green-400' : 'text-red-400')}>
-                            {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
-                        </p>
-                        <p className="text-xs text-gray-500">{t.date}</p>
+                     <div className="flex items-center gap-4">
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                        <div className="text-right">
+                            <p className={cn("font-semibold", t.amount > 0 ? 'text-green-400' : 'text-red-400')}>
+                                {t.amount > 0 ? '+' : '-'}₹{Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                            </p>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                                <Download className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                   </div>
                 ))}
