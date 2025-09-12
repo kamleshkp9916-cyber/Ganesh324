@@ -143,20 +143,20 @@ export default function WalletPage() {
                             <p className="text-sm font-medium text-white">Aug 31, 2025</p>
                         </div>
                    </div>
-                    <div className="grid grid-cols-3 gap-2 mt-6">
-                        <Button className="h-20 flex-col gap-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 mt-6">
+                        <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
                             <Plus className="h-5 w-5" />
-                            <span className="text-xs">Add Funds</span>
+                            <span>Add Funds</span>
                         </Button>
-                         <Button className="h-20 flex-col gap-1" variant="outline">
+                         <Button className="w-full justify-center" variant="outline">
                             <BarChart2 className="h-5 w-5"/>
-                            <span className="text-xs">View Statements</span>
+                            <span>View Statements</span>
                         </Button>
                         <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
                             <DialogTrigger asChild>
-                                <Button className="h-20 flex-col gap-1 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
+                                <Button className="w-full justify-center bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 border border-yellow-500/30">
                                     <Download className="h-5 w-5" />
-                                    <span className="text-xs">Withdraw</span>
+                                    <span>Withdraw</span>
                                 </Button>
                             </DialogTrigger>
                              <DialogContent>
