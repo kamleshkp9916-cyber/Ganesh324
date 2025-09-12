@@ -20,8 +20,6 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const initialTransactions = [
     { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ key: 'prod_1', name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { key: 'prod_1_ship', name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
@@ -155,7 +153,7 @@ export default function WalletPage() {
                     <div className="grid grid-cols-2 gap-4 mt-6">
                         <Card className="bg-gray-800/60 border-gray-700 p-4">
                             <p className="text-xs text-gray-400">Cash Available</p>
-                            <p className="text-lg font-bold text-white">₹{balance.toLocaleString('en-IN')}</p>
+                            <p className="text-lg font-bold text-white">₹{balance.toFixed(2)}</p>
                         </Card>
                          <Card className="bg-gray-800/60 border-gray-700 p-4">
                             <p className="text-xs text-gray-400">Blocked Margin</p>
@@ -319,9 +317,12 @@ export default function WalletPage() {
                     <div className="flex items-center gap-4">
                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
-                            <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? "text-green-400" : "text-white")}>
+                             <p className={cn("font-semibold text-lg flex items-center gap-1", 
+                                t.status === 'Failed' ? 'text-red-400' : 
+                                t.amount > 0 ? "text-green-400" : "text-white"
+                             )}>
                                 {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
-                                <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
+                                <span>₹{Math.abs(t.amount).toFixed(2)}</span>
                             </p>
                             <Button 
                                 variant="ghost" 
@@ -355,5 +356,3 @@ export default function WalletPage() {
     </Dialog>
   );
 }
-
-    
