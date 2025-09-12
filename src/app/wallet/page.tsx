@@ -364,7 +364,7 @@ export default function WalletPage() {
                       <p className="text-xs text-gray-500">{t.date}, {t.time}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
                              <p className={cn("font-semibold text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-red-400' : 
