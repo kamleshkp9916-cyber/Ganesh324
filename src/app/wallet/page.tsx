@@ -398,7 +398,7 @@ export default function WalletPage() {
           </div>
         </div>
         
-         <Card className="bg-card shadow-lg">
+         <Card className="bg-black shadow-lg">
              <CardHeader className="flex flex-row justify-between items-center">
                 <div>
                   <CardTitle>🧾 Invoices / Billing history</CardTitle>
