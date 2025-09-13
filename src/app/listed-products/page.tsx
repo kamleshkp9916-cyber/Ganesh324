@@ -62,6 +62,14 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
+const collageCategories = [
+    { name: "Women's Fashion", href: "/womens-clothing", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", colSpan: "col-span-2", rowSpan: "row-span-2" },
+    { name: "Men's Style", href: "/mens-clothing", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", colSpan: "col-span-1", rowSpan: "row-span-1" },
+    { name: "Electronics", href: "/electronics", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", hint: "headphones", colSpan: "col-span-1", rowSpan: "row-span-1" },
+    { name: "Kids' Corner", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", colSpan: "col-span-1", rowSpan: "row-span-1" },
+    { name: "Home Goods", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
+];
+
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -240,12 +248,25 @@ export default function ListedProductsPage() {
             <Skeleton className="w-full aspect-[3/1] mb-10" />
           )}
 
-        <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight">Choose a Category</h1>
-            <p className="text-muted-foreground mt-4 text-lg">
-                Please select a category or subcategory from the menu above to start browsing products.
-            </p>
-        </div>
+        <section className="mb-12">
+            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
+                {collageCategories.map((cat, index) => (
+                    <Link key={index} href={cat.href} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
+                        <Image
+                            src={cat.imageUrl}
+                            alt={cat.name}
+                            fill
+                            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                            data-ai-hint={cat.hint}
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <h3 className="text-2xl font-bold text-white text-center p-2">{cat.name}</h3>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </section>
       </main>
     </div>
   );
