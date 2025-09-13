@@ -3,53 +3,25 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import Image from 'next/image';
+import { ArrowLeft, Search, User, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { WomensSidebar } from '@/components/womens-sidebar';
-import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
-import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { Card, CardContent } from '@/components/ui/card';
 
-const categories = [
-    { name: "Tops", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=500&fit=crop", hint: "woman wearing top" },
-    { name: "Dresses", image: "https://images.unsplash.com/photo-1595505994901-c584758d4e4f?w=400&h=500&fit=crop", hint: "woman wearing dress" },
-    { name: "Coats & Jackets", image: "https://images.unsplash.com/photo-1591942525516-2b8916295b28?w=400&h=500&fit=crop", hint: "woman wearing jacket" },
-    { name: "Pants", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop", hint: "woman wearing pants" },
-    { name: "Jeans", image: "https://images.unsplash.com/photo-1605518216984-4a24b3aa4c43?w=400&h=500&fit=crop", hint: "woman wearing jeans" },
-    { name: "Swim & Cover-Ups", image: "https://images.unsplash.com/photo-1560351322-65d1ef501570?w=400&h=500&fit=crop", hint: "woman in swimwear" },
-    { name: "Bras & Underwear", image: "https://images.unsplash.com/photo-1614749326792-58e1696b0521?w=400&h=500&fit=crop", hint: "lingerie set" },
-    { name: "Active", image: "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400&h=500&fit=crop", hint: "woman in activewear" },
-    { name: "Pajamas & Robes", image: "https://images.unsplash.com/photo-1585412219807-202795a43583?w=400&h=500&fit=crop", hint: "woman in pajamas" },
-    { name: "Handbags", image: "https://images.unsplash.com/photo-1579631621588-44f3c70e23a3?w=400&h=500&fit=crop", hint: "handbag" },
-    { name: "Shoes", image: "https://images.unsplash.com/photo-1590099033615-77535a093722?w=400&h=500&fit=crop", hint: "pair of shoes" },
-    { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
+const mainCategories = [
+    { name: "Women", href: "/listed-products", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=500&fit=crop", hint: "woman wearing top" },
+    { name: "Men", href: "/mens-clothing", image: "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=400&h=500&fit=crop", hint: "man wearing shirt" },
+    { name: "Kids", href: "/kids", image: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=400&h=500&fit=crop", hint: "girl wearing dress" },
+    { name: "Home", href: "/home", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=500&fit=crop", hint: "modern furniture" },
+    { name: "Electronics", href: "/electronics", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=500&fit=crop", hint: "laptop on desk" },
+    { name: "Shoes", href: "/shoes", image: "https://images.unsplash.com/photo-1590099033615-77535a093722?w=400&h=500&fit=crop", hint: "pair of shoes" },
+    { name: "Handbags", href: "/handbags", image: "https://images.unsplash.com/photo-1579631621588-44f3c70e23a3?w=400&h=500&fit=crop", hint: "handbag" },
+    { name: "Trending", href: "/trending", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
-
-const defaultBanners: CategoryBanners = {
-    "Women": {
-        banner1: { title: '25% off', description: 'Michael Kors for her. Ends 5/15.', imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop' },
-        banner2: { title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.', imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop' }
-    }
-} as any;
-
 
 export default function ListedProductsPage() {
   const router = useRouter();
-  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-      setIsMounted(true);
-  }, []);
-
-  const banner1 = banners?.Women?.banner1;
-  const banner2 = banners?.Women?.banner2;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -74,125 +46,50 @@ export default function ListedProductsPage() {
                         <Button variant="ghost" size="icon">
                             <Search className="h-6 w-6 lg:hidden" />
                         </Button>
-                        <Button variant="ghost" size="icon">
-                            <User className="h-6 w-6" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                            <ShoppingCart className="h-6 w-6" />
-                        </Button>
+                        <Link href="/profile">
+                            <Button variant="ghost" size="icon">
+                                <User className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                         <Link href="/cart">
+                            <Button variant="ghost" size="icon">
+                                <ShoppingCart className="h-6 w-6" />
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
         </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-4 lg:hidden">
-             <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-            <h1 className="text-2xl font-bold">Women</h1>
-             <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Menu className="h-6 w-6" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-80">
-                   <WomensSidebar />
-                </SheetContent>
-            </Sheet>
+        <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold">All Categories</h1>
+            <p className="text-muted-foreground mt-2">Explore all our product categories in one place.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column: Sidebar (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-1">
-            <WomensSidebar />
-          </aside>
-
-          {/* Right Column: Main Content */}
-          <div className="lg:col-span-3 space-y-10">
-            <div className="hidden lg:block">
-                <h1 className="text-4xl font-bold">Women</h1>
-            </div>
-
-            <section>
-                <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {categories.map(category => (
-                        <Link href="#" key={category.name} className="group block text-center">
-                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
-                                <Image 
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            {mainCategories.map(category => (
+                <Link href={category.href} key={category.name} className="group block">
+                    <Card className="overflow-hidden">
+                        <CardContent className="p-0">
+                            <div className="aspect-[4/5] bg-muted relative">
+                                <Image
                                     src={category.image}
                                     alt={category.name}
-                                    width={200}
-                                    height={200}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    fill
+                                    className="object-cover group-hover:scale-105 transition-transform"
                                     data-ai-hint={category.hint}
                                 />
                             </div>
-                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
-                        </Link>
-                    ))}
-                </div>
-            </section>
-            
-            <section>
-                 <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
-                     {isMounted && banner1 ? (
-                        <CardContent className="p-0 flex flex-col md:flex-row items-center">
-                            <div className="md:w-1/2 p-8 text-center md:text-left">
-                                <h3 className="text-3xl font-bold">{banner1.title}</h3>
-                                <p className="text-xl">{banner1.description}</p>
-                                <Button asChild variant="link" className="mt-4 px-0">
-                                    <Link href="#">Shop Now</Link>
-                                </Button>
-                            </div>
-                            <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
-                                <Image 
-                                    src={banner1.imageUrl}
-                                    alt={banner1.title}
-                                    fill
-                                    className="object-cover"
-                                    data-ai-hint="woman fashion"
-                                />
+                            <div className="p-4">
+                                <h3 className="font-semibold text-center group-hover:underline">{category.name}</h3>
                             </div>
                         </CardContent>
-                    ) : (
-                         <Skeleton className="w-full h-80" />
-                    )}
-                </Card>
-            </section>
-            
-            <section>
-                 <Card className="overflow-hidden relative text-white">
-                    {isMounted && banner2 ? (
-                        <>
-                            <div className="absolute inset-0 bg-black/40 z-10" />
-                            <Image 
-                                src={banner2.imageUrl}
-                                alt={banner2.title}
-                                fill
-                                className="object-cover"
-                                data-ai-hint="woman relaxing"
-                            />
-                            <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
-                                <p className="text-lg">Introducing</p>
-                                <h3 className="text-4xl font-bold my-2">{banner2.title}</h3>
-                                <p className="max-w-md">{banner2.description}</p>
-                                <Button asChild variant="link" className="mt-4 text-white">
-                                    <Link href="#">Shop Now</Link>
-                                </Button>
-                            </CardContent>
-                        </>
-                    ) : (
-                         <Skeleton className="w-full h-80" />
-                    )}
-                </Card>
-            </section>
-          </div>
+                    </Card>
+                </Link>
+            ))}
         </div>
       </main>
     </div>
   );
 }
-    
