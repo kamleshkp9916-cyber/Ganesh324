@@ -57,6 +57,7 @@ import {
   Save,
   Package,
   ShoppingBag,
+  Package2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -264,7 +265,6 @@ export default function LiveSellingPage() {
   const { user, userData, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [feed, setFeed] = useState<any[]>([]);
-  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -278,8 +278,6 @@ export default function LiveSellingPage() {
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -287,10 +285,8 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [feedFilter, setFeedFilter] = useState('global');
+  const [userPosts, setUserPosts] = useState<any[]>([]);
 
-  const [isScrolled, setIsScrolled] = useState(false);
-  const primaryTabsRef = useRef<HTMLDivElement>(null);
-  
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
     return ['All', ...Array.from(categories)];
@@ -363,7 +359,6 @@ export default function LiveSellingPage() {
     const db = getFirestoreDb();
     let postsQuery;
 
-    // Only fetch posts if the relevant tab is active
     if (activeTab === 'feeds') {
       setIsLoadingFeed(true);
       if (feedFilter === 'following' && user) {
@@ -398,7 +393,6 @@ export default function LiveSellingPage() {
         unsubscribe();
       };
     } else {
-      // If the active tab is not 'feeds', we still fetch global posts for other sections
       postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
        const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
@@ -432,18 +426,6 @@ export default function LiveSellingPage() {
       };
     }
   }, [isMounted, loadData]);
-
-   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchRef]);
   
   const handleFollowToggle = async (targetId: string) => {
     if (!user) {
@@ -486,12 +468,10 @@ export default function LiveSellingPage() {
   const filteredLiveSellers = useMemo(() => {
     let sellers = [...allSellers];
 
-    // Filter by category
     if (activeLiveFilter !== 'All') {
         sellers = sellers.filter(seller => seller.category === activeLiveFilter);
     }
     
-    // Filter by search term
     if (searchTerm) {
         sellers = sellers.filter(seller => 
             seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -570,21 +550,6 @@ export default function LiveSellingPage() {
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
   };
-  
-   const handleScroll = useCallback(() => {
-    if (primaryTabsRef.current) {
-      const { top } = primaryTabsRef.current.getBoundingClientRect();
-      const headerHeight = 64; // Height of the main header
-      setIsScrolled(top <= headerHeight);
-    }
-  }, []);
-
-  useEffect(() => {
-      window.addEventListener('scroll', handleScroll);
-      return () => {
-          window.removeEventListener('scroll', handleScroll);
-      };
-  }, [handleScroll]);
 
   const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
     const db = getFirestoreDb();
@@ -643,16 +608,6 @@ export default function LiveSellingPage() {
     }
 };
 
-  const renderTabs = (isSticky: boolean = false) => (
-    <div className={cn("primary-tabs flex justify-center py-2", isSticky && "border-b")}>
-      <TabsList className={cn("grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11 transition-opacity duration-300", isSticky ? "opacity-100" : isScrolled ? "opacity-0" : "opacity-100")}>
-        <TabsTrigger value="all">All</TabsTrigger>
-        <TabsTrigger value="live">Live Shopping</TabsTrigger>
-        <TabsTrigger value="feeds">Feeds</TabsTrigger>
-      </TabsList>
-    </div>
-  );
-
   return (
     <div className="flex min-h-screen bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -679,26 +634,17 @@ export default function LiveSellingPage() {
                         </div>
                         
                         <div className="flex items-center gap-1 sm:gap-2">
-                            <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10 flex items-center")}>
+                             <div className="relative flex-1 flex justify-center">
                                 <div className="w-full max-w-md relative flex items-center">
                                     <Input 
                                         placeholder="Search streams, products, or posts..." 
                                         className="rounded-full bg-muted pl-10 h-10"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        onFocus={() => setIsSearchExpanded(true)}
                                     />
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                    {isSearchExpanded && (
-                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsSearchExpanded(false)}>
-                                            <X className="h-5 w-5" />
-                                        </Button>
-                                    )}
                                 </div>
                             </div>
-                             <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchExpanded(true)}>
-                                <Search className="h-5 w-5" />
-                            </Button>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                      <Button variant="ghost" size="icon" className="relative">
@@ -732,7 +678,7 @@ export default function LiveSellingPage() {
                             </DropdownMenu>
                              <Link href="/cart" passHref>
                                 <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingBag className="h-5 w-5" />
+                                    <ShoppingCart className="h-5 w-5" />
                                     {cartCount > 0 && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{cartCount}</Badge>}
                                 </Button>
                             </Link>
@@ -767,16 +713,20 @@ export default function LiveSellingPage() {
                                             <span>My Profile</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/orders')}>
-                                            <Package className="mr-2 h-4 w-4" />
+                                            <Package2 className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
-                                         <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
                                             <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                          <ShoppingCart className="mr-2 h-4 w-4" />
+                                          <span>My Cart</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
@@ -839,29 +789,24 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                 </div>
-                <div className={cn("primary-tabs-container sticky top-16 z-40 bg-background/95 backdrop-blur-sm", isScrolled && "border-b")}>
-                    <div ref={primaryTabsRef} className={cn("container mx-auto px-4 sm:px-6 lg:px-8", isScrolled && "opacity-0 invisible h-0")}>
-                        {renderTabs(false)}
-                    </div>
-                    {isScrolled && (
-                        <div className={cn("fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm")}>
-                           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                             {renderTabs(true)}
-                           </div>
-                        </div>
-                    )}
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center border-b">
+                    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                    </TabsList>
                  </div>
             </header>
                 
                  
                  {activeTab !== 'feeds' && (
-                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                          <PromotionalCarousel />
                      </div>
                  )}
                 
                 <div className="pb-20">
-                    <TabsContent value="all" className="space-y-8">
+                    <TabsContent value="all" className="space-y-8 mt-0">
                     <section>
                             <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
@@ -1008,8 +953,8 @@ export default function LiveSellingPage() {
                         </section>
                     </TabsContent>
 
-                    <TabsContent value="live">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <TabsContent value="live" className="mt-0">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {liveStreamFilterButtons.map((filter) => (
                                 <Button 
@@ -1100,7 +1045,7 @@ export default function LiveSellingPage() {
                     </div>
                     </TabsContent>
 
-                    <TabsContent value="feeds" className="w-full">
+                    <TabsContent value="feeds" className="w-full mt-0">
                         <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -1129,7 +1074,7 @@ export default function LiveSellingPage() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                              <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
                                 {user && userData && (
                                     <Card>
@@ -1402,4 +1347,3 @@ export default function LiveSellingPage() {
 
 
 
-    
