@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import React, { useState, useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { differenceInDays } from 'date-fns';
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -70,7 +72,7 @@ export default function CategoryPage() {
             </header>
 
             <main className="container mx-auto py-6">
-                 <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-20 bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
+                 <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
                     <div className="relative flex-1 w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
@@ -82,7 +84,7 @@ export default function CategoryPage() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" className="gap-1.5 w-full justify-center">
-                                    Sort by: <span className="font-semibold capitalize">{sortOption}</span>
+                                    Sort by: <span className="font-semibold capitalize">{sortOption.replace('-', ' ')}</span>
                                     <ChevronDown className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -99,30 +101,36 @@ export default function CategoryPage() {
                     </div>
                 </div>
                 <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {sortedProducts.map((product) => (
-                        <Link href={`/product/${product.key}`} key={product.id} className="group block">
-                            <Card className="w-full overflow-hidden h-full flex flex-col">
-                                <div className="relative aspect-square bg-muted">
-                                    <Image
-                                        src={product.images[0]}
-                                        alt={product.name}
-                                        fill
-                                        className="object-cover transition-transform group-hover:scale-105"
-                                        data-ai-hint={product.hint}
-                                    />
-                                </div>
-                                <div className="p-3 flex-grow flex flex-col">
-                                    <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                    <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                        <Star className="w-4 h-4 fill-current" />
-                                        <span>4.8</span>
-                                        <span className="text-muted-foreground">(1.2k)</span>
+                    {sortedProducts.map((product: any) => {
+                        const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
+                        return (
+                            <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                                <Card className="w-full overflow-hidden h-full flex flex-col">
+                                    <div className="relative aspect-square bg-muted">
+                                        {isNew && (
+                                            <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
+                                        )}
+                                        <Image
+                                            src={product.images[0]}
+                                            alt={product.name}
+                                            fill
+                                            className="object-cover transition-transform group-hover:scale-105"
+                                            data-ai-hint={product.hint}
+                                        />
                                     </div>
-                                </div>
-                            </Card>
-                        </Link>
-                    ))}
+                                    <div className="p-3 flex-grow flex flex-col">
+                                        <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                        <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                            <Star className="w-4 h-4 fill-current" />
+                                            <span>4.8</span>
+                                            <span className="text-muted-foreground">(1.2k)</span>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </Link>
+                        )
+                    })}
                 </div>
             </main>
         </div>
