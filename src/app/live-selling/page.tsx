@@ -56,6 +56,7 @@ import {
   Flame,
   TrendingUp,
   Save,
+  Package2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -704,9 +705,6 @@ export default function LiveSellingPage() {
                                     </nav>
                                 </SheetContent>
                             </Sheet>
-                            <Link href="/live-selling" className="flex-shrink-0 hidden sm:block">
-                                <Logo />
-                            </Link>
                         </div>
                         
                         <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10")}>
