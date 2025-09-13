@@ -15,7 +15,7 @@ import { Slider } from "./ui/slider";
 import { Switch } from "./ui/switch";
 import { Star, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Card, CardContent } from "./ui/card";
 
@@ -30,16 +30,54 @@ const colors = [
   { name: "Green", value: "bg-green-500" },
 ];
 
-export function ProductFilterSidebar() {
-  const [priceRange, setPriceRange] = useState([500, 7500]);
-  const [selectedRating, setSelectedRating] = useState(0);
+interface ProductFilterSidebarProps {
+  priceRange: [number, number];
+  setPriceRange: React.Dispatch<React.SetStateAction<[number, number]>>;
+  selectedSubCategories: string[];
+  setSelectedSubCategories: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedBrands: string[];
+  setSelectedBrands: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedSizes: string[];
+  setSelectedSizes: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedColors: string[];
+  setSelectedColors: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedRating: number;
+  setSelectedRating: React.Dispatch<React.SetStateAction<number>>;
+  inStockOnly: boolean;
+  setInStockOnly: React.Dispatch<React.SetStateAction<boolean>>;
+  auctionState: string;
+  setAuctionState: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export function ProductFilterSidebar(props: ProductFilterSidebarProps) {
+  const {
+    priceRange, setPriceRange,
+    selectedBrands, setSelectedBrands,
+    selectedRating, setSelectedRating,
+    inStockOnly, setInStockOnly,
+    auctionState, setAuctionState
+  } = props;
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrands(prev => 
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+    );
+  };
+
+  const clearFilters = () => {
+    setPriceRange([0, 15000]);
+    setSelectedBrands([]);
+    setSelectedRating(0);
+    setInStockOnly(false);
+    setAuctionState("all");
+  };
 
   return (
     <ScrollArea className="h-[calc(100vh-8rem)] lg:h-[calc(100vh-10rem)]">
       <div className="p-4 lg:p-0 lg:pr-4">
         <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Filters</h3>
-            <Button variant="ghost" size="sm">Clear all</Button>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>
         </div>
         <Accordion type="multiple" defaultValue={["sub-category", "price", "brand", "size", "rating"]} className="w-full">
             
@@ -62,10 +100,10 @@ export function ProductFilterSidebar() {
                 <AccordionContent>
                     <div className="p-2">
                         <Slider
-                            defaultValue={priceRange}
+                            value={priceRange}
                             max={15000}
                             step={100}
-                            onValueChange={setPriceRange}
+                            onValueChange={(value) => setPriceRange(value as [number, number])}
                         />
                         <div className="flex justify-between text-sm text-muted-foreground mt-2">
                             <span>₹{priceRange[0]}</span>
@@ -81,7 +119,11 @@ export function ProductFilterSidebar() {
                     <div className="space-y-2">
                         {brands.map((brand) => (
                             <div key={brand} className="flex items-center space-x-2">
-                                <Checkbox id={`brand-${brand}`} />
+                                <Checkbox 
+                                  id={`brand-${brand}`} 
+                                  checked={selectedBrands.includes(brand)}
+                                  onCheckedChange={() => handleBrandChange(brand)}
+                                />
                                 <Label htmlFor={`brand-${brand}`} className="font-normal">{brand}</Label>
                             </div>
                         ))}
@@ -137,7 +179,7 @@ export function ProductFilterSidebar() {
                 <AccordionTrigger>Availability</AccordionTrigger>
                 <AccordionContent>
                     <div className="flex items-center space-x-2">
-                        <Switch id="in-stock" />
+                        <Switch id="in-stock" checked={inStockOnly} onCheckedChange={setInStockOnly} />
                         <Label htmlFor="in-stock">In Stock Only</Label>
                     </div>
                 </AccordionContent>
@@ -146,7 +188,7 @@ export function ProductFilterSidebar() {
              <AccordionItem value="auction">
                 <AccordionTrigger>Auction State</AccordionTrigger>
                 <AccordionContent>
-                    <RadioGroup defaultValue="all">
+                    <RadioGroup value={auctionState} onValueChange={setAuctionState}>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="all" id="auction-all" />
                             <Label htmlFor="auction-all">All Products</Label>

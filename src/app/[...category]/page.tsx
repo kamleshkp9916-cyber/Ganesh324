@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -27,6 +27,16 @@ export default function CategoryPage() {
     const [sortOption, setSortOption] = useState("relevance");
     
     let { category: categoryPath } = params;
+
+    // Filter states
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000]);
+    const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
+    const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+    const [selectedColors, setSelectedColors] = useState<string[]>([]);
+    const [selectedRating, setSelectedRating] = useState(0);
+    const [inStockOnly, setInStockOnly] = useState(false);
+    const [auctionState, setAuctionState] = useState("all");
 
     if (!categoryPath) {
         return <div>Loading...</div>;
@@ -42,7 +52,31 @@ export default function CategoryPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-    const products = Object.values(productDetails).slice(0, 10); 
+    const products = Object.values(productDetails); 
+
+    const filteredProducts = useMemo(() => {
+        let filtered = products.filter(product => {
+            const price = parseFloat(product.price.replace(/[^0-9.-]+/g,""));
+            if (price < priceRange[0] || price > priceRange[1]) return false;
+
+            if (selectedRating > 0 && (productDetails as any)[product.key]?.rating_avg < selectedRating) return false;
+            
+            if (inStockOnly && !(productDetails as any)[product.key]?.in_stock) return false;
+
+            if(selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
+
+            return true;
+        });
+
+        if (sortOption === 'price-asc') {
+            filtered.sort((a, b) => parseFloat(a.price.replace(/[^0-9.-]+/g,"")) - parseFloat(b.price.replace(/[^0-9.-]+/g,"")));
+        } else if (sortOption === 'price-desc') {
+            filtered.sort((a, b) => parseFloat(b.price.replace(/[^0-9.-]+/g,"")) - parseFloat(a.price.replace(/[^0-9.-]+/g,"")));
+        }
+
+        return filtered;
+
+    }, [products, priceRange, selectedRating, inStockOnly, selectedBrands, sortOption]);
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -62,7 +96,24 @@ export default function CategoryPage() {
                 {/* Desktop Sidebar */}
                 <aside className="hidden lg:block lg:col-span-1">
                     <div className="sticky top-24">
-                        <ProductFilterSidebar />
+                        <ProductFilterSidebar
+                            priceRange={priceRange}
+                            setPriceRange={setPriceRange}
+                            selectedSubCategories={selectedSubCategories}
+                            setSelectedSubCategories={setSelectedSubCategories}
+                            selectedBrands={selectedBrands}
+                            setSelectedBrands={setSelectedBrands}
+                            selectedSizes={selectedSizes}
+                            setSelectedSizes={setSelectedSizes}
+                            selectedColors={selectedColors}
+                            setSelectedColors={setSelectedColors}
+                            selectedRating={selectedRating}
+                            setSelectedRating={setSelectedRating}
+                            inStockOnly={inStockOnly}
+                            setInStockOnly={setInStockOnly}
+                            auctionState={auctionState}
+                            setAuctionState={setAuctionState}
+                        />
                     </div>
                 </aside>
 
@@ -85,7 +136,24 @@ export default function CategoryPage() {
                                     </Button>
                                 </SheetTrigger>
                                 <SheetContent className="p-0">
-                                   <ProductFilterSidebar />
+                                   <ProductFilterSidebar
+                                        priceRange={priceRange}
+                                        setPriceRange={setPriceRange}
+                                        selectedSubCategories={selectedSubCategories}
+                                        setSelectedSubCategories={setSelectedSubCategories}
+                                        selectedBrands={selectedBrands}
+                                        setSelectedBrands={setSelectedBrands}
+                                        selectedSizes={selectedSizes}
+                                        setSelectedSizes={setSelectedSizes}
+                                        selectedColors={selectedColors}
+                                        setSelectedColors={setSelectedColors}
+                                        selectedRating={selectedRating}
+                                        setSelectedRating={setSelectedRating}
+                                        inStockOnly={inStockOnly}
+                                        setInStockOnly={setInStockOnly}
+                                        auctionState={auctionState}
+                                        setAuctionState={setAuctionState}
+                                    />
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenu>
@@ -108,7 +176,7 @@ export default function CategoryPage() {
                         </div>
                     </div>
                     <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {products.map((product) => (
+                        {filteredProducts.map((product) => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block">
                                 <Card className="w-full overflow-hidden h-full flex flex-col">
                                     <div className="relative aspect-square bg-muted">
