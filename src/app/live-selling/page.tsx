@@ -806,10 +806,10 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                        <TabsList className="grid w-full max-w-md grid-cols-3">
-                            <TabsTrigger value="all">All</TabsTrigger>
-                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                        <TabsList className="grid w-full max-w-md grid-cols-3 bg-transparent p-0">
+                            <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">All</TabsTrigger>
+                            <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">Live Shopping</TabsTrigger>
+                            <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">Feeds</TabsTrigger>
                         </TabsList>
                     </div>
                 </div>
@@ -1360,3 +1360,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
+    
