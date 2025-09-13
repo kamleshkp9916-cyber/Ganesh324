@@ -471,8 +471,15 @@ export default function LiveSellingPage() {
   };
 
   const topLiveStreams = useMemo(() => {
-    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 8);
-  }, [allSellers]);
+    let sellers = [...allSellers];
+     if (searchTerm) {
+        sellers = sellers.filter(seller => 
+            seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            seller.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    return sellers.sort((a, b) => b.viewers - a.viewers).slice(0, 8);
+  }, [allSellers, searchTerm]);
 
   const filteredLiveSellers = useMemo(() => {
     let sellers = [...allSellers];
@@ -510,11 +517,19 @@ export default function LiveSellingPage() {
         return { ...seller, product };
     }).filter(item => item && item.product);
 
-    if (productCategoryFilter === 'All') {
-      return products;
+    if (productCategoryFilter !== 'All') {
+      products = products.filter(item => item?.product.category === productCategoryFilter);
     }
-    return products.filter(item => item?.product.category === productCategoryFilter);
-  }, [productCategoryFilter]);
+
+    if (searchTerm) {
+        products = products.filter(item => 
+            item.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
+    return products;
+  }, [productCategoryFilter, searchTerm]);
   
 
   const handleReply = (sellerName: string) => {
@@ -657,7 +672,7 @@ export default function LiveSellingPage() {
                     </div>
                     
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="ghost" className="hidden sm:inline-flex" asChild>
+                         <Button variant="ghost" className="hidden sm:inline-flex" asChild>
                             <Link href="/listed-products">
                                 <ShoppingBag className="mr-2 h-4 w-4"/>
                                 Products
@@ -803,7 +818,7 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-             <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm shadow-sm">
+            <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm shadow-sm">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="p-1.5 rounded-full">
                         <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">All</TabsTrigger>
