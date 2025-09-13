@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -652,9 +651,9 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                      <div className="flex items-center gap-1 sm:gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2 -ml-2">
                              <Logo className="h-7 w-7" />
@@ -663,14 +662,20 @@ export default function LiveSellingPage() {
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
-                         <div className={cn("relative transition-all duration-300 w-full max-w-sm sm:max-w-md lg:max-w-lg", isSearchOpen ? "w-full" : "w-auto")}>
+                         <div className={cn("relative transition-all duration-300 w-full sm:max-w-md lg:max-w-lg", isSearchOpen ? "max-w-xl" : "max-w-sm")}>
+                             <div className="relative">
                                 <Input 
-                                placeholder="Search..." 
-                                className={cn("rounded-full bg-muted h-10 pl-10 peer")}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground")}/>
+                                    placeholder="Search..." 
+                                    className={cn("rounded-full bg-muted h-10 pl-10 peer w-full lg:w-auto", 
+                                        "lg:focus:w-full"
+                                    )}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setIsSearchOpen(true)}
+                                    onBlur={() => setIsSearchOpen(false)}
+                                />
+                                <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground")}/>
+                             </div>
                         </div>
                     </div>
                     
@@ -821,17 +826,20 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <div className="bg-background border-b sticky top-16 z-40">
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <TabsList className="p-1.5 h-auto rounded-full bg-muted">
-                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Feeds</TabsTrigger>
-                    </TabsList>
+             <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm">
+                <div className="flex justify-center p-2">
+                    <div className="bg-muted p-1.5 rounded-full shadow-md">
+                        <TabsList className="bg-transparent p-0">
+                            <TabsTrigger value="all" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">All</TabsTrigger>
+                            <TabsTrigger value="live" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
+                            <TabsTrigger value="feeds" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
+                        </TabsList>
+                    </div>
                 </div>
             </div>
                  
-                 {activeTab !== 'feeds' && (
+            <div className="flex-1">
+                {activeTab !== 'feeds' && (
                      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                          <PromotionalCarousel />
                      </div>
@@ -873,8 +881,10 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><Star className="text-primary" /> Popular Products</h2>
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                             <div className="text-center mb-4">
+                                 <h2 className="text-2xl font-bold flex items-center gap-2 justify-center"><Star className="text-primary" /> Popular Products</h2>
+                            </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
                                     if (!item || !item.product) return null;
@@ -1351,11 +1361,9 @@ export default function LiveSellingPage() {
                             )}
                     </TabsContent>
                 </div>
+            </div>
             <Footer />
         </Tabs>
     </div>
   );
 }
-
-
-
