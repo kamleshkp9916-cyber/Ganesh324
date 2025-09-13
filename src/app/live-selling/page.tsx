@@ -1105,7 +1105,37 @@ export default function LiveSellingPage() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
+                                {user && userData && (
+                                    <Card>
+                                        <CardContent className="p-4 space-y-3 text-center">
+                                            <Avatar className="h-16 w-16 mx-auto">
+                                                <AvatarImage src={userData.photoURL} alt={userData.displayName} />
+                                                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <h3 className="font-bold">{userData.displayName}</h3>
+                                                <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                            </div>
+                                            <div className="flex justify-around pt-2">
+                                                <div>
+                                                    <p className="font-bold">{userPosts.length}</p>
+                                                    <p className="text-xs text-muted-foreground">Posts</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold">4.2k</p>
+                                                    <p className="text-xs text-muted-foreground">Likes</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold">312</p>
+                                                    <p className="text-xs text-muted-foreground">Saves</p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
@@ -1344,4 +1374,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
 
