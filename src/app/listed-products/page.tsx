@@ -40,9 +40,9 @@ const ListItem = React.forwardRef<
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+          {children && <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
-          </p>
+          </p>}
         </a>
       </NavigationMenuLink>
     </li>
@@ -83,10 +83,10 @@ const collageCategories = [
 
 function MegaMenuContent({ title, subcategories, href }: { title: string, subcategories: string[], href: string }) {
     return (
-      <ul className="grid gap-3 p-6 md:w-[250px]">
-        <ListItem href={href} title={title}>
-            Browse all products in this category.
-        </ListItem>
+      <ul className="grid w-[200px] gap-3 p-4 md:w-[250px]">
+        <li className="font-semibold text-lg border-b pb-2 mb-2">
+            <Link href={href} className="hover:underline">{title}</Link>
+        </li>
         {subcategories.map((link) => (
           <ListItem key={link} href="#" title={link} />
         ))}
