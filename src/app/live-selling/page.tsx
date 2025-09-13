@@ -821,14 +821,12 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm shadow-sm">
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <TabsList className="p-1.5 rounded-full bg-transparent">
-                        <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Feeds</TabsTrigger>
-                    </TabsList>
-                </div>
+            <div className="sticky top-16 z-40 flex justify-center py-2 bg-background/95 backdrop-blur-sm">
+                <TabsList className="p-1 rounded-full bg-muted">
+                    <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">All</TabsTrigger>
+                    <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">Live Shopping</TabsTrigger>
+                    <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">Feeds</TabsTrigger>
+                </TabsList>
             </div>
                 
                  
@@ -841,7 +839,7 @@ export default function LiveSellingPage() {
                 <div className="pb-20">
                     <TabsContent value="all" className="space-y-8 mt-0">
                     <section>
-                            <div className="px-4 mb-4">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
@@ -892,7 +890,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section>
-                            <div className="px-4 mb-4">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
@@ -929,11 +927,11 @@ export default function LiveSellingPage() {
                                 })}
                             </div>
                         </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-                            <div className="px-4 mb-4">
+                        <section className="mt-6">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
@@ -1376,3 +1374,4 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
