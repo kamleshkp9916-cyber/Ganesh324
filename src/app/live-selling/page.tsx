@@ -267,33 +267,6 @@ function CommentSheet({ postId, trigger }: { postId: string, trigger: React.Reac
     )
 }
 
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  )
-})
-ListItem.displayName = "ListItem"
-
-
 export default function LiveSellingPage() {
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
@@ -672,33 +645,9 @@ export default function LiveSellingPage() {
                         </div>
                         
                         <div className="hidden lg:flex items-center gap-4">
-                             <NavigationMenu>
-                                <NavigationMenuList>
-                                     <NavigationMenuItem>
-                                        <NavigationMenuTrigger>Categories</NavigationMenuTrigger>
-                                        <NavigationMenuContent>
-                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                            {categories.map((category) => (
-                                            <ListItem
-                                                key={category.name}
-                                                title={category.name}
-                                                href={getCategoryUrl(category.name)}
-                                            >
-                                                {category.subcategories.slice(0, 3).join(", ")}...
-                                            </ListItem>
-                                            ))}
-                                        </ul>
-                                        </NavigationMenuContent>
-                                    </NavigationMenuItem>
-                                    <NavigationMenuItem>
-                                        <Link href="/top-seller" legacyBehavior passHref>
-                                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                                Top Sellers
-                                            </NavigationMenuLink>
-                                        </Link>
-                                    </NavigationMenuItem>
-                                </NavigationMenuList>
-                            </NavigationMenu>
+                             <Button variant="ghost" asChild>
+                                <Link href="/listed-products">Listed Products</Link>
+                             </Button>
                         </div>
 
                         <div className="flex items-center gap-1 sm:gap-2">
@@ -718,16 +667,6 @@ export default function LiveSellingPage() {
                                 {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
                             </Button>
                             
-                            <Link href="/cart" passHref>
-                                <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    {cartCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                                            {cartCount}
-                                        </span>
-                                    )}
-                                </Button>
-                            </Link>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                      <Button variant="ghost" size="icon" className="relative">
@@ -769,8 +708,8 @@ export default function LiveSellingPage() {
                                         </Avatar>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                {user ? (
-                                    <DropdownMenuContent align="end" className="min-w-[12rem]">
+                                {user && userData ? (
+                                    <DropdownMenuContent align="end" className="min-w-[16rem]">
                                         <DropdownMenuLabel>
                                             <div>{userData?.displayName}</div>
                                             <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
@@ -799,6 +738,11 @@ export default function LiveSellingPage() {
                                          <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
+                                        </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                            <span>My Cart</span>
+                                             {cartCount > 0 && <span className="ml-auto text-xs font-bold">{cartCount}</span>}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
