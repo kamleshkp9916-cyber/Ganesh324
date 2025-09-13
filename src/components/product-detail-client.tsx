@@ -408,8 +408,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <span>Product Key:</span>
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className="text-sm text-muted-foreground">Product Key:</span>
                                 <Badge variant="secondary">{product.key}</Badge>
                             </div>
                             {reviews.length > 0 && (
@@ -457,7 +457,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     Add to Cart
                                 </Button>
                             )}
-                            <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
+                            <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
                                 Buy Now
                             </Button>
                         </div>
@@ -890,5 +890,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
 
     
