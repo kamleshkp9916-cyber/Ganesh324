@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, User, X } from "lucide-react";
+import { Menu, ShoppingCart, User, X, ChevronRight } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { HUB_BANNER_KEY, HubBanner } from "@/app/admin/settings/page";
+import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
@@ -55,6 +55,12 @@ const defaultHubBanner: HubBanner = {
     description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
     imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
 };
+
+const defaultFeaturedProducts: FeaturedProduct[] = [
+  { imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop', name: 'Latest Laptop', model: 'Model Pro X' },
+  { imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&h=500&fit=crop', name: 'Smartphone', model: 'SmartX 12' },
+  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
+];
 
 
 const ListItem = React.forwardRef<
@@ -111,6 +117,7 @@ export default function ListedProductsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const router = useRouter();
   const [hubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
+  const [featuredProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -134,11 +141,6 @@ export default function ListedProductsPage() {
                          <NavigationMenu>
                             <NavigationMenuList>
                                 <NavigationMenuItem>
-                                    <Link href="/home" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
                                     <NavigationMenuTrigger>Men</NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Men" subcategories={menSubcategories} />
@@ -161,21 +163,6 @@ export default function ListedProductsPage() {
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
                                     </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <Link href="#" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Auctions</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <Link href="/help" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Help</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                 <NavigationMenuItem>
-                                    <Link href="/contact" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact Us</NavigationMenuLink>
-                                    </Link>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>
@@ -218,17 +205,35 @@ export default function ListedProductsPage() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
           {isMounted && hubBanner ? (
             <Card className="overflow-hidden border-none shadow-lg mb-10">
-              <CardContent className="p-0 relative aspect-[3/1]">
-                <Image
-                  src={hubBanner.imageUrl}
-                  alt={hubBanner.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
-                   <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
-                   <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
+              <CardContent className="p-0 relative">
+                <div className="aspect-[3/1] relative">
+                    <Image
+                      src={hubBanner.imageUrl}
+                      alt={hubBanner.title}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
+                       <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
+                       <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
+                    </div>
                 </div>
+                 {featuredProducts && featuredProducts.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
+                    {featuredProducts.map((product, index) => (
+                      <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
+                        <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.model}</p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (

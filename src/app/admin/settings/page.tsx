@@ -91,6 +91,7 @@ export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 export const HUB_BANNER_KEY = 'streamcart_hub_banner';
+export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
 
 
 const announcementSchema = z.object({
@@ -137,6 +138,13 @@ export type CategoryBanners = {
 }
 
 export type HubBanner = z.infer<typeof bannerSchema>;
+
+const featuredProductSchema = z.object({
+  imageUrl: z.string().url("A valid image URL is required."),
+  name: z.string().min(3, "Product name is required."),
+  model: z.string().min(1, "Model/Identifier is required."),
+});
+export type FeaturedProduct = z.infer<typeof featuredProductSchema>;
 
 
 const footerContentSchema = z.object({
@@ -203,6 +211,12 @@ const defaultHubBanner: HubBanner = {
     description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
     imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
 };
+
+const defaultFeaturedProducts: FeaturedProduct[] = [
+  { imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop', name: 'Latest Laptop', model: 'Model Pro X' },
+  { imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&h=500&fit=crop', name: 'Smartphone', model: 'SmartX 12' },
+  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
+];
 
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
@@ -385,6 +399,53 @@ const HubBannerForm = ({ banner, onSave }: { banner: HubBanner, onSave: (data: H
     );
 };
 
+const FeaturedProductForm = ({ index, product, onSave }: { index: number, product: FeaturedProduct, onSave: (index: number, data: FeaturedProduct) => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof featuredProductSchema>>({
+        resolver: zodResolver(featuredProductSchema),
+        defaultValues: product,
+    });
+
+    useEffect(() => {
+        form.reset(product);
+    }, [product, form]);
+
+    const onSubmit = (values: z.infer<typeof featuredProductSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave(index, values);
+            setIsLoading(false);
+        }, 500);
+    };
+
+    return (
+        <Card className="bg-muted/30">
+            <CardHeader><CardTitle>Featured Product {index + 1}</CardTitle></CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                            <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="name" render={({ field }) => (
+                            <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="model" render={({ field }) => (
+                            <FormItem><FormLabel>Model/Identifier</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <div className="flex justify-end pt-2">
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Product
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+};
+
 const FooterContentForm = ({ storedValue, onSave }: { storedValue: FooterContent, onSave: (data: FooterContent) => void }) => {
     const [isLoading, setIsLoading] = useState(false);
     const form = useForm<z.infer<typeof footerContentSchema>>({
@@ -464,6 +525,7 @@ export default function AdminSettingsPage() {
   const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultCategoryBanners);
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   const [hubBanner, setHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
+  const [featuredProducts, setFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
@@ -547,6 +609,13 @@ export default function AdminSettingsPage() {
    const handleSaveHubBanner = (data: HubBanner) => {
     setHubBanner(data);
     toast({ title: "Hub Banner Saved!", description: "The banner on the Listed Products page has been updated." });
+  };
+
+  const handleSaveFeaturedProduct = (index: number, data: FeaturedProduct) => {
+      const newProducts = [...featuredProducts];
+      newProducts[index] = data;
+      setFeaturedProducts(newProducts);
+      toast({ title: "Featured Product Saved!", description: `Product ${index + 1} has been updated.` });
   };
 
    const handleSaveFooter = (data: FooterContent) => {
@@ -680,9 +749,8 @@ export default function AdminSettingsPage() {
             </header>
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div><CardTitle>Live Shopping Page Promotions</CardTitle><CardDescription>Manage the promotional slides on the main live shopping page.</CardDescription></div>
-                        <Button size="sm" onClick={() => openSlideForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Slide</Button>
+                    <CardHeader>
+                        <CardTitle>Live Shopping Page Promotions</CardTitle><CardDescription>Manage the promotional slides on the main live shopping page.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {slides.length > 0 ? slides.map(slide => (
@@ -698,6 +766,9 @@ export default function AdminSettingsPage() {
                             isMounted ? <p className="text-center text-muted-foreground py-4">No promotional slides have been created yet.</p> : <Skeleton className="w-full h-24" />
                         )}
                     </CardContent>
+                     <CardFooter>
+                        <Button size="sm" onClick={() => openSlideForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Slide</Button>
+                    </CardFooter>
                 </Card>
                  <Card>
                     <CardHeader>
@@ -706,6 +777,22 @@ export default function AdminSettingsPage() {
                     </CardHeader>
                     <CardContent>
                         <HubBannerForm banner={hubBanner} onSave={handleSaveHubBanner} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Hub Featured Products</CardTitle>
+                        <CardDescription>Manage the three featured products shown below the hub banner.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {featuredProducts.map((product, index) => (
+                           <FeaturedProductForm 
+                                key={index} 
+                                index={index}
+                                product={product} 
+                                onSave={handleSaveFeaturedProduct}
+                           />
+                        ))}
                     </CardContent>
                 </Card>
                  <Card>
