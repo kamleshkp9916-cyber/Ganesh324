@@ -807,12 +807,13 @@ export default function LiveSellingPage() {
                     </div>
                 </div>
             </header>
-             <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm border-b">
+            
+            <div className="sticky top-16 z-40 py-2">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <TabsList className="grid w-full max-w-md grid-cols-3 bg-transparent p-0">
-                        <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-black data-[state=active]:text-white">Feeds</TabsTrigger>
+                    <TabsList className="bg-background/80 backdrop-blur-sm p-1.5 rounded-full shadow-md">
+                        <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Feeds</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
@@ -1362,4 +1363,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
 
