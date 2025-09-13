@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -654,9 +655,11 @@ export default function LiveSellingPage() {
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        <Logo />
-                        <Link href="/live-selling" className="font-bold text-lg hidden sm:inline-block">StreamCart</Link>
+                     <div className="flex items-center gap-1 sm:gap-2">
+                         <Link href="/live-selling" className="flex items-center gap-2 -ml-2">
+                             <Logo className="h-7 w-7" />
+                             <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                         </Link>
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
@@ -733,7 +736,7 @@ export default function LiveSellingPage() {
                                             <span>Admin Dashboard</span>
                                         </DropdownMenuItem>
                                     )}
-                                    {userData?.role === 'seller' && (
+                                    {(userData?.role === 'seller') && (
                                         <DropdownMenuItem onSelect={() => router.push('/seller/dashboard')}>
                                             <LayoutDashboard className="mr-2 h-4 w-4" />
                                             <span>Seller Dashboard</span>
@@ -820,7 +823,7 @@ export default function LiveSellingPage() {
             
             <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm shadow-sm">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <TabsList className="p-1.5 rounded-full">
+                    <TabsList className="p-1.5 rounded-full bg-transparent">
                         <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">All</TabsTrigger>
                         <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Live Shopping</TabsTrigger>
                         <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-2 text-sm font-semibold">Feeds</TabsTrigger>
@@ -927,7 +930,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-                            <div className="mb-4">
+                            <div className="px-4 mb-4">
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
