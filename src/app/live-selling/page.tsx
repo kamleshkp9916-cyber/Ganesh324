@@ -364,7 +364,7 @@ export default function LiveSellingPage() {
     let postsQuery;
 
     // Only fetch posts if the relevant tab is active
-    if (activeTab !== 'live') {
+    if (activeTab === 'feeds') {
       setIsLoadingFeed(true);
       if (feedFilter === 'following' && user) {
         if (followingIds.length > 0) {
@@ -397,9 +397,21 @@ export default function LiveSellingPage() {
         unsubscribe();
       };
     } else {
-      // If the active tab is 'live', we don't need to fetch posts.
+      // If the active tab is not 'feeds', we still fetch global posts for other sections
+      postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+       const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+        const postsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+        }));
+        setFeed(postsData);
+      });
       setIsLoadingFeed(false);
-      return () => clearTimeout(sellersTimer);
+      return () => {
+        clearTimeout(sellersTimer);
+        unsubscribe();
+      }
     }
   }, [isMounted, activeTab, feedFilter, user, followingIds]);
   
@@ -804,6 +816,23 @@ export default function LiveSellingPage() {
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/wallet')}>
+                                            <Wallet className="mr-2 h-4 w-4" />
+                                            <span>My Wallet</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                            <span>My Cart</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                         <DropdownMenuItem onSelect={() => router.push('/setting')}>
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            <span>Settings</span>
+                                        </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => router.push('/help')}>
+                                            <LifeBuoy className="mr-2 h-4 w-4" />
+                                            <span>Help</span>
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuSub>
                                             <DropdownMenuSubTrigger>
@@ -1175,7 +1204,7 @@ export default function LiveSellingPage() {
                                 </>
                             ) : filteredFeed.length > 0 ? (
                                 filteredFeed.map((item) => (
-                                    <Card key={item.id} className="overflow-hidden bg-card/50">
+                                    <Card key={item.id} className="overflow-hidden">
                                         <div className="p-4">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center gap-3">
@@ -1184,7 +1213,7 @@ export default function LiveSellingPage() {
                                                         <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold text-foreground">{item.sellerName} • <span className="font-normal text-muted-foreground">My post</span></p>
+                                                        <p className="font-semibold text-primary">{item.sellerName}</p>
                                                         <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
                                                     </div>
                                                 </div>
