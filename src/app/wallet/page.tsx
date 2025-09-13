@@ -223,7 +223,7 @@ export default function WalletPage() {
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-card shadow-lg">
+            <Card className="bg-black shadow-lg">
                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Account Balance</CardTitle>
                   <div className="flex items-center gap-2">
@@ -351,7 +351,7 @@ export default function WalletPage() {
             </Card>
           </div>
           <div className="space-y-6">
-             <Card className="bg-card shadow-lg">
+             <Card className="bg-black shadow-lg">
                  <CardHeader>
                     <CardTitle className="text-base">Quick Actions</CardTitle>
                     <CardDescription>Do more, faster</CardDescription>
@@ -379,7 +379,7 @@ export default function WalletPage() {
                      </Button>
                  </CardContent>
              </Card>
-             <Card className="bg-card shadow-lg">
+             <Card className="bg-black shadow-lg">
                  <CardHeader className="flex flex-row justify-between items-center">
                     <CardTitle className="text-base">Insights</CardTitle>
                     <CardDescription>This month</CardDescription>
