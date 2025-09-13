@@ -653,7 +653,6 @@ export default function LiveSellingPage() {
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
                  <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b gap-2 sm:gap-4">
                     <div className="flex-1 flex justify-start items-center">
-                        <h1 className="text-xl sm:text-2xl font-bold text-primary">StreamCart</h1>
                     </div>
 
                     <div className={cn(
