@@ -643,12 +643,6 @@ export default function LiveSellingPage() {
                         <div className="flex items-center gap-1 sm:gap-4">
                            <Logo />
                         </div>
-                        
-                        <div className="hidden lg:flex items-center gap-4">
-                             <Button variant="ghost" asChild>
-                                <Link href="/listed-products">Listed Products</Link>
-                             </Button>
-                        </div>
 
                         <div className="flex items-center gap-1 sm:gap-2">
                              <div className={cn("relative flex-1 flex justify-center")}>
@@ -709,7 +703,7 @@ export default function LiveSellingPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 {user && userData ? (
-                                    <DropdownMenuContent align="end" className="min-w-[16rem]">
+                                    <DropdownMenuContent align="end" className="w-64">
                                         <DropdownMenuLabel>
                                             <div>{userData?.displayName}</div>
                                             <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
@@ -742,7 +736,11 @@ export default function LiveSellingPage() {
                                          <DropdownMenuItem onSelect={() => router.push('/cart')}>
                                             <ShoppingCart className="mr-2 h-4 w-4" />
                                             <span>My Cart</span>
-                                             {cartCount > 0 && <span className="ml-auto text-xs font-bold">{cartCount}</span>}
+                                             {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
