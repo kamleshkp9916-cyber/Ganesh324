@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -25,38 +24,41 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
 import { Skeleton } from "@/components/ui/skeleton";
 
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
 
-const menSubcategories = [
-    "All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"
-];
+const womenSubcategories = ["All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"];
+const menSubcategories = ["All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"];
+const kidsSubcategories = ["All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"];
+const electronicsSubcategories = ["All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"];
+const shoesSubcategories = ["Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"];
+const handbagsSubcategories = ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"];
+const trendingSubcategories = ["New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"];
+const saleSubcategories = ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"];
 
-const womenSubcategories = [
-    "All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"
-];
-
-const kidsSubcategories = [
-    "All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"
-];
-
-const electronicsSubcategories = [
-    "All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"
-];
-
-const shoesSubcategories = [
-    "Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"
-];
-
-const handbagsSubcategories = [
-    "All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"
-];
-
-const trendingSubcategories = [
-    "New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"
-];
-
-const saleSubcategories = [
-    "Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"
-];
 
 const defaultHubBanner: HubBanner = {
     title: "Mega Electronics Sale",
@@ -79,26 +81,21 @@ const collageCategories = [
 ];
 
 
-function MegaMenuContent({ title, subcategories }: { title: string, subcategories: string[] }) {
+function MegaMenuContent({ title, subcategories, href }: { title: string, subcategories: string[], href: string }) {
     return (
-        <div className="p-6 md:w-[250px]">
-            <h3 className="text-lg font-semibold mb-4 text-foreground">{title}</h3>
-            <ul className="space-y-2">
-                {subcategories.map((link) => (
-                    <li key={link}>
-                        <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                            {link}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    )
+      <ul className="grid gap-3 p-6 md:w-[250px]">
+        <ListItem href={href} title={title}>
+            Browse all products in this category.
+        </ListItem>
+        {subcategories.map((link) => (
+          <ListItem key={link} href="#" title={link} />
+        ))}
+      </ul>
+    );
 }
 
 export default function ListedProductsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const router = useRouter();
   const [hubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [featuredProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
   const [isMounted, setIsMounted] = useState(false);
@@ -128,49 +125,49 @@ export default function ListedProductsPage() {
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Women</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                         <MegaMenuContent title="Women's Fashion" subcategories={womenSubcategories} />
+                                         <MegaMenuContent title="All Women's" subcategories={womenSubcategories} href="/womens-clothing" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Men</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Men's Fashion" subcategories={menSubcategories} />
+                                        <MegaMenuContent title="All Men's" subcategories={menSubcategories} href="/mens-clothing" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Kids</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="For Kids" subcategories={kidsSubcategories} />
+                                        <MegaMenuContent title="All Kids'" subcategories={kidsSubcategories} href="/kids" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Electronics</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
+                                        <MegaMenuContent title="All Electronics" subcategories={electronicsSubcategories} href="/electronics" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Shoes</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Shoes" subcategories={shoesSubcategories} />
+                                        <MegaMenuContent title="All Shoes" subcategories={shoesSubcategories} href="/shoes" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                  <NavigationMenuItem>
                                     <NavigationMenuTrigger>Handbags</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Handbags" subcategories={handbagsSubcategories} />
+                                        <MegaMenuContent title="All Handbags" subcategories={handbagsSubcategories} href="/handbags" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Trending</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Trending" subcategories={trendingSubcategories} />
+                                        <MegaMenuContent title="All Trending" subcategories={trendingSubcategories} href="/trending" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                  <NavigationMenuItem>
                                     <NavigationMenuTrigger>Sale</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="On Sale" subcategories={saleSubcategories} />
+                                        <MegaMenuContent title="All Sale" subcategories={saleSubcategories} href="/sale" />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
