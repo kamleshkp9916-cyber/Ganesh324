@@ -3,11 +3,12 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ListFilter } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
+import { Input } from '@/components/ui/input';
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -44,6 +45,20 @@ export default function CategoryPage() {
                     </Button>
                 </div>
             </header>
+
+             <div className="p-4 border-b flex items-center gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search in this category..."
+                        className="rounded-full pl-10"
+                    />
+                </div>
+                <Button variant="outline" className="gap-1.5">
+                    <ListFilter className="h-4 w-4" />
+                    Filter
+                </Button>
+            </div>
 
             <main className="p-4 md:p-6">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
