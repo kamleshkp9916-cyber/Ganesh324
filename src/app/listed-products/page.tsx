@@ -1,75 +1,205 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, User, ShoppingCart } from 'lucide-react';
-import Link from 'next/link';
-import { Input } from '@/components/ui/input';
-import { categories } from '@/lib/categories';
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, ShoppingCart, User, X } from "lucide-react";
+import { Logo } from "@/components/logo";
+
+const menSubcategories = {
+  explore: ["All Men’s Clothing", "New Arrivals"],
+  shop: ["T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes"],
+  more: ["Grooming", "Accessories"],
+};
+
+const womenSubcategories = {
+  explore: ["All Women’s Clothing", "New Arrivals"],
+  shop: ["Dresses", "Tops", "Pants", "Shoes", "Bags"],
+  more: ["Beauty", "Accessories"],
+};
+
+const kidsSubcategories = {
+  explore: ["All Kids’ Clothing"],
+  shop: ["T-Shirts", "Shorts", "Dresses", "School Bags", "Toys"],
+  more: ["Baby Care", "Accessories"],
+};
+
+const electronicsSubcategories = {
+  explore: ["All Electronics", "New Arrivals"],
+  shop: ["Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs"],
+  more: ["Accessories", "Gaming"],
+};
+
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
+
+function MegaMenuContent({ title, subcategories }: { title: string, subcategories: Record<string, string[]> }) {
+    return (
+        <div className="p-6 md:w-[500px] lg:w-[600px]">
+            <h3 className="text-lg font-semibold mb-4">{title}</h3>
+            <div className="grid grid-cols-3 gap-6">
+                {Object.entries(subcategories).map(([key, links]) => (
+                    <div key={key}>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">{key}</h4>
+                        <ul className="space-y-2">
+                            {links.map((link) => (
+                                <li key={link}>
+                                    <Link href="#" className="text-sm hover:text-primary transition-colors">
+                                        {link}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
 
 export default function ListedProductsPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const router = useRouter();
-
-  const getHrefForSubcategory = (categoryName: string, subcategoryName: string) => {
-    // This can be expanded later to generate real URLs
-    return `/${categoryName.toLowerCase().replace(' ', '-')}/${subcategoryName.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`;
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
        <header className="border-b sticky top-0 bg-background/95 z-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
-                          <ArrowLeft className="h-6 w-6" />
-                        </Button>
+                     <div className="flex items-center gap-4">
+                        <Link href="/live-selling" className="flex items-center gap-2">
+                            <Logo className="h-7 w-7" />
+                            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                        </Link>
                     </div>
-                    <div className="hidden lg:flex flex-1 max-w-lg mx-auto">
-                        <div className="relative w-full">
-                            <Input 
-                                placeholder="Search products, brands, and more"
-                                className="rounded-full pr-10"
-                            />
-                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        </div>
+
+                    {/* Desktop Navigation */}
+                    <div className="hidden lg:flex">
+                         <NavigationMenu>
+                            <NavigationMenuList>
+                                <NavigationMenuItem>
+                                    <Link href="/live-selling" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Men</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Men" subcategories={menSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Women</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                         <MegaMenuContent title="Women" subcategories={womenSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Kids</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Kids" subcategories={kidsSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Electronics</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                 <NavigationMenuItem>
+                                    <Link href="#" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Auctions</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <Link href="/help" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Help</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <Link href="/contact" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact Us</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                            </NavigationMenuList>
+                        </NavigationMenu>
                     </div>
+                    
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon">
-                            <Search className="h-6 w-6 lg:hidden" />
+                            <User className="h-6 w-6" />
                         </Button>
-                        <Link href="/profile">
-                            <Button variant="ghost" size="icon">
-                                <User className="h-6 w-6" />
-                            </Button>
-                        </Link>
-                         <Link href="/cart">
-                            <Button variant="ghost" size="icon">
-                                <ShoppingCart className="h-6 w-6" />
-                            </Button>
-                        </Link>
+                        <Button variant="ghost" size="icon">
+                            <ShoppingCart className="h-6 w-6" />
+                        </Button>
+                         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="lg:hidden">
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="w-full max-w-sm">
+                                <div className="flex justify-between items-center p-4 border-b">
+                                    <h2 className="text-lg font-semibold">Menu</h2>
+                                     <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
+                                        <X className="h-6 w-6" />
+                                    </Button>
+                                </div>
+                                <div className="p-4 space-y-2">
+                                    {['Home', 'Men', 'Women', 'Kids', 'Electronics', 'Auctions', 'Help', 'Contact Us'].map(item => (
+                                        <Link key={item} href="#" className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
+                                            {item}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </SheetContent>
+                        </Sheet>
                     </div>
                 </div>
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-            {categories.map((category) => (
-                <div key={category.name}>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{category.name}</h3>
-                    <ul className="space-y-3">
-                        {category.subcategories.map((subcategory) => (
-                            <li key={subcategory}>
-                                <Link href={getHrefForSubcategory(category.name, subcategory)} className="text-lg font-medium text-foreground hover:text-primary hover:underline">
-                                    {subcategory}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ))}
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+        <div className="text-center py-20">
+            <h1 className="text-4xl font-bold">Welcome to StreamCart</h1>
+            <p className="text-muted-foreground mt-4">Select a category above to start exploring.</p>
         </div>
       </main>
     </div>
