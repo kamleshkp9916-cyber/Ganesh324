@@ -675,49 +675,7 @@ export default function LiveSellingPage() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-1 sm:gap-4">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="shrink-0">
-                                        <Menu className="h-5 w-5" />
-                                    </Button>
-                                </SheetTrigger>
-                                <SheetContent side="left">
-                                     <nav className="grid gap-6 text-lg font-medium p-4">
-                                        <Link href="/live-selling" className="flex items-center gap-2 text-lg font-semibold mb-4">
-                                            <Logo/>
-                                            <span>StreamCart</span>
-                                        </Link>
-                                        <Link href="/live-selling" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Home className="w-5 h-5"/><span>Home</span></div>
-                                        </Link>
-                                         <Link href="/listed-products" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><ShoppingBag className="w-5 h-5"/><span>Listed Products</span></div>
-                                        </Link>
-                                        <Link href="/orders" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Package2 className="w-5 h-5"/><span>My Orders</span></div>
-                                        </Link>
-                                        <Link href="/wallet" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Wallet className="w-5 h-5"/><span>My Wallet</span></div>
-                                        </Link>
-                                        <Link href="/top-seller" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Award className="w-5 h-5"/><span>Top Sellers</span></div>
-                                        </Link>
-                                        <Link href="/live-selling" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Tv className="w-5 h-5"/><span>Explore</span></div>
-                                        </Link>
-                                        <DropdownMenuSeparator className="bg-border" />
-                                         <Link href="/setting" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Settings className="w-5 h-5"/><span>Settings</span></div>
-                                        </Link>
-                                         <Link href="/help" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><LifeBuoy className="w-5 h-5"/><span>Help</span></div>
-                                        </Link>
-                                         <Link href="/privacy-and-security" className="text-foreground hover:text-foreground/80 transition-colors">
-                                            <div className="flex items-center gap-4"><Shield className="w-5 h-5"/><span>Privacy & Security</span></div>
-                                        </Link>
-                                    </nav>
-                                </SheetContent>
-                            </Sheet>
+                           <Logo />
                         </div>
                         
                         <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10")}>
@@ -833,6 +791,10 @@ export default function LiveSellingPage() {
                                          <DropdownMenuItem onSelect={() => router.push('/help')}>
                                             <LifeBuoy className="mr-2 h-4 w-4" />
                                             <span>Help</span>
+                                        </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
+                                            <Shield className="mr-2 h-4 w-4" />
+                                            <span>Privacy & Security</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuSub>
