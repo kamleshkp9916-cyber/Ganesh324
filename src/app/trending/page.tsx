@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { StoreHeader } from '@/components/store-header';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -68,7 +67,6 @@ export default function TrendingPage() {
                 </div>
             </div>
         </header>
-      <StoreHeader />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="text-center py-20 text-muted-foreground">
@@ -79,3 +77,5 @@ export default function TrendingPage() {
     </div>
   );
 }
+
+    

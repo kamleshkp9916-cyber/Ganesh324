@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { StoreHeader } from '@/components/store-header';
 import { HomeSidebar } from '@/components/home-sidebar';
 import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
@@ -79,7 +78,6 @@ export default function HomePage() {
                 </div>
             </div>
         </header>
-      <StoreHeader />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between mb-4 lg:hidden">
@@ -135,3 +133,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
