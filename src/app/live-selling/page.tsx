@@ -805,14 +805,14 @@ export default function LiveSellingPage() {
                             )}
                         </div>
                     </div>
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+                        <TabsList className="grid w-full max-w-md grid-cols-3">
+                            <TabsTrigger value="all">All</TabsTrigger>
+                            <TabsTrigger value="live">Live Shopping</TabsTrigger>
+                            <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                        </TabsList>
+                    </div>
                 </div>
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                     <TabsList className="grid w-full max-w-md grid-cols-3 h-12 items-stretch rounded-b-none p-0 border-x border-t">
-                        <TabsTrigger value="all" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">Feeds</TabsTrigger>
-                    </TabsList>
-                 </div>
             </header>
                 
                  
