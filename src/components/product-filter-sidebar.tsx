@@ -18,19 +18,11 @@ import { cn } from "@/lib/utils";
 import React, { useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Card, CardContent } from "./ui/card";
+import { FilterOptions } from "@/lib/filter-data";
 
-const subCategories = ["Dresses", "Tops", "Jeans", "Jackets", "Skirts"];
-const brands = ["Brand A", "Brand B", "Brand C", "RetroCam"];
-const sizes = ["XS", "S", "M", "L", "XL"];
-const colors = [
-  { name: "Black", value: "bg-black" },
-  { name: "White", value: "bg-white" },
-  { name: "Blue", value: "bg-blue-500" },
-  { name: "Red", value: "bg-red-500" },
-  { name: "Green", value: "bg-green-500" },
-];
 
 interface ProductFilterSidebarProps {
+  options: FilterOptions;
   priceRange: [number, number];
   setPriceRange: React.Dispatch<React.SetStateAction<[number, number]>>;
   selectedSubCategories: string[];
@@ -47,15 +39,18 @@ interface ProductFilterSidebarProps {
   setInStockOnly: React.Dispatch<React.SetStateAction<boolean>>;
   auctionState: string;
   setAuctionState: React.Dispatch<React.SetStateAction<string>>;
+  onClear: () => void;
 }
 
 export function ProductFilterSidebar(props: ProductFilterSidebarProps) {
   const {
+    options,
     priceRange, setPriceRange,
     selectedBrands, setSelectedBrands,
     selectedRating, setSelectedRating,
     inStockOnly, setInStockOnly,
-    auctionState, setAuctionState
+    auctionState, setAuctionState,
+    onClear
   } = props;
 
   const handleBrandChange = (brand: string) => {
@@ -64,36 +59,30 @@ export function ProductFilterSidebar(props: ProductFilterSidebarProps) {
     );
   };
 
-  const clearFilters = () => {
-    setPriceRange([0, 15000]);
-    setSelectedBrands([]);
-    setSelectedRating(0);
-    setInStockOnly(false);
-    setAuctionState("all");
-  };
-
   return (
     <ScrollArea className="h-[calc(100vh-8rem)] lg:h-[calc(100vh-10rem)]">
       <div className="p-4 lg:p-0 lg:pr-4">
         <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold">Filters</h3>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>
+            <Button variant="ghost" size="sm" onClick={onClear}>Clear all</Button>
         </div>
         <Accordion type="multiple" defaultValue={["sub-category", "price", "brand", "size", "rating"]} className="w-full">
             
-            <AccordionItem value="sub-category">
-                <AccordionTrigger>Sub-category</AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-2">
-                        {subCategories.map((sub) => (
-                            <div key={sub} className="flex items-center space-x-2">
-                                <Checkbox id={`sub-${sub}`} />
-                                <Label htmlFor={`sub-${sub}`} className="font-normal">{sub}</Label>
-                            </div>
-                        ))}
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
+            {options.subCategories && options.subCategories.length > 0 && (
+              <AccordionItem value="sub-category">
+                  <AccordionTrigger>Sub-category</AccordionTrigger>
+                  <AccordionContent>
+                      <div className="space-y-2">
+                          {options.subCategories.map((sub) => (
+                              <div key={sub} className="flex items-center space-x-2">
+                                  <Checkbox id={`sub-${sub}`} />
+                                  <Label htmlFor={`sub-${sub}`} className="font-normal">{sub}</Label>
+                              </div>
+                          ))}
+                      </div>
+                  </AccordionContent>
+              </AccordionItem>
+            )}
 
             <AccordionItem value="price">
                 <AccordionTrigger>Price</AccordionTrigger>
@@ -113,47 +102,53 @@ export function ProductFilterSidebar(props: ProductFilterSidebarProps) {
                 </AccordionContent>
             </AccordionItem>
             
-            <AccordionItem value="brand">
-                <AccordionTrigger>Brand</AccordionTrigger>
-                <AccordionContent>
-                    <div className="space-y-2">
-                        {brands.map((brand) => (
-                            <div key={brand} className="flex items-center space-x-2">
-                                <Checkbox 
-                                  id={`brand-${brand}`} 
-                                  checked={selectedBrands.includes(brand)}
-                                  onCheckedChange={() => handleBrandChange(brand)}
-                                />
-                                <Label htmlFor={`brand-${brand}`} className="font-normal">{brand}</Label>
-                            </div>
-                        ))}
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
+             {options.brands && options.brands.length > 0 && (
+              <AccordionItem value="brand">
+                  <AccordionTrigger>Brand</AccordionTrigger>
+                  <AccordionContent>
+                      <div className="space-y-2">
+                          {options.brands.map((brand) => (
+                              <div key={brand} className="flex items-center space-x-2">
+                                  <Checkbox 
+                                    id={`brand-${brand}`} 
+                                    checked={selectedBrands.includes(brand)}
+                                    onCheckedChange={() => handleBrandChange(brand)}
+                                  />
+                                  <Label htmlFor={`brand-${brand}`} className="font-normal">{brand}</Label>
+                              </div>
+                          ))}
+                      </div>
+                  </AccordionContent>
+              </AccordionItem>
+            )}
 
-            <AccordionItem value="size">
-                <AccordionTrigger>Size</AccordionTrigger>
-                <AccordionContent>
-                    <div className="flex flex-wrap gap-2">
-                        {sizes.map((size) => (
-                            <Button key={size} variant="outline" size="sm">{size}</Button>
-                        ))}
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
+            {options.sizes && options.sizes.length > 0 && (
+              <AccordionItem value="size">
+                  <AccordionTrigger>Size</AccordionTrigger>
+                  <AccordionContent>
+                      <div className="flex flex-wrap gap-2">
+                          {options.sizes.map((size) => (
+                              <Button key={size} variant="outline" size="sm">{size}</Button>
+                          ))}
+                      </div>
+                  </AccordionContent>
+              </AccordionItem>
+            )}
             
-             <AccordionItem value="color">
-                <AccordionTrigger>Color</AccordionTrigger>
-                <AccordionContent>
-                     <div className="flex flex-wrap gap-2">
-                        {colors.map((color) => (
-                             <Button key={color.name} variant="outline" size="icon" className="h-8 w-8">
-                                <div className={cn("h-5 w-5 rounded-full border", color.value)} />
-                             </Button>
-                        ))}
-                    </div>
-                </AccordionContent>
-            </AccordionItem>
+            {options.colors && options.colors.length > 0 && (
+               <AccordionItem value="color">
+                  <AccordionTrigger>Color</AccordionTrigger>
+                  <AccordionContent>
+                       <div className="flex flex-wrap gap-2">
+                          {options.colors.map((color) => (
+                               <Button key={color.name} variant="outline" size="icon" className="h-8 w-8">
+                                  <div className={cn("h-5 w-5 rounded-full border", color.value)} />
+                               </Button>
+                          ))}
+                      </div>
+                  </AccordionContent>
+              </AccordionItem>
+            )}
 
              <AccordionItem value="rating">
                 <AccordionTrigger>Rating</AccordionTrigger>
