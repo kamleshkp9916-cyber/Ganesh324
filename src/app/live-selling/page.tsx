@@ -358,7 +358,7 @@ export default function LiveSellingPage() {
   }, [feed]);
 
   const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 6);
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
   }, [feed]);
 
  useEffect(() => {
@@ -663,7 +663,7 @@ export default function LiveSellingPage() {
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
-                        <div className={cn("relative transition-all duration-300 w-full max-w-sm sm:max-w-md", isSearchOpen ? "w-full" : "w-auto")}>
+                        <div className={cn("relative transition-all duration-300 w-full max-w-sm sm:max-w-md lg:max-w-lg", isSearchOpen ? "w-full" : "w-auto")}>
                                 <Input 
                                 placeholder="Search..." 
                                 className={cn("rounded-full bg-muted h-10 pl-10 peer")}
@@ -819,16 +819,15 @@ export default function LiveSellingPage() {
                         )}
                     </div>
                 </div>
+                <div className="flex justify-center">
+                    <TabsList className="p-1.5 rounded-full">
+                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold">Feeds</TabsTrigger>
+                    </TabsList>
+                </div>
             </header>
             
-            <div className="sticky top-16 z-40 flex justify-center py-2 bg-background/95 backdrop-blur-sm">
-                <TabsList className="p-1 rounded-full bg-muted">
-                    <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">All</TabsTrigger>
-                    <TabsTrigger value="live" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">Live Shopping</TabsTrigger>
-                    <TabsTrigger value="feeds" className="rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background px-4 py-1.5 text-sm font-semibold">Feeds</TabsTrigger>
-                </TabsList>
-            </div>
-                
                  
                  {activeTab !== 'feeds' && (
                      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -872,15 +871,15 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-                            <div className="mb-4">
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><Tags className="text-primary" /> Product Categories</h2>
-                                 <div className="flex flex-wrap gap-2">
+                             <div className="mb-4 text-center">
+                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 justify-center"><Tags className="text-primary" /> Product Categories</h2>
+                                 <div className="flex flex-wrap gap-2 justify-center">
                                     {productCategories.map(filter => (
                                         <Button 
                                             key={filter} 
-                                            variant={productCategoryFilter === filter ? 'default' : 'outline'}
+                                            variant={productCategoryFilter === filter ? 'secondary' : 'ghost'}
                                             size="sm" 
-                                            className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
+                                            className="rounded-full text-xs md:text-sm h-8 md:h-9"
                                             onClick={() => handleProductCategorySelect(filter)}
                                         >
                                             {filter}
@@ -889,11 +888,9 @@ export default function LiveSellingPage() {
                                 </div>
                             </div>
                         </section>
-                        <section>
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                             <h2 className="text-2xl font-bold flex items-center gap-2 justify-center mb-4"><Star className="text-primary" /> Popular Products</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
                                     if (!item || !item.product) return null;
                                     const { product } = item;
@@ -929,9 +926,9 @@ export default function LiveSellingPage() {
                         </section>
                         <section className="mt-6">
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
+                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
