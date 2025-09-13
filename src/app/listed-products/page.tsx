@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, User, X, ChevronRight } from "lucide-react";
+import { Menu, ShoppingCart, User, X, ChevronRight, ShoppingBag } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
@@ -26,51 +26,37 @@ import Image from 'next/image';
 import { Skeleton } from "@/components/ui/skeleton";
 
 
-const menSubcategories = {
-  explore: ["All Men’s Clothing", "New Arrivals"],
-  shop: ["T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes"],
-  more: ["Grooming", "Accessories"],
-};
+const menSubcategories = [
+    "All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"
+];
 
-const womenSubcategories = {
-  explore: ["All Women’s Clothing", "New Arrivals"],
-  shop: ["Dresses", "Tops", "Pants", "Shoes", "Bags"],
-  more: ["Beauty", "Accessories"],
-};
+const womenSubcategories = [
+    "All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"
+];
 
-const kidsSubcategories = {
-  explore: ["All Kids’ Clothing"],
-  shop: ["T-Shirts", "Shorts", "Dresses", "School Bags", "Toys"],
-  more: ["Baby Care", "Accessories"],
-};
+const kidsSubcategories = [
+    "All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"
+];
 
-const electronicsSubcategories = {
-  explore: ["All Electronics", "New Arrivals"],
-  shop: ["Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs"],
-  more: ["Accessories", "Gaming"],
-};
+const electronicsSubcategories = [
+    "All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"
+];
 
-const shoesSubcategories = {
-    "Women's": ["Boots", "Sneakers", "Sandals", "Heels", "Flats"],
-    "Men's": ["Boots", "Sneakers", "Dress Shoes", "Loafers"],
-    "Kids'": ["Girls' Shoes", "Boys' Shoes", "Toddler"],
-};
+const shoesSubcategories = [
+    "Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"
+];
 
-const handbagsSubcategories = {
-    Shop: ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags"],
-    Features: ["Clutches", "Backpacks", "Wallets"],
-    More: ["New Arrivals", "Sale"],
-};
+const handbagsSubcategories = [
+    "All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"
+];
 
-const trendingSubcategories = {
-    "What's Hot": ["New Arrivals", "Best Sellers", "Top Rated"],
-    "By Department": ["Women's Trending", "Men's Trending", "Home Decor Trends"],
-};
+const trendingSubcategories = [
+    "New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"
+];
 
-const saleSubcategories = {
-    "By Department": ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale"],
-    "Featured": ["Clearance", "Up to 50% Off", "Final Sale"],
-};
+const saleSubcategories = [
+    "Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"
+];
 
 const defaultHubBanner: HubBanner = {
     title: "Mega Electronics Sale",
@@ -93,52 +79,19 @@ const collageCategories = [
 ];
 
 
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-ListItem.displayName = "ListItem";
-
-function MegaMenuContent({ title, subcategories }: { title: string, subcategories: Record<string, string[]> }) {
+function MegaMenuContent({ title, subcategories }: { title: string, subcategories: string[] }) {
     return (
-        <div className="p-6 md:w-[500px] lg:w-[600px]">
-            <h3 className="text-lg font-semibold mb-4">{title}</h3>
-            <div className="grid grid-cols-3 gap-6">
-                {Object.entries(subcategories).map(([key, links]) => (
-                    <div key={key}>
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">{key}</h4>
-                        <ul className="space-y-2">
-                            {links.map((link) => (
-                                <li key={link}>
-                                    <Link href="#" className="text-sm hover:text-primary transition-colors">
-                                        {link}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+        <div className="p-6 md:w-[250px]">
+            <h3 className="text-lg font-semibold mb-4 text-foreground">{title}</h3>
+            <ul className="space-y-2">
+                {subcategories.map((link) => (
+                    <li key={link}>
+                        <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                            {link}
+                        </Link>
+                    </li>
                 ))}
-            </div>
+            </ul>
         </div>
     )
 }
@@ -153,6 +106,8 @@ export default function ListedProductsPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -173,19 +128,19 @@ export default function ListedProductsPage() {
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Women</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                         <MegaMenuContent title="Women" subcategories={womenSubcategories} />
+                                         <MegaMenuContent title="Women's Fashion" subcategories={womenSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Men</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Men" subcategories={menSubcategories} />
+                                        <MegaMenuContent title="Men's Fashion" subcategories={menSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Kids</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Kids" subcategories={kidsSubcategories} />
+                                        <MegaMenuContent title="For Kids" subcategories={kidsSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
@@ -215,7 +170,7 @@ export default function ListedProductsPage() {
                                  <NavigationMenuItem>
                                     <NavigationMenuTrigger>Sale</NavigationMenuTrigger>
                                     <NavigationMenuContent>
-                                        <MegaMenuContent title="Sale" subcategories={saleSubcategories} />
+                                        <MegaMenuContent title="On Sale" subcategories={saleSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
@@ -266,6 +221,7 @@ export default function ListedProductsPage() {
                       alt={hubBanner.title}
                       fill
                       className="object-cover"
+                      data-ai-hint="electronics sale gadgets"
                     />
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
                        <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
@@ -277,7 +233,7 @@ export default function ListedProductsPage() {
                     {featuredProducts.map((product, index) => (
                       <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
                         <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
                         </div>
                         <div>
                           <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
@@ -296,9 +252,9 @@ export default function ListedProductsPage() {
 
         <section className="mb-12">
             <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
                 {collageCategories.map((cat, index) => (
-                    <Link key={index} href={cat.href} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
+                    <Link key={index} href={getCategoryUrl(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
                         <Image
                             src={cat.imageUrl}
                             alt={cat.name}
