@@ -243,7 +243,7 @@ export default function WalletPage() {
                         </Card>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Card className="bg-muted/50 p-4 cursor-pointer hover:bg-muted">
+                                <Card className="bg-muted/50 border p-4 cursor-pointer hover:bg-muted">
                                     <p className="text-xs text-muted-foreground">Blocked Margin</p>
                                     <p className="text-lg font-bold">₹{blockedMargin.toFixed(2)}</p>
                                     <p className="text-xs text-muted-foreground">For processing orders</p>
@@ -255,16 +255,17 @@ export default function WalletPage() {
                                     <DialogDescription>Funds held for orders that are currently being processed.</DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-2 py-4">
-                                    {processingTransactions.map(t => (
-                                        <div key={t.id} className="flex justify-between items-center text-sm p-2 bg-muted rounded-md">
-                                            <div>
-                                                <p className="font-semibold">{t.description}</p>
-                                                <p className="text-xs text-muted-foreground">{t.transactionId}</p>
+                                    {processingTransactions.length > 0 ? (
+                                        processingTransactions.map(t => (
+                                            <div key={t.id} className="flex justify-between items-center text-sm p-2 bg-muted rounded-md">
+                                                <div>
+                                                    <p className="font-semibold">{t.description}</p>
+                                                    <p className="text-xs text-muted-foreground">{t.transactionId}</p>
+                                                </div>
+                                                <p className="font-semibold">₹{Math.abs(t.amount).toFixed(2)}</p>
                                             </div>
-                                            <p className="font-semibold">₹{Math.abs(t.amount).toFixed(2)}</p>
-                                        </div>
-                                    ))}
-                                    {processingTransactions.length === 0 && (
+                                        ))
+                                    ) : (
                                         <p className="text-center text-sm text-muted-foreground py-4">No funds are currently blocked.</p>
                                     )}
                                 </div>
