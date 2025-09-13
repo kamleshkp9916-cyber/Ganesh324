@@ -95,7 +95,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, upda
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
-import { isFollowing, toggleFollow } from '@/lib/follow-data';
+import { isFollowing, toggleFollow, UserData } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 
@@ -270,7 +270,7 @@ export default function LiveSellingPage() {
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [suggestedUsers, setSuggestedUsers] = useState<any[]>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<UserData[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const router = useRouter();
@@ -385,6 +385,8 @@ export default function LiveSellingPage() {
           timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
         setFeed(postsData);
+        const userSpecificPosts = postsData.filter(p => p.sellerId === user?.uid);
+        setUserPosts(userSpecificPosts);
         setIsLoadingFeed(false);
       });
       
@@ -833,9 +835,11 @@ export default function LiveSellingPage() {
                     {renderTabs(false)}
                  </div>
                  
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                     <PromotionalCarousel />
-                 </div>
+                 {activeTab !== 'feeds' && (
+                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                         <PromotionalCarousel />
+                     </div>
+                 )}
                 
                 <div className="pb-20">
                     <TabsContent value="all" className="space-y-8">
