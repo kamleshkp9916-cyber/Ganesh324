@@ -1,4 +1,5 @@
 
+      
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -12,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays } from 'date-fns';
@@ -87,6 +88,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
+    const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -168,6 +170,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
+            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); // Exclude current product
             fetchReviews();
             fetchTaggedPosts();
         }
@@ -409,7 +412,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
                             <div className="flex items-center gap-2 mt-2">
-                                <span className="text-sm text-muted-foreground">Product Key:</span>
                                 <Badge variant="secondary">{product.key}</Badge>
                             </div>
                             {reviews.length > 0 && (
@@ -842,6 +844,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     </div>
                 )}
+                
+                {/* Recently Viewed Section */}
+                {recentlyViewedItems.length > 0 && (
+                    <div className="mt-8 py-4 border-t">
+                        <CardHeader className="p-0 mb-4">
+                            <CardTitle>Recently Viewed</CardTitle>
+                        </CardHeader>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+                            {recentlyViewedItems.map(p => (
+                                <Link href={`/product/${p.key}`} key={p.id}>
+                                    <Card className="overflow-hidden group">
+                                        <div className="aspect-square bg-muted relative">
+                                            <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                        </div>
+                                        <div className="p-2 sm:p-3">
+                                            <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
+                                            <p className="text-foreground font-bold text-sm sm:text-base">{p.price}</p>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
 
                 {/* Tagged Posts Section */}
@@ -890,6 +916,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
 
     
 
