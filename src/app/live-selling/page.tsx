@@ -638,7 +638,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-1 sm:gap-4">
@@ -806,11 +806,11 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                 </div>
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center sticky top-16 bg-background/95 backdrop-blur-sm z-40 border-t">
-                     <TabsList className="grid w-full max-w-md grid-cols-3 h-12 items-stretch">
-                        <TabsTrigger value="all" className="rounded-none">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-none">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-none">Feeds</TabsTrigger>
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+                     <TabsList className="grid w-full max-w-md grid-cols-3 h-12 items-stretch rounded-b-none p-0 border-x border-t">
+                        <TabsTrigger value="all" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent">Feeds</TabsTrigger>
                     </TabsList>
                  </div>
             </header>
