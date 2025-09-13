@@ -415,7 +415,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
                                     ))}
                                 </div>
-                                <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
+                                {reviews.length > 0 && (
+                                    <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
+                                )}
                             </div>
                         </div>
 
