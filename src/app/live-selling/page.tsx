@@ -653,7 +653,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b px-4 sm:px-6 lg:px-8">
+             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                      <div className="flex items-center gap-1 sm:gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2 -ml-2">
@@ -822,11 +822,11 @@ export default function LiveSellingPage() {
             </header>
             
             <div className="bg-background border-b sticky top-16 z-40">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <TabsList className="p-1.5 rounded-full bg-transparent">
-                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <TabsList className="p-1.5 h-auto rounded-full bg-muted">
+                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Feeds</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
@@ -873,8 +873,8 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 text-center mt-8">
-                             <h2 className="text-2xl font-bold flex items-center gap-2 justify-center mb-4"><Star className="text-primary" /> Popular Products</h2>
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                             <h2 className="text-2xl font-bold flex items-center gap-2 mb-4"><Star className="text-primary" /> Popular Products</h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
                                     if (!item || !item.product) return null;
@@ -911,7 +911,7 @@ export default function LiveSellingPage() {
                         </section>
                         <section className="mt-8">
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
+                                 <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
@@ -1356,5 +1356,6 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
 
 
