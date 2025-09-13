@@ -176,10 +176,12 @@ export default function ListedProductsPage() {
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
-        <div className="text-center py-20">
-            <h1 className="text-4xl font-bold">Welcome to StreamCart</h1>
-            <p className="text-muted-foreground mt-4">Select a category above to start exploring.</p>
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow flex items-center justify-center">
+        <div className="text-center">
+            <h1 className="text-4xl font-bold tracking-tight">Choose a Category</h1>
+            <p className="text-muted-foreground mt-4 text-lg">
+                Please select a category or subcategory from the menu above to start browsing products.
+            </p>
         </div>
       </main>
     </div>
