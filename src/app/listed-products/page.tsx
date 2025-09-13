@@ -250,7 +250,7 @@ export default function ListedProductsPage() {
 
         <section className="mb-12">
             <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
                 {collageCategories.map((cat, index) => (
                     <Link key={index} href={cat.href} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
                         <Image
