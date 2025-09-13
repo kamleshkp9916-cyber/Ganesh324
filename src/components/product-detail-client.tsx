@@ -408,7 +408,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
-                            <p className="text-xs text-muted-foreground mt-1">Product Key: {product.key}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <span>Product Key:</span>
+                                <Badge variant="secondary">{product.key}</Badge>
+                            </div>
                             {reviews.length > 0 && (
                                 <div className="flex items-center gap-2 mt-2">
                                     <div className="flex items-center gap-1">
