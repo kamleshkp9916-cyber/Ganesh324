@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -645,21 +646,27 @@ export default function LiveSellingPage() {
                         </div>
 
                         <div className="flex items-center gap-1 sm:gap-2">
-                             <div className={cn("relative flex-1 flex justify-center")}>
-                                <div className={cn("w-full max-w-md relative hidden sm:flex items-center transition-all duration-300", isSearchOpen ? "w-full" : "w-0 sm:w-full")}>
-                                    <Input 
+                            <div className={cn("relative flex-1 flex justify-center items-center gap-2")}>
+                                <div className={cn("relative transition-all duration-300", isSearchOpen ? "w-48 sm:w-64" : "w-0")}>
+                                     <Input 
                                         placeholder="Search..." 
-                                        className="rounded-full bg-muted pl-10 h-10"
+                                        className={cn("rounded-full bg-muted pl-10 h-10 transition-all duration-300", isSearchOpen ? "w-full opacity-100" : "w-0 opacity-0")}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        onBlur={() => isSearchOpen && !searchTerm && setIsSearchOpen(false)}
+                                        onBlur={() => !searchTerm && setIsSearchOpen(false)}
                                     />
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                    <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground", isSearchOpen ? 'opacity-100' : 'opacity-0')}/>
                                 </div>
+                                 <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(prev => !prev)}>
+                                    {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
+                                </Button>
+                                <Button variant="ghost" className="hidden sm:inline-flex" asChild>
+                                    <Link href="/listed-products">
+                                        <ShoppingBag className="mr-2 h-4 w-4"/>
+                                        Products
+                                    </Link>
+                                </Button>
                             </div>
-                            <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
-                                {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
-                            </Button>
                             
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -737,10 +744,6 @@ export default function LiveSellingPage() {
                                             <ShoppingCart className="mr-2 h-4 w-4" />
                                             <span>My Cart</span>
                                              {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
-                                            <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
