@@ -371,6 +371,7 @@ export default function LiveSellingPage() {
           postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
         } else {
           setFeed([]);
+          setUserPosts([]);
           setIsLoadingFeed(false);
           return () => clearTimeout(sellersTimer);
         }
@@ -812,6 +813,10 @@ export default function LiveSellingPage() {
                                             <Package2 className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            <span>Listed Products</span>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
@@ -819,10 +824,6 @@ export default function LiveSellingPage() {
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
                                             <span>My Wallet</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/cart')}>
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            <span>My Cart</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                          <DropdownMenuItem onSelect={() => router.push('/setting')}>
