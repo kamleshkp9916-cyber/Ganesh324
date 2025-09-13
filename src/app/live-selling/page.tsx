@@ -95,7 +95,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, upda
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
-import { isFollowing, toggleFollow, UserData } from '@/lib/follow-data';
+import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { MainHeader } from '@/components/main-header';
