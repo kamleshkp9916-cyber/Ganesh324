@@ -625,7 +625,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-           <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-1 sm:gap-4">
@@ -633,10 +633,10 @@ export default function LiveSellingPage() {
                         </div>
                         
                         <div className="flex items-center gap-1 sm:gap-2">
-                             <div className={cn("relative flex-1 flex justify-center", !isSearchOpen && "hidden sm:flex")}>
+                            <div className={cn("relative flex-1 flex justify-center")}>
                                 <div className={cn("w-full max-w-md relative flex items-center transition-all duration-300", isSearchOpen ? "w-full" : "w-0 sm:w-full")}>
                                     <Input 
-                                        placeholder="Search streams, products, or posts..." 
+                                        placeholder="Search..." 
                                         className="rounded-full bg-muted pl-10 h-10"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -648,15 +648,8 @@ export default function LiveSellingPage() {
                             <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
                                 {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
                             </Button>
-                            <Link href="/cart" passHref>
-                                <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingCart className="h-5 w-5" />
-                                     {cartCount > 0 && (
-                                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">{cartCount}</Badge>
-                                    )}
-                                </Button>
-                            </Link>
-                             <Link href="/listed-products" passHref>
+                            
+                            <Link href="/listed-products" passHref>
                                 <Button variant="ghost" size="icon" className="relative">
                                     <ShoppingBag className="h-5 w-5" />
                                 </Button>
@@ -733,13 +726,13 @@ export default function LiveSellingPage() {
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
                                         </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                            <span>My Cart</span>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
                                             <span>My Wallet</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
-                                            <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                          <DropdownMenuItem onSelect={() => router.push('/setting')}>
