@@ -264,6 +264,7 @@ export default function LiveSellingPage() {
   const { user, userData, loading: authLoading } = useAuth();
   const { signOut } = useAuthActions();
   const [feed, setFeed] = useState<any[]>([]);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
@@ -1106,7 +1107,7 @@ export default function LiveSellingPage() {
                             </AlertDialogContent>
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
+                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
                                 {user && userData && (
                                     <Card>
                                         <CardContent className="p-4 space-y-3 text-center">
@@ -1376,3 +1377,6 @@ export default function LiveSellingPage() {
 }
 
 
+
+
+    
