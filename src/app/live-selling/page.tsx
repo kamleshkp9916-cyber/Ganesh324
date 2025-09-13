@@ -17,7 +17,6 @@ import {
   Users,
   Menu,
   User,
-  ShoppingBag,
   Award,
   MessageSquare,
   Shield,
@@ -56,7 +55,8 @@ import {
   Flame,
   TrendingUp,
   Save,
-  Package2,
+  Package,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -678,26 +678,25 @@ export default function LiveSellingPage() {
                            <Logo />
                         </div>
                         
-                        <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10")}>
-                            <div className="w-full max-w-md relative flex items-center">
-                                <Input 
-                                    placeholder="Search streams, products, or posts..." 
-                                    className="rounded-full bg-muted pl-10 h-10"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onFocus={() => setIsSearchExpanded(true)}
-                                />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-                                {isSearchExpanded && (
-                                     <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsSearchExpanded(false)}>
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-
                         <div className="flex items-center gap-1 sm:gap-2">
-                            <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchExpanded(true)}>
+                            <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10 flex items-center")}>
+                                <div className="w-full max-w-md relative flex items-center">
+                                    <Input 
+                                        placeholder="Search streams, products, or posts..." 
+                                        className="rounded-full bg-muted pl-10 h-10"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onFocus={() => setIsSearchExpanded(true)}
+                                    />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                    {isSearchExpanded && (
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsSearchExpanded(false)}>
+                                            <X className="h-5 w-5" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                             <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchExpanded(true)}>
                                 <Search className="h-5 w-5" />
                             </Button>
                              <DropdownMenu>
@@ -733,7 +732,7 @@ export default function LiveSellingPage() {
                             </DropdownMenu>
                              <Link href="/cart" passHref>
                                 <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingCart className="h-5 w-5" />
+                                    <ShoppingBag className="h-5 w-5" />
                                     {cartCount > 0 && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{cartCount}</Badge>}
                                 </Button>
                             </Link>
@@ -768,11 +767,11 @@ export default function LiveSellingPage() {
                                             <span>My Profile</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/orders')}>
-                                            <Package2 className="mr-2 h-4 w-4" />
+                                            <Package className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
                                          <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
                                             <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
@@ -840,14 +839,20 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                 </div>
-                 <div className={cn(isScrolled && "fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm")}>
-                     {renderTabs(isScrolled)}
+                <div className={cn("primary-tabs-container sticky top-16 z-40 bg-background/95 backdrop-blur-sm", isScrolled && "border-b")}>
+                    <div ref={primaryTabsRef} className={cn("container mx-auto px-4 sm:px-6 lg:px-8", isScrolled && "opacity-0 invisible h-0")}>
+                        {renderTabs(false)}
+                    </div>
+                    {isScrolled && (
+                        <div className={cn("fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm")}>
+                           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                             {renderTabs(true)}
+                           </div>
+                        </div>
+                    )}
                  </div>
             </header>
                 
-                 <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible", "mb-6")}>
-                    {renderTabs(false)}
-                 </div>
                  
                  {activeTab !== 'feeds' && (
                      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -1139,7 +1144,7 @@ export default function LiveSellingPage() {
                                             </div>
                                             <div className="flex justify-around pt-2">
                                                 <div>
-                                                    <p className="font-bold">{userPosts.length}</p>
+                                                     <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
                                                 </div>
                                                 <div>
