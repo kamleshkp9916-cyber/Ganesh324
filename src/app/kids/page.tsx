@@ -105,7 +105,7 @@ export default function KidsPage() {
             <div className="hidden lg:block">
                 <h1 className="text-4xl font-bold">Kids</h1>
             </div>
-
+            
             <section>
                 <h2 className="text-xl font-semibold mb-4 text-center">Shop for Kids</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">

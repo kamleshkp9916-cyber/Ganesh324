@@ -114,27 +114,6 @@ export default function MensClothingPage() {
                 <h1 className="text-4xl font-bold">Men</h1>
             </div>
 
-            <section>
-                <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {categories.map(category => (
-                        <Link href="#" key={category.name} className="group block text-center">
-                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
-                                <Image 
-                                    src={category.image}
-                                    alt={category.name}
-                                    width={200}
-                                    height={200}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                    data-ai-hint={category.hint}
-                                />
-                            </div>
-                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
-                        </Link>
-                    ))}
-                </div>
-            </section>
-            
              <section>
                  <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
                      {isMounted && banner1 ? (
@@ -187,6 +166,27 @@ export default function MensClothingPage() {
                          <Skeleton className="w-full h-80" />
                     )}
                 </Card>
+            </section>
+            
+            <section>
+                <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {categories.map(category => (
+                        <Link href="#" key={category.name} className="group block text-center">
+                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
+                                <Image 
+                                    src={category.image}
+                                    alt={category.name}
+                                    width={200}
+                                    height={200}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    data-ai-hint={category.hint}
+                                />
+                            </div>
+                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                        </Link>
+                    ))}
+                </div>
             </section>
           </div>
         </div>
