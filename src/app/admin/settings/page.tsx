@@ -90,6 +90,8 @@ export const COUPONS_KEY = 'streamcart_coupons';
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
+export const HUB_BANNER_KEY = 'streamcart_hub_banner';
+
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -133,6 +135,8 @@ export type CategoryBanners = {
         banner2: CategoryBanner;
     }
 }
+
+export type HubBanner = z.infer<typeof bannerSchema>;
 
 
 const footerContentSchema = z.object({
@@ -192,6 +196,12 @@ const defaultCategoryBanners: CategoryBanners = {
     "Handbags": { banner1: { title: 'The Perfect Accessory', description: 'Complete your look with our new handbag collection.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Carry It All', description: 'Stylish and functional bags for every need.', imageUrl: 'https://placehold.co/1200x600.png' } },
     "Trending": { banner1: { title: 'What\'s Hot', description: 'Discover the most popular items right now.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Must-Haves', description: 'The products everyone is talking about.', imageUrl: 'https://placehold.co/1200x600.png' } },
     "Sale": { banner1: { title: 'Big Savings!', description: 'Up to 70% off on selected items.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Final Clearance', description: 'Don\'t miss out on these last-chance deals.', imageUrl: 'https://placehold.co/1200x600.png' } }
+};
+
+const defaultHubBanner: HubBanner = {
+    title: "Mega Electronics Sale",
+    description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
+    imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
 };
 
 
@@ -333,6 +343,48 @@ const BannerForm = ({ banner, onSave, title }: { banner: CategoryBanner, onSave:
     );
 };
 
+const HubBannerForm = ({ banner, onSave }: { banner: HubBanner, onSave: (data: HubBanner) => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof bannerSchema>>({
+        resolver: zodResolver(bannerSchema),
+        defaultValues: banner,
+    });
+
+    useEffect(() => {
+        form.reset(banner);
+    }, [banner, form]);
+
+    const onSubmit = (values: z.infer<typeof bannerSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave(values);
+            setIsLoading(false);
+        }, 500);
+    };
+
+    return (
+         <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="title" render={({ field }) => (
+                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="description" render={({ field }) => (
+                    <FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                    <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="flex justify-end pt-2">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Hub Banner
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
+};
+
 const FooterContentForm = ({ storedValue, onSave }: { storedValue: FooterContent, onSave: (data: FooterContent) => void }) => {
     const [isLoading, setIsLoading] = useState(false);
     const form = useForm<z.infer<typeof footerContentSchema>>({
@@ -411,6 +463,7 @@ export default function AdminSettingsPage() {
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, initialSlides);
   const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultCategoryBanners);
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
+  const [hubBanner, setHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
@@ -489,6 +542,11 @@ export default function AdminSettingsPage() {
         }
     }));
     toast({ title: "Banner Saved!", description: `Banner for ${selectedCategory} has been updated.` });
+  };
+
+   const handleSaveHubBanner = (data: HubBanner) => {
+    setHubBanner(data);
+    toast({ title: "Hub Banner Saved!", description: "The banner on the Listed Products page has been updated." });
   };
 
    const handleSaveFooter = (data: FooterContent) => {
@@ -643,6 +701,15 @@ export default function AdminSettingsPage() {
                 </Card>
                  <Card>
                     <CardHeader>
+                        <CardTitle>Category Hub Banner</CardTitle>
+                        <CardDescription>Manage the main banner on the "Listed Products" page.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <HubBannerForm banner={hubBanner} onSave={handleSaveHubBanner} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
                         <CardTitle>Category Page Banner Management</CardTitle>
                         <CardDescription>Select a category to manage its two promotional banners.</CardDescription>
                     </CardHeader>
@@ -781,5 +848,3 @@ export default function AdminSettingsPage() {
     </>
   )
 }
-
-    

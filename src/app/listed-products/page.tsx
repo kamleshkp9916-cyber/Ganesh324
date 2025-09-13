@@ -18,6 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, User, X } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { HUB_BANNER_KEY, HubBanner } from "@/app/admin/settings/page";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from 'next/image';
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 const menSubcategories = {
   explore: ["All Men’s Clothing", "New Arrivals"],
@@ -41,6 +48,12 @@ const electronicsSubcategories = {
   explore: ["All Electronics", "New Arrivals"],
   shop: ["Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs"],
   more: ["Accessories", "Gaming"],
+};
+
+const defaultHubBanner: HubBanner = {
+    title: "Mega Electronics Sale",
+    description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
+    imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
 };
 
 
@@ -97,6 +110,12 @@ function MegaMenuContent({ title, subcategories }: { title: string, subcategorie
 export default function ListedProductsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const router = useRouter();
+  const [hubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -114,6 +133,11 @@ export default function ListedProductsPage() {
                     <div className="hidden lg:flex">
                          <NavigationMenu>
                             <NavigationMenuList>
+                                <NavigationMenuItem>
+                                    <Link href="/home" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
                                 <NavigationMenuItem>
                                     <NavigationMenuTrigger>Men</NavigationMenuTrigger>
                                     <NavigationMenuContent>
@@ -137,6 +161,21 @@ export default function ListedProductsPage() {
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
                                     </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <Link href="#" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Auctions</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <Link href="/help" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Help</NavigationMenuLink>
+                                    </Link>
+                                </NavigationMenuItem>
+                                 <NavigationMenuItem>
+                                    <Link href="/contact" legacyBehavior passHref>
+                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact Us</NavigationMenuLink>
+                                    </Link>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>
@@ -176,7 +215,26 @@ export default function ListedProductsPage() {
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow flex items-center justify-center">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+          {isMounted && hubBanner ? (
+            <Card className="overflow-hidden border-none shadow-lg mb-10">
+              <CardContent className="p-0 relative aspect-[3/1]">
+                <Image
+                  src={hubBanner.imageUrl}
+                  alt={hubBanner.title}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
+                   <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
+                   <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Skeleton className="w-full aspect-[3/1] mb-10" />
+          )}
+
         <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight">Choose a Category</h1>
             <p className="text-muted-foreground mt-4 text-lg">
