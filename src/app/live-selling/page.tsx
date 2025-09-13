@@ -639,17 +639,17 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-                <div className="px-4 -ml-2 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                      <div className="flex items-center gap-1 sm:gap-2">
-                         <Link href="/live-selling" className="flex items-center gap-2">
+                         <Link href="/live-selling" className="flex items-center gap-2 -ml-2">
                              <Logo className="h-7 w-7" />
                              <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                          </Link>
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
-                        <div className={cn("relative w-full sm:max-w-md lg:max-w-lg")}>
-                             <div className="relative">
+                        <div className={cn("relative w-full max-w-sm", isSearchOpen && "sm:max-w-md lg:max-w-lg")}>
+                            <div className="relative">
                                 <Button 
                                     variant="ghost" 
                                     size="icon" 
@@ -663,12 +663,12 @@ export default function LiveSellingPage() {
                                 <Input 
                                     placeholder="Search..." 
                                     className={cn("rounded-full bg-muted h-10 pl-10 peer w-full transition-all duration-300", 
-                                        !isSearchOpen && "opacity-0 sm:opacity-100 sm:w-auto"
+                                        !isSearchOpen && "opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto"
                                     )}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onFocus={() => setIsSearchOpen(true)}
-                                    onBlur={() => setIsSearchOpen(false)}
+                                    onBlur={() => !searchTerm && setIsSearchOpen(false)}
                                 />
                                 <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground", isSearchOpen && "hidden")}/>
                              </div>
@@ -822,22 +822,23 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-             <div className="sticky top-16 z-40">
-                <div className="flex justify-center p-2">
+            <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm">
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center py-2">
                      <TabsList className="bg-transparent p-0">
-                        <TabsTrigger value="all" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
+                        <TabsTrigger value="all" className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
                  
-            <div className="flex-1">
-                <TabsContent value="all" className="space-y-8 mt-0">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                         <PromotionalCarousel />
-                    </div>
-                    <section>
+             <div className="flex-1">
+                {activeTab === 'all' && (
+                    <div className="space-y-8 mt-0">
+                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                            <PromotionalCarousel />
+                        </div>
+                        <section>
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
@@ -871,9 +872,9 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="text-left mb-4">
-                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                             <div className="text-center mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2 justify-center"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
@@ -964,8 +965,9 @@ export default function LiveSellingPage() {
                                 ))}
                             </div>
                         </section>
-                </TabsContent>
-
+                </div>
+                )}
+                {activeTab === 'live' && (
                     <TabsContent value="live" className="mt-0">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <div className="flex flex-wrap gap-2 mb-6">
@@ -1057,7 +1059,8 @@ export default function LiveSellingPage() {
                             )}
                     </div>
                     </TabsContent>
-
+                )}
+                 {activeTab === 'feeds' && (
                     <TabsContent value="feeds" className="w-full mt-0">
                         <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
                             <AlertDialogContent>
@@ -1350,7 +1353,8 @@ export default function LiveSellingPage() {
                                 <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
                             )}
                     </TabsContent>
-                </div>
+                )}
+            </div>
             <Footer />
         </Tabs>
     </div>
