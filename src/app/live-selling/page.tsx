@@ -663,7 +663,7 @@ export default function LiveSellingPage() {
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
-                        <div className={cn("relative transition-all duration-300 w-full max-w-sm sm:max-w-md lg:max-w-lg", isSearchOpen ? "w-full" : "w-auto")}>
+                         <div className={cn("relative transition-all duration-300 w-full max-w-sm sm:max-w-md lg:max-w-lg", isSearchOpen ? "w-full" : "w-auto")}>
                                 <Input 
                                 placeholder="Search..." 
                                 className={cn("rounded-full bg-muted h-10 pl-10 peer")}
@@ -819,15 +819,17 @@ export default function LiveSellingPage() {
                         )}
                     </div>
                 </div>
-                <div className="flex justify-center">
-                    <TabsList className="p-1.5 rounded-full">
-                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold">All</TabsTrigger>
-                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold">Feeds</TabsTrigger>
-                    </TabsList>
-                </div>
             </header>
             
+            <div className="bg-background border-b sticky top-16 z-40">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+                    <TabsList className="p-1.5 rounded-full bg-transparent">
+                        <TabsTrigger value="all" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full px-4 py-1.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
+                    </TabsList>
+                </div>
+            </div>
                  
                  {activeTab !== 'feeds' && (
                      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -870,25 +872,8 @@ export default function LiveSellingPage() {
                             ))}
                             </div>
                         </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-                             <div className="mb-4 text-center">
-                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 justify-center"><Tags className="text-primary" /> Product Categories</h2>
-                                 <div className="flex flex-wrap gap-2 justify-center">
-                                    {productCategories.map(filter => (
-                                        <Button 
-                                            key={filter} 
-                                            variant={productCategoryFilter === filter ? 'secondary' : 'ghost'}
-                                            size="sm" 
-                                            className="rounded-full text-xs md:text-sm h-8 md:h-9"
-                                            onClick={() => handleProductCategorySelect(filter)}
-                                        >
-                                            {filter}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 text-center mt-8">
                              <h2 className="text-2xl font-bold flex items-center gap-2 justify-center mb-4"><Star className="text-primary" /> Popular Products</h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
@@ -924,7 +909,7 @@ export default function LiveSellingPage() {
                                 })}
                             </div>
                         </section>
-                        <section className="mt-6">
+                        <section className="mt-8">
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
@@ -1371,4 +1356,5 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
 
