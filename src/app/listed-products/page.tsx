@@ -50,6 +50,28 @@ const electronicsSubcategories = {
   more: ["Accessories", "Gaming"],
 };
 
+const shoesSubcategories = {
+    "Women's": ["Boots", "Sneakers", "Sandals", "Heels", "Flats"],
+    "Men's": ["Boots", "Sneakers", "Dress Shoes", "Loafers"],
+    "Kids'": ["Girls' Shoes", "Boys' Shoes", "Toddler"],
+};
+
+const handbagsSubcategories = {
+    Shop: ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags"],
+    Features: ["Clutches", "Backpacks", "Wallets"],
+    More: ["New Arrivals", "Sale"],
+};
+
+const trendingSubcategories = {
+    "What's Hot": ["New Arrivals", "Best Sellers", "Top Rated"],
+    "By Department": ["Women's Trending", "Men's Trending", "Home Decor Trends"],
+};
+
+const saleSubcategories = {
+    "By Department": ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale"],
+    "Featured": ["Clearance", "Up to 50% Off", "Final Sale"],
+};
+
 const defaultHubBanner: HubBanner = {
     title: "Mega Electronics Sale",
     description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
@@ -149,15 +171,15 @@ export default function ListedProductsPage() {
                          <NavigationMenu>
                             <NavigationMenuList>
                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Men</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="Men" subcategories={menSubcategories} />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
                                     <NavigationMenuTrigger>Women</NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                          <MegaMenuContent title="Women" subcategories={womenSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Men</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Men" subcategories={menSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                                 <NavigationMenuItem>
@@ -170,6 +192,30 @@ export default function ListedProductsPage() {
                                     <NavigationMenuTrigger>Electronics</NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Shoes</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Shoes" subcategories={shoesSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                 <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Handbags</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Handbags" subcategories={handbagsSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Trending</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Trending" subcategories={trendingSubcategories} />
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                                 <NavigationMenuItem>
+                                    <NavigationMenuTrigger>Sale</NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <MegaMenuContent title="Sale" subcategories={saleSubcategories} />
                                     </NavigationMenuContent>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
@@ -197,7 +243,7 @@ export default function ListedProductsPage() {
                                     </Button>
                                 </div>
                                 <div className="p-4 space-y-2">
-                                    {['Home', 'Men', 'Women', 'Kids', 'Electronics', 'Auctions', 'Help', 'Contact Us'].map(item => (
+                                    {['Women', 'Men', 'Kids', 'Electronics', 'Shoes', 'Handbags', 'Trending', 'Sale'].map(item => (
                                         <Link key={item} href="#" className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
                                             {item}
                                         </Link>
