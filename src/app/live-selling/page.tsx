@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -57,7 +56,6 @@ import {
   Save,
   Package,
   ShoppingBag,
-  Package2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -278,6 +276,7 @@ export default function LiveSellingPage() {
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -626,7 +625,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+           <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-1 sm:gap-4">
@@ -634,18 +633,30 @@ export default function LiveSellingPage() {
                         </div>
                         
                         <div className="flex items-center gap-1 sm:gap-2">
-                             <div className="relative flex-1 flex justify-center">
-                                <div className="w-full max-w-md relative flex items-center">
+                             <div className={cn("relative flex-1 flex justify-center", !isSearchOpen && "hidden sm:flex")}>
+                                <div className={cn("w-full max-w-md relative flex items-center transition-all duration-300", isSearchOpen ? "w-full" : "w-0 sm:w-full")}>
                                     <Input 
                                         placeholder="Search streams, products, or posts..." 
                                         className="rounded-full bg-muted pl-10 h-10"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
+                                        onBlur={() => isSearchOpen && !searchTerm && setIsSearchOpen(false)}
                                     />
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                                 </div>
                             </div>
-                            <Link href="/listed-products" passHref>
+                            <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
+                                {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
+                            </Button>
+                            <Link href="/cart" passHref>
+                                <Button variant="ghost" size="icon" className="relative">
+                                    <ShoppingCart className="h-5 w-5" />
+                                     {cartCount > 0 && (
+                                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">{cartCount}</Badge>
+                                    )}
+                                </Button>
+                            </Link>
+                             <Link href="/listed-products" passHref>
                                 <Button variant="ghost" size="icon" className="relative">
                                     <ShoppingBag className="h-5 w-5" />
                                 </Button>
@@ -693,7 +704,10 @@ export default function LiveSellingPage() {
                                 </DropdownMenuTrigger>
                                 {user ? (
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>{userData?.displayName}</DropdownMenuLabel>
+                                        <DropdownMenuLabel>
+                                            <div>{userData?.displayName}</div>
+                                            <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
+                                        </DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                          {userData?.role === 'admin' && (
                                             <DropdownMenuItem onSelect={() => router.push('/admin/dashboard')}>
@@ -712,21 +726,20 @@ export default function LiveSellingPage() {
                                             <span>My Profile</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/orders')}>
-                                            <Package2 className="mr-2 h-4 w-4" />
+                                            <Package className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
+                                         <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/cart')}>
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            <span>My Cart</span>
-                                             {cartCount > 0 && <Badge className="ml-auto">{cartCount}</Badge>}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
                                             <span>My Wallet</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
+                                            <ShoppingBag className="mr-2 h-4 w-4" />
+                                            <span>Listed Products</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                          <DropdownMenuItem onSelect={() => router.push('/setting')}>
@@ -737,7 +750,7 @@ export default function LiveSellingPage() {
                                             <LifeBuoy className="mr-2 h-4 w-4" />
                                             <span>Help</span>
                                         </DropdownMenuItem>
-                                         <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
+                                        <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
                                             <Shield className="mr-2 h-4 w-4" />
                                             <span>Privacy & Security</span>
                                         </DropdownMenuItem>
@@ -785,7 +798,7 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center border-b">
+                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center sticky top-16 bg-background/95 backdrop-blur-sm z-40 border-t">
                     <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
                         <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="live">Live Shopping</TabsTrigger>
@@ -1339,8 +1352,3 @@ export default function LiveSellingPage() {
     </div>
   );
 }
-
-
-
-
-
