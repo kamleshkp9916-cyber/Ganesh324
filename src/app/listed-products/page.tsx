@@ -29,6 +29,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -103,7 +105,7 @@ export default function ListedProductsPage() {
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
     const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
     if (subcategoryName) {
-        return `${basePath}/${subcategoryName.toLowerCase().replace(/\s+/g, '-')}`;
+        return `${basePath}/${subcategoryName.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`;
     }
     return basePath;
   }
@@ -159,38 +161,37 @@ export default function ListedProductsPage() {
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-full max-w-sm p-0">
+                            <SheetContent side="right" className="w-full max-w-sm p-0 flex flex-col">
                                 <div className="flex justify-between items-center p-4 border-b">
-                                     <Link href="/live-selling" className="flex items-center gap-2">
+                                    <Link href="/live-selling" className="flex items-center gap-2">
                                         <Logo className="h-7 w-7" />
                                         <span className="font-bold text-lg">StreamCart</span>
                                     </Link>
-                                     <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
-                                        <X className="h-6 w-6" />
-                                    </Button>
                                 </div>
-                                <div className="p-4">
-                                  <Accordion type="multiple" className="w-full">
-                                    {Object.entries(allCategories).map(([category, subcategories]) => (
-                                        <AccordionItem value={category} key={category}>
-                                            <AccordionTrigger className="text-base font-semibold">
-                                                <Link href={getCategoryPath(category)} onClick={() => setMobileMenuOpen(false)}>
-                                                    {category}
-                                                </Link>
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <div className="flex flex-col space-y-2 pl-4">
-                                                    {subcategories.map(sub => (
-                                                        <Link key={sub} href={getCategoryPath(category, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
-                                                            {sub}
+                                <ScrollArea className="flex-grow">
+                                    <div className="p-4">
+                                        <Accordion type="multiple" className="w-full">
+                                            {Object.entries(allCategories).map(([category, subcategories]) => (
+                                                <AccordionItem value={category} key={category}>
+                                                    <AccordionTrigger className="text-base font-semibold">
+                                                        <Link href={getCategoryPath(category)} onClick={() => setMobileMenuOpen(false)}>
+                                                            {category}
                                                         </Link>
-                                                    ))}
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                  </Accordion>
-                                </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="flex flex-col space-y-2 pl-4">
+                                                            {subcategories.map(sub => (
+                                                                <Link key={sub} href={getCategoryPath(category, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
+                                                                    {sub}
+                                                                </Link>
+                                                            ))}
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
+                                    </div>
+                                </ScrollArea>
                             </SheetContent>
                         </Sheet>
                     </div>
