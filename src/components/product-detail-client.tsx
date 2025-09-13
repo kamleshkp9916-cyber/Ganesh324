@@ -409,16 +409,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                              <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                             <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
                             <p className="text-xs text-muted-foreground mt-1">Product Key: {product.key}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                                <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                    ))}
-                                </div>
-                                {reviews.length > 0 && (
+                            {reviews.length > 0 && (
+                                <div className="flex items-center gap-2 mt-2">
+                                    <div className="flex items-center gap-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                        ))}
+                                    </div>
                                     <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -887,3 +887,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
