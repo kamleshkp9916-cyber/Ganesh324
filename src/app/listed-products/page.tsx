@@ -12,9 +12,15 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, User, X, ChevronRight } from "lucide-react";
+import { Menu, ShoppingCart, User, X, ChevronRight, ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
@@ -22,6 +28,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -83,6 +90,7 @@ const collageCategories = [
 ];
 
 export default function ListedProductsPage() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [hubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [featuredProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
@@ -105,7 +113,10 @@ export default function ListedProductsPage() {
        <header className="border-b sticky top-0 bg-background/95 z-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                     <div className="flex items-center gap-4">
+                     <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
+                          <ArrowLeft className="h-6 w-6" />
+                        </Button>
                         <Link href="/live-selling" className="flex items-center gap-2">
                             <Logo className="h-7 w-7" />
                             <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
@@ -148,19 +159,37 @@ export default function ListedProductsPage() {
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-full max-w-sm">
+                            <SheetContent side="right" className="w-full max-w-sm p-0">
                                 <div className="flex justify-between items-center p-4 border-b">
-                                    <h2 className="text-lg font-semibold">Menu</h2>
+                                     <Link href="/live-selling" className="flex items-center gap-2">
+                                        <Logo className="h-7 w-7" />
+                                        <span className="font-bold text-lg">StreamCart</span>
+                                    </Link>
                                      <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                                         <X className="h-6 w-6" />
                                     </Button>
                                 </div>
-                                <div className="p-4 space-y-2">
-                                    {Object.keys(allCategories).map(item => (
-                                        <Link key={item} href={getCategoryPath(item)} className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
-                                            {item}
-                                        </Link>
+                                <div className="p-4">
+                                  <Accordion type="multiple" className="w-full">
+                                    {Object.entries(allCategories).map(([category, subcategories]) => (
+                                        <AccordionItem value={category} key={category}>
+                                            <AccordionTrigger className="text-base font-semibold">
+                                                <Link href={getCategoryPath(category)} onClick={() => setMobileMenuOpen(false)}>
+                                                    {category}
+                                                </Link>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="flex flex-col space-y-2 pl-4">
+                                                    {subcategories.map(sub => (
+                                                        <Link key={sub} href={getCategoryPath(category, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
+                                                            {sub}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
                                     ))}
+                                  </Accordion>
                                 </div>
                             </SheetContent>
                         </Sheet>
