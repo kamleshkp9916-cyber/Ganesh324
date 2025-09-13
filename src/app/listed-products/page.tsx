@@ -11,11 +11,10 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingCart, User, X, ChevronRight, ShoppingBag } from "lucide-react";
+import { Menu, ShoppingCart, User, X, ChevronRight } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
@@ -50,15 +49,17 @@ const ListItem = React.forwardRef<
 });
 ListItem.displayName = "ListItem";
 
-const allSubcategories = {
-    Women: ["All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"],
-    Men: ["All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"],
-    Kids: ["All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"],
-    Electronics: ["All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"],
-    Shoes: ["Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"],
-    Handbags: ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"],
-    Trending: ["New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"],
-    Sale: ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"]
+
+const allCategories = {
+    Women: ["Tops", "Dresses", "Coats & Jackets", "Pants", "Jeans", "Swim & Cover-Ups", "Bras & Underwear", "Active", "Pajamas & Robes"],
+    Men: ["Shirts", "Pants & Shorts", "Coats & Jackets", "Activewear", "Jeans", "Underwear & Socks", "Pajamas & Robes", "Suits & Tuxedos"],
+    Kids: ["Girls' Clothing", "Boys' Clothing", "Baby Clothing", "Toys & Games", "Backpacks"],
+    Home: ["Bedding", "Bath", "Rugs", "Furniture", "Home Decor", "Kitchen"],
+    Electronics: ["Computers & Laptops", "Smartphones & Accessories", "TV & Home Theater", "Cameras & Drones", "Headphones & Audio", "Video Games"],
+    Shoes: ["Women's Shoes", "Men's Shoes", "Kids' Shoes"],
+    Handbags: ["Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks"],
+    Trending: ["New Arrivals", "Best Sellers", "Top Rated"],
+    Sale: ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale"]
 };
 
 const defaultHubBanner: HubBanner = {
@@ -74,13 +75,12 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
 ];
 
 const collageCategories = [
-    { name: "Women's Fashion", href: "/womens-clothing", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", colSpan: "col-span-2", rowSpan: "row-span-2" },
-    { name: "Men's Style", href: "/mens-clothing", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", colSpan: "col-span-1", rowSpan: "row-span-1" },
+    { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", colSpan: "col-span-2", rowSpan: "row-span-2" },
+    { name: "Men", href: "/men", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", colSpan: "col-span-1", rowSpan: "row-span-1" },
     { name: "Electronics", href: "/electronics", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", hint: "headphones", colSpan: "col-span-1", rowSpan: "row-span-1" },
-    { name: "Kids' Corner", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", colSpan: "col-span-1", rowSpan: "row-span-1" },
-    { name: "Home Goods", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
+    { name: "Kids", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", colSpan: "col-span-1", rowSpan: "row-span-1" },
+    { name: "Home", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
 ];
-
 
 export default function ListedProductsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -92,7 +92,13 @@ export default function ListedProductsPage() {
     setIsMounted(true);
   }, []);
 
-  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+  const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
+    const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+    if (subcategoryName) {
+        return `${basePath}/${subcategoryName.toLowerCase().replace(/\s+/g, '-')}`;
+    }
+    return basePath;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -106,24 +112,22 @@ export default function ListedProductsPage() {
                         </Link>
                     </div>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden lg:flex">
                          <NavigationMenu>
                             <NavigationMenuList>
-                                 {Object.entries(allSubcategories).map(([category, subcategories]) => (
+                                 {Object.entries(allCategories).map(([category, subcategories]) => (
                                     <NavigationMenuItem key={category}>
                                         <NavigationMenuTrigger>{category}</NavigationMenuTrigger>
                                         <NavigationMenuContent>
-                                            <div className="p-6">
-                                                <h3 className="font-bold text-lg mb-4">
-                                                    <Link href={getCategoryUrl(category)} className="hover:underline">{category}</Link>
-                                                </h3>
-                                                <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">
-                                                    {subcategories.map((link) => (
-                                                        <ListItem key={link} href="#" title={link} />
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                            <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                                                {subcategories.map((component) => (
+                                                    <ListItem
+                                                        key={component}
+                                                        title={component}
+                                                        href={getCategoryPath(category, component)}
+                                                    />
+                                                ))}
+                                            </ul>
                                         </NavigationMenuContent>
                                     </NavigationMenuItem>
                                 ))}
@@ -152,8 +156,8 @@ export default function ListedProductsPage() {
                                     </Button>
                                 </div>
                                 <div className="p-4 space-y-2">
-                                    {Object.keys(allSubcategories).map(item => (
-                                        <Link key={item} href={getCategoryUrl(item)} className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
+                                    {Object.keys(allCategories).map(item => (
+                                        <Link key={item} href={getCategoryPath(item)} className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
                                             {item}
                                         </Link>
                                     ))}
@@ -206,9 +210,9 @@ export default function ListedProductsPage() {
 
         <section className="mb-12">
             <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(250px,_1fr)]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(0,_300px)]">
                 {collageCategories.map((cat, index) => (
-                    <Link key={index} href={getCategoryUrl(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
+                    <Link key={index} href={getCategoryPath(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
                         <Image
                             src={cat.imageUrl}
                             alt={cat.name}
