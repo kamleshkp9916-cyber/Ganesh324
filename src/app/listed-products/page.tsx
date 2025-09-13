@@ -115,11 +115,6 @@ export default function ListedProductsPage() {
                          <NavigationMenu>
                             <NavigationMenuList>
                                 <NavigationMenuItem>
-                                    <Link href="/live-selling" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
                                     <NavigationMenuTrigger>Men</NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Men" subcategories={menSubcategories} />
@@ -142,21 +137,6 @@ export default function ListedProductsPage() {
                                     <NavigationMenuContent>
                                         <MegaMenuContent title="Electronics" subcategories={electronicsSubcategories} />
                                     </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                 <NavigationMenuItem>
-                                    <Link href="#" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Auctions</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <Link href="/help" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Help</NavigationMenuLink>
-                                    </Link>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <Link href="/contact" legacyBehavior passHref>
-                                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact Us</NavigationMenuLink>
-                                    </Link>
                                 </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>
