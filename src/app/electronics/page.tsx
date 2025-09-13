@@ -16,6 +16,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 
+const categories = [
+    { name: "Computers & Laptops", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=500&fit=crop", hint: "laptop on desk" },
+    { name: "Smartphones", image: "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400&h=500&fit=crop", hint: "smartphone" },
+    { name: "TV & Home Theater", image: "https://images.unsplash.com/photo-1593784999559-5a8b66052737?w=400&h=500&fit=crop", hint: "living room television" },
+    { name: "Cameras & Drones", image: "https://images.unsplash.com/photo-1519638831568-d9897f54ed69?w=400&h=500&fit=crop", hint: "camera on tripod" },
+    { name: "Headphones & Audio", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=500&fit=crop", hint: "headphones" },
+    { name: "Video Games", image: "https://images.unsplash.com/photo-1552820728-8b83e663613a?w=400&h=500&fit=crop", hint: "video game controller" },
+];
+
 const defaultBanners: CategoryBanners = {
     "Electronics": {
         banner1: { title: 'Tech Deals', description: 'Get the latest gadgets at amazing prices.', imageUrl: 'https://placehold.co/800x800.png' },
@@ -97,14 +106,30 @@ export default function ElectronicsPage() {
             <div className="hidden lg:block">
                 <h1 className="text-4xl font-bold">Electronics</h1>
             </div>
-             <div className="text-center py-20 text-muted-foreground">
-                <p>Electronics content coming soon.</p>
-            </div>
+            
+            <section>
+                <h2 className="text-xl font-semibold mb-4 text-center">Shop by Category</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {categories.map(category => (
+                        <Link href="#" key={category.name} className="group block text-center">
+                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
+                                <Image 
+                                    src={category.image}
+                                    alt={category.name}
+                                    width={200}
+                                    height={200}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    data-ai-hint={category.hint}
+                                />
+                            </div>
+                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                        </Link>
+                    ))}
+                </div>
+            </section>
           </div>
         </div>
       </main>
     </div>
   );
 }
-
-    

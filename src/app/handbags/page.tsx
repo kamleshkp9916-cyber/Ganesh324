@@ -16,6 +16,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 
+const categories = [
+    { name: "Totes", image: "https://images.unsplash.com/photo-1594223274502-942be6e542e0?w=400&h=500&fit=crop", hint: "tote bag" },
+    { name: "Crossbody Bags", image: "https://images.unsplash.com/photo-1579566346927-c68383817a25?w=400&h=500&fit=crop", hint: "crossbody bag" },
+    { name: "Shoulder Bags", image: "https://images.unsplash.com/photo-1617482337134-36a8d8b135b9?w=400&h=500&fit=crop", hint: "shoulder bag" },
+    { name: "Clutches", image: "https://images.unsplash.com/photo-1583406734135-4a6c4f995874?w=400&h=500&fit=crop", hint: "clutch purse" },
+    { name: "Backpacks", image: "https://images.unsplash.com/photo-1587547131175-9055034d0107?w=400&h=500&fit=crop", hint: "fashion backpack" },
+];
+
 const defaultBanners: CategoryBanners = {
     "Handbags": {
         banner1: { title: 'The Perfect Accessory', description: 'Complete your look with our new handbag collection.', imageUrl: 'https://placehold.co/800x800.png' },
@@ -96,14 +104,30 @@ export default function HandbagsPage() {
             <div className="hidden lg:block">
                 <h1 className="text-4xl font-bold">Handbags</h1>
             </div>
-            <div className="text-center py-20 text-muted-foreground">
-                <p>Handbags content coming soon.</p>
-            </div>
+            
+            <section>
+                <h2 className="text-xl font-semibold mb-4 text-center">Shop by Type</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    {categories.map(category => (
+                        <Link href="#" key={category.name} className="group block text-center">
+                            <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
+                                <Image 
+                                    src={category.image}
+                                    alt={category.name}
+                                    width={200}
+                                    height={200}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    data-ai-hint={category.hint}
+                                />
+                            </div>
+                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                        </Link>
+                    ))}
+                </div>
+            </section>
           </div>
         </div>
       </main>
     </div>
   );
 }
-
-    
