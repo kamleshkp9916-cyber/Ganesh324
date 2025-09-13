@@ -645,6 +645,11 @@ export default function LiveSellingPage() {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                                 </div>
                             </div>
+                            <Link href="/listed-products" passHref>
+                                <Button variant="ghost" size="icon" className="relative">
+                                    <ShoppingBag className="h-5 w-5" />
+                                </Button>
+                            </Link>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                      <Button variant="ghost" size="icon" className="relative">
@@ -676,12 +681,6 @@ export default function LiveSellingPage() {
                                     )}
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                             <Link href="/cart" passHref>
-                                <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingCart className="h-5 w-5" />
-                                    {cartCount > 0 && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{cartCount}</Badge>}
-                                </Button>
-                            </Link>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -716,17 +715,14 @@ export default function LiveSellingPage() {
                                             <Package2 className="mr-2 h-4 w-4" />
                                             <span>My Orders</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => router.push('/listed-products')}>
-                                            <ShoppingBag className="mr-2 h-4 w-4" />
-                                            <span>Listed Products</span>
-                                        </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/cart')}>
-                                          <ShoppingCart className="mr-2 h-4 w-4" />
-                                          <span>My Cart</span>
+                                            <ShoppingCart className="mr-2 h-4 w-4" />
+                                            <span>My Cart</span>
+                                             {cartCount > 0 && <Badge className="ml-auto">{cartCount}</Badge>}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
@@ -1343,6 +1339,7 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
 
 
 
