@@ -98,7 +98,7 @@ import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
-import { MainHeader } from '@/components/main-header';
+import { Logo } from '@/components/logo';
 
 
 const liveSellers = [
@@ -117,8 +117,6 @@ const liveSellers = [
 const reportReasons = [
     { id: "spam", label: "It's spam" },
     { id: "hate", label: "Hate speech or symbols" },
-    { id: "violence", label: "Violence or dangerous organizations" },
-    { id: "scam", label: "Scam or fraud" },
     { id: "false", label: "False information" },
     { id: "bullying", label: "Bullying or harassment" },
 ];
@@ -659,7 +657,203 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                 <MainHeader />
+            <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center gap-1 sm:gap-4">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="shrink-0">
+                                        <Menu className="h-5 w-5" />
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left">
+                                     <nav className="grid gap-6 text-lg font-medium p-4">
+                                        <Link href="/live-selling" className="flex items-center gap-2 text-lg font-semibold mb-4">
+                                            <Logo/>
+                                            <span>StreamCart</span>
+                                        </Link>
+                                        <Link href="/live-selling" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Home className="w-5 h-5"/><span>Home</span></div>
+                                        </Link>
+                                         <Link href="/listed-products" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><ShoppingBag className="w-5 h-5"/><span>Listed Products</span></div>
+                                        </Link>
+                                        <Link href="/orders" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Package2 className="w-5 h-5"/><span>My Orders</span></div>
+                                        </Link>
+                                        <Link href="/wallet" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Wallet className="w-5 h-5"/><span>My Wallet</span></div>
+                                        </Link>
+                                        <Link href="/top-seller" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Award className="w-5 h-5"/><span>Top Sellers</span></div>
+                                        </Link>
+                                        <Link href="/live-selling" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Tv className="w-5 h-5"/><span>Explore</span></div>
+                                        </Link>
+                                        <DropdownMenuSeparator className="bg-border" />
+                                         <Link href="/setting" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Settings className="w-5 h-5"/><span>Settings</span></div>
+                                        </Link>
+                                         <Link href="/help" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><LifeBuoy className="w-5 h-5"/><span>Help</span></div>
+                                        </Link>
+                                         <Link href="/privacy-and-security" className="text-foreground hover:text-foreground/80 transition-colors">
+                                            <div className="flex items-center gap-4"><Shield className="w-5 h-5"/><span>Privacy & Security</span></div>
+                                        </Link>
+                                    </nav>
+                                </SheetContent>
+                            </Sheet>
+                            <Link href="/live-selling" className="flex-shrink-0 hidden sm:block">
+                                <Logo />
+                            </Link>
+                        </div>
+                        
+                        <div ref={searchRef} className={cn("flex-1 flex justify-center transition-all duration-300", isSearchExpanded && "absolute left-0 right-0 top-0 h-full bg-background px-4 z-10")}>
+                            <div className="w-full max-w-md relative flex items-center">
+                                <Input 
+                                    placeholder="Search streams, products, or posts..." 
+                                    className="rounded-full bg-muted pl-10 h-10"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setIsSearchExpanded(true)}
+                                />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                                {isSearchExpanded && (
+                                     <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setIsSearchExpanded(false)}>
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 sm:gap-2">
+                            <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchExpanded(true)}>
+                                <Search className="h-5 w-5" />
+                            </Button>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                     <Button variant="ghost" size="icon" className="relative">
+                                        <Bell className="h-5 w-5" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                            </span>
+                                        )}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                 <DropdownMenuContent align="end" className="w-80">
+                                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {notifications.map(n => (
+                                        <Link key={n.id} href={n.href} passHref>
+                                            <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                                <div className="flex justify-between w-full">
+                                                    <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{n.time}</p>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{n.description}</p>
+                                            </DropdownMenuItem>
+                                        </Link>
+                                    ))}
+                                    {notifications.length === 0 && (
+                                        <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                                    )}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                             <Link href="/cart" passHref>
+                                <Button variant="ghost" size="icon" className="relative">
+                                    <ShoppingCart className="h-5 w-5" />
+                                    {cartCount > 0 && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs">{cartCount}</Badge>}
+                                </Button>
+                            </Link>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                         <Avatar className="h-8 w-8">
+                                            <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'}/>
+                                            <AvatarFallback>{user?.displayName ? user.displayName.charAt(0).toUpperCase() : <User/>}</AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                {user ? (
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>{userData?.displayName}</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                         {userData?.role === 'admin' && (
+                                            <DropdownMenuItem onSelect={() => router.push('/admin/dashboard')}>
+                                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                <span>Admin Dashboard</span>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {userData?.role === 'seller' && (
+                                            <DropdownMenuItem onSelect={() => router.push('/seller/dashboard')}>
+                                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                <span>Seller Dashboard</span>
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuItem onSelect={() => router.push('/profile')}>
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span>My Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/orders')}>
+                                            <Package2 className="mr-2 h-4 w-4" />
+                                            <span>My Orders</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
+                                            <Heart className="mr-2 h-4 w-4" />
+                                            <span>My Wishlist</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 mr-2" />
+                                                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 mr-2" />
+                                                <span>Theme</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => signOut(userData?.role === 'seller')}>
+                                            <LogOut className="mr-2 h-4 w-4" />
+                                            <span>Log out</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                ) : (
+                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => router.push('/')}>
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span>Login or Sign Up</span>
+                                        </DropdownMenuItem>
+                                     </DropdownMenuContent>
+                                )}
+                            </DropdownMenu>
+                            
+                            {(userData?.role === 'seller' || userData?.role === 'admin') && (
+                                 <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button size="sm" className="hidden lg:flex">
+                                            <RadioTower className="mr-2 h-4 w-4"/> Go Live
+                                        </Button>
+                                    </DialogTrigger>
+                                    <GoLiveDialog />
+                                </Dialog>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                 <div className={cn(isScrolled && "fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm")}>
+                     {renderTabs(isScrolled)}
+                 </div>
+            </header>
                 
                  <div ref={primaryTabsRef} className={cn(isScrolled && "opacity-0 invisible", "mb-6")}>
                     {renderTabs(false)}
