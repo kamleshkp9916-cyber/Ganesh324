@@ -50,15 +50,16 @@ const ListItem = React.forwardRef<
 });
 ListItem.displayName = "ListItem";
 
-const womenSubcategories = ["All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"];
-const menSubcategories = ["All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"];
-const kidsSubcategories = ["All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"];
-const electronicsSubcategories = ["All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"];
-const shoesSubcategories = ["Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"];
-const handbagsSubcategories = ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"];
-const trendingSubcategories = ["New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"];
-const saleSubcategories = ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"];
-
+const allSubcategories = {
+    Women: ["All Women’s Clothing", "New Arrivals", "Dresses", "Tops", "Pants", "Shoes", "Bags", "Beauty", "Accessories"],
+    Men: ["All Men’s Clothing", "New Arrivals", "T-Shirts", "Shirts", "Jeans", "Jackets", "Shoes", "Grooming", "Accessories"],
+    Kids: ["All Kids’ Clothing", "T-Shirts", "Shorts", "Dresses", "School Bags", "Toys", "Baby Care", "Accessories"],
+    Electronics: ["All Electronics", "New Arrivals", "Mobiles", "Laptops", "Smartwatches", "Headphones", "TVs", "Accessories", "Gaming"],
+    Shoes: ["Women's Boots", "Women's Sneakers", "Women's Sandals", "Women's Heels", "Men's Boots", "Men's Sneakers", "Men's Dress Shoes", "Girls' Shoes", "Boys' Shoes"],
+    Handbags: ["All Handbags", "Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks", "Wallets", "New Arrivals", "Sale"],
+    Trending: ["New Arrivals", "Best Sellers", "Top Rated", "Women's Trending", "Men's Trending", "Home Decor Trends"],
+    Sale: ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale", "Clearance", "Up to 50% Off", "Final Sale"]
+};
 
 const defaultHubBanner: HubBanner = {
     title: "Mega Electronics Sale",
@@ -80,18 +81,24 @@ const collageCategories = [
     { name: "Home Goods", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
 ];
 
-
-function MegaMenuContent({ title, subcategories, href }: { title: string, subcategories: string[], href: string }) {
+const MainNavMenu = ({ title, href, subcategories }: { title: string, href: string, subcategories: string[] }) => {
     return (
-      <ul className="grid w-[200px] gap-3 p-4 md:w-[250px]">
-        <li className="font-semibold text-lg border-b pb-2 mb-2">
-            <Link href={href} className="hover:underline">{title}</Link>
-        </li>
-        {subcategories.map((link) => (
-          <ListItem key={link} href="#" title={link} />
-        ))}
-      </ul>
-    );
+        <NavigationMenuItem>
+            <NavigationMenuTrigger>{title}</NavigationMenuTrigger>
+            <NavigationMenuContent>
+                <div className="w-screen max-w-md md:max-w-xl lg:max-w-2xl p-6">
+                    <h3 className="font-bold text-lg mb-4">
+                        <Link href={href} className="hover:underline">{title}</Link>
+                    </h3>
+                    <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                        {subcategories.map((link) => (
+                            <ListItem key={link} href="#" title={link} />
+                        ))}
+                    </ul>
+                </div>
+            </NavigationMenuContent>
+        </NavigationMenuItem>
+    )
 }
 
 export default function ListedProductsPage() {
@@ -122,54 +129,14 @@ export default function ListedProductsPage() {
                     <div className="hidden lg:flex">
                          <NavigationMenu>
                             <NavigationMenuList>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Women</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                         <MegaMenuContent title="All Women's" subcategories={womenSubcategories} href="/womens-clothing" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Men</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Men's" subcategories={menSubcategories} href="/mens-clothing" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Kids</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Kids'" subcategories={kidsSubcategories} href="/kids" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Electronics</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Electronics" subcategories={electronicsSubcategories} href="/electronics" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Shoes</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Shoes" subcategories={shoesSubcategories} href="/shoes" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Handbags</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Handbags" subcategories={handbagsSubcategories} href="/handbags" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Trending</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Trending" subcategories={trendingSubcategories} href="/trending" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Sale</NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <MegaMenuContent title="All Sale" subcategories={saleSubcategories} href="/sale" />
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
+                                <MainNavMenu title="Women" href="/womens-clothing" subcategories={allSubcategories.Women} />
+                                <MainNavMenu title="Men" href="/mens-clothing" subcategories={allSubcategories.Men} />
+                                <MainNavMenu title="Kids" href="/kids" subcategories={allSubcategories.Kids} />
+                                <MainNavMenu title="Electronics" href="/electronics" subcategories={allSubcategories.Electronics} />
+                                <MainNavMenu title="Shoes" href="/shoes" subcategories={allSubcategories.Shoes} />
+                                <MainNavMenu title="Handbags" href="/handbags" subcategories={allSubcategories.Handbags} />
+                                <MainNavMenu title="Trending" href="/trending" subcategories={allSubcategories.Trending} />
+                                <MainNavMenu title="Sale" href="/sale" subcategories={allSubcategories.Sale} />
                             </NavigationMenuList>
                         </NavigationMenu>
                     </div>
@@ -195,8 +162,8 @@ export default function ListedProductsPage() {
                                     </Button>
                                 </div>
                                 <div className="p-4 space-y-2">
-                                    {['Women', 'Men', 'Kids', 'Electronics', 'Shoes', 'Handbags', 'Trending', 'Sale'].map(item => (
-                                        <Link key={item} href="#" className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
+                                    {Object.keys(allSubcategories).map(item => (
+                                        <Link key={item} href={getCategoryUrl(item)} className="block p-3 rounded-md text-base font-medium hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>
                                             {item}
                                         </Link>
                                     ))}
