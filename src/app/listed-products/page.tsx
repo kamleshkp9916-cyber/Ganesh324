@@ -81,20 +81,6 @@ const collageCategories = [
     { name: "Home Goods", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
 ];
 
-const MegaMenuContent = ({ title, href, subcategories }: { title: string, href: string, subcategories: string[] }) => (
-  <NavigationMenuContent>
-    <div className="p-6">
-      <h3 className="font-bold text-lg mb-4">
-        <Link href={href} className="hover:underline">{title}</Link>
-      </h3>
-      <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">
-        {subcategories.map((link) => (
-          <ListItem key={link} href="#" title={link} />
-        ))}
-      </ul>
-    </div>
-  </NavigationMenuContent>
-);
 
 export default function ListedProductsPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -124,38 +110,23 @@ export default function ListedProductsPage() {
                     <div className="hidden lg:flex">
                          <NavigationMenu>
                             <NavigationMenuList>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Women</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Women" href="/womens-clothing" subcategories={allSubcategories.Women} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Men</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Men" href="/mens-clothing" subcategories={allSubcategories.Men} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Kids</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Kids" href="/kids" subcategories={allSubcategories.Kids} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Electronics</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Electronics" href="/electronics" subcategories={allSubcategories.Electronics} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Shoes</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Shoes" href="/shoes" subcategories={allSubcategories.Shoes} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Handbags</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Handbags" href="/handbags" subcategories={allSubcategories.Handbags} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Trending</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Trending" href="/trending" subcategories={allSubcategories.Trending} />
-                                </NavigationMenuItem>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger>Sale</NavigationMenuTrigger>
-                                    <MegaMenuContent title="Sale" href="/sale" subcategories={allSubcategories.Sale} />
-                                </NavigationMenuItem>
+                                 {Object.entries(allSubcategories).map(([category, subcategories]) => (
+                                    <NavigationMenuItem key={category}>
+                                        <NavigationMenuTrigger>{category}</NavigationMenuTrigger>
+                                        <NavigationMenuContent>
+                                            <div className="p-6">
+                                                <h3 className="font-bold text-lg mb-4">
+                                                    <Link href={getCategoryUrl(category)} className="hover:underline">{category}</Link>
+                                                </h3>
+                                                <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">
+                                                    {subcategories.map((link) => (
+                                                        <ListItem key={link} href="#" title={link} />
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </NavigationMenuContent>
+                                    </NavigationMenuItem>
+                                ))}
                             </NavigationMenuList>
                         </NavigationMenu>
                     </div>
@@ -235,7 +206,7 @@ export default function ListedProductsPage() {
 
         <section className="mb-12">
             <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[250px] md:auto-rows-[300px]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(250px,_1fr)]">
                 {collageCategories.map((cat, index) => (
                     <Link key={index} href={getCategoryUrl(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
                         <Image
