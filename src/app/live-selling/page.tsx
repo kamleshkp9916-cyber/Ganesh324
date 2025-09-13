@@ -68,6 +68,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Footer } from '@/components/footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -99,6 +108,7 @@ import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { Logo } from '@/components/logo';
+import { categories } from '@/lib/categories';
 
 
 const liveSellers = [
@@ -256,6 +266,33 @@ function CommentSheet({ postId, trigger }: { postId: string, trigger: React.Reac
         </Sheet>
     )
 }
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
+
 
 export default function LiveSellingPage() {
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
@@ -607,6 +644,8 @@ export default function LiveSellingPage() {
     }
 };
 
+  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -632,9 +671,39 @@ export default function LiveSellingPage() {
                            <Logo />
                         </div>
                         
+                        <div className="hidden lg:flex items-center gap-4">
+                             <NavigationMenu>
+                                <NavigationMenuList>
+                                     <NavigationMenuItem>
+                                        <NavigationMenuTrigger>Categories</NavigationMenuTrigger>
+                                        <NavigationMenuContent>
+                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                                            {categories.map((category) => (
+                                            <ListItem
+                                                key={category.name}
+                                                title={category.name}
+                                                href={getCategoryUrl(category.name)}
+                                            >
+                                                {category.subcategories.slice(0, 3).join(", ")}...
+                                            </ListItem>
+                                            ))}
+                                        </ul>
+                                        </NavigationMenuContent>
+                                    </NavigationMenuItem>
+                                    <NavigationMenuItem>
+                                        <Link href="/top-seller" legacyBehavior passHref>
+                                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                                                Top Sellers
+                                            </NavigationMenuLink>
+                                        </Link>
+                                    </NavigationMenuItem>
+                                </NavigationMenuList>
+                            </NavigationMenu>
+                        </div>
+
                         <div className="flex items-center gap-1 sm:gap-2">
-                            <div className={cn("relative flex-1 flex justify-center")}>
-                                <div className={cn("w-full max-w-md relative flex items-center transition-all duration-300", isSearchOpen ? "w-full" : "w-0 sm:w-full")}>
+                             <div className={cn("relative flex-1 flex justify-center")}>
+                                <div className={cn("w-full max-w-md relative hidden sm:flex items-center transition-all duration-300", isSearchOpen ? "w-full" : "w-0 sm:w-full")}>
                                     <Input 
                                         placeholder="Search..." 
                                         className="rounded-full bg-muted pl-10 h-10"
@@ -649,9 +718,14 @@ export default function LiveSellingPage() {
                                 {isSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
                             </Button>
                             
-                            <Link href="/listed-products" passHref>
+                            <Link href="/cart" passHref>
                                 <Button variant="ghost" size="icon" className="relative">
-                                    <ShoppingBag className="h-5 w-5" />
+                                    <ShoppingCart className="h-5 w-5" />
+                                    {cartCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                                            {cartCount}
+                                        </span>
+                                    )}
                                 </Button>
                             </Link>
                              <DropdownMenu>
@@ -696,7 +770,7 @@ export default function LiveSellingPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 {user ? (
-                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuContent align="end" className="min-w-[12rem]">
                                         <DropdownMenuLabel>
                                             <div>{userData?.displayName}</div>
                                             <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
@@ -725,10 +799,6 @@ export default function LiveSellingPage() {
                                          <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                             <Heart className="mr-2 h-4 w-4" />
                                             <span>My Wishlist</span>
-                                        </DropdownMenuItem>
-                                         <DropdownMenuItem onSelect={() => router.push('/cart')}>
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            <span>My Cart</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                             <Wallet className="mr-2 h-4 w-4" />
@@ -791,11 +861,11 @@ export default function LiveSellingPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center sticky top-16 bg-background/95 backdrop-blur-sm z-40 border-t">
-                    <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex h-11">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="live">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds">Feeds</TabsTrigger>
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center sticky top-16 bg-background/95 backdrop-blur-sm z-40 border-t">
+                     <TabsList className="grid w-full max-w-md grid-cols-3 h-12 items-stretch">
+                        <TabsTrigger value="all" className="rounded-none">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-none">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-none">Feeds</TabsTrigger>
                     </TabsList>
                  </div>
             </header>
