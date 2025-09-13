@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -54,6 +55,7 @@ import {
   Tags,
   Flame,
   TrendingUp,
+  Save,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -1116,108 +1118,120 @@ export default function LiveSellingPage() {
                                 </>
                             ) : filteredFeed.length > 0 ? (
                                 filteredFeed.map((item) => (
-                                    <Card key={item.id} className="overflow-hidden">
+                                    <Card key={item.id} className="overflow-hidden bg-card/50">
                                         <div className="p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                    <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-primary">{item.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{item.timestamp}</p>
-                                                </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreHorizontal className="w-4 h-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                        {user && user.uid === item.sellerId && (
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
-                                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                                        <span>Delete Post</span>
-                                                                    </DropdownMenuItem>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        )}
-                                                        <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                                            <Share2 className="mr-2 h-4 w-4" />
-                                                            <span>Share</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem asChild>
-                                                            <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                <MessageCircle className="mr-2 h-4 w-4" />
-                                                                <span>Feedback</span>
-                                                            </a>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuSub>
-                                                            <DropdownMenuSubTrigger>
-                                                                <Flag className="mr-2 h-4 w-4" />
-                                                                <span>Report</span>
-                                                            </DropdownMenuSubTrigger>
-                                                            <DropdownMenuPortal>
-                                                                <DropdownMenuSubContent>
-                                                                    <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                    <DropdownMenuSeparator />
-                                                                    {reportReasons.map(reason => (
-                                                                        <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
-                                                                            <span>{reason.label}</span>
-                                                                        </DropdownMenuItem>
-                                                                    ))}
-                                                                </DropdownMenuSubContent>
-                                                            </DropdownMenuPortal>
-                                                        </DropdownMenuSub>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </div>
-                                        <div className="px-4 pb-4">
-                                            <div className="flex flex-col items-center gap-4 text-center">
-                                                <p className="text-sm mb-2">{item.content}</p>
-                                                {item.mediaUrl &&
-                                                    <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                        {item.mediaType === 'video' ? (
-                                                            <video src={item.mediaUrl} controls className="w-full h-auto object-cover" />
-                                                        ) : (
-                                                            <Image src={item.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
-                                                        )}
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-foreground">{item.sellerName} • <span className="font-normal text-muted-foreground">My post</span></p>
+                                                        <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
                                                     </div>
-                                                }
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {user && user.uid === item.sellerId && (
+                                                        <Badge variant="outline">Your post</Badge>
+                                                    )}
+                                                     <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            {user && user.uid === item.sellerId && (
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
+                                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                                            <span>Delete Post</span>
+                                                                        </DropdownMenuItem>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            )}
+                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                <span>Share</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Feedback</span>
+                                                                </a>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger>
+                                                                    <Flag className="mr-2 h-4 w-4" />
+                                                                    <span>Report</span>
+                                                                </DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator />
+                                                                        {reportReasons.map(reason => (
+                                                                            <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
+                                                                                <span>{reason.label}</span>
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-4">
-                                                <button className="flex items-center gap-1.5 hover:text-primary" onClick={() => handleLikePost(item.id)}>
-                                                    <Heart className={cn("w-4 h-4", item.likes > 0 && "fill-destructive text-destructive")} />
+                                        
+                                        <div className="px-4 pb-4">
+                                            {item.content && <p className="text-sm mb-4">{item.content}</p>}
+                                            {item.mediaUrl &&
+                                                <div className="w-full bg-muted rounded-lg overflow-hidden aspect-video relative">
+                                                    {item.mediaType === 'video' ? (
+                                                        <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Image src={item.mediaUrl} alt="Feed item" fill className="object-cover" />
+                                                    )}
+                                                </div>
+                                            }
+                                        </div>
+                                        <div className="px-4 pb-3 flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => handleLikePost(item.id)}>
+                                                    <Heart className={cn("w-5 h-5", item.likes > 0 && "fill-destructive text-destructive")} />
                                                     <span>{item.likes || 0}</span>
-                                                </button>
+                                                </Button>
                                                 <CommentSheet
                                                     postId={item.id}
                                                     trigger={
-                                                        <button className="flex items-center gap-1.5 hover:text-primary">
-                                                            <MessageSquare className="w-4 h-4" />
+                                                        <Button variant="ghost" className="flex items-center gap-1.5">
+                                                            <MessageSquare className="w-5 h-5" />
                                                             <span>{item.replies || 0}</span>
-                                                        </button>
+                                                        </Button>
                                                     }
                                                 />
+                                                <Button variant="ghost" className="flex items-center gap-1.5">
+                                                    <Save className="w-5 h-5" />
+                                                    <span>Save</span>
+                                                </Button>
                                             </div>
-                                            {item.location && <span className="text-xs">{item.location}</span>}
+                                             {item.likes > 70 && (
+                                                <Badge variant="outline">+12 new likes</Badge>
+                                             )}
                                         </div>
                                     </Card>
                                 ))
@@ -1330,3 +1344,4 @@ export default function LiveSellingPage() {
     </div>
   );
 }
+
