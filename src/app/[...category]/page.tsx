@@ -32,19 +32,36 @@ export default function CategoryPage() {
     }
     
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
+    const categorySlug = pathSegments[0] || '';
+    const subCategorySlug = pathSegments[1] || null;
+    
     const lastSegment = pathSegments[pathSegments.length - 1] || '';
 
-    const categoryName = lastSegment
+    const pageTitle = lastSegment
         .replace(/-/g, ' ')
         .replace(/%26/g, '&')
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
         
-    const products = Object.values(productDetails); 
+    const allProducts = Object.values(productDetails); 
+
+    const filteredProducts = useMemo(() => {
+        return allProducts.filter(product => {
+            const productCategorySlug = product.category.toLowerCase().replace(/\s+/g, '-');
+            const productSubCategorySlug = product.subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+
+            if (subCategorySlug) {
+                // If there's a subcategory in the URL, match both category and subcategory
+                return productCategorySlug === categorySlug && productSubCategorySlug === subCategorySlug;
+            }
+            // If there's only a category in the URL, match the category
+            return productCategorySlug === categorySlug;
+        });
+    }, [allProducts, categorySlug, subCategorySlug]);
 
     const sortedProducts = useMemo(() => {
-        let sorted = [...products];
+        let sorted = [...filteredProducts];
 
         if (sortOption === 'price-asc') {
             sorted.sort((a, b) => parseFloat(a.price.replace(/[^0-9.-]+/g,"")) - parseFloat(b.price.replace(/[^0-9.-]+/g,"")));
@@ -54,7 +71,7 @@ export default function CategoryPage() {
 
         return sorted;
 
-    }, [products, sortOption]);
+    }, [filteredProducts, sortOption]);
     
 
     return (
@@ -63,7 +80,7 @@ export default function CategoryPage() {
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-xl font-bold truncate">{categoryName}</h1>
+                <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
                 <div className="w-10">
                     <Button asChild variant="ghost" size="icon">
                         <Link href="/cart"><ShoppingCart className="h-6 w-6" /></Link>
@@ -100,38 +117,45 @@ export default function CategoryPage() {
                         </DropdownMenu>
                     </div>
                 </div>
-                <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {sortedProducts.map((product: any) => {
-                        const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
-                        return (
-                            <Link href={`/product/${product.key}`} key={product.id} className="group block">
-                                <Card className="w-full overflow-hidden h-full flex flex-col">
-                                    <div className="relative aspect-square bg-muted">
-                                        {isNew && (
-                                            <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
-                                        )}
-                                        <Image
-                                            src={product.images[0]}
-                                            alt={product.name}
-                                            fill
-                                            className="object-cover transition-transform group-hover:scale-105"
-                                            data-ai-hint={product.hint}
-                                        />
-                                    </div>
-                                    <div className="p-3 flex-grow flex flex-col">
-                                        <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                        <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-4 h-4 fill-current" />
-                                            <span>4.8</span>
-                                            <span className="text-muted-foreground">(1.2k)</span>
+                {sortedProducts.length > 0 ? (
+                    <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {sortedProducts.map((product: any) => {
+                            const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
+                            return (
+                                <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                        <div className="relative aspect-square bg-muted">
+                                            {isNew && (
+                                                <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
+                                            )}
+                                            <Image
+                                                src={product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                                data-ai-hint={product.hint}
+                                            />
                                         </div>
-                                    </div>
-                                </Card>
-                            </Link>
-                        )
-                    })}
-                </div>
+                                        <div className="p-3 flex-grow flex flex-col">
+                                            <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                            <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                <Star className="w-4 h-4 fill-current" />
+                                                <span>4.8</span>
+                                                <span className="text-muted-foreground">(1.2k)</span>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            )
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center py-20 text-muted-foreground">
+                        <h2 className="text-2xl font-bold">No Products Found</h2>
+                        <p>There are no products in this category yet.</p>
+                    </div>
+                )}
             </main>
         </div>
     );
