@@ -292,7 +292,6 @@ export default function LiveSellingPage() {
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
-  const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [feedFilter, setFeedFilter] = useState('global');
   const [userPosts, setUserPosts] = useState<any[]>([]);
 
@@ -506,20 +505,11 @@ export default function LiveSellingPage() {
     );
   }, [searchTerm, feed]);
 
-  const productCategories = useMemo(() => {
-    const categories = new Set(Object.values(productDetails).map(p => p.category));
-    return ['All', ...Array.from(categories)];
-  }, []);
-
   const filteredProducts = useMemo(() => {
     let products = liveSellers.map(seller => {
         const product = productDetails[seller.productId as keyof typeof productDetails];
         return { ...seller, product };
     }).filter(item => item && item.product);
-
-    if (productCategoryFilter !== 'All') {
-      products = products.filter(item => item?.product.category === productCategoryFilter);
-    }
 
     if (searchTerm) {
         products = products.filter(item => 
@@ -529,7 +519,7 @@ export default function LiveSellingPage() {
     }
 
     return products;
-  }, [productCategoryFilter, searchTerm]);
+  }, [searchTerm]);
   
 
   const handleReply = (sellerName: string) => {
@@ -560,10 +550,6 @@ export default function LiveSellingPage() {
         setIsReportDialogOpen(false);
         setSelectedReportReason("");
     });
-  };
-  
-  const handleProductCategorySelect = (category: string) => {
-    setProductCategoryFilter(category);
   };
   
   const handleLiveFilterSelect = (filter: string) => {
@@ -653,34 +639,44 @@ export default function LiveSellingPage() {
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                <div className="px-4 -ml-2 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                      <div className="flex items-center gap-1 sm:gap-2">
-                         <Link href="/live-selling" className="flex items-center gap-2 -ml-2">
+                         <Link href="/live-selling" className="flex items-center gap-2">
                              <Logo className="h-7 w-7" />
                              <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                          </Link>
                     </div>
 
                     <div className="flex-1 flex justify-center px-4">
-                         <div className={cn("relative transition-all duration-300 w-full sm:max-w-md lg:max-w-lg", isSearchOpen ? "max-w-xl" : "max-w-sm")}>
+                        <div className={cn("relative w-full sm:max-w-md lg:max-w-lg")}>
                              <div className="relative">
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className={cn("absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground",
+                                        isSearchOpen && "hidden"
+                                    )}
+                                    onClick={() => setIsSearchOpen(true)}
+                                >
+                                    <Search className="h-5 w-5"/>
+                                </Button>
                                 <Input 
                                     placeholder="Search..." 
-                                    className={cn("rounded-full bg-muted h-10 pl-10 peer w-full lg:w-auto", 
-                                        "lg:focus:w-full"
+                                    className={cn("rounded-full bg-muted h-10 pl-10 peer w-full transition-all duration-300", 
+                                        !isSearchOpen && "opacity-0 sm:opacity-100 sm:w-auto"
                                     )}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onFocus={() => setIsSearchOpen(true)}
                                     onBlur={() => setIsSearchOpen(false)}
                                 />
-                                <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground")}/>
+                                <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground", isSearchOpen && "hidden")}/>
                              </div>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-1 sm:gap-2">
-                         <Button variant="ghost" className="hidden sm:inline-flex" asChild>
+                        <Button variant="ghost" className="hidden sm:inline-flex" asChild>
                             <Link href="/listed-products">
                                 <ShoppingBag className="mr-2 h-4 w-4"/>
                                 Products
@@ -826,27 +822,21 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-             <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm">
+             <div className="sticky top-16 z-40">
                 <div className="flex justify-center p-2">
-                    <div className="bg-muted p-1.5 rounded-full shadow-md">
-                        <TabsList className="bg-transparent p-0">
-                            <TabsTrigger value="all" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">All</TabsTrigger>
-                            <TabsTrigger value="live" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
-                        </TabsList>
-                    </div>
+                     <TabsList className="bg-transparent p-0">
+                        <TabsTrigger value="all" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">All</TabsTrigger>
+                        <TabsTrigger value="live" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="rounded-full px-4 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">Feeds</TabsTrigger>
+                    </TabsList>
                 </div>
             </div>
                  
             <div className="flex-1">
-                {activeTab !== 'feeds' && (
-                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                <TabsContent value="all" className="space-y-8 mt-0">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                          <PromotionalCarousel />
-                     </div>
-                 )}
-                
-                <div className="pb-20">
-                    <TabsContent value="all" className="space-y-8 mt-0">
+                    </div>
                     <section>
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
@@ -882,8 +872,8 @@ export default function LiveSellingPage() {
                         </section>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="text-center mb-4">
-                                 <h2 className="text-2xl font-bold flex items-center gap-2 justify-center"><Star className="text-primary" /> Popular Products</h2>
+                             <div className="text-left mb-4">
+                                 <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
@@ -974,7 +964,7 @@ export default function LiveSellingPage() {
                                 ))}
                             </div>
                         </section>
-                    </TabsContent>
+                </TabsContent>
 
                     <TabsContent value="live" className="mt-0">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -1361,7 +1351,6 @@ export default function LiveSellingPage() {
                             )}
                     </TabsContent>
                 </div>
-            </div>
             <Footer />
         </Tabs>
     </div>
