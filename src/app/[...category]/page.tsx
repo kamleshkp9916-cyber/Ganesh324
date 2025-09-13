@@ -19,16 +19,20 @@ export default function CategoryPage() {
     if (!categoryPath) {
         return <div>Loading...</div>;
     }
-
-    if (Array.isArray(categoryPath)) {
-        categoryPath = categoryPath.join(' / ');
-    }
     
-    const categoryName = categoryPath
-        .split('/')
-        .map(segment => segment.replace(/-/g, ' '))
+    // Ensure categoryPath is an array
+    const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
+
+    // Get the last segment for the title
+    const lastSegment = pathSegments[pathSegments.length - 1] || '';
+
+    // Create a clean title from the last segment
+    const categoryName = lastSegment
+        .replace(/-/g, ' ')
+        .replace(/%26/g, '&')
+        .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' > ');
+        .join(' ');
 
     const products = Object.values(productDetails).slice(0, 10); 
 
