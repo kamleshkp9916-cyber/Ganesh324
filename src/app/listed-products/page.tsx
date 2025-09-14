@@ -128,8 +128,8 @@ export default function ListedProductsPage() {
                                                     <AccordionContent>
                                                         <div className="flex flex-col space-y-2 pl-4">
                                                             {subcategories.map(sub => (
-                                                                <Link key={sub} href={getCategoryPath(name, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
-                                                                    {sub}
+                                                                <Link key={sub.name} href={getCategoryPath(name, sub.name)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
+                                                                    {sub.name}
                                                                 </Link>
                                                             ))}
                                                         </div>
@@ -154,10 +154,12 @@ export default function ListedProductsPage() {
                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                                     {category.subcategories.map((component) => (
                                         <ListItem
-                                            key={component}
-                                            title={component}
-                                            href={getCategoryPath(category.name, component)}
-                                        />
+                                            key={component.name}
+                                            title={component.name}
+                                            href={getCategoryPath(category.name, component.name)}
+                                        >
+                                          {component.description}
+                                        </ListItem>
                                     ))}
                                 </ul>
                             </NavigationMenuContent>
@@ -256,5 +258,3 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
-    
