@@ -1150,15 +1150,26 @@ export default function LiveSellingPage() {
                                             <CardTitle className="capitalize">{profileStatView}</CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                             <ScrollArea className="max-h-80">
-                                                <div className="pr-4 space-y-2">
+                                            <ScrollArea className="max-h-80">
+                                                <div className="pr-4 space-y-4">
                                                     {profileStatView === 'posts' && (
                                                         userPosts.length > 0 ? (
-                                                            userPosts.map(post => <p key={post.id} className="text-sm border-b pb-1">{post.content}</p>)
-                                                        ) : <p className="text-sm text-muted-foreground">You have no posts.</p>
+                                                            userPosts.map(post => (
+                                                                <Card key={post.id} className="overflow-hidden">
+                                                                    <div className="p-3">
+                                                                        <p className="text-sm line-clamp-3">{post.content}</p>
+                                                                        <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
+                                                                    </div>
+                                                                </Card>
+                                                            ))
+                                                        ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
                                                     )}
-                                                     {profileStatView === 'likes' && <p className="text-sm text-muted-foreground">Feature coming soon!</p>}
-                                                     {profileStatView === 'saves' && <p className="text-sm text-muted-foreground">Feature coming soon!</p>}
+                                                    {profileStatView === 'likes' && (
+                                                        <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
+                                                    )}
+                                                    {profileStatView === 'saves' && (
+                                                        <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
+                                                    )}
                                                 </div>
                                             </ScrollArea>
                                         </CardContent>
