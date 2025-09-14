@@ -628,7 +628,7 @@ export default function LiveSellingPage() {
 
   const openProfileStatDialog = (type: 'posts' | 'likes' | 'saves') => {
         let title = '';
-        let content = <p>No content available.</p>;
+        let content: React.ReactNode = <p>No content available.</p>;
 
         if (type === 'posts') {
             title = "My Posts";
@@ -1163,16 +1163,16 @@ export default function LiveSellingPage() {
                                                 <h3 className="font-bold">{userData.displayName}</h3>
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
                                             </div>
-                                            <div className="flex justify-around pt-2">
-                                                <div className="text-center">
+                                             <div className="flex justify-around pt-2">
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('posts')}>
                                                     <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
                                                 </div>
-                                                <div className="text-center">
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('likes')}>
                                                     <p className="font-bold">4.2k</p>
                                                     <p className="text-xs text-muted-foreground">Likes</p>
                                                 </div>
-                                                <div className="text-center">
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('saves')}>
                                                     <p className="font-bold">312</p>
                                                     <p className="text-xs text-muted-foreground">Saves</p>
                                                 </div>
@@ -1180,34 +1180,6 @@ export default function LiveSellingPage() {
                                         </CardContent>
                                     </Card>
                                 ) : <Skeleton className="h-48 w-full" />}
-                                
-                                {user && userData && (
-                                    <>
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle className="text-lg">My Posts</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <ScrollArea className="h-48">
-                                                    {userPosts.length > 0 ? userPosts.map(post => (
-                                                        <div key={post.id} className="text-sm p-2 border-b last:border-none">
-                                                            <p className="truncate">{post.content}</p>
-                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                        </div>
-                                                    )) : <p className="text-sm text-muted-foreground text-center">No posts yet.</p>}
-                                                </ScrollArea>
-                                            </CardContent>
-                                        </Card>
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle className="text-lg">Liked Posts</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-sm text-muted-foreground text-center">Feature coming soon!</p>
-                                            </CardContent>
-                                        </Card>
-                                    </>
-                                )}
                             </div>
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
