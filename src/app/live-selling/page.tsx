@@ -1377,9 +1377,10 @@ export default function LiveSellingPage() {
                     </TabsContent>
             </div>
         </Tabs>
-        <Footer />
+        <div className="mt-12">
+          <Footer />
+        </div>
       </div>
     </>
   );
 }
-
