@@ -297,7 +297,7 @@ export default function LiveSellingPage() {
   const [feedFilter, setFeedFilter] = useState('global');
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
-  const [profileStatView, setProfileStatView] = useState<'posts' | 'likes' | 'saves' | null>(null);
+  const [profileStatView, setProfileStatView] = useState<'posts' | 'likes' | 'saves'>('posts');
 
 
   const liveStreamFilterButtons = useMemo(() => {
@@ -1128,15 +1128,15 @@ export default function LiveSellingPage() {
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
                                             </div>
                                              <div className="flex justify-around pt-2">
-                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'posts' ? null : 'posts')}>
+                                                <button className="text-center" onClick={() => setProfileStatView('posts')}>
                                                     <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
                                                 </button>
-                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'likes' ? null : 'likes')}>
+                                                <button className="text-center" onClick={() => setProfileStatView('likes')}>
                                                     <p className="font-bold">4.2k</p>
                                                     <p className="text-xs text-muted-foreground">Likes</p>
                                                 </button>
-                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'saves' ? null : 'saves')}>
+                                                <button className="text-center" onClick={() => setProfileStatView('saves')}>
                                                     <p className="font-bold">312</p>
                                                     <p className="text-xs text-muted-foreground">Saves</p>
                                                 </button>
