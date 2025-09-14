@@ -1118,57 +1118,93 @@ export default function LiveSellingPage() {
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                              <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-32">
-                                  <Card>
-                                    <CardContent className="p-4 text-center">
-                                        {user && userData ? (
-                                            <>
-                                                <Avatar className="h-16 w-16 mx-auto">
-                                                    <AvatarImage src={userData.photoURL} alt={userData.displayName} />
-                                                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <h3 className="font-bold mt-2">{userData.displayName}</h3>
-                                                <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
-                                            </>
-                                        ) : <Skeleton className="h-48 w-full" />}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Hash className="h-5 w-5 text-primary"/>
+                                            Trending
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {trendingTopics.map((topic) => (
+                                            <div key={topic.topic} className="text-sm cursor-pointer group">
+                                                <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                            </div>
+                                        ))}
                                     </CardContent>
-                                    <CardContent>
-                                        <div className="flex justify-around pt-2">
-                                            <button className="text-center" onClick={() => setProfileStatView('posts')}>
-                                                <p className="font-bold">{userPosts.length}</p>
-                                                <p className="text-xs text-muted-foreground">Posts</p>
-                                            </button>
-                                            <button className="text-center" onClick={() => setProfileStatView('likes')}>
-                                                <p className="font-bold">4.2k</p>
-                                                <p className="text-xs text-muted-foreground">Likes</p>
-                                            </button>
-                                            <button className="text-center" onClick={() => setProfileStatView('saves')}>
-                                                <p className="font-bold">312</p>
-                                                <p className="text-xs text-muted-foreground">Saves</p>
-                                            </button>
-                                        </div>
-                                    </CardContent>
-                                     <Separator />
-                                     <CardContent className="space-y-4 p-4">
-                                        {profileStatView === 'posts' && (
-                                            userPosts.length > 0 ? (
-                                                <div className="space-y-4">
-                                                    {userPosts.map(post => (
-                                                         <Card key={post.id} className="overflow-hidden">
-                                                            <div className="p-3">
-                                                                <p className="text-sm line-clamp-2">{post.content}</p>
-                                                                <p className="text-xs text-muted-foreground mt-1">{post.timestamp}</p>
-                                                            </div>
-                                                        </Card>
-                                                    ))}
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <UserPlus className="h-5 w-5 text-primary"/>
+                                            Who to follow
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {suggestedUsers.map(u => (
+                                            <div key={u.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={u.avatar} alt={u.name} />
+                                                        <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-sm">{u.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{u.handle}</p>
+                                                    </div>
                                                 </div>
-                                            ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
-                                        )}
-                                        {profileStatView === 'likes' && (
-                                            <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
-                                        )}
-                                        {profileStatView === 'saves' && (
-                                            <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
-                                        )}
+                                                <Button
+                                                    size="sm"
+                                                    variant={followingIds.includes(u.uid) ? "outline" : "default"}
+                                                    onClick={() => handleFollowToggle(u.uid)}
+                                                >
+                                                    {followingIds.includes(u.uid) ? 'Following' : 'Follow'}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Video className="h-5 w-5 text-primary"/>
+                                            Top Live Streams
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                        {topLiveStreams.slice(0, 1).map((seller) => (
+                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
+                                                <div className="absolute top-1.5 left-1.5 z-10">
+                                                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
+                                                </div>
+                                                <div className="absolute top-1.5 right-1.5 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs px-1.5 py-0.5 h-auto">
+                                                        <Users className="w-2.5 h-2.5 mr-1" />
+                                                        {(seller.viewers / 1000).toFixed(1)}k
+                                                    </Badge>
+                                                </div>
+                                                <Image 
+                                                    src={seller.thumbnailUrl} 
+                                                    alt={`Live stream from ${seller.name}`} 
+                                                    width={300} 
+                                                    height={450} 
+                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    data-ai-hint={seller.hint}
+                                                />
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
                                     </CardContent>
                                 </Card>
                             </div>
@@ -1309,95 +1345,6 @@ export default function LiveSellingPage() {
                             )}
                             </div>
                             <div className="lg:col-span-1 space-y-4 lg:sticky top-32">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Hash className="h-5 w-5 text-primary"/>
-                                            Trending
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {trendingTopics.map((topic) => (
-                                            <div key={topic.topic} className="text-sm cursor-pointer group">
-                                                <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-lg">
-                                            <UserPlus className="h-5 w-5 text-primary"/>
-                                            Who to follow
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {suggestedUsers.map(u => (
-                                            <div key={u.id} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={u.avatar} alt={u.name} />
-                                                        <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-sm">{u.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{u.handle}</p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant={followingIds.includes(u.uid) ? "outline" : "default"}
-                                                    onClick={() => handleFollowToggle(u.uid)}
-                                                >
-                                                    {followingIds.includes(u.uid) ? 'Following' : 'Follow'}
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-lg">
-                                            <Video className="h-5 w-5 text-primary"/>
-                                            Top Live Streams
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2">
-                                        {topLiveStreams.slice(0, 1).map((seller) => (
-                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
-                                                <div className="absolute top-1.5 left-1.5 z-10">
-                                                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
-                                                </div>
-                                                <div className="absolute top-1.5 right-1.5 z-10">
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs px-1.5 py-0.5 h-auto">
-                                                        <Users className="w-2.5 h-2.5 mr-1" />
-                                                        {(seller.viewers / 1000).toFixed(1)}k
-                                                    </Badge>
-                                                </div>
-                                                <Image 
-                                                    src={seller.thumbnailUrl} 
-                                                    alt={`Live stream from ${seller.name}`} 
-                                                    width={300} 
-                                                    height={450} 
-                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    data-ai-hint={seller.hint}
-                                                />
-                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-8 w-8 border-2 border-primary">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </CardContent>
-                                </Card>
                             </div>
                         </div>
                         {user && (
