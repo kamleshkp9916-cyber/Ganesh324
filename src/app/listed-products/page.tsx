@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search } from "lucide-react";
+import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
@@ -258,3 +258,6 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+
+    
