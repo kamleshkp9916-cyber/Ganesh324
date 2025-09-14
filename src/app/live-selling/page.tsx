@@ -375,7 +375,7 @@ export default function LiveSellingPage() {
   }, [activeProductFilter]);
 
   const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 4);
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 40);
   }, [feed]);
 
  useEffect(() => {
