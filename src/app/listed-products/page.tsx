@@ -144,7 +144,7 @@ export default function ListedProductsPage() {
                     </div>
                 </div>
             </div>
-             <nav className="hidden lg:flex items-center justify-center border-t">
+             <nav className="hidden lg:flex items-center justify-center border-t bg-background">
                 <NavigationMenu>
                     <NavigationMenuList>
                         {allCategories.map((category) => (
