@@ -1127,35 +1127,46 @@ export default function LiveSellingPage() {
                                                 </Avatar>
                                                 <h3 className="font-bold mt-2">{userData.displayName}</h3>
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
-                                                <div className="flex justify-around pt-4">
-                                                    <button className="text-center" onClick={() => setProfileStatView('posts')}>
-                                                        <p className="font-bold">{userPosts.length}</p>
-                                                        <p className="text-xs text-muted-foreground">Posts</p>
-                                                    </button>
-                                                    <button className="text-center" onClick={() => setProfileStatView('likes')}>
-                                                        <p className="font-bold">4.2k</p>
-                                                        <p className="text-xs text-muted-foreground">Likes</p>
-                                                    </button>
-                                                    <button className="text-center" onClick={() => setProfileStatView('saves')}>
-                                                        <p className="font-bold">312</p>
-                                                        <p className="text-xs text-muted-foreground">Saves</p>
-                                                    </button>
-                                                </div>
                                             </>
                                         ) : <Skeleton className="h-48 w-full" />}
                                     </CardContent>
                                     <CardContent>
-                                        <div className="space-y-4">
-                                            {profileStatView === 'posts' && (
-                                                userPosts.length > 0 ? (
-                                                    userPosts.map(post => (
+                                        <div className="flex justify-around pt-2">
+                                            <button className="text-center" onClick={() => setProfileStatView('posts')}>
+                                                <p className="font-bold">{userPosts.length}</p>
+                                                <p className="text-xs text-muted-foreground">Posts</p>
+                                            </button>
+                                            <button className="text-center" onClick={() => setProfileStatView('likes')}>
+                                                <p className="font-bold">4.2k</p>
+                                                <p className="text-xs text-muted-foreground">Likes</p>
+                                            </button>
+                                            <button className="text-center" onClick={() => setProfileStatView('saves')}>
+                                                <p className="font-bold">312</p>
+                                                <p className="text-xs text-muted-foreground">Saves</p>
+                                            </button>
+                                        </div>
+                                    </CardContent>
+                                     <CardContent className="space-y-4">
+                                        {profileStatView === 'posts' && (
+                                            userPosts.length > 0 ? (
+                                                 <div className="space-y-4">
+                                                    {userPosts.map(post => (
                                                         <Card key={post.id} className="overflow-hidden">
-                                                            <div className="p-3">
+                                                            <div className="p-4">
                                                                 <div className="flex items-start justify-between">
-                                                                    <p className="text-sm line-clamp-3 flex-grow">{post.content}</p>
+                                                                    <div className="flex items-center gap-3 mb-3">
+                                                                        <Avatar className="h-10 w-10">
+                                                                            <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                                            <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div>
+                                                                            <p className="font-semibold">{post.sellerName}</p>
+                                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                                        </div>
+                                                                    </div>
                                                                     <DropdownMenu>
                                                                         <DropdownMenuTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-2 -mt-2">
+                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
                                                                                 <MoreHorizontal className="w-4 h-4" />
                                                                             </Button>
                                                                         </DropdownMenuTrigger>
@@ -1165,19 +1176,31 @@ export default function LiveSellingPage() {
                                                                         </DropdownMenuContent>
                                                                     </DropdownMenu>
                                                                 </div>
-                                                                <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
+                                                                <p className="text-sm">{post.content}</p>
+                                                            </div>
+                                                            <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                                                <div className="flex items-center gap-4">
+                                                                    <button className="flex items-center gap-1.5 hover:text-primary">
+                                                                        <Heart className="w-4 h-4" />
+                                                                        <span>{post.likes || 0}</span>
+                                                                    </button>
+                                                                    <button className="flex items-center gap-1.5 hover:text-primary">
+                                                                        <MessageSquare className="w-4 h-4" />
+                                                                        <span>{post.replies || 0}</span>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </Card>
-                                                    ))
-                                                ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
-                                            )}
-                                            {profileStatView === 'likes' && (
-                                                <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
-                                            )}
-                                            {profileStatView === 'saves' && (
-                                                <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
-                                            )}
-                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
+                                        )}
+                                        {profileStatView === 'likes' && (
+                                            <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
+                                        )}
+                                        {profileStatView === 'saves' && (
+                                            <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </div>
