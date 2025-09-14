@@ -23,19 +23,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { categories } from "@/lib/categories";
 
 
-const allCategories = {
-    Women: ["Tops", "Dresses", "Coats & Jackets", "Pants", "Jeans", "Swim & Cover-Ups", "Bras & Underwear", "Active", "Pajamas & Robes"],
-    Men: ["Shirts", "Pants & Shorts", "Coats & Jackets", "Activewear", "Jeans", "Underwear & Socks", "Pajamas & Robes", "Suits & Tuxedos"],
-    Kids: ["Girls' Clothing", "Boys' Clothing", "Baby Clothing", "Toys & Games", "Backpacks"],
-    Home: ["Bedding", "Bath", "Rugs", "Furniture", "Home Decor", "Kitchen"],
-    Electronics: ["Computers & Laptops", "Smartphones & Accessories", "TV & Home Theater", "Cameras & Drones", "Headphones & Audio", "Video Games"],
-    Shoes: ["Women's Shoes", "Men's Shoes", "Kids' Shoes"],
-    Handbags: ["Totes", "Crossbody Bags", "Shoulder Bags", "Clutches", "Backpacks"],
-    Trending: ["New Arrivals", "Best Sellers", "Top Rated"],
-    Sale: ["Women's Sale", "Men's Sale", "Kids' Sale", "Home Sale"]
-};
+const allCategories = categories;
 
 const defaultHubBanner: HubBanner = {
     title: "Mega Electronics Sale",
@@ -124,17 +115,17 @@ export default function ListedProductsPage() {
                                 <ScrollArea className="flex-grow">
                                     <div className="p-4">
                                         <Accordion type="multiple" className="w-full">
-                                            {Object.entries(allCategories).map(([category, subcategories]) => (
-                                                <AccordionItem value={category} key={category}>
+                                            {allCategories.map(({name, subcategories}) => (
+                                                <AccordionItem value={name} key={name}>
                                                     <AccordionTrigger className="text-base font-semibold">
-                                                        <Link href={getCategoryPath(category)} onClick={() => setMobileMenuOpen(false)}>
-                                                            {category}
+                                                        <Link href={getCategoryPath(name)} onClick={() => setMobileMenuOpen(false)}>
+                                                            {name}
                                                         </Link>
                                                     </AccordionTrigger>
                                                     <AccordionContent>
                                                         <div className="flex flex-col space-y-2 pl-4">
                                                             {subcategories.map(sub => (
-                                                                <Link key={sub} href={getCategoryPath(category, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
+                                                                <Link key={sub} href={getCategoryPath(name, sub)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
                                                                     {sub}
                                                                 </Link>
                                                             ))}
@@ -150,6 +141,15 @@ export default function ListedProductsPage() {
                     </div>
                 </div>
             </div>
+             <nav className="hidden lg:flex items-center justify-center border-t">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+                    {allCategories.map(({name}) => (
+                        <Link key={name} href={getCategoryPath(name)} className="px-4 py-3 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+                            {name}
+                        </Link>
+                    ))}
+                </div>
+            </nav>
         </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
