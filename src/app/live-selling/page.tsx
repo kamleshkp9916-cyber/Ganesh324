@@ -514,7 +514,7 @@ export default function LiveSellingPage() {
     if (searchTerm) {
         products = products.filter(item => 
             item.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+            (item.product.brand && item.product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }
 
@@ -648,36 +648,23 @@ export default function LiveSellingPage() {
                          </Link>
                     </div>
 
-                    <div className={cn("absolute sm:relative left-0 w-full px-4 sm:px-0 sm:w-auto sm:flex-1 flex justify-center transition-all duration-300", 
-                        isSearchOpen ? 'top-1/2 -translate-y-1/2 z-10' : '-top-full -translate-y-0'
-                    )}>
-                        <div className="relative w-full max-w-sm lg:max-w-md">
+                    <div className="hidden sm:flex flex-1 justify-center">
+                         <div className="relative w-full max-w-sm lg:max-w-md">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
                                 <Input 
                                     placeholder="Search..." 
-                                    className={cn("rounded-full bg-muted h-10 pl-10 pr-10 peer transition-all duration-300 w-full"
-                                    )}
+                                    className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300 w-full"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    onFocus={() => setIsSearchOpen(true)}
                                 />
-                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
-                                 {isSearchOpen && (
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full sm:hidden" onClick={() => {setIsSearchOpen(false); setSearchTerm('')}}>
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                 )}
+                            </div>
                         </div>
                     </div>
                     
-                    <div className={cn("flex items-center gap-1 sm:gap-2", isSearchOpen && "hidden sm:flex")}>
-                        <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(true)}>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
                             <Search className="h-5 w-5"/>
-                        </Button>
-                        <Button variant="ghost" className="hidden sm:inline-flex" asChild>
-                            <Link href="/listed-products">
-                                <ShoppingBag className="mr-2 h-4 w-4"/>
-                                Products
-                            </Link>
                         </Button>
                         
                          <DropdownMenu>
@@ -817,14 +804,28 @@ export default function LiveSellingPage() {
                         )}
                     </div>
                 </div>
+                 {isSearchOpen && (
+                    <div className="absolute top-16 left-0 w-full p-4 bg-background border-b sm:hidden">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search..." 
+                                className="rounded-full bg-muted h-10 pl-10"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                 )}
             </header>
             
-             <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm py-2">
+             <div className="sticky top-16 z-40 py-2">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="bg-transparent p-0 h-auto">
-                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">All</TabsTrigger>
-                        <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Live Shopping</TabsTrigger>
-                        <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Feeds</TabsTrigger>
+                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
+                        <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
+                        <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Feeds</TabsTrigger>
+                        <TabsTrigger value="products" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Products</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
@@ -869,8 +870,8 @@ export default function LiveSellingPage() {
                         </section>
                         
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                             <div className="mb-4 text-center">
+                                <h2 className="text-2xl font-bold flex items-center gap-2 justify-center"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
@@ -907,7 +908,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section className="mt-8">
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
@@ -1345,6 +1346,46 @@ export default function LiveSellingPage() {
                         {user && (
                                 <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
                             )}
+                    </TabsContent>
+                    <TabsContent value="products" className="mt-0">
+                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                             <div className="mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2 justify-center">All Products</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                                {filteredProducts.map((item: any) => {
+                                    if (!item || !item.product) return null;
+                                    const { product } = item;
+                                    return (
+                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                            <Link href={`/product/${product.key}`} className="cursor-pointer">
+                                                <div className="overflow-hidden">
+                                                    <Image 
+                                                        src={item.thumbnailUrl.replace('450', '300')} 
+                                                        alt={`Product from ${item.name}`} 
+                                                        width={300} 
+                                                        height={300} 
+                                                        className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+                                                        data-ai-hint={item.hint}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                                                    <p className="font-bold text-lg">{product.price}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                        <div className="flex items-center gap-1 text-amber-500">
+                                                            <Star className="h-4 w-4 fill-current"/>
+                                                            <span>{item.rating}</span>
+                                                        </div>
+                                                        <span>({item.buyers} buyers)</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </TabsContent>
             </div>
         </Tabs>
