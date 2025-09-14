@@ -297,8 +297,7 @@ export default function LiveSellingPage() {
   const [feedFilter, setFeedFilter] = useState('global');
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
-  const [isProfileStatDialogOpen, setIsProfileStatDialogOpen] = useState(false);
-  const [profileStatDialogContent, setProfileStatDialogContent] = useState<{ title: string; content: React.ReactNode }>({ title: '', content: null });
+  const [profileStatView, setProfileStatView] = useState<'posts' | 'likes' | 'saves' | null>(null);
 
 
   const liveStreamFilterButtons = useMemo(() => {
@@ -626,31 +625,6 @@ export default function LiveSellingPage() {
     }
 };
 
-  const openProfileStatDialog = (type: 'posts' | 'likes' | 'saves') => {
-        let title = '';
-        let content: React.ReactNode = <p>No content available.</p>;
-
-        if (type === 'posts') {
-            title = "My Posts";
-            content = (
-                <div className="space-y-2">
-                    {userPosts.length > 0 ? (
-                        userPosts.map(post => <p key={post.id} className="text-sm border-b pb-1">{post.content}</p>)
-                    ) : <p>You have no posts.</p>}
-                </div>
-            );
-        } else if (type === 'likes') {
-            title = "Liked Posts";
-            content = <p>Feature coming soon!</p>;
-        } else if (type === 'saves') {
-            title = "Saved Posts";
-            content = <p>Feature coming soon!</p>;
-        }
-
-        setProfileStatDialogContent({ title, content });
-        setIsProfileStatDialogOpen(true);
-  };
-
   const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
@@ -671,16 +645,6 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <Dialog open={isProfileStatDialogOpen} onOpenChange={setIsProfileStatDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{profileStatDialogContent.title}</DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="max-h-80">
-                     <div className="pr-4">{profileStatDialogContent.content}</div>
-                </ScrollArea>
-            </DialogContent>
-        </Dialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -1164,22 +1128,42 @@ export default function LiveSellingPage() {
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
                                             </div>
                                              <div className="flex justify-around pt-2">
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('posts')}>
+                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'posts' ? null : 'posts')}>
                                                     <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
-                                                </div>
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('likes')}>
+                                                </button>
+                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'likes' ? null : 'likes')}>
                                                     <p className="font-bold">4.2k</p>
                                                     <p className="text-xs text-muted-foreground">Likes</p>
-                                                </div>
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('saves')}>
+                                                </button>
+                                                <button className="text-center" onClick={() => setProfileStatView(profileStatView === 'saves' ? null : 'saves')}>
                                                     <p className="font-bold">312</p>
                                                     <p className="text-xs text-muted-foreground">Saves</p>
-                                                </div>
+                                                </button>
                                             </div>
                                         </CardContent>
                                     </Card>
                                 ) : <Skeleton className="h-48 w-full" />}
+                                {profileStatView && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="capitalize">{profileStatView}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                             <ScrollArea className="max-h-80">
+                                                <div className="pr-4 space-y-2">
+                                                    {profileStatView === 'posts' && (
+                                                        userPosts.length > 0 ? (
+                                                            userPosts.map(post => <p key={post.id} className="text-sm border-b pb-1">{post.content}</p>)
+                                                        ) : <p className="text-sm text-muted-foreground">You have no posts.</p>
+                                                    )}
+                                                     {profileStatView === 'likes' && <p className="text-sm text-muted-foreground">Feature coming soon!</p>}
+                                                     {profileStatView === 'saves' && <p className="text-sm text-muted-foreground">Feature coming soon!</p>}
+                                                </div>
+                                            </ScrollArea>
+                                        </CardContent>
+                                    </Card>
+                                )}
                             </div>
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
