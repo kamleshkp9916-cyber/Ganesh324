@@ -22,7 +22,7 @@ import {
   FileText,
   LifeBuoy,
   Wallet,
-  List,
+  ShoppingBag,
   LogOut,
   MoreHorizontal,
   Flag,
@@ -55,7 +55,7 @@ import {
   TrendingUp,
   Save,
   Package,
-  ShoppingBag,
+  List,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -354,6 +354,12 @@ export default function LiveSellingPage() {
       .slice(0, 5)
       .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
+  
+  const popularProducts = useMemo(() => {
+      return Object.values(productDetails)
+          .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0)) // a simple sort to feature some items
+          .slice(0, 6);
+  }, []);
 
   const mostReachedPosts = useMemo(() => {
     return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
@@ -865,6 +871,32 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
+                        <section className="mt-8">
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="text-primary" /> Popular Products</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
+                                {popularProducts.map((product: any) => (
+                                     <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                                        <Card className="w-full overflow-hidden h-full flex flex-col">
+                                            <div className="relative aspect-square bg-muted">
+                                                <Image
+                                                    src={product.images[0]}
+                                                    alt={product.name}
+                                                    fill
+                                                    className="object-cover transition-transform group-hover:scale-105"
+                                                    data-ai-hint={product.hint}
+                                                />
+                                            </div>
+                                            <div className="p-3 flex-grow flex flex-col">
+                                                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
                         
                         <section className="mt-8">
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
@@ -1220,7 +1252,7 @@ export default function LiveSellingPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {trendingTopics.map((topic, index) => (
-                                            <div key={topic.topic} className="text-sm cursor-pointer group">
+                                            <div key={index} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
