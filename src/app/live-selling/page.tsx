@@ -1381,5 +1381,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
