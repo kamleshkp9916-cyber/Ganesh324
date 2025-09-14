@@ -5,11 +5,14 @@ import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingCart, User, X, ChevronRight, ArrowLeft, Search } from "lucide-react";
@@ -24,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { categories } from "@/lib/categories";
-
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const allCategories = categories;
 
@@ -142,13 +145,26 @@ export default function ListedProductsPage() {
                 </div>
             </div>
              <nav className="hidden lg:flex items-center justify-center border-t">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    {allCategories.map(({name}) => (
-                        <Link key={name} href={getCategoryPath(name)} className="px-4 py-3 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
-                            {name}
-                        </Link>
-                    ))}
-                </div>
+                <NavigationMenu>
+                    <NavigationMenuList>
+                        {allCategories.map((category) => (
+                        <NavigationMenuItem key={category.name}>
+                            <NavigationMenuTrigger>{category.name}</NavigationMenuTrigger>
+                            <NavigationMenuContent>
+                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                                    {category.subcategories.map((component) => (
+                                        <ListItem
+                                            key={component}
+                                            title={component}
+                                            href={getCategoryPath(category.name, component)}
+                                        />
+                                    ))}
+                                </ul>
+                            </NavigationMenuContent>
+                        </NavigationMenuItem>
+                        ))}
+                    </NavigationMenuList>
+                </NavigationMenu>
             </nav>
         </header>
 
@@ -214,3 +230,31 @@ export default function ListedProductsPage() {
     </div>
   );
 }
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  )
+})
+ListItem.displayName = "ListItem"
+
+    
