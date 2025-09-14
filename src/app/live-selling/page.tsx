@@ -297,6 +297,9 @@ export default function LiveSellingPage() {
   const [feedFilter, setFeedFilter] = useState('global');
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
+  const [isProfileStatDialogOpen, setIsProfileStatDialogOpen] = useState(false);
+  const [profileStatDialogContent, setProfileStatDialogContent] = useState<{ title: string; content: React.ReactNode }>({ title: '', content: null });
+
 
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
@@ -623,6 +626,31 @@ export default function LiveSellingPage() {
     }
 };
 
+  const openProfileStatDialog = (type: 'posts' | 'likes' | 'saves') => {
+        let title = '';
+        let content = <p>No content available.</p>;
+
+        if (type === 'posts') {
+            title = "My Posts";
+            content = (
+                <div className="space-y-2">
+                    {userPosts.length > 0 ? (
+                        userPosts.map(post => <p key={post.id} className="text-sm border-b pb-1">{post.content}</p>)
+                    ) : <p>You have no posts.</p>}
+                </div>
+            );
+        } else if (type === 'likes') {
+            title = "Liked Posts";
+            content = <p>Feature coming soon!</p>;
+        } else if (type === 'saves') {
+            title = "Saved Posts";
+            content = <p>Feature coming soon!</p>;
+        }
+
+        setProfileStatDialogContent({ title, content });
+        setIsProfileStatDialogOpen(true);
+  };
+
   const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
   return (
@@ -643,6 +671,16 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+        <Dialog open={isProfileStatDialogOpen} onOpenChange={setIsProfileStatDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{profileStatDialogContent.title}</DialogTitle>
+                </DialogHeader>
+                <ScrollArea className="max-h-80">
+                     <div className="pr-4">{profileStatDialogContent.content}</div>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -1126,15 +1164,15 @@ export default function LiveSellingPage() {
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
                                             </div>
                                             <div className="flex justify-around pt-2">
-                                                <div>
-                                                     <p className="font-bold">{userPosts.length}</p>
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('posts')}>
+                                                    <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
                                                 </div>
-                                                <div>
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('likes')}>
                                                     <p className="font-bold">4.2k</p>
                                                     <p className="text-xs text-muted-foreground">Likes</p>
                                                 </div>
-                                                <div>
+                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('saves')}>
                                                     <p className="font-bold">312</p>
                                                     <p className="text-xs text-muted-foreground">Saves</p>
                                                 </div>
