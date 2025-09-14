@@ -96,7 +96,10 @@ export default function ListedProductsPage() {
                     
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon">
-                            <ShoppingBag className="h-6 w-6" />
+                            <Search className="h-6 w-6 lg:hidden" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <User className="h-6 w-6" />
                         </Button>
                          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                             <SheetTrigger asChild>
@@ -183,7 +186,7 @@ export default function ListedProductsPage() {
                     </div>
                 </div>
                  {featuredProducts && featuredProducts.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
+                   <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
                     {featuredProducts.map((product, index) => (
                       <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
                         <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
@@ -253,8 +256,5 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
-
-    
 
     
