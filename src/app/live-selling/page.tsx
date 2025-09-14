@@ -58,6 +58,7 @@ import {
   Package,
   List,
   Sparkles,
+  Edit,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -1117,43 +1118,58 @@ export default function LiveSellingPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
                                 <Card>
-                                    {user && userData ? (
-                                        <CardContent className="p-4 space-y-3">
-                                            <div className="text-center">
-                                                <Avatar className="h-16 w-16 mx-auto">
-                                                    <AvatarImage src={userData.photoURL} alt={userData.displayName} />
-                                                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <h3 className="font-bold">{userData.displayName}</h3>
-                                                    <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                    <CardContent className="p-4 space-y-3">
+                                         {user && userData ? (
+                                            <>
+                                                <div className="text-center">
+                                                    <Avatar className="h-16 w-16 mx-auto">
+                                                        <AvatarImage src={userData.photoURL} alt={userData.displayName} />
+                                                        <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <h3 className="font-bold">{userData.displayName}</h3>
+                                                        <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                             <div className="flex justify-around pt-2">
-                                                <button className="text-center" onClick={() => setProfileStatView('posts')}>
-                                                    <p className="font-bold">{userPosts.length}</p>
-                                                    <p className="text-xs text-muted-foreground">Posts</p>
-                                                </button>
-                                                <button className="text-center" onClick={() => setProfileStatView('likes')}>
-                                                    <p className="font-bold">4.2k</p>
-                                                    <p className="text-xs text-muted-foreground">Likes</p>
-                                                </button>
-                                                <button className="text-center" onClick={() => setProfileStatView('saves')}>
-                                                    <p className="font-bold">312</p>
-                                                    <p className="text-xs text-muted-foreground">Saves</p>
-                                                </button>
-                                            </div>
-                                        </CardContent>
-                                    ) : <Skeleton className="h-48 w-full" />}
-                                     <CardContent>
+                                                <div className="flex justify-around pt-2">
+                                                    <button className="text-center" onClick={() => setProfileStatView('posts')}>
+                                                        <p className="font-bold">{userPosts.length}</p>
+                                                        <p className="text-xs text-muted-foreground">Posts</p>
+                                                    </button>
+                                                    <button className="text-center" onClick={() => setProfileStatView('likes')}>
+                                                        <p className="font-bold">4.2k</p>
+                                                        <p className="text-xs text-muted-foreground">Likes</p>
+                                                    </button>
+                                                    <button className="text-center" onClick={() => setProfileStatView('saves')}>
+                                                        <p className="font-bold">312</p>
+                                                        <p className="text-xs text-muted-foreground">Saves</p>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : <Skeleton className="h-48 w-full" />}
+                                    </CardContent>
+                                    <CardContent>
                                          <ScrollArea className="max-h-80">
                                             <div className="pr-4 space-y-4">
                                                 {profileStatView === 'posts' && (
                                                     userPosts.length > 0 ? (
                                                         userPosts.map(post => (
                                                             <Card key={post.id} className="overflow-hidden">
-                                                                <div className="p-3">
-                                                                    <p className="text-sm line-clamp-3">{post.content}</p>
+                                                                <div className="p-4">
+                                                                    <div className="flex items-start justify-between">
+                                                                        <p className="text-sm line-clamp-3 flex-grow">{post.content}</p>
+                                                                         <DropdownMenu>
+                                                                            <DropdownMenuTrigger asChild>
+                                                                                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-2 -mt-2">
+                                                                                    <MoreHorizontal className="w-4 h-4" />
+                                                                                </Button>
+                                                                            </DropdownMenuTrigger>
+                                                                            <DropdownMenuContent align="end">
+                                                                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> Edit Post</DropdownMenuItem>
+                                                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDeletePost(post.id, post.mediaUrl)}><Trash2 className="mr-2 h-4 w-4"/> Delete Post</DropdownMenuItem>
+                                                                            </DropdownMenuContent>
+                                                                        </DropdownMenu>
+                                                                    </div>
                                                                     <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
                                                                 </div>
                                                             </Card>
