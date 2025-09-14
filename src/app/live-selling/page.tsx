@@ -505,21 +505,6 @@ export default function LiveSellingPage() {
     );
   }, [searchTerm, feed]);
 
-  const filteredProducts = useMemo(() => {
-    let products = liveSellers.map(seller => {
-        const product = productDetails[seller.productId as keyof typeof productDetails];
-        return { ...seller, product };
-    }).filter(item => item && item.product);
-
-    if (searchTerm) {
-        products = products.filter(item => 
-            item.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.product.brand && item.product.brand.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-    }
-
-    return products;
-  }, [searchTerm]);
   
 
   const handleReply = (sellerName: string) => {
@@ -674,7 +659,7 @@ export default function LiveSellingPage() {
 
                          <Link href="/listed-products" passHref>
                             <Button variant="ghost" size="icon">
-                                <List className="h-5 w-5"/>
+                                <ShoppingBag className="h-5 w-5"/>
                             </Button>
                         </Link>
                         
@@ -880,44 +865,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="mb-4 text-left">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                                {filteredProducts.map((item: any) => {
-                                    if (!item || !item.product) return null;
-                                    const { product } = item;
-                                    return (
-                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                            <Link href={`/product/${product.key}`} className="cursor-pointer">
-                                                <div className="overflow-hidden">
-                                                    <Image 
-                                                        src={item.thumbnailUrl.replace('450', '300')} 
-                                                        alt={`Product from ${item.name}`} 
-                                                        width={300} 
-                                                        height={300} 
-                                                        className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                                        data-ai-hint={item.hint}
-                                                    />
-                                                </div>
-                                                <div className="p-3">
-                                                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                                                    <p className="font-bold text-lg">{product.price}</p>
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                        <div className="flex items-center gap-1 text-amber-500">
-                                                            <Star className="h-4 w-4 fill-current"/>
-                                                            <span>{item.rating}</span>
-                                                        </div>
-                                                        <span>({item.buyers} buyers)</span>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        </section>
+                        
                         <section className="mt-8">
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
@@ -1272,7 +1220,7 @@ export default function LiveSellingPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {trendingTopics.map((topic, index) => (
-                                            <div key={index} className="text-sm cursor-pointer group">
+                                            <div key={topic.topic} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
