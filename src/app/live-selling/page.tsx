@@ -56,6 +56,7 @@ import {
   Save,
   Package,
   List,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -1251,8 +1252,8 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        {trendingTopics.map((topic, index) => (
-                                            <div key={index} className="text-sm cursor-pointer group">
+                                        {trendingTopics.map((topic) => (
+                                            <div key={topic.topic} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
@@ -1345,3 +1346,4 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
