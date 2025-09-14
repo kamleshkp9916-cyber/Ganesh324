@@ -895,6 +895,16 @@ export default function LiveSellingPage() {
                                     {filter}
                                 </Button>
                                 ))}
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-full text-xs md:text-sm h-8 md:h-9"
+                                >
+                                    <Link href="/listed-products">
+                                        More
+                                    </Link>
+                                </Button>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
                                 {popularProducts.map((product: any) => (
@@ -921,7 +931,7 @@ export default function LiveSellingPage() {
                         
                         <section className="mt-8">
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
+                                <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
