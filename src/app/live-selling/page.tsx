@@ -112,6 +112,7 @@ import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { Logo } from '@/components/logo';
 import { categories } from '@/lib/categories';
+import { Separator } from '@/components/ui/separator';
 
 
 const liveSellers = [
@@ -1117,7 +1118,7 @@ export default function LiveSellingPage() {
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                              <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-32">
-                                 <Card>
+                                  <Card>
                                     <CardContent className="p-4 text-center">
                                         {user && userData ? (
                                             <>
@@ -1146,49 +1147,16 @@ export default function LiveSellingPage() {
                                             </button>
                                         </div>
                                     </CardContent>
-                                     <CardContent className="space-y-4">
+                                     <Separator />
+                                     <CardContent className="space-y-4 p-4">
                                         {profileStatView === 'posts' && (
                                             userPosts.length > 0 ? (
-                                                 <div className="space-y-4">
+                                                <div className="space-y-4">
                                                     {userPosts.map(post => (
-                                                        <Card key={post.id} className="overflow-hidden">
-                                                            <div className="p-4">
-                                                                <div className="flex items-start justify-between">
-                                                                    <div className="flex items-center gap-3 mb-3">
-                                                                        <Avatar className="h-10 w-10">
-                                                                            <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                                            <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                                        </Avatar>
-                                                                        <div>
-                                                                            <p className="font-semibold">{post.sellerName}</p>
-                                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                                                <MoreHorizontal className="w-4 h-4" />
-                                                                            </Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent align="end">
-                                                                            <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> Edit Post</DropdownMenuItem>
-                                                                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeletePost(post.id, post.mediaUrl)}><Trash2 className="mr-2 h-4 w-4"/> Delete Post</DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
-                                                                </div>
-                                                                <p className="text-sm">{post.content}</p>
-                                                            </div>
-                                                            <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                                                <div className="flex items-center gap-4">
-                                                                    <button className="flex items-center gap-1.5 hover:text-primary">
-                                                                        <Heart className="w-4 h-4" />
-                                                                        <span>{post.likes || 0}</span>
-                                                                    </button>
-                                                                    <button className="flex items-center gap-1.5 hover:text-primary">
-                                                                        <MessageSquare className="w-4 h-4" />
-                                                                        <span>{post.replies || 0}</span>
-                                                                    </button>
-                                                                </div>
+                                                         <Card key={post.id} className="overflow-hidden">
+                                                            <div className="p-3">
+                                                                <p className="text-sm line-clamp-2">{post.content}</p>
+                                                                <p className="text-xs text-muted-foreground mt-1">{post.timestamp}</p>
                                                             </div>
                                                         </Card>
                                                     ))}
