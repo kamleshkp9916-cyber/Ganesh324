@@ -295,11 +295,14 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [feedFilter, setFeedFilter] = useState('global');
   const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [activeProductFilter, setActiveProductFilter] = useState('All');
 
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
     return ['All', ...Array.from(categories)];
   }, [allSellers]);
+
+   const productFilterButtons = ['All', 'Electronics', 'Fashion', 'Home', 'Beauty'];
   
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -357,10 +360,14 @@ export default function LiveSellingPage() {
   }, [feed]);
   
   const popularProducts = useMemo(() => {
-      return Object.values(productDetails)
-          .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0)) // a simple sort to feature some items
+      let products = Object.values(productDetails);
+      if (activeProductFilter !== 'All') {
+          products = products.filter(p => p.category === activeProductFilter);
+      }
+      return products
+          .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0))
           .slice(0, 6);
-  }, []);
+  }, [activeProductFilter]);
 
   const mostReachedPosts = useMemo(() => {
     return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
@@ -874,7 +881,20 @@ export default function LiveSellingPage() {
                         
                         <section className="mt-8">
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="text-primary" /> Popular Products</h2>
+                                <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><Sparkles className="text-primary" /> Popular Products</h2>
+                            </div>
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap justify-center gap-2">
+                                {productFilterButtons.map((filter) => (
+                                <Button 
+                                    key={filter} 
+                                    variant={activeProductFilter === filter ? 'default' : 'outline'} 
+                                    size="sm" 
+                                    className="rounded-full text-xs md:text-sm h-8 md:h-9"
+                                    onClick={() => setActiveProductFilter(filter)}
+                                >
+                                    {filter}
+                                </Button>
+                                ))}
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
                                 {popularProducts.map((product: any) => (
@@ -1346,4 +1366,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
