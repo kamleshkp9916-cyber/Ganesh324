@@ -836,7 +836,6 @@ export default function LiveSellingPage() {
                         <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
                         <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
                         <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Feeds</TabsTrigger>
-                        <TabsTrigger value="products" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Products</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
@@ -1272,8 +1271,8 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        {trendingTopics.map((topic) => (
-                                            <div key={topic.topic} className="text-sm cursor-pointer group">
+                                        {trendingTopics.map((topic, index) => (
+                                            <div key={index} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
@@ -1358,46 +1357,6 @@ export default function LiveSellingPage() {
                         {user && (
                                 <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
                             )}
-                    </TabsContent>
-                    <TabsContent value="products" className="mt-0">
-                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                             <div className="mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2 justify-center">All Products</h2>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                                {filteredProducts.map((item: any) => {
-                                    if (!item || !item.product) return null;
-                                    const { product } = item;
-                                    return (
-                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                            <Link href={`/product/${product.key}`} className="cursor-pointer">
-                                                <div className="overflow-hidden">
-                                                    <Image 
-                                                        src={item.thumbnailUrl.replace('450', '300')} 
-                                                        alt={`Product from ${item.name}`} 
-                                                        width={300} 
-                                                        height={300} 
-                                                        className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                                        data-ai-hint={item.hint}
-                                                    />
-                                                </div>
-                                                <div className="p-3">
-                                                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                                                    <p className="font-bold text-lg">{product.price}</p>
-                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                        <div className="flex items-center gap-1 text-amber-500">
-                                                            <Star className="h-4 w-4 fill-current"/>
-                                                            <span>{item.rating}</span>
-                                                        </div>
-                                                        <span>({item.buyers} buyers)</span>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        </div>
                     </TabsContent>
             </div>
         </Tabs>
