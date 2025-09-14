@@ -622,7 +622,7 @@ export default function LiveSellingPage() {
 
   return (
     <>
-      <div className="flex min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -638,7 +638,7 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
             <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-1 sm:gap-2">
@@ -648,37 +648,31 @@ export default function LiveSellingPage() {
                          </Link>
                     </div>
 
-                    <div className={cn("flex-1 flex justify-center px-4", isSearchOpen && "sm:absolute sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-xl sm:px-4")}>
+                    <div className={cn("absolute sm:relative left-0 w-full px-4 sm:px-0 sm:w-auto sm:flex-1 flex justify-center transition-all duration-300", 
+                        isSearchOpen ? 'top-1/2 -translate-y-1/2 z-10' : '-top-full -translate-y-0'
+                    )}>
                         <div className="relative w-full max-w-sm lg:max-w-md">
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground sm:hidden"
-                                    onClick={() => setIsSearchOpen(true)}
-                                >
-                                    <Search className="h-5 w-5"/>
-                                </Button>
                                 <Input 
                                     placeholder="Search..." 
-                                    className={cn("rounded-full bg-muted h-10 pl-10 peer transition-all duration-300", 
-                                        !isSearchOpen && "hidden sm:block"
+                                    className={cn("rounded-full bg-muted h-10 pl-10 pr-10 peer transition-all duration-300 w-full"
                                     )}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onFocus={() => setIsSearchOpen(true)}
-                                    onBlur={() => !searchTerm && setIsSearchOpen(false)}
                                 />
-                                 {isSearchOpen ? (
+                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
+                                 {isSearchOpen && (
                                     <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full sm:hidden" onClick={() => {setIsSearchOpen(false); setSearchTerm('')}}>
                                         <X className="h-5 w-5" />
                                     </Button>
-                                 ) : (
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground hidden peer-focus:text-foreground sm:block"/>
                                  )}
                         </div>
                     </div>
                     
                     <div className={cn("flex items-center gap-1 sm:gap-2", isSearchOpen && "hidden sm:flex")}>
+                        <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(true)}>
+                            <Search className="h-5 w-5"/>
+                        </Button>
                         <Button variant="ghost" className="hidden sm:inline-flex" asChild>
                             <Link href="/listed-products">
                                 <ShoppingBag className="mr-2 h-4 w-4"/>
@@ -825,534 +819,534 @@ export default function LiveSellingPage() {
                 </div>
             </header>
             
-            <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm py-2">
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <div className="bg-muted p-1 rounded-md">
-                        <TabsList className="bg-transparent">
-                            <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">All</TabsTrigger>
-                            <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Live Shopping</TabsTrigger>
-                            <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">Feeds</TabsTrigger>
-                        </TabsList>
-                     </div>
+             <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm py-2">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+                    <TabsList className="bg-transparent p-0 h-auto">
+                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">All</TabsTrigger>
+                        <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Live Shopping</TabsTrigger>
+                        <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">Feeds</TabsTrigger>
+                    </TabsList>
                 </div>
             </div>
-            <TabsContent value="all" className="mt-0">
-                <div className="space-y-8 mt-0">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                        <PromotionalCarousel />
-                    </div>
-                    <section>
-                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+            <div className="flex-grow">
+                <TabsContent value="all" className="mt-0">
+                    <div className="space-y-8 mt-0">
+                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                            <PromotionalCarousel />
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
-                            {topLiveStreams.map((seller: any) => (
-                            <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
-                                <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                    <Image 
-                                        src={seller.thumbnailUrl} 
-                                        alt={`Live stream from ${seller.name}`} 
-                                        width={300} 
-                                        height={450} 
-                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                        data-ai-hint={seller.hint}
-                                    />
-                                </Link>
-                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-start gap-2">
-                                        <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                            <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
-                                        </Link>
-                                        <div className="flex-1">
-                                            <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
+                        <section>
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
+                                {topLiveStreams.map((seller: any) => (
+                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
+                                    <Link href={`/stream/${seller.id}`} className="cursor-pointer">
+                                        <Image 
+                                            src={seller.thumbnailUrl} 
+                                            alt={`Live stream from ${seller.name}`} 
+                                            width={300} 
+                                            height={450} 
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={seller.hint}
+                                        />
+                                    </Link>
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                        <div className="flex items-start gap-2">
+                                            <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
+                                            </Link>
+                                            <div className="flex-1">
+                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            ))}
                             </div>
-                        ))}
-                        </div>
-                    </section>
-                    
-                    <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                         <div className="mb-4">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                            {filteredProducts.map((item: any) => {
-                                if (!item || !item.product) return null;
-                                const { product } = item;
-                                return (
-                                    <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                        <Link href={`/product/${product.key}`} className="cursor-pointer">
-                                            <div className="overflow-hidden">
-                                                <Image 
-                                                    src={item.thumbnailUrl.replace('450', '300')} 
-                                                    alt={`Product from ${item.name}`} 
-                                                    width={300} 
-                                                    height={300} 
-                                                    className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
-                                                    data-ai-hint={item.hint}
-                                                />
-                                            </div>
-                                            <div className="p-3">
-                                                <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                                                <p className="font-bold text-lg">{product.price}</p>
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                    <div className="flex items-center gap-1 text-amber-500">
-                                                        <Star className="h-4 w-4 fill-current"/>
-                                                        <span>{item.rating}</span>
+                        </section>
+                        
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                             <div className="mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                                {filteredProducts.map((item: any) => {
+                                    if (!item || !item.product) return null;
+                                    const { product } = item;
+                                    return (
+                                        <Card key={product.key} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                            <Link href={`/product/${product.key}`} className="cursor-pointer">
+                                                <div className="overflow-hidden">
+                                                    <Image 
+                                                        src={item.thumbnailUrl.replace('450', '300')} 
+                                                        alt={`Product from ${item.name}`} 
+                                                        width={300} 
+                                                        height={300} 
+                                                        className="w-full h-full object-cover aspect-square transition-transform duration-300 group-hover:scale-105"
+                                                        data-ai-hint={item.hint}
+                                                    />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                                                    <p className="font-bold text-lg">{product.price}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                        <div className="flex items-center gap-1 text-amber-500">
+                                                            <Star className="h-4 w-4 fill-current"/>
+                                                            <span>{item.rating}</span>
+                                                        </div>
+                                                        <span>({item.buyers} buyers)</span>
                                                     </div>
-                                                    <span>({item.buyers} buyers)</span>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    </Card>
-                                );
-                            })}
-                        </div>
-                    </section>
-                    <section className="mt-8 px-4 sm:px-6 lg:px-8">
-                         <div className="container mx-auto px-0 mb-4">
-                            <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-                            {mostReachedPosts.map(post => (
-                                 <Card key={post.id} className="overflow-hidden flex flex-col">
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                </div>
-                                            </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                        <Share2 className="mr-2 h-4 w-4" />
-                                                        <span>Share</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={submitReport}>
-                                                        <Flag className="mr-2 h-4 w-4" />
-                                                        <span>Report</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                        <p className="text-sm line-clamp-2">{post.content}</p>
-                                    </div>
-                                    <div className="mt-auto px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-4">
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <Heart className="w-4 h-4" />
-                                                <span>{post.likes || 0}</span>
-                                            </button>
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <MessageSquare className="w-4 h-4" />
-                                                <span>{post.replies || 0}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-            </TabsContent>
-            <TabsContent value="live" className="mt-0">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            {liveStreamFilterButtons.map((filter) => (
-                            <Button 
-                                key={filter} 
-                                variant={activeLiveFilter === filter ? 'default' : 'outline'} 
-                                size="sm" 
-                                className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                onClick={() => setActiveLiveFilter(filter)}
-                            >
-                                {filter}
-                            </Button>
-                            ))}
-                            <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
-                                Filters
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </div>
-
-                        {isLoadingSellers ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {Array.from({ length: 12 }).map((_, index) => (
-                                    <LiveSellerSkeleton key={index} />
-                                ))}
+                                            </Link>
+                                        </Card>
+                                    );
+                                })}
                             </div>
-                        ) : filteredLiveSellers.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                {filteredLiveSellers.map((seller: any) => (
-                                    <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                        <div className="absolute top-2 left-2 z-10">
-                                            <Badge variant="destructive">
-                                                LIVE
-                                            </Badge>
-                                        </div>
-                                        {seller.isMyStream && (
-                                            <div className="absolute top-10 left-2 z-10">
-                                                <Badge variant="secondary" className="bg-purple text-purple-foreground">
-                                                    Your Stream
-                                                </Badge>
-                                            </div>
-                                        )}
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                                <Users className="w-3 h-3 mr-1.5" />
-                                                {seller.viewers}
-                                            </Badge>
-                                        </div>
-
-                                        <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                            <Image 
-                                                src={seller.thumbnailUrl} 
-                                                alt={`Live stream from ${seller.name}`} 
-                                                width={300} 
-                                                height={450} 
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint={seller.hint}
-                                            />
-                                        </Link>
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                            <div className="flex items-start gap-2">
-                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                    <Avatar className="h-8 w-8 border-2 border-primary">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                        </section>
+                        <section className="mt-8">
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
+                                {mostReachedPosts.map(post => (
+                                     <Card key={post.id} className="overflow-hidden flex flex-col">
+                                        <div className="p-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                                                     </Avatar>
-                                                </Link>
-                                                <div className="flex-1">
-                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
-                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                    </Link>
-                                                    {seller.hasAuction && (
-                                                        <Badge variant="purple" className="mt-1">
-                                                            <Gavel className="mr-1 h-3 w-3" />
-                                                            Auction
-                                                        </Badge>
-                                                    )}
+                                                    <div className="flex-grow">
+                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <p className="text-lg font-semibold">No results found</p>
-                                <p>Try searching for something else or changing the filter.</p>
-                            </div>
-                        )}
-                </div>
-                </TabsContent>
-            <TabsContent value="feeds" className="w-full mt-0">
-                    <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Report Post</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Please select a reason for reporting this post. Your feedback is important to us.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <div className="grid gap-2">
-                                {reportReasons.map(reason => (
-                                    <Button
-                                        key={reason.id}
-                                        variant={selectedReportReason === reason.id ? "secondary" : "ghost"}
-                                        onClick={() => setSelectedReportReason(reason.id)}
-                                        className="justify-start"
-                                    >
-                                        {reason.label}
-                                    </Button>
-                                ))}
-                            </div>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setSelectedReportReason("")}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={submitReport} disabled={!selectedReportReason}>
-                                Submit Report
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                         <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
-                            {user && userData && (
-                                <Card>
-                                    <CardContent className="p-4 space-y-3 text-center">
-                                        <Avatar className="h-16 w-16 mx-auto">
-                                            <AvatarImage src={userData.photoURL} alt={userData.displayName} />
-                                            <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <h3 className="font-bold">{userData.displayName}</h3>
-                                            <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
-                                        </div>
-                                        <div className="flex justify-around pt-2">
-                                            <div>
-                                                 <p className="font-bold">{userPosts.length}</p>
-                                                <p className="text-xs text-muted-foreground">Posts</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold">4.2k</p>
-                                                <p className="text-xs text-muted-foreground">Likes</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold">312</p>
-                                                <p className="text-xs text-muted-foreground">Saves</p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                        <div className="lg:col-span-2 space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
-                                <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => handleAuthAction(() => setFeedFilter('following'))}>Following</Button>
-                            </div>
-                        {isLoadingFeed ? (
-                            <>
-                                <FeedPostSkeleton />
-                                <FeedPostSkeleton />
-                            </>
-                        ) : filteredFeed.length > 0 ? (
-                            filteredFeed.map((item) => (
-                                <Card key={item.id} className="overflow-hidden">
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                    <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold text-primary">{item.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {user && user.uid === item.sellerId && (
-                                                    <Badge variant="outline">Your post</Badge>
-                                                )}
-                                                 <DropdownMenu>
+                                                <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
                                                             <MoreHorizontal className="w-4 h-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                        {user && user.uid === item.sellerId && (
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
-                                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                                        <span>Delete Post</span>
-                                                                    </DropdownMenuItem>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        )}
-                                                        <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                        <DropdownMenuItem onSelect={() => handleShare(post.id)}>
                                                             <Share2 className="mr-2 h-4 w-4" />
                                                             <span>Share</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem asChild>
-                                                            <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                <MessageCircle className="mr-2 h-4 w-4" />
-                                                                <span>Feedback</span>
-                                                            </a>
+                                                        <DropdownMenuItem onSelect={submitReport}>
+                                                            <Flag className="mr-2 h-4 w-4" />
+                                                            <span>Report</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuSub>
-                                                            <DropdownMenuSubTrigger>
-                                                                <Flag className="mr-2 h-4 w-4" />
-                                                                <span>Report</span>
-                                                            </DropdownMenuSubTrigger>
-                                                            <DropdownMenuPortal>
-                                                                <DropdownMenuSubContent>
-                                                                    <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                    <DropdownMenuSeparator />
-                                                                    {reportReasons.map(reason => (
-                                                                        <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
-                                                                            <span>{reason.label}</span>
-                                                                        </DropdownMenuItem>
-                                                                    ))}
-                                                                </DropdownMenuSubContent>
-                                                            </DropdownMenuPortal>
-                                                        </DropdownMenuSub>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
+                                            <p className="text-sm line-clamp-2">{post.content}</p>
                                         </div>
-                                    </div>
-                                    
-                                    <div className="px-4 pb-4">
-                                        <p className="text-sm mb-4">{item.content}</p>
-                                        {item.mediaUrl &&
-                                            <div className="w-full bg-muted rounded-lg overflow-hidden aspect-video relative">
-                                                {item.mediaType === 'video' ? (
-                                                    <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <Image src={item.mediaUrl} alt="Feed item" fill className="object-cover" />
-                                                )}
+                                        <div className="mt-auto px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-4">
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <Heart className="w-4 h-4" />
+                                                    <span>{post.likes || 0}</span>
+                                                </button>
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    <span>{post.replies || 0}</span>
+                                                </button>
                                             </div>
-                                        }
-                                    </div>
-                                    <div className="px-4 pb-3 flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => handleLikePost(item.id)}>
-                                                <Heart className={cn("w-5 h-5", item.likes > 0 && "fill-destructive text-destructive")} />
-                                                <span>{item.likes || 0}</span>
-                                            </Button>
-                                            <CommentSheet
-                                                postId={item.id}
-                                                trigger={
-                                                    <Button variant="ghost" className="flex items-center gap-1.5">
-                                                        <MessageSquare className="w-5 h-5" />
-                                                        <span>{item.replies || 0}</span>
-                                                    </Button>
-                                                }
-                                            />
-                                            <Button variant="ghost" className="flex items-center gap-1.5">
-                                                <Save className="w-5 h-5" />
-                                                <span>Save</span>
-                                            </Button>
                                         </div>
-                                         {item.likes > 70 && (
-                                            <Badge variant="outline">+12 new likes</Badge>
-                                         )}
-                                    </div>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
-                                <p>Try searching for something else in the feed.</p>
+                                    </Card>
+                                ))}
                             </div>
-                        )}
-                        </div>
-                        <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <Hash className="h-5 w-5 text-primary"/>
-                                        Trending
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {trendingTopics.map((topic, index) => (
-                                        <div key={index} className="text-sm cursor-pointer group">
-                                            <p className="font-semibold group-hover:underline">#{topic.topic}</p>
-                                            <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                        </div>
+                        </section>
+                    </div>
+                </TabsContent>
+                <TabsContent value="live" className="mt-0">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                            <div className="flex flex-wrap gap-2 mb-6">
+                                {liveStreamFilterButtons.map((filter) => (
+                                <Button 
+                                    key={filter} 
+                                    variant={activeLiveFilter === filter ? 'default' : 'outline'} 
+                                    size="sm" 
+                                    className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
+                                    onClick={() => setActiveLiveFilter(filter)}
+                                >
+                                    {filter}
+                                </Button>
+                                ))}
+                                <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
+                                    Filters
+                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+
+                            {isLoadingSellers ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {Array.from({ length: 12 }).map((_, index) => (
+                                        <LiveSellerSkeleton key={index} />
                                     ))}
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <UserPlus className="h-5 w-5 text-primary"/>
-                                        Who to follow
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {suggestedUsers.map(u => (
-                                        <div key={u.id} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={u.avatar} alt={u.name} />
-                                                    <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold text-sm">{u.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{u.handle}</p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                size="sm"
-                                                variant={followingIds.includes(u.uid) ? "outline" : "default"}
-                                                onClick={() => handleFollowToggle(u.uid)}
-                                            >
-                                                {followingIds.includes(u.uid) ? 'Following' : 'Follow'}
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <Video className="h-5 w-5 text-primary"/>
-                                        Top Live Streams
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
-                                    {topLiveStreams.slice(0, 1).map((seller) => (
-                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
-                                            <div className="absolute top-1.5 left-1.5 z-10">
-                                                <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
-                                            </div>
-                                            <div className="absolute top-1.5 right-1.5 z-10">
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs px-1.5 py-0.5 h-auto">
-                                                    <Users className="w-2.5 h-2.5 mr-1" />
-                                                    {(seller.viewers / 1000).toFixed(1)}k
+                                </div>
+                            ) : filteredLiveSellers.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {filteredLiveSellers.map((seller: any) => (
+                                        <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                            <div className="absolute top-2 left-2 z-10">
+                                                <Badge variant="destructive">
+                                                    LIVE
                                                 </Badge>
                                             </div>
-                                            <Image 
-                                                src={seller.thumbnailUrl} 
-                                                alt={`Live stream from ${seller.name}`} 
-                                                width={300} 
-                                                height={450} 
-                                                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint={seller.hint}
-                                            />
-                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-8 w-8 border-2 border-primary">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                            {seller.isMyStream && (
+                                                <div className="absolute top-10 left-2 z-10">
+                                                    <Badge variant="secondary" className="bg-purple text-purple-foreground">
+                                                        Your Stream
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
+                                                    <Users className="w-3 h-3 mr-1.5" />
+                                                    {seller.viewers}
+                                                </Badge>
+                                            </div>
+
+                                            <Link href={`/stream/${seller.id}`} className="cursor-pointer">
+                                                <Image 
+                                                    src={seller.thumbnailUrl} 
+                                                    alt={`Live stream from ${seller.name}`} 
+                                                    width={300} 
+                                                    height={450} 
+                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    data-ai-hint={seller.hint}
+                                                />
+                                            </Link>
+                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <div className="flex items-start gap-2">
+                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                    </Link>
+                                                    <div className="flex-1">
+                                                        <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        </Link>
+                                                        {seller.hasAuction && (
+                                                            <Badge variant="purple" className="mt-1">
+                                                                <Gavel className="mr-1 h-3 w-3" />
+                                                                Auction
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-                                        </Link>
+                                        </div>
                                     ))}
-                                </CardContent>
-                            </Card>
-                        </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p className="text-lg font-semibold">No results found</p>
+                                    <p>Try searching for something else or changing the filter.</p>
+                                </div>
+                            )}
                     </div>
-                    {user && (
-                            <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
-                        )}
-                </TabsContent>
+                    </TabsContent>
+                <TabsContent value="feeds" className="w-full mt-0">
+                        <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Report Post</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Please select a reason for reporting this post. Your feedback is important to us.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="grid gap-2">
+                                    {reportReasons.map(reason => (
+                                        <Button
+                                            key={reason.id}
+                                            variant={selectedReportReason === reason.id ? "secondary" : "ghost"}
+                                            onClick={() => setSelectedReportReason(reason.id)}
+                                            className="justify-start"
+                                        >
+                                            {reason.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setSelectedReportReason("")}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={submitReport} disabled={!selectedReportReason}>
+                                    Submit Report
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
+                                {user && userData && (
+                                    <Card>
+                                        <CardContent className="p-4 space-y-3 text-center">
+                                            <Avatar className="h-16 w-16 mx-auto">
+                                                <AvatarImage src={userData.photoURL} alt={userData.displayName} />
+                                                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <h3 className="font-bold">{userData.displayName}</h3>
+                                                <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                            </div>
+                                            <div className="flex justify-around pt-2">
+                                                <div>
+                                                     <p className="font-bold">{userPosts.length}</p>
+                                                    <p className="text-xs text-muted-foreground">Posts</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold">4.2k</p>
+                                                    <p className="text-xs text-muted-foreground">Likes</p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold">312</p>
+                                                    <p className="text-xs text-muted-foreground">Saves</p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
+                                    <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => handleAuthAction(() => setFeedFilter('following'))}>Following</Button>
+                                </div>
+                            {isLoadingFeed ? (
+                                <>
+                                    <FeedPostSkeleton />
+                                    <FeedPostSkeleton />
+                                </>
+                            ) : filteredFeed.length > 0 ? (
+                                filteredFeed.map((item) => (
+                                    <Card key={item.id} className="overflow-hidden">
+                                        <div className="p-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
+                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-primary">{item.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {user && user.uid === item.sellerId && (
+                                                        <Badge variant="outline">Your post</Badge>
+                                                    )}
+                                                     <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            {user && user.uid === item.sellerId && (
+                                                                <AlertDialog>
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
+                                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                                            <span>Delete Post</span>
+                                                                        </DropdownMenuItem>
+                                                                    </AlertDialogTrigger>
+                                                                    <AlertDialogContent>
+                                                                        <AlertDialogHeader>
+                                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                            <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
+                                                                        </AlertDialogHeader>
+                                                                        <AlertDialogFooter>
+                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                            <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
+                                                                        </AlertDialogFooter>
+                                                                    </AlertDialogContent>
+                                                                </AlertDialog>
+                                                            )}
+                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                <span>Share</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
+                                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Feedback</span>
+                                                                </a>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger>
+                                                                    <Flag className="mr-2 h-4 w-4" />
+                                                                    <span>Report</span>
+                                                                </DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator />
+                                                                        {reportReasons.map(reason => (
+                                                                            <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
+                                                                                <span>{reason.label}</span>
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="px-4 pb-4">
+                                            <p className="text-sm mb-4">{item.content}</p>
+                                            {item.mediaUrl &&
+                                                <div className="w-full bg-muted rounded-lg overflow-hidden aspect-video relative">
+                                                    {item.mediaType === 'video' ? (
+                                                        <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Image src={item.mediaUrl} alt="Feed item" fill className="object-cover" />
+                                                    )}
+                                                </div>
+                                            }
+                                        </div>
+                                        <div className="px-4 pb-3 flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => handleLikePost(item.id)}>
+                                                    <Heart className={cn("w-5 h-5", item.likes > 0 && "fill-destructive text-destructive")} />
+                                                    <span>{item.likes || 0}</span>
+                                                </Button>
+                                                <CommentSheet
+                                                    postId={item.id}
+                                                    trigger={
+                                                        <Button variant="ghost" className="flex items-center gap-1.5">
+                                                            <MessageSquare className="w-5 h-5" />
+                                                            <span>{item.replies || 0}</span>
+                                                        </Button>
+                                                    }
+                                                />
+                                                <Button variant="ghost" className="flex items-center gap-1.5">
+                                                    <Save className="w-5 h-5" />
+                                                    <span>Save</span>
+                                                </Button>
+                                            </div>
+                                             {item.likes > 70 && (
+                                                <Badge variant="outline">+12 new likes</Badge>
+                                             )}
+                                        </div>
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
+                                    <p>Try searching for something else in the feed.</p>
+                                </div>
+                            )}
+                            </div>
+                            <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Hash className="h-5 w-5 text-primary"/>
+                                            Trending
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {trendingTopics.map((topic, index) => (
+                                            <div key={index} className="text-sm cursor-pointer group">
+                                                <p className="font-semibold group-hover:underline">#{topic.topic}</p>
+                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <UserPlus className="h-5 w-5 text-primary"/>
+                                            Who to follow
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {suggestedUsers.map(u => (
+                                            <div key={u.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={u.avatar} alt={u.name} />
+                                                        <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-sm">{u.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{u.handle}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant={followingIds.includes(u.uid) ? "outline" : "default"}
+                                                    onClick={() => handleFollowToggle(u.uid)}
+                                                >
+                                                    {followingIds.includes(u.uid) ? 'Following' : 'Follow'}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-lg">
+                                            <Video className="h-5 w-5 text-primary"/>
+                                            Top Live Streams
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-2">
+                                        {topLiveStreams.slice(0, 1).map((seller) => (
+                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group relative cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-primary/50 transition-shadow duration-300 block">
+                                                <div className="absolute top-1.5 left-1.5 z-10">
+                                                    <Badge variant="destructive" className="text-xs px-1.5 py-0.5 h-auto">LIVE</Badge>
+                                                </div>
+                                                <div className="absolute top-1.5 right-1.5 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm text-xs px-1.5 py-0.5 h-auto">
+                                                        <Users className="w-2.5 h-2.5 mr-1" />
+                                                        {(seller.viewers / 1000).toFixed(1)}k
+                                                    </Badge>
+                                                </div>
+                                                <Image 
+                                                    src={seller.thumbnailUrl} 
+                                                    alt={`Live stream from ${seller.name}`} 
+                                                    width={300} 
+                                                    height={450} 
+                                                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    data-ai-hint={seller.hint}
+                                                />
+                                                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                        {user && (
+                                <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
+                            )}
+                    </TabsContent>
+            </div>
         </Tabs>
         <Footer />
       </div>
