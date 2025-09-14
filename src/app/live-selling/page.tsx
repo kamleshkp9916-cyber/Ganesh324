@@ -375,7 +375,7 @@ export default function LiveSellingPage() {
       }
       return products
           .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0))
-          .slice(0, 20);
+          .slice(0, 40);
   }, [activeProductFilter]);
 
   const mostReachedPosts = useMemo(() => {
@@ -1117,7 +1117,7 @@ export default function LiveSellingPage() {
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                              <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-32">
-                                <Card>
+                                 <Card>
                                     <CardContent className="p-4 text-center">
                                         {user && userData ? (
                                             <>
@@ -1145,41 +1145,39 @@ export default function LiveSellingPage() {
                                         ) : <Skeleton className="h-48 w-full" />}
                                     </CardContent>
                                     <CardContent>
-                                        <ScrollArea className="max-h-96">
-                                            <div className="space-y-4 pr-4">
-                                                {profileStatView === 'posts' && (
-                                                    userPosts.length > 0 ? (
-                                                        userPosts.map(post => (
-                                                            <Card key={post.id} className="overflow-hidden">
-                                                                <div className="p-4">
-                                                                    <div className="flex items-start justify-between">
-                                                                        <p className="text-sm line-clamp-3 flex-grow">{post.content}</p>
-                                                                         <DropdownMenu>
-                                                                            <DropdownMenuTrigger asChild>
-                                                                                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-2 -mt-2">
-                                                                                    <MoreHorizontal className="w-4 h-4" />
-                                                                                </Button>
-                                                                            </DropdownMenuTrigger>
-                                                                            <DropdownMenuContent align="end">
-                                                                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> Edit Post</DropdownMenuItem>
-                                                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDeletePost(post.id, post.mediaUrl)}><Trash2 className="mr-2 h-4 w-4"/> Delete Post</DropdownMenuItem>
-                                                                            </DropdownMenuContent>
-                                                                        </DropdownMenu>
-                                                                    </div>
-                                                                    <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
+                                        <div className="space-y-4">
+                                            {profileStatView === 'posts' && (
+                                                userPosts.length > 0 ? (
+                                                    userPosts.map(post => (
+                                                        <Card key={post.id} className="overflow-hidden">
+                                                            <div className="p-3">
+                                                                <div className="flex items-start justify-between">
+                                                                    <p className="text-sm line-clamp-3 flex-grow">{post.content}</p>
+                                                                    <DropdownMenu>
+                                                                        <DropdownMenuTrigger asChild>
+                                                                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 -mr-2 -mt-2">
+                                                                                <MoreHorizontal className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </DropdownMenuTrigger>
+                                                                        <DropdownMenuContent align="end">
+                                                                            <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> Edit Post</DropdownMenuItem>
+                                                                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeletePost(post.id, post.mediaUrl)}><Trash2 className="mr-2 h-4 w-4"/> Delete Post</DropdownMenuItem>
+                                                                        </DropdownMenuContent>
+                                                                    </DropdownMenu>
                                                                 </div>
-                                                            </Card>
-                                                        ))
-                                                    ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
-                                                )}
-                                                {profileStatView === 'likes' && (
-                                                    <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
-                                                )}
-                                                {profileStatView === 'saves' && (
-                                                    <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
-                                                )}
-                                            </div>
-                                        </ScrollArea>
+                                                                <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
+                                                            </div>
+                                                        </Card>
+                                                    ))
+                                                ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
+                                            )}
+                                            {profileStatView === 'likes' && (
+                                                <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
+                                            )}
+                                            {profileStatView === 'saves' && (
+                                                <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
+                                            )}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
