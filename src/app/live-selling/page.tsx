@@ -1151,8 +1151,8 @@ export default function LiveSellingPage() {
                             </AlertDialogContent>
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
-                                {user && userData && (
+                            <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
+                                {user && userData ? (
                                     <Card>
                                         <CardContent className="p-4 space-y-3 text-center">
                                             <Avatar className="h-16 w-16 mx-auto">
@@ -1164,21 +1164,49 @@ export default function LiveSellingPage() {
                                                 <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
                                             </div>
                                             <div className="flex justify-around pt-2">
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('posts')}>
+                                                <div className="text-center">
                                                     <p className="font-bold">{userPosts.length}</p>
                                                     <p className="text-xs text-muted-foreground">Posts</p>
                                                 </div>
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('likes')}>
+                                                <div className="text-center">
                                                     <p className="font-bold">4.2k</p>
                                                     <p className="text-xs text-muted-foreground">Likes</p>
                                                 </div>
-                                                <div className="text-center cursor-pointer" onClick={() => openProfileStatDialog('saves')}>
+                                                <div className="text-center">
                                                     <p className="font-bold">312</p>
                                                     <p className="text-xs text-muted-foreground">Saves</p>
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
+                                ) : <Skeleton className="h-48 w-full" />}
+                                
+                                {user && userData && (
+                                    <>
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="text-lg">My Posts</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <ScrollArea className="h-48">
+                                                    {userPosts.length > 0 ? userPosts.map(post => (
+                                                        <div key={post.id} className="text-sm p-2 border-b last:border-none">
+                                                            <p className="truncate">{post.content}</p>
+                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                        </div>
+                                                    )) : <p className="text-sm text-muted-foreground text-center">No posts yet.</p>}
+                                                </ScrollArea>
+                                            </CardContent>
+                                        </Card>
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="text-lg">Liked Posts</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-muted-foreground text-center">Feature coming soon!</p>
+                                            </CardContent>
+                                        </Card>
+                                    </>
                                 )}
                             </div>
                             <div className="lg:col-span-2 space-y-4">
