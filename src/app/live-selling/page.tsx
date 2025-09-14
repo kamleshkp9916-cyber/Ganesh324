@@ -1116,22 +1116,18 @@ export default function LiveSellingPage() {
                             </AlertDialogContent>
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                            <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
+                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-32">
                                 <Card>
-                                    <CardContent className="p-4 space-y-3">
-                                         {user && userData ? (
+                                    <CardContent className="p-4 text-center">
+                                        {user && userData ? (
                                             <>
-                                                <div className="text-center">
-                                                    <Avatar className="h-16 w-16 mx-auto">
-                                                        <AvatarImage src={userData.photoURL} alt={userData.displayName} />
-                                                        <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <h3 className="font-bold">{userData.displayName}</h3>
-                                                        <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-around pt-2">
+                                                <Avatar className="h-16 w-16 mx-auto">
+                                                    <AvatarImage src={userData.photoURL} alt={userData.displayName} />
+                                                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <h3 className="font-bold mt-2">{userData.displayName}</h3>
+                                                <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                                <div className="flex justify-around pt-4">
                                                     <button className="text-center" onClick={() => setProfileStatView('posts')}>
                                                         <p className="font-bold">{userPosts.length}</p>
                                                         <p className="text-xs text-muted-foreground">Posts</p>
@@ -1149,8 +1145,8 @@ export default function LiveSellingPage() {
                                         ) : <Skeleton className="h-48 w-full" />}
                                     </CardContent>
                                     <CardContent>
-                                         <ScrollArea className="max-h-80">
-                                            <div className="pr-4 space-y-4">
+                                        <ScrollArea className="max-h-96">
+                                            <div className="space-y-4 pr-4">
                                                 {profileStatView === 'posts' && (
                                                     userPosts.length > 0 ? (
                                                         userPosts.map(post => (
@@ -1323,7 +1319,7 @@ export default function LiveSellingPage() {
                                 </div>
                             )}
                             </div>
-                            <div className="lg:col-span-1 space-y-4 lg:sticky top-24">
+                            <div className="lg:col-span-1 space-y-4 lg:sticky top-32">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-lg">
