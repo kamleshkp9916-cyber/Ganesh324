@@ -375,7 +375,7 @@ export default function LiveSellingPage() {
   }, [activeProductFilter]);
 
   const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 5);
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 4);
   }, [feed]);
 
  useEffect(() => {
@@ -938,7 +938,7 @@ export default function LiveSellingPage() {
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col">
                                         <div className="p-4">
@@ -1381,3 +1381,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
