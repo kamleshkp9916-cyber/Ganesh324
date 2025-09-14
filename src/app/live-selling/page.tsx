@@ -830,7 +830,7 @@ export default function LiveSellingPage() {
                  )}
             </header>
             
-            <div className="sticky top-16 z-40">
+            <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="bg-transparent p-0 h-auto">
                         <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
@@ -1272,8 +1272,8 @@ export default function LiveSellingPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        {trendingTopics.map((topic, index) => (
-                                            <div key={index} className="text-sm cursor-pointer group">
+                                        {trendingTopics.map((topic) => (
+                                            <div key={topic.topic} className="text-sm cursor-pointer group">
                                                 <p className="font-semibold group-hover:underline">#{topic.topic}</p>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
