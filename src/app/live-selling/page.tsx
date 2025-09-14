@@ -102,7 +102,7 @@ import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
@@ -1116,16 +1116,18 @@ export default function LiveSellingPage() {
                         </AlertDialog>
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-24">
-                                {user && userData ? (
-                                    <Card>
-                                        <CardContent className="p-4 space-y-3 text-center">
-                                            <Avatar className="h-16 w-16 mx-auto">
-                                                <AvatarImage src={userData.photoURL} alt={userData.displayName} />
-                                                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <h3 className="font-bold">{userData.displayName}</h3>
-                                                <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                <Card>
+                                    {user && userData ? (
+                                        <CardContent className="p-4 space-y-3">
+                                            <div className="text-center">
+                                                <Avatar className="h-16 w-16 mx-auto">
+                                                    <AvatarImage src={userData.photoURL} alt={userData.displayName} />
+                                                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <h3 className="font-bold">{userData.displayName}</h3>
+                                                    <p className="text-sm text-muted-foreground">@{userData.userId?.substring(1)} • {userData.location || 'Unknown'}</p>
+                                                </div>
                                             </div>
                                              <div className="flex justify-around pt-2">
                                                 <button className="text-center" onClick={() => setProfileStatView('posts')}>
@@ -1142,39 +1144,32 @@ export default function LiveSellingPage() {
                                                 </button>
                                             </div>
                                         </CardContent>
-                                    </Card>
-                                ) : <Skeleton className="h-48 w-full" />}
-                                {profileStatView && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="capitalize">{profileStatView}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <ScrollArea className="max-h-80">
-                                                <div className="pr-4 space-y-4">
-                                                    {profileStatView === 'posts' && (
-                                                        userPosts.length > 0 ? (
-                                                            userPosts.map(post => (
-                                                                <Card key={post.id} className="overflow-hidden">
-                                                                    <div className="p-3">
-                                                                        <p className="text-sm line-clamp-3">{post.content}</p>
-                                                                        <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
-                                                                    </div>
-                                                                </Card>
-                                                            ))
-                                                        ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
-                                                    )}
-                                                    {profileStatView === 'likes' && (
-                                                        <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
-                                                    )}
-                                                    {profileStatView === 'saves' && (
-                                                        <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
-                                                    )}
-                                                </div>
-                                            </ScrollArea>
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                    ) : <Skeleton className="h-48 w-full" />}
+                                     <CardContent>
+                                         <ScrollArea className="max-h-80">
+                                            <div className="pr-4 space-y-4">
+                                                {profileStatView === 'posts' && (
+                                                    userPosts.length > 0 ? (
+                                                        userPosts.map(post => (
+                                                            <Card key={post.id} className="overflow-hidden">
+                                                                <div className="p-3">
+                                                                    <p className="text-sm line-clamp-3">{post.content}</p>
+                                                                    <p className="text-xs text-muted-foreground mt-2">{post.timestamp}</p>
+                                                                </div>
+                                                            </Card>
+                                                        ))
+                                                    ) : <p className="text-sm text-center text-muted-foreground py-4">You have no posts.</p>
+                                                )}
+                                                {profileStatView === 'likes' && (
+                                                    <p className="text-sm text-center text-muted-foreground py-4">You have no liked posts.</p>
+                                                )}
+                                                {profileStatView === 'saves' && (
+                                                    <p className="text-sm text-center text-muted-foreground py-4">You have no saved posts.</p>
+                                                )}
+                                            </div>
+                                        </ScrollArea>
+                                    </CardContent>
+                                </Card>
                             </div>
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex items-center gap-2">
