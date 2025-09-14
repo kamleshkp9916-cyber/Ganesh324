@@ -362,11 +362,16 @@ export default function LiveSellingPage() {
   const popularProducts = useMemo(() => {
       let products = Object.values(productDetails);
       if (activeProductFilter !== 'All') {
-          products = products.filter(p => p.category === activeProductFilter);
+          const lowerCaseFilter = activeProductFilter.toLowerCase();
+          if (lowerCaseFilter === 'fashion') {
+               products = products.filter(p => ['Women', 'Men', 'Handbags', 'Shoes'].includes(p.category));
+          } else {
+               products = products.filter(p => p.category.toLowerCase() === lowerCaseFilter);
+          }
       }
       return products
           .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0))
-          .slice(0, 6);
+          .slice(0, 20);
   }, [activeProductFilter]);
 
   const mostReachedPosts = useMemo(() => {
