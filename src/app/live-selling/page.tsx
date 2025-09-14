@@ -639,7 +639,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+            <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-1 sm:gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2">
@@ -648,15 +648,20 @@ export default function LiveSellingPage() {
                          </Link>
                     </div>
 
-                    <div className="hidden sm:flex flex-1 justify-center">
-                         <div className="relative w-full max-w-sm lg:max-w-md">
+                    <div className="hidden sm:flex flex-1 justify-center px-8">
+                         <div className={cn(
+                            "relative w-full max-w-sm lg:max-w-md transition-all duration-300",
+                            isSearchOpen ? "w-full" : "w-auto"
+                         )}>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
                                 <Input 
                                     placeholder="Search..." 
-                                    className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300 w-full"
+                                    className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
+                                    onFocus={() => setIsSearchOpen(true)}
+                                    onBlur={() => setIsSearchOpen(false)}
                                 />
                             </div>
                         </div>
@@ -666,6 +671,12 @@ export default function LiveSellingPage() {
                         <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
                             <Search className="h-5 w-5"/>
                         </Button>
+
+                         <Link href="/listed-products" passHref>
+                            <Button variant="ghost" size="icon">
+                                <List className="h-5 w-5"/>
+                            </Button>
+                        </Link>
                         
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -819,7 +830,7 @@ export default function LiveSellingPage() {
                  )}
             </header>
             
-             <div className="sticky top-16 z-40 py-2">
+            <div className="sticky top-16 z-40">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="bg-transparent p-0 h-auto">
                         <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
@@ -829,6 +840,7 @@ export default function LiveSellingPage() {
                     </TabsList>
                 </div>
             </div>
+
             <div className="flex-grow">
                 <TabsContent value="all" className="mt-0">
                     <div className="space-y-8 mt-0">
@@ -870,8 +882,8 @@ export default function LiveSellingPage() {
                         </section>
                         
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="mb-4 text-center">
-                                <h2 className="text-2xl font-bold flex items-center gap-2 justify-center"><Star className="text-primary" /> Popular Products</h2>
+                             <div className="mb-4 text-left">
+                                <h2 className="text-2xl font-bold flex items-center gap-2"><Star className="text-primary" /> Popular Products</h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                 {filteredProducts.map((item: any) => {
@@ -908,7 +920,7 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         <section className="mt-8">
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 px-4 sm:px-6 lg:px-8">
