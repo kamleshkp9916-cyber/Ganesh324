@@ -141,9 +141,9 @@ const mockNotifications = [
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
 
-function LiveSellerSkeleton() {
+function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
-        <div className="group relative rounded-lg overflow-hidden shadow-lg">
+        <div key={key} className="group relative rounded-lg overflow-hidden shadow-lg">
             <Skeleton className="w-full aspect-[2/3]" />
             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center gap-2">
@@ -631,7 +631,7 @@ export default function LiveSellingPage() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <div className="flex min-h-screen flex-col bg-black text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -922,7 +922,7 @@ export default function LiveSellingPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
                                 {popularProducts.map((product: any) => (
                                      <Link href={`/product/${product.key}`} key={product.id} className="group block">
-                                        <Card className="w-full overflow-hidden h-full flex flex-col">
+                                        <Card className="w-full overflow-hidden h-full flex flex-col bg-card">
                                             <div className="relative aspect-square bg-muted">
                                                 <Image
                                                     src={product.images[0]}
@@ -948,7 +948,7 @@ export default function LiveSellingPage() {
                             </div>
                              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden flex flex-col">
+                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                         <div className="p-4">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center gap-3 mb-3">
