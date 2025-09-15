@@ -50,7 +50,7 @@ body {
     --foreground: 0 0% 98%;
     --card: 0 0% 0%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 3.7% 15.9%;
+    --popover: 0 0% 0%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 72.2% 50.6%; /* Bright Red */
     --primary-foreground: 0 0% 98%;
@@ -78,7 +78,7 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 10% 3.9%;
+    --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 98%;
   }
 }
@@ -101,5 +101,3 @@ body {
     scrollbar-width: none;
   }
 }
-
-    

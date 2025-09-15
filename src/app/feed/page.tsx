@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -20,12 +21,12 @@ import { format } from 'date-fns';
 import { toggleFollow, isFollowing, UserData } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
-import { Send } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreatePostForm } from '@/components/create-post-form';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -34,9 +35,24 @@ const reportReasons = [
     { id: "bullying", label: "Bullying or harassment" },
 ];
 
+const stories = [
+    { id: 1, name: "John", avatar: "https://placehold.co/80x80/E57373/FFFFFF?text=J" },
+    { id: 2, name: "Leo", avatar: "https://placehold.co/80x80/81C784/FFFFFF?text=L" },
+    { id: 3, name: "Bayliss", avatar: "https://placehold.co/80x80/64B5F6/FFFFFF?text=B" },
+    { id: 4, name: "Haci", avatar: "https://placehold.co/80x80/FFB74D/FFFFFF?text=H" },
+    { id: 5, name: "Nick", avatar: "https://placehold.co/80x80/9575CD/FFFFFF?text=N" },
+    { id: 6, name: "Bob", avatar: "https://placehold.co/80x80/F06292/FFFFFF?text=B" },
+];
+
+const mockFollowers = [
+    { id: 1, name: "Wade Warren", country: "United States", avatar: "https://placehold.co/40x40.png" },
+    { id: 2, name: "Esther Howard", country: "Canada", avatar: "https://placehold.co/40x40.png" },
+    { id: 3, name: "Robert Fox", country: "United Kingdom", avatar: "https://placehold.co/40x40.png" },
+]
+
 function FeedPostSkeleton() {
     return (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-none shadow-none bg-transparent">
             <div className="p-4">
                 <div className="flex items-center gap-3 mb-3">
                     <Skeleton className="h-10 w-10 rounded-full" />
@@ -47,103 +63,12 @@ function FeedPostSkeleton() {
                 </div>
             </div>
             <div className="px-4 pb-4 space-y-3">
+                <Skeleton className="w-full aspect-[4/3] rounded-lg" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="w-full aspect-video rounded-lg" />
             </div>
         </Card>
     );
-}
-
-function CommentSheet({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
-    const { user, userData } = useAuth();
-    const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const db = getFirestoreDb();
-        const commentsQuery = query(collection(db, `posts/${postId}/comments`), orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
-            }));
-            setComments(commentsData);
-            setIsLoading(false);
-        });
-        return () => unsubscribe();
-    }, [postId]);
-
-    const handlePostComment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newComment.trim() || !user || !userData) return;
-        
-        const db = getFirestoreDb();
-        await addDoc(collection(db, `posts/${postId}/comments`), {
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL,
-            text: newComment.trim(),
-            timestamp: serverTimestamp(),
-        });
-
-        await updateDoc(doc(db, 'posts', postId), {
-            replies: increment(1)
-        });
-
-        setNewComment("");
-    };
-
-    return (
-         <Sheet>
-            <SheetTrigger asChild>{trigger}</SheetTrigger>
-            <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Comments</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1 px-4">
-                    {isLoading ? (
-                        <div className="space-y-4 py-4">
-                             <Skeleton className="h-10 w-full" />
-                             <Skeleton className="h-10 w-full" />
-                        </div>
-                    ) : comments.length > 0 ? (
-                        <div className="space-y-4 py-4">
-                            {comments.map(comment => (
-                                <div key={comment.id} className="flex items-start gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={comment.authorAvatar} />
-                                        <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow bg-muted p-2 rounded-lg">
-                                        <div className="flex justify-between items-center text-xs">
-                                            <p className="font-semibold">{comment.authorName}</p>
-                                            <p className="text-muted-foreground">{comment.timestamp}</p>
-                                        </div>
-                                        <p className="text-sm">{comment.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
-                    )}
-                </ScrollArea>
-                <div className="p-4 border-t">
-                    <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
-                        <Input 
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                        />
-                        <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
-                    </form>
-                </div>
-            </SheetContent>
-        </Sheet>
-    )
 }
 
 export default function FeedPage() {
@@ -154,8 +79,6 @@ export default function FeedPage() {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
-  const [followingIds, setFollowingIds] = useState<string[]>([]);
-  const [feedFilter, setFeedFilter] = useState('global');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -167,21 +90,24 @@ export default function FeedPage() {
 
     setIsLoadingFeed(true);
     const db = getFirestoreDb();
-    let postsQuery;
-
-    if (feedFilter === 'following' && user) {
-        // In a real app, you'd fetch the user's following list first.
-        // For now, this will likely be empty unless you manually follow someone.
-        if (followingIds.length > 0) {
-            postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
-        } else {
-            setFeed([]);
-            setIsLoadingFeed(false);
-            return;
-        }
-    } else {
-        postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-    }
+    const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+    
+    const mockPost = {
+        id: "mock1",
+        sellerName: "Jerome Bell",
+        avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
+        content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings.",
+        tags: "#NFT #color #mint #nftdrop #nftnews",
+        images: [
+            { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
+            { id: 2, url: "https://images.unsplash.com/photo-1621419790382-026d3d9547a4?w=800&q=80" },
+            { id: 3, url: "https://images.unsplash.com/photo-1617791160536-595cfb24464a?w=800&q=80" },
+            { id: 4, url: "https://images.unsplash.com/photo-1614088484193-a4e9b89791f1?w=800&q=80" },
+            { id: 5, url: "https://images.unsplash.com/photo-1632516643720-e7f5d7d6086f?w=800&q=80" },
+        ],
+        likes: 1200,
+        comments: 45
+    };
 
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
@@ -189,18 +115,18 @@ export default function FeedPage() {
           ...doc.data(),
           timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
         }));
-        setFeed(postsData);
+        setFeed([mockPost, ...postsData]);
         setIsLoadingFeed(false);
     });
 
     return () => unsubscribe();
-  }, [isMounted, feedFilter, user, followingIds]);
+  }, [isMounted]);
 
   if (!isMounted || authLoading) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
   }
   
-  if (!user) {
+  if (!user || !userData) {
     router.push('/');
     return null;
   }
@@ -222,52 +148,6 @@ export default function FeedPage() {
     });
     setIsReportDialogOpen(false);
     setSelectedReportReason("");
-  };
-
-  const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
-    const db = getFirestoreDb();
-    const postRef = doc(db, 'posts', postId);
-    
-    try {
-        await deleteDoc(postRef);
-        if (mediaUrl) {
-            const storage = getFirebaseStorage();
-            const mediaRef = storageRef(storage, mediaUrl);
-            await deleteObject(mediaRef);
-        }
-        toast({
-            title: "Post Deleted",
-            description: "Your post has been successfully removed.",
-        });
-    } catch (error) {
-        console.error("Error deleting post: ", error);
-        toast({
-            variant: 'destructive',
-            title: "Error",
-            description: "Could not delete the post. Please try again."
-        });
-    }
-  };
-
-  const handleLikePost = async (postId: string) => {
-    const db = getFirestoreDb();
-    const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const likeDoc = await transaction.get(likeRef);
-            if (likeDoc.exists()) {
-                transaction.delete(likeRef);
-                transaction.update(postRef, { likes: increment(-1) });
-            } else {
-                transaction.set(likeRef, { likedAt: serverTimestamp() });
-                transaction.update(postRef, { likes: increment(1) });
-            }
-        });
-    } catch (error) {
-        console.error("Error toggling like:", error);
-    }
   };
 
   return (
@@ -300,151 +180,144 @@ export default function FeedPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-xl font-bold">Feed</h1>
-        <div className="w-10"></div>
-      </header>
-
-      <main className="container mx-auto max-w-2xl py-6 space-y-4">
-        <div className="flex items-center gap-2">
-            <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
-            <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('following')}>Following</Button>
-        </div>
-        <CreatePostForm />
-        
-        {isLoadingFeed ? (
-            <>
-                <FeedPostSkeleton />
-                <FeedPostSkeleton />
-            </>
-        ) : feed.length > 0 ? (
-            feed.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                    <div className="p-4">
-                        <div className="flex items-start justify-between">
+    <div className="min-h-screen bg-background text-foreground flex">
+      {/* Sidebar */}
+      <aside className="w-72 border-r p-6 flex-col hidden lg:flex">
+          <div className="text-center mb-8">
+              <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-primary">
+                  <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName}/>
+                  <AvatarFallback className="text-3xl">{userData.displayName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <h2 className="text-xl font-bold">{userData.displayName}</h2>
+              <p className="text-sm text-muted-foreground">Graphic / UI Designer</p>
+              <p className="text-xs text-muted-foreground mt-2 font-mono break-all">{userData.uid.substring(0, 15)}...{userData.uid.substring(userData.uid.length - 4)}</p>
+          </div>
+           <div className="flex justify-around mb-8 text-center">
+              <div>
+                  <p className="font-bold text-lg">{userPosts.length}</p>
+                  <p className="text-xs text-muted-foreground">Posts</p>
+              </div>
+              <div>
+                  <p className="font-bold text-lg">298.4K</p>
+                  <p className="text-xs text-muted-foreground">Followers</p>
+              </div>
+              <div>
+                  <p className="font-bold text-lg">2.07M</p>
+                  <p className="text-xs text-muted-foreground">Following</p>
+              </div>
+          </div>
+          <nav className="space-y-2 flex-grow">
+              <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
+              <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
+              <Button variant="ghost" className="w-full justify-start gap-3"><Heart /> My favorites</Button>
+              <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
+              <Button variant="ghost" className="w-full justify-start gap-3"><BarChart /> Stats</Button>
+              <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
+          </nav>
+           <div className="mt-8">
+                <h3 className="font-semibold text-sm mb-4">Follower</h3>
+                <div className="space-y-4">
+                    {mockFollowers.map(f => (
+                        <div key={f.id} className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                    <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
+                                <Avatar className="h-9 w-9">
+                                    <AvatarImage src={f.avatar}/>
+                                    <AvatarFallback>{f.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <p className="font-semibold text-primary">{item.sellerName}</p>
-                                    <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
+                                    <p className="font-semibold text-sm">{f.name}</p>
+                                    <p className="text-xs text-muted-foreground">{f.country}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {user && user.uid === item.sellerId && (
-                                    <Badge variant="outline">Your post</Badge>
-                                )}
-                                    <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="w-4 h-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        {user && user.uid === item.sellerId && (
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
-                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                        <span>Delete Post</span>
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        )}
-                                        <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                            <Share2 className="mr-2 h-4 w-4" />
-                                            <span>Share</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                <MessageCircle className="mr-2 h-4 w-4" />
-                                                <span>Feedback</span>
-                                            </a>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>
-                                                <Flag className="mr-2 h-4 w-4" />
-                                                <span>Report</span>
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    {reportReasons.map(reason => (
-                                                        <DropdownMenuItem key={reason.id} onClick={() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }}>
-                                                            <span>{reason.label}</span>
-                                                        </DropdownMenuItem>
-                                                    ))}
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="px-4 pb-4">
-                        <p className="text-sm mb-4">{item.content}</p>
-                        {item.mediaUrl &&
-                            <div className="w-full bg-muted rounded-lg overflow-hidden aspect-video relative">
-                                {item.mediaType === 'video' ? (
-                                    <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
-                                ) : (
-                                    <Image src={item.mediaUrl} alt="Feed item" fill className="object-cover" />
-                                )}
-                            </div>
-                        }
-                    </div>
-                    <div className="px-4 pb-3 flex justify-between items-center text-sm">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => handleLikePost(item.id)}>
-                                <Heart className={cn("w-5 h-5", item.likes > 0 && "fill-destructive text-destructive")} />
-                                <span>{item.likes || 0}</span>
-                            </Button>
-                            <CommentSheet
-                                postId={item.id}
-                                trigger={
-                                    <Button variant="ghost" className="flex items-center gap-1.5">
-                                        <MessageSquare className="w-5 h-5" />
-                                        <span>{item.replies || 0}</span>
-                                    </Button>
-                                }
-                            />
-                            <Button variant="ghost" size="icon" className="flex items-center gap-1.5">
-                                <Save className="w-5 h-5" />
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MessageSquare className="h-4 w-4 text-muted-foreground"/>
                             </Button>
                         </div>
-                            {item.likes > 70 && (
-                            <Badge variant="outline">+12 new likes</Badge>
-                            )}
-                    </div>
-                </Card>
-            ))
-        ) : (
-            <div className="text-center py-12 text-muted-foreground">
-                <p className="text-lg font-semibold">No posts to show</p>
-                <p>{feedFilter === 'following' ? "Follow some sellers to see their posts here." : "It's quiet in here. Why not create the first post?"}</p>
+                    ))}
+                </div>
             </div>
-        )}
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 min-w-0">
+          <div className="p-6">
+              <div className="relative mb-6">
+                  <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+              </div>
+
+              <section className="mb-10">
+                  <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-xl font-bold">Stories</h2>
+                      <Button variant="link" className="p-0 text-sm">Watch all</Button>
+                  </div>
+                  <div className="flex items-center gap-4">
+                        <div className="text-center w-16">
+                           <button className="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mb-1 hover:border-primary">
+                               <Plus className="h-6 w-6 text-muted-foreground"/>
+                           </button>
+                           <p className="text-xs truncate">Add story</p>
+                        </div>
+                      {stories.map(story => (
+                          <div key={story.id} className="text-center w-16">
+                              <Avatar className="h-16 w-16 border-2 border-primary">
+                                  <AvatarImage src={story.avatar} alt={story.name}/>
+                                  <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <p className="text-xs mt-1 truncate">{story.name}</p>
+                          </div>
+                      ))}
+                  </div>
+              </section>
+
+              <section>
+                  <h2 className="text-xl font-bold mb-4">Feeds</h2>
+                  <div className="space-y-8">
+                      {isLoadingFeed ? (
+                          <>
+                            <FeedPostSkeleton />
+                            <FeedPostSkeleton />
+                          </>
+                      ) : (
+                          feed.map(post => (
+                              <Card key={post.id} className="border-none shadow-none bg-transparent">
+                                  <div className="p-4 flex items-center justify-between">
+                                       <div className="flex items-center gap-3">
+                                          <Avatar className="h-10 w-10">
+                                              <AvatarImage src={post.avatarUrl} />
+                                              <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                          </Avatar>
+                                          <div>
+                                            <p className="font-semibold">{post.sellerName}</p>
+                                            <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
+                                          </div>
+                                      </div>
+                                      <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                  </div>
+                                   {post.images && (
+                                       <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
+                                          <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden"><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
+                                          <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden"><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
+                                          <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative">
+                                            <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
+                                            {post.images.length > 3 && (
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                                    +{post.images.length - 3}
+                                                </div>
+                                            )}
+                                          </div>
+                                       </div>
+                                   )}
+                                  <div className="p-4">
+                                      <p className="text-sm text-muted-foreground">{post.content}</p>
+                                      <p className="text-sm text-primary mt-2">{post.tags}</p>
+                                  </div>
+                              </Card>
+                          ))
+                      )}
+                  </div>
+              </section>
+          </div>
       </main>
     </div>
     </>
