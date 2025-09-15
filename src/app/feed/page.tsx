@@ -96,16 +96,25 @@ export default function FeedPage() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-      const hashtags = post.tags?.split(' ').filter((tag: string) => tag.startsWith('#')) || [];
-      hashtags.forEach((tag: string) => {
-        const cleanedTag = tag.substring(1);
-        hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
-      });
+        let hashtags: string[] = [];
+        if (typeof post.tags === 'string') {
+            hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
+        } else if (Array.isArray(post.tags)) {
+            // This is for the newly created posts which have an array of tags (without the #)
+            hashtags = post.tags;
+        }
+
+        hashtags.forEach((tag: string) => {
+            const cleanedTag = tag.startsWith('#') ? tag.substring(1) : tag;
+            if (cleanedTag) {
+                hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
+            }
+        });
     });
     return Object.entries(hashtagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
@@ -325,7 +334,7 @@ export default function FeedPage() {
                                        )}
                                       <div className="p-4">
                                           <p className="text-sm text-muted-foreground">{post.content}</p>
-                                          <p className="text-sm text-primary mt-2">{post.tags}</p>
+                                          <p className="text-sm text-primary mt-2">{Array.isArray(post.tags) ? post.tags.map((t: string) => `#${t}`).join(' ') : post.tags}</p>
                                       </div>
                                   </Card>
                               ))
@@ -390,5 +399,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-    
