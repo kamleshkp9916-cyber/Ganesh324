@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CreatePostForm } from '@/components/create-post-form';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -227,6 +228,30 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r p-6 flex-col hidden lg:flex">
+             <div className="flex flex-col items-center text-center mb-8">
+                 <Avatar className="h-20 w-20 mb-3">
+                     <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
+                     <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                 </Avatar>
+                 <p className="font-bold text-lg">{userData.displayName}</p>
+                 <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
+
+                 <div className="flex justify-around mt-4 w-full text-center">
+                    <div>
+                        <p className="font-bold text-lg">{userPosts.length}</p>
+                        <p className="text-xs text-muted-foreground">Posts</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">{userData.followers || 0}</p>
+                        <p className="text-xs text-muted-foreground">Followers</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">{userData.following || 0}</p>
+                        <p className="text-xs text-muted-foreground">Following</p>
+                    </div>
+                </div>
+                 <Separator className="my-4" />
+             </div>
               <nav className="space-y-2 flex-grow">
                   <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
