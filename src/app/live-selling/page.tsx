@@ -105,7 +105,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
@@ -751,6 +751,10 @@ export default function LiveSellingPage() {
                                         <User className="mr-2 h-4 w-4" />
                                         <span>My Profile</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => router.push('/feed')}>
+                                        <Tv className="mr-2 h-4 w-4" />
+                                        <span>My Feed</span>
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => router.push('/orders')}>
                                         <Package className="mr-2 h-4 w-4" />
                                         <span>My Orders</span>
@@ -844,7 +848,6 @@ export default function LiveSellingPage() {
                     <TabsList className="bg-transparent p-0 h-auto">
                         <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
                         <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
-                        <TabsTrigger value="feeds" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Feeds</TabsTrigger>
                     </TabsList>
                 </div>
             </div>
@@ -1086,180 +1089,6 @@ export default function LiveSellingPage() {
                                 </div>
                             )}
                     </div>
-                    </TabsContent>
-                <TabsContent value="feeds" className="w-full mt-0">
-                        <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Report Post</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Please select a reason for reporting this post. Your feedback is important to us.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <div className="grid gap-2">
-                                    {reportReasons.map(reason => (
-                                        <Button
-                                            key={reason.id}
-                                            variant={selectedReportReason === reason.id ? "secondary" : "ghost"}
-                                            onClick={() => setSelectedReportReason(reason.id)}
-                                            className="justify-start"
-                                        >
-                                            {reason.label}
-                                        </Button>
-                                    ))}
-                                </div>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setSelectedReportReason("")}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={submitReport} disabled={!selectedReportReason}>
-                                    Submit Report
-                                </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                             <div className="hidden lg:block lg:col-span-1 space-y-4 lg:sticky top-32">
-                             </div>
-                            <div className="lg:col-span-2 space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <Button variant={feedFilter === 'global' ? 'secondary' : 'ghost'} onClick={() => setFeedFilter('global')}>Global</Button>
-                                    <Button variant={feedFilter === 'following' ? 'secondary' : 'ghost'} onClick={() => handleAuthAction(() => setFeedFilter('following'))}>Following</Button>
-                                </div>
-                            {isLoadingFeed ? (
-                                <>
-                                    <FeedPostSkeleton />
-                                    <FeedPostSkeleton />
-                                </>
-                            ) : filteredFeed.length > 0 ? (
-                                filteredFeed.map((item) => (
-                                    <Card key={item.id} className="overflow-hidden">
-                                        <div className="p-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={item.avatarUrl} alt={item.sellerName} />
-                                                        <AvatarFallback>{item.sellerName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-primary">{item.sellerName}</p>
-                                                        <p className="text-xs text-muted-foreground">{item.timestamp} • {item.location || 'Card'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {user && user.uid === item.sellerId && (
-                                                        <Badge variant="outline">Your post</Badge>
-                                                    )}
-                                                     <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                                <MoreHorizontal className="w-4 h-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                            {user && user.uid === item.sellerId && (
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onSelect={(e) => e.preventDefault()}>
-                                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                                            <span>Delete Post</span>
-                                                                        </DropdownMenuItem>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                            <AlertDialogDescription>This will permanently delete your post. This action cannot be undone.</AlertDialogDescription>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                            <AlertDialogAction onClick={() => handleDeletePost(item.id, item.mediaUrl)}>Delete</AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            )}
-                                                            <DropdownMenuItem onClick={() => handleShare(item.id)}>
-                                                                <Share2 className="mr-2 h-4 w-4" />
-                                                                <span>Share</span>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem asChild>
-                                                                <a href={`mailto:feedback@example.com?subject=Feedback on post ${item.id}`}>
-                                                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                                                    <span>Feedback</span>
-                                                                </a>
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuSub>
-                                                                <DropdownMenuSubTrigger>
-                                                                    <Flag className="mr-2 h-4 w-4" />
-                                                                    <span>Report</span>
-                                                                </DropdownMenuSubTrigger>
-                                                                <DropdownMenuPortal>
-                                                                    <DropdownMenuSubContent>
-                                                                        <DropdownMenuLabel>Report this post</DropdownMenuLabel>
-                                                                        <DropdownMenuSeparator />
-                                                                        {reportReasons.map(reason => (
-                                                                            <DropdownMenuItem key={reason.id} onClick={() => { handleAuthAction(() => { setSelectedReportReason(reason.id); setIsReportDialogOpen(true); }); }}>
-                                                                                <span>{reason.label}</span>
-                                                                            </DropdownMenuItem>
-                                                                        ))}
-                                                                    </DropdownMenuSubContent>
-                                                                </DropdownMenuPortal>
-                                                            </DropdownMenuSub>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="px-4 pb-4">
-                                            <p className="text-sm mb-4">{item.content}</p>
-                                            {item.mediaUrl &&
-                                                <div className="w-full bg-muted rounded-lg overflow-hidden aspect-video relative">
-                                                    {item.mediaType === 'video' ? (
-                                                        <video src={item.mediaUrl} controls className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <Image src={item.mediaUrl} alt="Feed item" fill className="object-cover" />
-                                                    )}
-                                                </div>
-                                            }
-                                        </div>
-                                        <div className="px-4 pb-3 flex justify-between items-center text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => handleLikePost(item.id)}>
-                                                    <Heart className={cn("w-5 h-5", item.likes > 0 && "fill-destructive text-destructive")} />
-                                                    <span>{item.likes || 0}</span>
-                                                </Button>
-                                                <CommentSheet
-                                                    postId={item.id}
-                                                    trigger={
-                                                        <Button variant="ghost" className="flex items-center gap-1.5">
-                                                            <MessageSquare className="w-5 h-5" />
-                                                            <span>{item.replies || 0}</span>
-                                                        </Button>
-                                                    }
-                                                />
-                                                <Button variant="ghost" size="icon" className="flex items-center gap-1.5">
-                                                    <Save className="w-5 h-5" />
-                                                </Button>
-                                            </div>
-                                             {item.likes > 70 && (
-                                                <Badge variant="outline">+12 new likes</Badge>
-                                             )}
-                                        </div>
-                                    </Card>
-                                ))
-                            ) : (
-                                <div className="text-center py-12 text-muted-foreground">
-                                    <p className="text-lg font-semibold">No results found for "{searchTerm}"</p>
-                                    <p>Try searching for something else in the feed.</p>
-                                </div>
-                            )}
-                            </div>
-                            <div className="lg:col-span-1 space-y-4 lg:sticky top-32">
-                            </div>
-                        </div>
-                        {user && (
-                                <CreatePostForm ref={createPostFormRef} replyTo={replyTo} onClearReply={() => setReplyTo(null)} />
-                            )}
                     </TabsContent>
             </div>
         </Tabs>
