@@ -3,11 +3,11 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus } from 'lucide-react';
+import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, where, doc, deleteDoc, runTransaction, increment, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { toggleFollow, isFollowing, UserData } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,20 @@ const mockFollowers = [
     { id: 1, name: "Wade Warren", country: "United States", avatar: "https://placehold.co/40x40.png" },
     { id: 2, name: "Esther Howard", country: "Canada", avatar: "https://placehold.co/40x40.png" },
     { id: 3, name: "Robert Fox", country: "United Kingdom", avatar: "https://placehold.co/40x40.png" },
-]
+];
+
+const liveSellers = [
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
 
 function FeedPostSkeleton() {
     return (
@@ -79,6 +92,25 @@ export default function FeedPage() {
     if (!user) return [];
     return feed.filter(post => post.sellerId === user.uid);
   }, [feed, user]);
+  
+  const trendingTopics = useMemo(() => {
+    const hashtagCounts: { [key: string]: number } = {};
+    feed.forEach(post => {
+      const hashtags = post.tags?.split(' ').filter((tag: string) => tag.startsWith('#')) || [];
+      hashtags.forEach((tag: string) => {
+        const cleanedTag = tag.substring(1);
+        hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
+      });
+    });
+    return Object.entries(hashtagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+  }, [feed]);
+
+  const trendingStreams = useMemo(() => {
+    return [...liveSellers].sort((a,b) => b.viewers - a.viewers).slice(0, 4);
+  }, []);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -101,7 +133,8 @@ export default function FeedPage() {
             { id: 5, url: "https://images.unsplash.com/photo-1632516643720-e7f5d7d6086f?w=800&q=80" },
         ],
         likes: 1200,
-        comments: 45
+        comments: 45,
+        timestamp: new Date().toISOString()
     };
 
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
@@ -110,7 +143,13 @@ export default function FeedPage() {
           ...doc.data(),
           timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
         }));
-        setFeed([mockPost, ...postsData]);
+        
+        const formattedMockPost = {
+            ...mockPost,
+            timestamp: format(new Date(mockPost.timestamp), 'PPp')
+        }
+
+        setFeed([formattedMockPost, ...postsData]);
         setIsLoadingFeed(false);
     });
 
@@ -241,6 +280,10 @@ export default function FeedPage() {
                       <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                   </div>
+                  
+                   <div className="mb-6">
+                      <CreatePostForm />
+                   </div>
 
                   <section>
                       <h2 className="text-xl font-bold mb-4">Feeds</h2>
@@ -292,11 +335,60 @@ export default function FeedPage() {
               </div>
           </main>
           {/* Right Column */}
-          <aside className="p-6 hidden lg:block">
-              <CreatePostForm />
+           <aside className="p-6 hidden lg:block space-y-6">
+              <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Trending</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {trendingTopics.map((topic, index) => (
+                            <div key={index}>
+                                <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
+                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Trending Streams</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {trendingStreams.map((stream) => (
+                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <div className="relative">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={stream.avatarUrl}/>
+                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                          <RadioTower className="h-2 w-2 text-white"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                    </div>
+                                </div>
+                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Users className="h-3 w-3"/>
+                                    {stream.viewers}
+                                 </div>
+                            </Link>
+                        ))}
+                    </div>
+                </CardContent>
+              </Card>
           </aside>
         </div>
     </div>
     </>
   );
 }
+
+    
