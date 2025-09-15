@@ -296,10 +296,7 @@ export default function LiveSellingPage() {
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
-  const [feedFilter, setFeedFilter] = useState('global');
-  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
-  const [profileStatView, setProfileStatView] = useState<'posts' | 'likes' | 'saves'>('posts');
 
 
   const liveStreamFilterButtons = useMemo(() => {
@@ -393,18 +390,7 @@ export default function LiveSellingPage() {
 
     if (activeTab === 'feeds') {
       setIsLoadingFeed(true);
-      if (feedFilter === 'following' && user) {
-        if (followingIds.length > 0) {
-          postsQuery = query(collection(db, "posts"), where("sellerId", "in", followingIds), orderBy("timestamp", "desc"));
-        } else {
-          setFeed([]);
-          setUserPosts([]);
-          setIsLoadingFeed(false);
-          return () => clearTimeout(sellersTimer);
-        }
-      } else {
-        postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-      }
+      postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
       
       const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
@@ -413,10 +399,6 @@ export default function LiveSellingPage() {
           timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
         }));
         setFeed(postsData);
-        if(user) {
-          const userSpecificPosts = postsData.filter(p => p.sellerId === user.uid);
-          setUserPosts(userSpecificPosts);
-        }
         setIsLoadingFeed(false);
       });
       
@@ -440,7 +422,7 @@ export default function LiveSellingPage() {
         unsubscribe();
       }
     }
-  }, [isMounted, activeTab, feedFilter, user, followingIds]);
+  }, [isMounted, activeTab, user, followingIds]);
   
    useEffect(() => {
     if (isMounted) {
@@ -631,7 +613,7 @@ export default function LiveSellingPage() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col bg-black text-foreground">
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
         <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
             <AlertDialogContent>
                 <AlertDialogHeader>
