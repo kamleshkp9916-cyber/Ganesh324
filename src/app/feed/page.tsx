@@ -265,7 +265,7 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="px-6 py-4 sticky top-0 z-10 bg-transparent">
+              <div className="px-6 sticky top-0 z-10 bg-background/80 backdrop-blur-sm pt-4 pb-2">
                   <div className="relative">
                       <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-full bg-muted border-none"/>
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
