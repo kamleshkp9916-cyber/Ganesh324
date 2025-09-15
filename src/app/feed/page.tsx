@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -33,15 +32,6 @@ const reportReasons = [
     { id: "hate", label: "Hate speech or symbols" },
     { id: "false", label: "False information" },
     { id: "bullying", label: "Bullying or harassment" },
-];
-
-const stories = [
-    { id: 1, name: "John", avatar: "https://placehold.co/80x80/E57373/FFFFFF?text=J" },
-    { id: 2, name: "Leo", avatar: "https://placehold.co/80x80/81C784/FFFFFF?text=L" },
-    { id: 3, name: "Bayliss", avatar: "https://placehold.co/80x80/64B5F6/FFFFFF?text=B" },
-    { id: 4, name: "Haci", avatar: "https://placehold.co/80x80/FFB74D/FFFFFF?text=H" },
-    { id: 5, name: "Nick", avatar: "https://placehold.co/80x80/9575CD/FFFFFF?text=N" },
-    { id: 6, name: "Bob", avatar: "https://placehold.co/80x80/F06292/FFFFFF?text=B" },
 ];
 
 const mockFollowers = [
@@ -85,6 +75,11 @@ export default function FeedPage() {
     setIsMounted(true);
   }, []);
 
+  const userPosts = useMemo(() => {
+    if (!user) return [];
+    return feed.filter(post => post.sellerId === user.uid);
+  }, [feed, user]);
+
   useEffect(() => {
     if (!isMounted) return;
 
@@ -122,11 +117,6 @@ export default function FeedPage() {
     return () => unsubscribe();
   }, [isMounted]);
   
-  const userPosts = useMemo(() => {
-    if (!user) return [];
-    return feed.filter(post => post.sellerId === user.uid);
-  }, [feed, user]);
-
   if (!isMounted || authLoading) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
   }
@@ -250,30 +240,6 @@ export default function FeedPage() {
                   <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
               </div>
-
-              <section className="mb-10">
-                  <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-bold">Stories</h2>
-                      <Button variant="link" className="p-0 text-sm">Watch all</Button>
-                  </div>
-                  <div className="flex items-center gap-4">
-                        <div className="text-center w-16">
-                           <button className="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mb-1 hover:border-primary">
-                               <Plus className="h-6 w-6 text-muted-foreground"/>
-                           </button>
-                           <p className="text-xs truncate">Add story</p>
-                        </div>
-                      {stories.map(story => (
-                          <div key={story.id} className="text-center w-16">
-                              <Avatar className="h-16 w-16 border-2 border-primary">
-                                  <AvatarImage src={story.avatar} alt={story.name}/>
-                                  <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <p className="text-xs mt-1 truncate">{story.name}</p>
-                          </div>
-                      ))}
-                  </div>
-              </section>
 
               <section>
                   <h2 className="text-xl font-bold mb-4">Feeds</h2>
