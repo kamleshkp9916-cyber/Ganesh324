@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus } from 'lucide-react';
+import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -175,121 +175,127 @@ export default function FeedPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    <div className="min-h-screen bg-background text-foreground flex">
-      {/* Sidebar */}
-      <aside className="w-72 border-r p-6 flex-col hidden lg:flex">
-          <div className="text-center mb-8">
-              <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-primary">
-                  <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName}/>
-                  <AvatarFallback className="text-3xl">{userData.displayName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <h2 className="text-xl font-bold">{userData.displayName}</h2>
-              <p className="text-sm text-muted-foreground">Graphic / UI Designer</p>
-              <p className="text-xs text-muted-foreground mt-2 font-mono break-all">{userData.uid.substring(0, 15)}...{userData.uid.substring(userData.uid.length - 4)}</p>
-          </div>
-           <div className="flex justify-around mb-8 text-center">
-              <div>
-                  <p className="font-bold text-lg">{userPosts.length}</p>
-                  <p className="text-xs text-muted-foreground">Posts</p>
+    <div className="min-h-screen bg-background text-foreground">
+        <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
+          {/* Sidebar */}
+          <aside className="border-r p-6 flex-col hidden lg:flex">
+              <div className="text-center mb-8">
+                  <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-primary">
+                      <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName}/>
+                      <AvatarFallback className="text-3xl">{userData.displayName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <h2 className="text-xl font-bold">{userData.displayName}</h2>
+                  <p className="text-sm text-muted-foreground">Graphic / UI Designer</p>
+                  <p className="text-xs text-muted-foreground mt-2 font-mono break-all">{userData.uid.substring(0, 15)}...{userData.uid.substring(userData.uid.length - 4)}</p>
               </div>
-              <div>
-                  <p className="font-bold text-lg">298.4K</p>
-                  <p className="text-xs text-muted-foreground">Followers</p>
-              </div>
-              <div>
-                  <p className="font-bold text-lg">2.07M</p>
-                  <p className="text-xs text-muted-foreground">Following</p>
-              </div>
-          </div>
-          <nav className="space-y-2 flex-grow">
-              <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
-              <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
-              <Button variant="ghost" className="w-full justify-start gap-3"><Heart /> My favorites</Button>
-              <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
-              <Button variant="ghost" className="w-full justify-start gap-3"><BarChart /> Stats</Button>
-              <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
-          </nav>
-           <div className="mt-8">
-                <h3 className="font-semibold text-sm mb-4">Follower</h3>
-                <div className="space-y-4">
-                    {mockFollowers.map(f => (
-                        <div key={f.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={f.avatar}/>
-                                    <AvatarFallback>{f.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold text-sm">{f.name}</p>
-                                    <p className="text-xs text-muted-foreground">{f.country}</p>
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MessageSquare className="h-4 w-4 text-muted-foreground"/>
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 min-w-0">
-          <div className="p-6">
-              <div className="relative mb-6">
-                  <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
-              </div>
-
-              <section>
-                  <h2 className="text-xl font-bold mb-4">Feeds</h2>
-                  <div className="space-y-8">
-                      {isLoadingFeed ? (
-                          <>
-                            <FeedPostSkeleton />
-                            <FeedPostSkeleton />
-                          </>
-                      ) : (
-                          feed.map(post => (
-                              <Card key={post.id} className="border-none shadow-none bg-transparent">
-                                  <div className="p-4 flex items-center justify-between">
-                                       <div className="flex items-center gap-3">
-                                          <Avatar className="h-10 w-10">
-                                              <AvatarImage src={post.avatarUrl} />
-                                              <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                          </Avatar>
-                                          <div>
-                                            <p className="font-semibold">{post.sellerName}</p>
-                                            <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
-                                          </div>
-                                      </div>
-                                      <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                                  </div>
-                                   {post.images && (
-                                       <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
-                                          <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden"><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
-                                          <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden"><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
-                                          <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative">
-                                            <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
-                                            {post.images.length > 3 && (
-                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                    +{post.images.length - 3}
-                                                </div>
-                                            )}
-                                          </div>
-                                       </div>
-                                   )}
-                                  <div className="p-4">
-                                      <p className="text-sm text-muted-foreground">{post.content}</p>
-                                      <p className="text-sm text-primary mt-2">{post.tags}</p>
-                                  </div>
-                              </Card>
-                          ))
-                      )}
+               <div className="flex justify-around mb-8 text-center">
+                  <div>
+                      <p className="font-bold text-lg">{userPosts.length}</p>
+                      <p className="text-xs text-muted-foreground">Posts</p>
                   </div>
-              </section>
-          </div>
-      </main>
+                  <div>
+                      <p className="font-bold text-lg">298.4K</p>
+                      <p className="text-xs text-muted-foreground">Followers</p>
+                  </div>
+                  <div>
+                      <p className="font-bold text-lg">2.07M</p>
+                      <p className="text-xs text-muted-foreground">Following</p>
+                  </div>
+              </div>
+              <nav className="space-y-2 flex-grow">
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Heart /> My favorites</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><BarChart /> Stats</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
+              </nav>
+               <div className="mt-8">
+                    <h3 className="font-semibold text-sm mb-4">Follower</h3>
+                    <div className="space-y-4">
+                        {mockFollowers.map(f => (
+                            <div key={f.id} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarImage src={f.avatar}/>
+                                        <AvatarFallback>{f.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-sm">{f.name}</p>
+                                        <p className="text-xs text-muted-foreground">{f.country}</p>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MessageSquare className="h-4 w-4 text-muted-foreground"/>
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0 border-r">
+              <div className="p-6">
+                  <div className="relative mb-6">
+                      <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
+                  </div>
+
+                  <section>
+                      <h2 className="text-xl font-bold mb-4">Feeds</h2>
+                      <div className="space-y-8">
+                          {isLoadingFeed ? (
+                              <>
+                                <FeedPostSkeleton />
+                                <FeedPostSkeleton />
+                              </>
+                          ) : (
+                              feed.map(post => (
+                                  <Card key={post.id} className="border-none shadow-none bg-transparent">
+                                      <div className="p-4 flex items-center justify-between">
+                                           <div className="flex items-center gap-3">
+                                              <Avatar className="h-10 w-10">
+                                                  <AvatarImage src={post.avatarUrl} />
+                                                  <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                              </Avatar>
+                                              <div>
+                                                <p className="font-semibold">{post.sellerName}</p>
+                                                <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
+                                              </div>
+                                          </div>
+                                          <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                      </div>
+                                       {post.images && (
+                                           <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
+                                              <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden"><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
+                                              <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden"><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
+                                              <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative">
+                                                <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
+                                                {post.images.length > 3 && (
+                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                                        +{post.images.length - 3}
+                                                    </div>
+                                                )}
+                                              </div>
+                                           </div>
+                                       )}
+                                      <div className="p-4">
+                                          <p className="text-sm text-muted-foreground">{post.content}</p>
+                                          <p className="text-sm text-primary mt-2">{post.tags}</p>
+                                      </div>
+                                  </Card>
+                              ))
+                          )}
+                      </div>
+                  </section>
+              </div>
+          </main>
+          {/* Right Column */}
+          <aside className="p-6 hidden lg:block">
+              <CreatePostForm />
+          </aside>
+        </div>
     </div>
     </>
   );
