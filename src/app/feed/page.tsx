@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users } from 'lucide-react';
+import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -227,29 +227,6 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r p-6 flex-col hidden lg:flex">
-              <div className="text-center mb-8">
-                  <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-primary">
-                      <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName}/>
-                      <AvatarFallback className="text-3xl">{userData.displayName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <h2 className="text-xl font-bold">{userData.displayName}</h2>
-                  <p className="text-sm text-muted-foreground">Graphic / UI Designer</p>
-                  <p className="text-xs text-muted-foreground mt-2 font-mono break-all">{userData.uid.substring(0, 15)}...{userData.uid.substring(userData.uid.length - 4)}</p>
-              </div>
-               <div className="flex justify-around mb-8 text-center">
-                  <div>
-                      <p className="font-bold text-lg">{userPosts.length}</p>
-                      <p className="text-xs text-muted-foreground">Posts</p>
-                  </div>
-                  <div>
-                      <p className="font-bold text-lg">298.4K</p>
-                      <p className="text-xs text-muted-foreground">Followers</p>
-                  </div>
-                  <div>
-                      <p className="font-bold text-lg">2.07M</p>
-                      <p className="text-xs text-muted-foreground">Following</p>
-                  </div>
-              </div>
               <nav className="space-y-2 flex-grow">
                   <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
@@ -258,28 +235,6 @@ export default function FeedPage() {
                   <Button variant="ghost" className="w-full justify-start gap-3"><BarChart /> Stats</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
               </nav>
-               <div className="mt-8">
-                    <h3 className="font-semibold text-sm mb-4">Follower</h3>
-                    <div className="space-y-4">
-                        {mockFollowers.map(f => (
-                            <div key={f.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarImage src={f.avatar}/>
-                                        <AvatarFallback>{f.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="font-semibold text-sm">{f.name}</p>
-                                        <p className="text-xs text-muted-foreground">{f.country}</p>
-                                    </div>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MessageSquare className="h-4 w-4 text-muted-foreground"/>
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
           </aside>
 
           {/* Main Content */}
@@ -296,15 +251,15 @@ export default function FeedPage() {
 
                   <section>
                       <h2 className="text-xl font-bold mb-4">Feeds</h2>
-                      <div className="space-y-8">
+                       <div className="divide-y divide-border">
                           {isLoadingFeed ? (
                               <>
-                                <FeedPostSkeleton />
-                                <FeedPostSkeleton />
+                                <div className="py-8"><FeedPostSkeleton /></div>
+                                <div className="py-8"><FeedPostSkeleton /></div>
                               </>
                           ) : (
                               feed.map(post => (
-                                  <Card key={post.id} className="border-none shadow-none bg-transparent">
+                                  <Card key={post.id} className="border-none shadow-none bg-transparent pt-8">
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
                                               <Avatar className="h-10 w-10">
@@ -335,6 +290,20 @@ export default function FeedPage() {
                                       <div className="p-4">
                                           <p className="text-sm text-muted-foreground">{post.content}</p>
                                           <p className="text-sm text-primary mt-2">{Array.isArray(post.tags) ? post.tags.map((t: string) => `#${t}`).join(' ') : post.tags}</p>
+                                      </div>
+                                      <div className="px-4 pb-4 flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                              <Button variant="ghost" size="icon"><ArrowUp /></Button>
+                                              <span>{post.likes || 0}</span>
+                                              <Button variant="ghost" size="icon"><ArrowDown /></Button>
+                                          </div>
+                                           <Button variant="ghost" className="flex items-center gap-1.5">
+                                              <MessageSquare className="w-4 h-4"/>
+                                              <span>{post.comments || 0} Comments</span>
+                                          </Button>
+                                          <Button variant="ghost" size="icon" onClick={() => handleShare(post.id)}>
+                                              <Share2 />
+                                          </Button>
                                       </div>
                                   </Card>
                               ))
