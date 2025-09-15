@@ -121,6 +121,11 @@ export default function FeedPage() {
 
     return () => unsubscribe();
   }, [isMounted]);
+  
+  const userPosts = useMemo(() => {
+    if (!user) return [];
+    return feed.filter(post => post.sellerId === user.uid);
+  }, [feed, user]);
 
   if (!isMounted || authLoading) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
