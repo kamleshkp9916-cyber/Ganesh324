@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -134,7 +135,7 @@ export default function FeedPage() {
         sellerName: "Jerome Bell",
         avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
         content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings.",
-        tags: "#NFT #color #mint #nftdrop #nftnews",
+        tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
         images: [
             { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
             { id: 2, url: "https://images.unsplash.com/photo-1621419790382-026d3d9547a4?w=800&q=80" },
@@ -263,20 +264,16 @@ export default function FeedPage() {
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 min-w-0 border-r">
-              <div className="p-6">
-                  <div className="relative mb-6">
+          <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+              <div className="p-6 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+                  <div className="relative">
                       <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                   </div>
-                  
-                   <div className="mb-6">
-                      <CreatePostForm />
-                   </div>
-
+              </div>
+              <div className="flex-grow overflow-y-auto thin-scrollbar">
                   <section>
-                      <h2 className="text-xl font-bold mb-4">Feeds</h2>
-                       <div className="divide-y divide-border">
+                      <div className="divide-y divide-border">
                           {isLoadingFeed ? (
                               <>
                                 <div className="py-8"><FeedPostSkeleton /></div>
@@ -339,6 +336,7 @@ export default function FeedPage() {
           </main>
           {/* Right Column */}
            <aside className="p-6 hidden lg:block space-y-6">
+                <CreatePostForm />
               <Card>
                 <CardHeader>
                     <CardTitle className="text-lg">Trending</CardTitle>
