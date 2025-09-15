@@ -265,9 +265,9 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="p-6 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+              <div className="p-6 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-transparent">
                   <div className="relative">
-                      <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-lg bg-muted border-none"/>
+                      <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-full bg-muted border-none"/>
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                   </div>
               </div>
@@ -281,7 +281,8 @@ export default function FeedPage() {
                               </>
                           ) : (
                               feed.map(post => (
-                                  <Card key={post.id} className="border-x-0 border-t-0 border-b border-border/20 rounded-none shadow-none bg-transparent py-8">
+                                  <Card key={post.id} className="border-x-0 border-t-0 border-b border-border/20 rounded-none shadow-none bg-transparent pt-8">
+                                    <div className="border-t border-border/20 opacity-50 absolute top-0 left-0 right-0"></div>
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
                                               <Avatar className="h-10 w-10">
@@ -327,6 +328,7 @@ export default function FeedPage() {
                                               <Share2 />
                                           </Button>
                                       </div>
+                                       <div className="border-b border-border/20 opacity-50"></div>
                                   </Card>
                               ))
                           )}
