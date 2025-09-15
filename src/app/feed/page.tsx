@@ -284,7 +284,7 @@ export default function FeedPage() {
                               </>
                           ) : (
                               feed.map(post => (
-                                  <Card key={post.id} className="border-none shadow-none bg-transparent pt-8">
+                                  <Card key={post.id} className="border-x-0 border-t-0 border-b border-border/20 rounded-none shadow-none bg-transparent py-8">
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
                                               <Avatar className="h-10 w-10">
