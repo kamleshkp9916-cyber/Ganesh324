@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -273,139 +273,148 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     }
     
     const formContent = (
-        <Card className="max-w-3xl mx-auto p-3 shadow-2xl rounded-2xl bg-background/80 backdrop-blur-sm border-border/50">
-            {replyTo && (
-                <Alert variant="default" className="mb-2">
-                    <AlertDescription className="flex items-center justify-between">
-                        Replying to @{replyTo}
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClearReply}>
-                            <X className="h-4 w-4"/>
-                        </Button>
-                    </AlertDescription>
-                </Alert>
+        <Card className="w-full" ref={ref}>
+            {postToEdit && (
+                <CardHeader className="p-3">
+                    <Alert variant="default" className="flex items-center justify-between">
+                         <div className="flex items-center gap-2">
+                             <FileEdit className="h-4 w-4 text-primary"/>
+                            <AlertDescription>
+                                You are editing a post.
+                            </AlertDescription>
+                         </div>
+                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onFinishEditing}>
+                             <X className="h-4 w-4"/>
+                         </Button>
+                    </Alert>
+                </CardHeader>
             )}
-            {media.length > 0 && (
-                 <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
-                    {media.map((item, index) => (
-                         <div key={index} className="relative w-20 h-20 flex-shrink-0">
-                            <Image
-                                src={item.url}
-                                alt="Preview"
-                                width={80}
-                                height={80}
-                                className="rounded-lg object-cover w-full h-full"
-                            />
-                            <Button
-                                variant="destructive"
-                                size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                                onClick={() => removeMedia(index)}
-                            >
-                                <X className="h-4 w-4" />
+             <div className="p-3">
+                {replyTo && (
+                    <Alert variant="default" className="mb-2">
+                        <AlertDescription className="flex items-center justify-between">
+                            Replying to @{replyTo}
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClearReply}>
+                                <X className="h-4 w-4"/>
                             </Button>
-                        </div>
-                    ))}
-                </div>
-            )}
-            <div className="flex items-start sm:items-center gap-3 mb-3">
-                <Avatar className="h-9 w-9 hidden sm:flex">
-                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-                 <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
-                    <PopoverAnchor asChild>
-                        <div className="relative flex-grow">
-                            <Input 
-                                placeholder="Share something..." 
-                                className="bg-muted rounded-full pl-4 pr-10 h-11"
-                                value={content}
-                                onChange={handleContentChange}
-                            />
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                        <Smile className="h-5 w-5 text-muted-foreground" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80 h-64">
-                                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                        {emojis.map((emoji, index) => (
-                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                                {emoji}
-                                            </Button>
-                                        ))}
-                                   </div>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </PopoverAnchor>
-                    <PopoverContent className="w-72 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-                        {isSuggestionLoading ? (
-                            <div className="p-4 text-center">Loading...</div>
-                        ) : suggestions.length > 0 ? (
-                            <ul className="space-y-1 p-2">
-                                {suggestions.map((item) => (
-                                    <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
-                                        {tagging?.type === '@' ? (
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                <span>{item.displayName}</span>
-                                            </div>
-                                        ) : (
-                                            <span>{item.name}</span>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                        )}
-                    </PopoverContent>
-                </Popover>
-            </div>
-            <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
-                <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" disabled={!!postToEdit} />
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5 || !!postToEdit}>
-                    <ImageIcon className="mr-2 h-5 w-5" /> Image
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
-                    <MapPin className="mr-2 h-5 w-5" /> Location
-                </Button>
-                 {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
-                    <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))} value={taggedProduct?.id}>
-                         <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
-                            <Tag className="mr-2 h-5 w-5" />
-                            <SelectValue placeholder="Tag Product" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
+                        </AlertDescription>
+                    </Alert>
                 )}
-                <Button 
-                    className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
-                    onClick={handlePost} 
-                    disabled={!content.trim() || isSubmitting}
-                >
-                    {isSubmitting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                    ) : postToEdit ? (
-                        <FileEdit className="mr-2 h-4 w-4" />
-                    ) : null}
-                    {postToEdit ? 'Save' : 'Send'}
-                </Button>
+                {media.length > 0 && (
+                     <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
+                        {media.map((item, index) => (
+                             <div key={index} className="relative w-20 h-20 flex-shrink-0">
+                                <Image
+                                    src={item.url}
+                                    alt="Preview"
+                                    width={80}
+                                    height={80}
+                                    className="rounded-lg object-cover w-full h-full"
+                                />
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                    onClick={() => removeMedia(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <div className="flex items-start sm:items-center gap-3 mb-3">
+                    <Avatar className="h-9 w-9 hidden sm:flex">
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                     <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
+                        <PopoverAnchor asChild>
+                            <div className="relative flex-grow">
+                                <Input 
+                                    placeholder="Share something..." 
+                                    className="bg-muted rounded-full pl-4 pr-10 h-11"
+                                    value={content}
+                                    onChange={handleContentChange}
+                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                            <Smile className="h-5 w-5 text-muted-foreground" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 h-64">
+                                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                            {emojis.map((emoji, index) => (
+                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                    {emoji}
+                                                </Button>
+                                            ))}
+                                       </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </PopoverAnchor>
+                        <PopoverContent className="w-72 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                            {isSuggestionLoading ? (
+                                <div className="p-4 text-center">Loading...</div>
+                            ) : suggestions.length > 0 ? (
+                                <ul className="space-y-1 p-2">
+                                    {suggestions.map((item) => (
+                                        <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
+                                            {tagging?.type === '@' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                    <span>{item.displayName}</span>
+                                                </div>
+                                            ) : (
+                                                <span>{item.name}</span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                            )}
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
+                    <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" disabled={!!postToEdit} />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5 || !!postToEdit}>
+                        <ImageIcon className="mr-2 h-5 w-5" /> Image
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
+                        <MapPin className="mr-2 h-5 w-5" /> Location
+                    </Button>
+                     {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
+                        <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))} value={taggedProduct?.id}>
+                             <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
+                                <Tag className="mr-2 h-5 w-5" />
+                                <SelectValue placeholder="Tag Product" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    )}
+                    <Button 
+                        className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
+                        onClick={handlePost} 
+                        disabled={!content.trim() || isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                        ) : postToEdit ? (
+                            <FileEdit className="mr-2 h-4 w-4" />
+                        ) : null}
+                        {postToEdit ? 'Save' : 'Send'}
+                    </Button>
+                </div>
             </div>
         </Card>
     );
 
-    if (postToEdit) {
-        return formContent;
-    }
-
-    return (
-        <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 z-50" ref={ref}>
-            {formContent}
-        </div>
-    );
+    return formContent;
 });
 CreatePostForm.displayName = 'CreatePostForm';

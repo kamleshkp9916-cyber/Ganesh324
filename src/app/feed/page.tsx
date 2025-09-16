@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -299,18 +299,7 @@ export default function FeedPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        <Dialog open={!!postToEdit} onOpenChange={(open) => !open && setPostToEdit(null)}>
-            <DialogContent>
-                 <DialogHeader>
-                    <DialogTitle>Edit Post</DialogTitle>
-                    <DialogDescription>Make changes to your post below.</DialogDescription>
-                </DialogHeader>
-                <CreatePostForm
-                    postToEdit={postToEdit}
-                    onFinishEditing={() => setPostToEdit(null)}
-                />
-            </DialogContent>
-        </Dialog>
+      
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
@@ -340,7 +329,7 @@ export default function FeedPage() {
                  <Separator className="my-4" />
              </div>
               <nav className="space-y-1 flex-grow">
-                  <Collapsible>
+                  <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
                         <Button variant="ghost" className="w-full justify-start gap-3 text-base">
                             <Home /> Feed
@@ -359,14 +348,11 @@ export default function FeedPage() {
                   <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Send /> Direct</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
               </nav>
-               <div className="mt-auto">
-                    <CreatePostForm />
-                </div>
           </aside>
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30">
+               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 space-y-4">
                     <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
@@ -376,6 +362,10 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                     <CreatePostForm
+                        postToEdit={postToEdit}
+                        onFinishEditing={() => setPostToEdit(null)}
+                     />
                 </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
                   <section>
@@ -539,8 +529,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-
-
-
-
