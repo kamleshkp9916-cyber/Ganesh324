@@ -85,7 +85,6 @@ export default function FeedPage() {
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -268,24 +267,14 @@ export default function FeedPage() {
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
               <div className="sticky top-0 z-20 p-4 bg-background/80 backdrop-blur-sm">
-                <div 
-                    className={cn(
-                        "relative w-full transition-all duration-300",
-                        isSearchExpanded ? "w-full" : "w-10"
-                    )}
-                    onMouseEnter={() => setIsSearchExpanded(true)}
-                    onMouseLeave={() => !searchInputRef.current?.matches(':focus') && setIsSearchExpanded(false)}
-                    onClick={() => searchInputRef.current?.focus()}
-                >
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground" />
+                <div className="relative w-full max-w-sm mx-auto">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         ref={searchInputRef}
                         placeholder="Search..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className={cn(
-                            "pl-10 h-10 rounded-full border bg-transparent placeholder:text-muted-foreground transition-all duration-300 w-full"
-                        )}
+                        className="pl-10 h-10 rounded-full border bg-background placeholder:text-muted-foreground w-full"
                     />
                 </div>
               </div>
