@@ -242,7 +242,7 @@ export default function FeedPage() {
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
-  const createPostFormRef = useRef<HTMLDivElement>(null);
+  const [formKey, setFormKey] = useState(Date.now());
   const [viewingImage, setViewingImage] = useState<string | null>(null);
 
 
@@ -370,11 +370,12 @@ export default function FeedPage() {
 
   const handleEditPost = (post: any) => {
       setPostToEdit(post);
-      createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setFormKey(Date.now()); // Ensure form gets new props
   };
   
   const handleFinishEditing = () => {
       setPostToEdit(null);
+      setFormKey(Date.now()); // Reset the form by changing its key
   };
 
   const handleDeletePost = async (post: any) => {
@@ -724,7 +725,7 @@ export default function FeedPage() {
                  <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                         <CreatePostForm
-                            ref={createPostFormRef}
+                            key={formKey}
                             postToEdit={postToEdit}
                             onFinishEditing={handleFinishEditing}
                         />
@@ -738,5 +739,6 @@ export default function FeedPage() {
 }
 
     
+
 
 
