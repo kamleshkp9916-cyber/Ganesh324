@@ -307,20 +307,18 @@ export default function SellerMessagePage() {
              {selectedConversation ? (
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
-                         <div className="flex items-center gap-3">
-                             <Link href={`/profile?userId=${selectedConversation.userId}`} className="cursor-pointer group">
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={selectedConversation.avatarUrl} />
-                                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <h2 className="font-semibold group-hover:underline">{selectedConversation.userName}</h2>
-                                        <p className="text-xs text-muted-foreground">Online</p>
-                                    </div>
+                         <Link href={`/profile?userId=${selectedConversation.userId}`} className="cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarImage src={selectedConversation.avatarUrl} />
+                                    <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h2 className="font-semibold group-hover:underline">{selectedConversation.userName}</h2>
+                                    <p className="text-xs text-muted-foreground">Online</p>
                                 </div>
-                            </Link>
-                        </div>
+                            </div>
+                        </Link>
                         <div className="flex items-center gap-2">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -382,5 +380,3 @@ export default function SellerMessagePage() {
     </div>
   );
 }
-
-    

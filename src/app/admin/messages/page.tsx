@@ -257,20 +257,18 @@ export default function AdminMessagePage() {
                         </SheetContent>
                     </Sheet>
                     {selectedConversation ? (
-                         <div className="flex items-center gap-3">
-                             <Link href={`/profile?userId=${selectedConversation.userId}`} className="cursor-pointer group">
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={selectedConversation.avatarUrl} />
-                                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <h2 className="font-semibold group-hover:underline">{selectedConversation.userName}</h2>
-                                        <p className="text-xs text-muted-foreground">Online</p>
-                                    </div>
+                         <Link href={`/admin/users/${selectedConversation.userId}`} className="cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarImage src={selectedConversation.avatarUrl} />
+                                    <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h2 className="font-semibold group-hover:underline">{selectedConversation.userName}</h2>
+                                    <p className="text-xs text-muted-foreground">Online</p>
                                 </div>
-                            </Link>
-                        </div>
+                            </div>
+                        </Link>
                     ) : <div/>}
 
                 </div>
@@ -331,5 +329,3 @@ export default function AdminMessagePage() {
     </div>
   );
 }
-
-    
