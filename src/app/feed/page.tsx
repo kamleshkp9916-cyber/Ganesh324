@@ -333,16 +333,16 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <div className="flex items-center gap-1 mt-2">
-                        <Button variant="ghost" size="icon" className="text-muted-foreground">
-                            <Globe className="w-5 h-5"/>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground">
-                            <Users className="w-5 h-5"/>
-                        </Button>
-                    </div>
                 </div>
-              <div className="flex-grow overflow-y-auto thin-scrollbar pt-4">
+              <div className="flex-grow overflow-y-auto thin-scrollbar">
+                  <div className="flex items-center gap-1 p-2">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                        <Globe className="w-5 h-5"/>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                        <Users className="w-5 h-5"/>
+                    </Button>
+                  </div>
                   <section>
                       <div className="divide-y divide-border/20">
                           {isLoadingFeed ? (
