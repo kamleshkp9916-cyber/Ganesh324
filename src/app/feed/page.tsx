@@ -86,6 +86,7 @@ export default function FeedPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -267,13 +268,27 @@ export default function FeedPage() {
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
             <div className="sticky top-0 z-20 px-4 pt-4 pb-2 bg-background/80 backdrop-blur-sm">
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                 <div className={cn("relative w-full transition-all duration-300", isSearchExpanded ? "max-w-full" : "max-w-min ml-auto")}>
+                    <Search
+                        className={cn(
+                            "absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-300",
+                            isSearchExpanded ? "left-4" : "left-1/2 -translate-x-1/2"
+                        )}
+                        onClick={() => searchInputRef.current?.focus()}
+                    />
                     <Input
+                        ref={searchInputRef}
                         placeholder="Search..."
-                        className="pl-12 h-12 rounded-full border bg-white placeholder:text-gray-400"
+                        className={cn(
+                            "pl-12 h-12 rounded-full border bg-transparent placeholder:text-muted-foreground transition-all duration-300 w-full",
+                            !isSearchExpanded && "w-12 !pl-12 cursor-pointer"
+                        )}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onFocus={() => setIsSearchExpanded(true)}
+                        onBlur={() => {
+                            if (!searchTerm) setIsSearchExpanded(false);
+                        }}
                     />
                 </div>
             </div>
