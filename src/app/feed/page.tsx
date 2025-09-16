@@ -359,6 +359,11 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                     <CreatePostForm
+                        ref={createPostFormRef}
+                        postToEdit={postToEdit}
+                        onFinishEditing={() => setPostToEdit(null)}
+                    />
                 </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
                   <section>
@@ -465,13 +470,6 @@ export default function FeedPage() {
                       </div>
                   </section>
               </div>
-                 <div className="p-4 border-t sticky bottom-0 bg-background/80 backdrop-blur-sm z-30">
-                    <CreatePostForm
-                        ref={createPostFormRef}
-                        postToEdit={postToEdit}
-                        onFinishEditing={() => setPostToEdit(null)}
-                    />
-                </div>
           </main>
           {/* Right Column */}
            <aside className="p-6 hidden lg:block space-y-6">
@@ -529,5 +527,6 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
