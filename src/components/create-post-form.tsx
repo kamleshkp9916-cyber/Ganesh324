@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-debounce";
 import Image from "next/image";
+import { Textarea } from "./ui/textarea";
 
 
 export interface PostData {
@@ -131,7 +132,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         }
     }, [debouncedTagQuery, tagging, sellerProducts]);
   
-    const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         setContent(value);
         
@@ -338,15 +339,16 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                      <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
                         <PopoverAnchor asChild>
                             <div className="relative flex-grow">
-                                <Input 
+                                <Textarea 
                                     placeholder="Share something..." 
-                                    className="bg-muted rounded-full pl-4 pr-10 h-11"
+                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] max-h-48 resize-none"
                                     value={content}
                                     onChange={handleContentChange}
+                                    rows={1}
                                 />
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1.5 h-8 w-8 rounded-full">
                                             <Smile className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </PopoverTrigger>
