@@ -114,6 +114,7 @@ import { Logo } from '@/components/logo';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 
 const liveSellers = [
@@ -699,6 +700,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
