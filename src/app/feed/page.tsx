@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -334,12 +333,12 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-                            <Globe className="w-4 h-4"/> Global
+                    <div className="flex items-center gap-1 mt-2">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            <Globe className="w-5 h-5"/>
                         </Button>
-                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-                            <MapPin className="w-4 h-4"/> Nearby
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            <Users className="w-5 h-5"/>
                         </Button>
                     </div>
                 </div>
