@@ -59,6 +59,7 @@ import {
   List,
   Sparkles,
   Edit,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -448,6 +449,22 @@ export default function FeedPage() {
 
     return <>{relativeTime}</>;
   };
+  
+    const handleDownloadImage = (url: string) => {
+        fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `streamcart_image_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            })
+            .catch(() => toast({ variant: 'destructive', title: 'Download failed' }));
+    };
 
   return (
     <>
@@ -482,7 +499,17 @@ export default function FeedPage() {
       
       <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
-            {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
+            <div className="relative">
+                {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
+                <Button 
+                    variant="secondary" 
+                    size="icon" 
+                    className="absolute bottom-4 right-4 z-10"
+                    onClick={() => viewingImage && handleDownloadImage(viewingImage)}
+                >
+                    <Download />
+                </Button>
+            </div>
         </DialogContent>
       </Dialog>
       
@@ -702,5 +729,6 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
