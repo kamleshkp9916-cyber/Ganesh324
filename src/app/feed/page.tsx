@@ -255,7 +255,7 @@ export default function FeedPage() {
              </div>
               <nav className="space-y-2 flex-grow">
                   <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Heart /> My favorites</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3"><Save /> Saves</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
               </nav>
@@ -293,7 +293,16 @@ export default function FeedPage() {
                                                 <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
                                               </div>
                                           </div>
-                                          <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => setIsReportDialogOpen(true)}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                       </div>
                                        {post.images && (
                                            <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
