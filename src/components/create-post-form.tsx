@@ -125,8 +125,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const querySnapshot = await getDocs(q);
                 setSuggestions(querySnapshot.docs.map(doc => doc.data() as UserData));
             } else if (tagging?.type === '#') {
-                const hashtags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
-                setSuggestions(hashtags.map(tag => ({name: tag})));
+                // For hashtags, we can suggest from existing hashtags in the content for simplicity
+                const existingHashtags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
+                const uniqueHashtags = [...new Set(existingHashtags)];
+                const filtered = uniqueHashtags.filter(tag => tag.toLowerCase().startsWith(debouncedTagQuery.toLowerCase()));
+                setSuggestions(filtered.map(tag => ({name: tag})));
             }
             setIsSuggestionLoading(false);
         };
@@ -233,7 +236,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
             }
-
+            
             resetForm();
 
         } catch (error) {
