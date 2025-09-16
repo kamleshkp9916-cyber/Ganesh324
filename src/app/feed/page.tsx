@@ -22,6 +22,7 @@ import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreatePostForm } from '@/components/create-post-form';
@@ -29,7 +30,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -349,7 +350,7 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 space-y-4">
+               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30">
                     <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
@@ -359,13 +360,8 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                     <CreatePostForm
-                        ref={createPostFormRef}
-                        postToEdit={postToEdit}
-                        onFinishEditing={() => setPostToEdit(null)}
-                    />
                 </div>
-              <div className="flex-grow overflow-y-auto thin-scrollbar">
+              <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
                   <section>
                       <div className="divide-y divide-border/20">
                           {isLoadingFeed ? (
@@ -470,6 +466,13 @@ export default function FeedPage() {
                       </div>
                   </section>
               </div>
+                <div className="fixed bottom-0 left-0 right-0 lg:left-[18rem] lg:right-[22rem] z-30 bg-background/80 backdrop-blur-sm p-4 border-t">
+                    <CreatePostForm
+                        ref={createPostFormRef}
+                        postToEdit={postToEdit}
+                        onFinishEditing={() => setPostToEdit(null)}
+                    />
+                </div>
           </main>
           {/* Right Column */}
            <aside className="p-6 hidden lg:block space-y-6">
@@ -527,6 +530,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
