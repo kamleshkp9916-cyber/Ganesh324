@@ -76,9 +76,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setMedia([]);
         setLocation(null);
         setTaggedProduct(null);
+        setIsSubmitting(false); // Ensure submitting state is reset
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
-        setIsSubmitting(false);
     };
     
     useEffect(() => {
@@ -121,7 +121,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const querySnapshot = await getDocs(q);
                 setSuggestions(querySnapshot.docs.map(doc => doc.data() as UserData));
             } else if (tagging?.type === '#') {
-                // For hashtags, we can suggest from existing hashtags in the content for simplicity
                 const existingHashtags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
                 const uniqueHashtags = [...new Set(existingHashtags)];
                 const filtered = uniqueHashtags.filter(tag => tag.toLowerCase().startsWith(debouncedTagQuery.toLowerCase()));
@@ -218,7 +217,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                resetForm();
             } else {
                  // Creating a new post
                 await addDoc(collection(db, "posts"), {
@@ -232,8 +230,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 });
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
-                resetForm();
             }
+            resetForm(); // Reset form on success for both edit and create
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -242,7 +240,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 title: "Error",
                 description: "Failed to save your post. Please try again."
             });
-            setIsSubmitting(false); // Only set to false on error, otherwise resetForm handles it
+        } finally {
+            // This will run regardless of success or failure
+            setIsSubmitting(false);
         }
     };
 
