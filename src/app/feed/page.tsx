@@ -464,7 +464,10 @@ export default function FeedPage() {
                                       </div>
                                       <div className="px-4 pb-4 flex items-center justify-between">
                                           <div className="flex items-center gap-2">
-                                              <Button variant="ghost" size="icon"><ArrowUp /></Button>
+                                              <Button variant="ghost" className="flex items-center gap-1.5">
+                                                  <ArrowUp className="w-4 h-4"/>
+                                                  <span>Upvote</span>
+                                              </Button>
                                               <span>{post.likes || 0}</span>
                                               <Button variant="ghost" size="icon"><ArrowDown /></Button>
                                           </div>
@@ -553,3 +556,4 @@ export default function FeedPage() {
     </>
   );
 }
+
