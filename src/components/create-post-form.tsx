@@ -69,6 +69,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const debouncedTagQuery = useDebounce(tagging?.query, 300);
     
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     useEffect(() => {
         if (postToEdit) {
@@ -130,6 +131,14 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setSuggestions([]);
         }
     }, [debouncedTagQuery, tagging, sellerProducts]);
+
+    // Effect for auto-resizing textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [content]);
   
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -279,7 +288,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     }
     
     return (
-        <div className="w-full" ref={ref}>
+        <div className="w-full bg-background/80 backdrop-blur-sm rounded-t-lg" ref={ref}>
             {postToEdit && (
                 <div className="p-3">
                     <Alert variant="default" className="flex items-center justify-between">
@@ -339,8 +348,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <PopoverAnchor asChild>
                             <div className="relative flex-grow">
                                 <Textarea 
+                                    ref={textareaRef}
                                     placeholder="Share something..." 
-                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] max-h-none resize-none"
+                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] overflow-hidden resize-none"
                                     value={content}
                                     onChange={handleContentChange}
                                     rows={1}
