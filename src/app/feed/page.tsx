@@ -211,18 +211,31 @@ export default function FeedPage() {
   };
 
   const handleDeletePost = async (post: any) => {
+      if (!post || !post.id) return;
       setDeletingPostId(post.id);
       const db = getFirestoreDb();
       const postRef = doc(db, 'posts', post.id);
 
       try {
-          await deleteDoc(postRef);
-
-          if (post.mediaUrl) {
+          // First, delete any associated media from storage
+          if (post.images && post.images.length > 0) {
+              const storage = getFirebaseStorage();
+              const deletePromises = post.images.map((image: {url: string}) => {
+                  if (image.url.includes('firebasestorage.googleapis.com')) {
+                      const mediaRef = storageRef(storage, image.url);
+                      return deleteObject(mediaRef);
+                  }
+                  return Promise.resolve();
+              });
+              await Promise.all(deletePromises);
+          } else if (post.mediaUrl && post.mediaUrl.includes('firebasestorage.googleapis.com')) { // Legacy single media
               const storage = getFirebaseStorage();
               const mediaRef = storageRef(storage, post.mediaUrl);
               await deleteObject(mediaRef);
           }
+          
+          // Then, delete the Firestore document
+          await deleteDoc(postRef);
 
           toast({
               title: "Post Deleted",
@@ -321,7 +334,7 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <div className="mt-2 flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
                             <Globe className="w-4 h-4"/> Global
                         </Button>
@@ -390,7 +403,7 @@ export default function FeedPage() {
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                       </div>
-                                       {post.images && (
+                                       {post.images && post.images.length > 0 && (
                                            <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
                                               <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden"><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
                                               <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden"><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
@@ -492,4 +505,3 @@ export default function FeedPage() {
     </>
   );
 }
-

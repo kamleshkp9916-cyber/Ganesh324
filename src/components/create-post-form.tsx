@@ -28,7 +28,7 @@ import Image from "next/image";
 
 export interface PostData {
     content: string;
-    media: { type: 'video' | 'image', url: string } | null;
+    media: { type: 'video' | 'image', url: string }[] | null;
     location: string | null;
 }
   
@@ -53,7 +53,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
-    const [media, setMedia] = useState<{type: 'video' | 'image', file: File, url: string} | null>(null);
+    const [media, setMedia] = useState<{type: 'video' | 'image', file: File, url: string}[]>([]);
     const [location, setLocation] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
@@ -155,17 +155,17 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setIsSubmitting(true);
         try {
             const db = getFirestoreDb();
-            let mediaUrl: string | null = null;
-            let mediaType: 'image' | 'video' | null = null;
             
-            if (media) {
-                const storage = getFirebaseStorage();
-                const filePath = `posts/${user.uid}/${Date.now()}_${media.file.name}`;
-                const fileRef = storageRef(storage, filePath);
-                const uploadResult = await uploadString(fileRef, media.url, 'data_url');
-                mediaUrl = await getDownloadURL(uploadResult.ref);
-                mediaType = media.type;
-            }
+            const mediaUploads = await Promise.all(
+                media.map(async (mediaFile) => {
+                    const storage = getFirebaseStorage();
+                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                    const downloadURL = await getDownloadURL(uploadResult.ref);
+                    return { type: mediaFile.type, url: downloadURL };
+                })
+            );
 
             const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
             
@@ -175,8 +175,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 avatarUrl: userData.photoURL,
                 timestamp: serverTimestamp(),
                 content: content,
-                mediaUrl: mediaUrl,
-                mediaType: mediaType,
+                images: mediaUploads.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() })),
+                mediaType: mediaUploads.length > 0 ? mediaUploads[0].type : null, // Handle legacy single media
+                mediaUrl: mediaUploads.length > 0 ? mediaUploads[0].url : null, // Handle legacy single media
                 location: location,
                 likes: 0,
                 replies: 0,
@@ -209,7 +210,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 
 
             setContent("");
-            setMedia(null);
+            setMedia([]);
             setLocation(null);
             setTaggedProduct(null);
             onClearReply?.();
@@ -230,18 +231,25 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         }
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-        const file = event.target.files?.[0];
-        if (file) {
-            if (file.type.startsWith(type + '/')) {
-                 const reader = new FileReader();
-                 reader.onload = (e) => {
-                     setMedia({ type, file, url: e.target?.result as string });
-                     toast({ title: `${type === 'image' ? 'Image' : 'Video'} attached!` });
-                 };
-                 reader.readAsDataURL(file);
-            } else {
-                toast({ variant: 'destructive', title: 'Invalid File', description: `Please select a ${type} file.` });
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image') => {
+        const files = event.target.files;
+        if (files) {
+            if (media.length + files.length > 5) {
+                toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload a maximum of 5 images.' });
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith(type + '/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setMedia(prev => [...prev, { type, file, url: e.target?.result as string }]);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    toast({ variant: 'destructive', title: 'Invalid File', description: `Please select ${type} files.` });
+                }
             }
         }
     };
@@ -255,6 +263,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const addEmoji = (emoji: string) => {
         setContent(prev => prev + emoji);
     };
+
+    const removeMedia = (index: number) => {
+        setMedia(prev => prev.filter((_, i) => i !== index));
+    }
 
     if (!user) {
         return null;
@@ -273,23 +285,27 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         </AlertDescription>
                     </Alert>
                 )}
-                {media && (
-                    <div className="relative mb-2 w-fit">
-                        <Image
-                            src={media.url}
-                            alt="Preview"
-                            width={100}
-                            height={100}
-                            className="rounded-lg object-contain max-h-28 w-auto"
-                        />
-                        <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                            onClick={() => setMedia(null)}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
+                {media.length > 0 && (
+                     <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
+                        {media.map((item, index) => (
+                             <div key={index} className="relative w-20 h-20 flex-shrink-0">
+                                <Image
+                                    src={item.url}
+                                    alt="Preview"
+                                    width={80}
+                                    height={80}
+                                    className="rounded-lg object-cover w-full h-full"
+                                />
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                    onClick={() => removeMedia(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
                     </div>
                 )}
                 <div className="flex items-start sm:items-center gap-3 mb-3">
@@ -349,12 +365,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     </Popover>
                 </div>
                 <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
-                    <input type="file" accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()}>
-                        <Video className="mr-2 h-5 w-5" /> Video
-                    </Button>
-                    <input type="file" accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()}>
+                    <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5}>
                         <ImageIcon className="mr-2 h-5 w-5" /> Image
                     </Button>
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
