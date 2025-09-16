@@ -27,6 +27,7 @@ import { CreatePostForm } from '@/components/create-post-form';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -310,11 +311,25 @@ export default function FeedPage() {
                 </div>
                  <Separator className="my-4" />
              </div>
-              <nav className="space-y-2 flex-grow">
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Save /> Saves</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
+              <nav className="space-y-1 flex-grow">
+                  <Collapsible>
+                    <CollapsibleTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base">
+                            <Home /> Feed
+                        </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pl-8 space-y-1 mt-1">
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
+                            <Globe className="w-4 h-4" /> Global
+                        </Button>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
+                            <Users className="w-4 h-4" /> Following
+                        </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Send /> Direct</Button>
+                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
               </nav>
                <div className="mt-auto">
                     <CreatePostForm />
@@ -335,14 +350,6 @@ export default function FeedPage() {
                     </div>
                 </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
-                  <div className="flex items-center gap-1 p-2">
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
-                        <Globe className="w-5 h-5"/>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground">
-                        <Users className="w-5 h-5"/>
-                    </Button>
-                  </div>
                   <section>
                       <div className="divide-y divide-border/20">
                           {isLoadingFeed ? (
