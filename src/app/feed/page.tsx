@@ -519,9 +519,42 @@ export default function FeedPage() {
               </Card>
           </aside>
         </div>
-        <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:hidden">
+            <div className="bg-background/80 backdrop-blur-sm border-t pointer-events-auto">
+                <div className="h-16 flex items-center justify-around">
+                    <Link href="/feed" passHref>
+                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
+                            <Home className="w-6 h-6"/>
+                            <span className="text-xs">Feed</span>
+                        </Button>
+                    </Link>
+                     <Link href="/live-selling" passHref>
+                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
+                            <Tv className="w-6 h-6"/>
+                            <span className="text-xs">Live</span>
+                        </Button>
+                    </Link>
+                     <Link href="/saves" passHref>
+                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
+                            <Save className="w-6 h-6"/>
+                            <span className="text-xs">Saves</span>
+                        </Button>
+                    </Link>
+                     <Link href="/profile" passHref>
+                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
+                            <Avatar className="h-7 w-7">
+                                <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
+                                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             <span className="text-xs">Profile</span>
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        </div>
+        <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
             <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                 <div className="lg:col-start-2 w-[70%] mx-auto pointer-events-auto p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                 <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                     <CreatePostForm
                         ref={createPostFormRef}
                         postToEdit={postToEdit}
@@ -534,14 +567,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
