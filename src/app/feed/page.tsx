@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, VerticalEllipsis } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -296,7 +296,7 @@ export default function FeedPage() {
                                           </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon"><VerticalEllipsis /></Button>
+                                                    <Button variant="ghost" size="icon"><MoreVertical /></Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
@@ -407,3 +407,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    
