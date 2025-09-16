@@ -398,7 +398,7 @@ export default function FeedPage() {
                                             </Avatar>
                                             <div>
                                                 <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                                                <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                             </div>
                                           </Link>
                                             <DropdownMenu>
@@ -556,4 +556,5 @@ export default function FeedPage() {
     </>
   );
 }
+
 
