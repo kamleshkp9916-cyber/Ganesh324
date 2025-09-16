@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -623,11 +624,11 @@ export default function FeedPage() {
                                                     <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[0].url)}><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
                                                   </DialogTrigger>
                                                    <DialogTrigger asChild>
-                                                    <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[1].url)}><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
+                                                    <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[1]?.url)}><Image src={post.images[1]?.url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
                                                    </DialogTrigger>
                                                    <DialogTrigger asChild>
-                                                    <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative cursor-pointer" onClick={() => setViewingImage(post.images[2].url)}>
-                                                        <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
+                                                    <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative cursor-pointer" onClick={() => setViewingImage(post.images[2]?.url)}>
+                                                        <Image src={post.images[2]?.url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
                                                         {post.images.length > 3 && (
                                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
                                                                 +{post.images.length - 3}
@@ -732,3 +733,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    

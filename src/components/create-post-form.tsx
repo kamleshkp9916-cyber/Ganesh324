@@ -12,7 +12,7 @@ import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
-import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
+import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, doc, updateDoc } from "firebase/firestore";
 import { getUserByDisplayName, UserData } from "@/lib/follow-data";
 import {
@@ -90,10 +90,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setContent(`@${replyTo} `);
         } else {
              if(!postToEdit) {
-                resetForm();
-            }
+                // Do not reset if it was just edited
+             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [postToEdit, replyTo]);
     
     useEffect(() => {
@@ -157,12 +156,13 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         const textBeforeCursor = value.substring(0, cursorPos);
         
         const atMatch = textBeforeCursor.match(/@(\w+)$/);
-        const hashMatch = textBeforeCursor.match(/#(\w+)$/);
+        const hashMatch = textBeforeCursor.match(/#(\w+)/g);
 
         if (atMatch) {
             setTagging({ type: '@', query: atMatch[1], position: cursorPos });
         } else if (hashMatch) {
-            setTagging({ type: '#', query: hashMatch[1], position: cursorPos });
+            const lastHash = hashMatch[hashMatch.length-1];
+            setTagging({ type: '#', query: lastHash.substring(1), position: cursorPos });
         } else {
             setTagging(null);
         }
@@ -222,6 +222,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
+                if (onFinishEditing) onFinishEditing();
             } else {
                  // Creating a new post
                 await addDoc(collection(db, "posts"), {
@@ -447,5 +448,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
+    
 
     
