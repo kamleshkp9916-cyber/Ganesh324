@@ -79,7 +79,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts }: { userData: UserData, userPosts: any[] }) => (
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void }) => (
     <div className="p-6 flex flex-col h-full">
         <div className="flex flex-col items-center text-center mb-8">
             <Avatar className="h-20 w-20 mb-3">
@@ -113,10 +113,10 @@ const SidebarContent = ({ userData, userPosts }: { userData: UserData, userPosts
                     </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10">
+                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => setFeedFilter('global')}>
                         <Globe className="w-4 h-4" /> Global
                     </Button>
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10">
+                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => setFeedFilter('following')}>
                         <Users className="w-4 h-4" /> Following
                     </Button>
                 </CollapsibleContent>
@@ -352,7 +352,7 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:flex">
-             <SidebarContent userData={userData} userPosts={userPosts} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} />
           </aside>
 
           {/* Main Content */}
@@ -365,7 +365,7 @@ export default function FeedPage() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0">
-                            <SidebarContent userData={userData} userPosts={userPosts} />
+                            <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} />
                         </SheetContent>
                     </Sheet>
                     <div className="relative w-full">
@@ -538,12 +538,14 @@ export default function FeedPage() {
         </div>
         <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
             <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                 <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
-                    <CreatePostForm
-                        ref={createPostFormRef}
-                        postToEdit={postToEdit}
-                        onFinishEditing={() => setPostToEdit(null)}
-                    />
+                 <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
+                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                        <CreatePostForm
+                            ref={createPostFormRef}
+                            postToEdit={postToEdit}
+                            onFinishEditing={() => setPostToEdit(null)}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
