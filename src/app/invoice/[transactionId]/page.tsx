@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -87,6 +88,10 @@ const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransaction
     
     return (
         <DialogContent className="max-w-4xl p-0">
+            <DialogHeader className="sr-only">
+                <DialogTitle>Invoice {invoiceData.invoiceNo}</DialogTitle>
+                <DialogDescription>A detailed invoice for your transaction.</DialogDescription>
+            </DialogHeader>
              <style>{`
                 @media print {
                     body * {
@@ -475,8 +480,8 @@ export default function WalletPage() {
                       <div className="flex items-center gap-4">
                           <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="bg-opacity-20 text-opacity-100">{t.status}</Badge>
                            <div className="text-right w-36 flex items-center justify-end gap-2">
-                              <p className="font-semibold text-lg text-white flex items-center gap-1">
-                                  {t.amount > 0 ? <ArrowUp className="inline-block h-4 w-4" /> : <ArrowDown className="inline-block h-4 w-4" />}
+                              <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? 'text-green-400' : 'text-white')}>
+                                  {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
                                   <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                               </p>
                                <DialogTrigger asChild>

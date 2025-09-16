@@ -100,7 +100,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
-import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
@@ -279,7 +279,7 @@ export default function FeedPage() {
     feed.forEach(post => {
         let hashtags: string[] = [];
         if (Array.isArray(post.tags)) {
-            hashtags = post.tags.map((tag: string) => `#${'tag'}`);
+            hashtags = post.tags.map((tag: string) => `#${tag}`);
         } else if (typeof post.tags === 'string') {
             hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
         }
@@ -419,7 +419,7 @@ export default function FeedPage() {
   const RealtimeTimestamp = ({ date }: { date: Date | string }) => {
     const [relativeTime, setRelativeTime] = useState('');
 
-    const formatTimestamp = (d: Date): string => {
+    const formatTimestamp = useCallback((d: Date): string => {
         const now = new Date();
         const diffInSeconds = (now.getTime() - d.getTime()) / 1000;
         if (diffInSeconds < 60 * 60 * 24) {
@@ -433,7 +433,7 @@ export default function FeedPage() {
             return format(d, 'MMM d'); // Sep 12
         }
         return format(d, 'MMM d, yyyy'); // Sep 12, 2024
-    };
+    }, []);
 
     useEffect(() => {
       const d = new Date(date);
@@ -444,7 +444,7 @@ export default function FeedPage() {
       }, 60000); // Update every minute
 
       return () => clearInterval(interval);
-    }, [date]);
+    }, [date, formatTimestamp]);
 
     return <>{relativeTime}</>;
   };
@@ -498,6 +498,10 @@ export default function FeedPage() {
       
       <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
+            <DialogHeader className="sr-only">
+                <DialogTitle>Post Image</DialogTitle>
+                <DialogDescription>Full screen view of the post image.</DialogDescription>
+            </DialogHeader>
             <div className="relative">
                 {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
                 <Button 
@@ -728,7 +732,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-
-
-    
