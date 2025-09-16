@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X, Menu } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X, Menu, ThumbsUp, ThumbsDown } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -464,9 +464,9 @@ export default function FeedPage() {
                                       </div>
                                       <div className="px-4 pb-4 flex items-center justify-between">
                                           <div className="flex items-center gap-2">
-                                              <Button variant="ghost" size="icon"><ArrowUp /></Button>
+                                              <Button variant="ghost" size="icon"><ThumbsUp /></Button>
                                               <span>{post.likes || 0}</span>
-                                              <Button variant="ghost" size="icon"><ArrowDown /></Button>
+                                              <Button variant="ghost" size="icon"><ThumbsDown /></Button>
                                           </div>
                                            <Button variant="ghost" className="flex items-center gap-1.5">
                                               <MessageSquare className="w-4 h-4"/>
