@@ -76,9 +76,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setMedia([]);
         setLocation(null);
         setTaggedProduct(null);
-        setIsSubmitting(false); // Ensure submitting state is reset
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
+        setIsSubmitting(false); 
     };
     
     useEffect(() => {
@@ -89,6 +89,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setTaggedProduct(postToEdit.taggedProduct || null);
         } else if (replyTo) {
             setContent(`@${replyTo} `);
+        } else {
+             setContent("");
+             setMedia([]);
+             setLocation(null);
+             setTaggedProduct(null);
         }
     }, [postToEdit, replyTo]);
     
@@ -215,6 +220,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             if (postToEdit) {
                 // Editing an existing post
                 const postRef = doc(db, 'posts', postToEdit.id);
+                postData.lastEditedAt = serverTimestamp(); // Add edited timestamp
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
             } else {
@@ -231,7 +237,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
             }
-            resetForm(); // Reset form on success for both edit and create
+            resetForm(); 
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -241,7 +247,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 description: "Failed to save your post. Please try again."
             });
         } finally {
-            // This will run regardless of success or failure
             setIsSubmitting(false);
         }
     };

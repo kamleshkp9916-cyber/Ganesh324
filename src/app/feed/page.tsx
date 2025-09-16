@@ -379,6 +379,10 @@ export default function FeedPage() {
       setPostToEdit(post);
       createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+  
+  const handleFinishEditing = () => {
+      setPostToEdit(null);
+  };
 
   const handleDeletePost = async (post: any) => {
       if (!post || !post.id) return;
@@ -417,7 +421,7 @@ export default function FeedPage() {
       }
   };
 
-  const RealtimeTimestamp = ({ date }: { date: Date | string }) => {
+  const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
     const [relativeTime, setRelativeTime] = useState('');
 
     const formatTimestamp = useCallback((d: Date): string => {
@@ -447,7 +451,12 @@ export default function FeedPage() {
       return () => clearInterval(interval);
     }, [date, formatTimestamp]);
 
-    return <>{relativeTime}</>;
+    return (
+        <>
+            {relativeTime}
+            {isEdited && <span className="text-muted-foreground/80"> (Edited)</span>}
+        </>
+    );
   };
   
     const handleDownloadImage = (url: string) => {
@@ -567,7 +576,9 @@ export default function FeedPage() {
                                             </Avatar>
                                             <div>
                                                 <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                                                <p className="text-xs text-muted-foreground"><RealtimeTimestamp date={post.timestamp} /></p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                                                </p>
                                             </div>
                                           </Link>
                                             <DropdownMenu>
@@ -618,7 +629,7 @@ export default function FeedPage() {
                                           )}
                                       </div>
                                        {post.images && post.images.length > 0 && (
-                                            <Dialog>
+                                           <Dialog>
                                                <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
                                                   <DialogTrigger asChild>
                                                     <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[0].url)}><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
@@ -723,7 +734,7 @@ export default function FeedPage() {
                         <CreatePostForm
                             ref={createPostFormRef}
                             postToEdit={postToEdit}
-                            onFinishEditing={() => setPostToEdit(null)}
+                            onFinishEditing={handleFinishEditing}
                         />
                     </div>
                 </div>
