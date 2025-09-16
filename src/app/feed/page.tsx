@@ -232,12 +232,12 @@ export default function FeedPage() {
         const postsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
+          timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
         
         const formattedMockPost = {
             ...mockPost,
-            timestamp: format(new Date(mockPost.timestamp), 'PPp')
+            timestamp: formatDistanceToNow(new Date(mockPost.timestamp), { addSuffix: true })
         }
 
         setFeed([formattedMockPost, ...postsData]);
@@ -556,5 +556,6 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
