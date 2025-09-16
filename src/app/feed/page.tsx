@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown } from 'lucide-react';
+import { Flag, MessageCircle, MoreHorizontal, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -84,6 +84,7 @@ export default function FeedPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
@@ -261,6 +262,17 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+              <div className="p-4 sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search..."
+                        className="pl-10 h-10 rounded-full bg-muted border-none w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+              </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
                   <section>
                       <div className="divide-y divide-border/20">
@@ -271,7 +283,7 @@ export default function FeedPage() {
                               </>
                           ) : (
                               feed.map(post => (
-                                  <Card key={post.id} className="border-x-0 border-t-0 border-b-0 rounded-none shadow-none bg-transparent">
+                                  <Card key={post.id} className="border-x-0 border-b-0 rounded-none shadow-none bg-transparent">
                                     <div className="border-t border-border/20 opacity-50 absolute top-0 left-0 right-0"></div>
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
@@ -328,7 +340,6 @@ export default function FeedPage() {
           </main>
           {/* Right Column */}
            <aside className="p-6 hidden lg:block space-y-6">
-                <CreatePostForm />
               <Card>
                 <CardHeader>
                     <CardTitle className="text-lg">Trending</CardTitle>
