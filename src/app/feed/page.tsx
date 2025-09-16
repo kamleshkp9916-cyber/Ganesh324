@@ -466,13 +466,6 @@ export default function FeedPage() {
                       </div>
                   </section>
               </div>
-                <div className="fixed bottom-0 left-0 right-0 lg:left-[18rem] lg:right-[22rem] z-30 bg-background/80 backdrop-blur-sm p-4 border-t">
-                    <CreatePostForm
-                        ref={createPostFormRef}
-                        postToEdit={postToEdit}
-                        onFinishEditing={() => setPostToEdit(null)}
-                    />
-                </div>
           </main>
           {/* Right Column */}
            <aside className="p-6 hidden lg:block space-y-6">
@@ -526,10 +519,18 @@ export default function FeedPage() {
               </Card>
           </aside>
         </div>
+        <div className="fixed bottom-0 left-0 lg:left-[18rem] right-0 lg:right-[22rem] z-30 bg-background/80 backdrop-blur-sm p-4 border-t">
+            <CreatePostForm
+                ref={createPostFormRef}
+                postToEdit={postToEdit}
+                onFinishEditing={() => setPostToEdit(null)}
+            />
+        </div>
     </div>
     </>
   );
 }
+
 
 
 
