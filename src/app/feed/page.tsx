@@ -255,10 +255,8 @@ export default function FeedPage() {
              </div>
               <nav className="space-y-2 flex-grow">
                   <Button variant="ghost" className="w-full justify-start gap-3"><Home /> Feed</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><Compass /> Explore</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Heart /> My favorites</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3"><BarChart /> Stats</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
               </nav>
           </aside>
