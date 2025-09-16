@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2 } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -85,11 +85,20 @@ export default function FeedPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const filteredFeed = useMemo(() => {
+    if (!searchTerm) return feed;
+    return feed.filter(item => 
+        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, feed]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -196,6 +205,41 @@ export default function FeedPage() {
     setSelectedReportReason("");
   };
 
+  const handleEditPost = (postId: string) => {
+      // Future implementation: Open a modal with the post data for editing
+      toast({ title: "Edit functionality coming soon!" });
+  };
+
+  const handleDeletePost = async (post: any) => {
+      setDeletingPostId(post.id);
+      const db = getFirestoreDb();
+      const postRef = doc(db, 'posts', post.id);
+
+      try {
+          await deleteDoc(postRef);
+
+          if (post.mediaUrl) {
+              const storage = getFirebaseStorage();
+              const mediaRef = storageRef(storage, post.mediaUrl);
+              await deleteObject(mediaRef);
+          }
+
+          toast({
+              title: "Post Deleted",
+              description: "Your post has been successfully removed.",
+          });
+      } catch (error) {
+          console.error("Error deleting post: ", error);
+          toast({
+              variant: 'destructive',
+              title: "Error",
+              description: "Could not delete the post. Please try again."
+          });
+      } finally {
+          setDeletingPostId(null);
+      }
+  };
+
   return (
     <>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
@@ -267,6 +311,17 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30">
+                    <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            placeholder="Search feed..."
+                            className="rounded-full pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar pt-4">
                   <section>
                       <div className="divide-y divide-border/20">
@@ -276,29 +331,51 @@ export default function FeedPage() {
                                 <div className="py-8"><FeedPostSkeleton /></div>
                               </>
                           ) : (
-                              feed.map(post => (
-                                  <Card key={post.id} className="border-x-0 border-t-0 rounded-none shadow-none bg-transparent">
+                              filteredFeed.map(post => (
+                                  <Card key={post.id} className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent transition-opacity", deletingPostId === post.id && 'opacity-50')}>
                                     <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                                       <div className="p-4 flex items-center justify-between">
-                                           <div className="flex items-center gap-3">
-                                              <Link href={`/seller/profile?userId=${post.sellerId}`}>
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={post.avatarUrl} />
-                                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                              </Link>
-                                              <div>
-                                                <Link href={`/seller/profile?userId=${post.sellerId}`} className='hover:underline'>
-                                                    <p className="font-semibold">{post.sellerName}</p>
-                                                </Link>
+                                          <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={post.avatarUrl} />
+                                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold group-hover:underline">{post.sellerName}</p>
                                                 <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
-                                              </div>
-                                          </div>
+                                            </div>
+                                          </Link>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon"><MoreVertical /></Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
+                                                    {user && user.uid === post.sellerId && (
+                                                        <>
+                                                            <DropdownMenuItem onSelect={() => handleEditPost(post.id)}>
+                                                                <Edit className="mr-2 h-4 w-4" /> Edit Post
+                                                            </DropdownMenuItem>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+                                                                    </DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeletePost(post)}>Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+
+                                                            <DropdownMenuSeparator />
+                                                        </>
+                                                    )}
                                                     <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
                                                     <DropdownMenuItem onSelect={() => handleShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
                                                     <DropdownMenuItem onSelect={() => setIsReportDialogOpen(true)}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
@@ -324,7 +401,7 @@ export default function FeedPage() {
                                           {Array.isArray(post.tags) && post.tags.length > 0 && (
                                               <p className="text-sm text-primary mt-2">
                                                   {post.tags.map((tag: string, index: number) => (
-                                                      <span key={index}>{`#${tag} `}</span>
+                                                      <span key={index} className="text-primary">{`#${tag} `}</span>
                                                   ))}
                                               </p>
                                           )}
@@ -407,5 +484,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-    
