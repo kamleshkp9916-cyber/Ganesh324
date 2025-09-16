@@ -1,10 +1,11 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin } from 'lucide-react';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, where, doc, deleteDoc, runTransaction, increment, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
 import { format, formatDistanceToNow } from 'date-fns';
-import { toggleFollow, isFollowing, UserData } from '@/lib/follow-data';
+import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -87,18 +88,32 @@ export default function FeedPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
-  
+  const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
+
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (user) {
+      getFollowing(user.uid).then(followingUsers => {
+        setFollowingIds(followingUsers.map(u => u.uid));
+      });
+    }
+  }, [user]);
 
   const filteredFeed = useMemo(() => {
-    if (!searchTerm) return feed;
-    return feed.filter(item => 
+    let currentFeed = feed;
+
+    if (feedFilter === 'following') {
+        currentFeed = currentFeed.filter(post => followingIds.includes(post.sellerId));
+    }
+    
+    if (!searchTerm) return currentFeed;
+
+    return currentFeed.filter(item => 
         item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, feed]);
+  }, [searchTerm, feed, feedFilter, followingIds]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -319,10 +334,10 @@ export default function FeedPage() {
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={() => setFeedFilter('global')} data-active={feedFilter === 'global'}>
                             <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={() => setFeedFilter('following')} data-active={feedFilter === 'following'}>
                             <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
@@ -511,3 +526,4 @@ export default function FeedPage() {
     </>
   );
 }
+
