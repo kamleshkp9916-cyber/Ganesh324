@@ -232,12 +232,12 @@ export default function FeedPage() {
         const postsData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-          timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+          timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
         }));
         
         const formattedMockPost = {
             ...mockPost,
-            timestamp: formatDistanceToNow(new Date(mockPost.timestamp), { addSuffix: true })
+            timestamp: new Date(mockPost.timestamp)
         }
 
         setFeed([formattedMockPost, ...postsData]);
@@ -315,6 +315,20 @@ export default function FeedPage() {
       } finally {
           setDeletingPostId(null);
       }
+  };
+
+  const RealtimeTimestamp = ({ date }: { date: Date | string }) => {
+    const [relativeTime, setRelativeTime] = useState(formatDistanceToNow(new Date(date), { addSuffix: true }));
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setRelativeTime(formatDistanceToNow(new Date(date), { addSuffix: true }));
+      }, 60000); // Update every minute
+
+      return () => clearInterval(interval);
+    }, [date]);
+
+    return <>{relativeTime}</>;
   };
 
   return (
@@ -398,7 +412,7 @@ export default function FeedPage() {
                                             </Avatar>
                                             <div>
                                                 <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                <p className="text-xs text-muted-foreground"><RealtimeTimestamp date={post.timestamp} /></p>
                                             </div>
                                           </Link>
                                             <DropdownMenu>
@@ -556,6 +570,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
