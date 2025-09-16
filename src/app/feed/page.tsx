@@ -86,6 +86,8 @@ export default function FeedPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -101,7 +103,7 @@ export default function FeedPage() {
     feed.forEach(post => {
         let hashtags: string[] = [];
         if (Array.isArray(post.tags)) {
-            hashtags = post.tags.map((tag: string) => `#${tag}`);
+            hashtags = post.tags.map((tag: string) => `#${'tag'}`);
         } else if (typeof post.tags === 'string') {
             hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
         }
@@ -132,6 +134,7 @@ export default function FeedPage() {
     
     const mockPost = {
         id: "mock1",
+        sellerId: "mockSellerId",
         sellerName: "Jerome Bell",
         avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
         content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings.",
@@ -266,18 +269,40 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="sticky top-0 z-20 p-4 bg-background/80 backdrop-blur-sm">
-                <div className="relative w-full max-w-2xl mx-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
+               <div className={cn("sticky top-0 z-20 p-4 bg-background/80 backdrop-blur-sm transition-all duration-300", isSearchOpen ? "h-auto" : "h-16")}>
+                 <div className="relative w-full max-w-xl mx-auto">
+                    <div
+                      className={cn(
+                        "relative flex items-center transition-all duration-300",
+                        isSearchOpen && "mb-2"
+                      )}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "rounded-full h-10 w-10 transition-all duration-300",
+                          isSearchOpen ? "absolute -left-12" : "absolute left-0"
+                        )}
+                        onClick={() => setIsSearchOpen((prev) => !prev)}
+                      >
+                        <Search className="h-5 w-5 text-muted-foreground" />
+                      </Button>
+                      <Input
                         ref={searchInputRef}
                         placeholder="Search..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 h-10 rounded-full border bg-background placeholder:text-muted-foreground w-full"
-                    />
-                </div>
+                        className={cn(
+                          "pl-12 h-12 rounded-full border bg-white placeholder:text-gray-400 transition-all duration-300 w-full"
+                        )}
+                        onFocus={() => setIsSearchOpen(true)}
+                        onBlur={() => !searchTerm && setIsSearchOpen(false)}
+                      />
+                    </div>
+                  </div>
               </div>
+
 
               <div className="flex-grow overflow-y-auto thin-scrollbar pt-4">
                   <section>
@@ -293,12 +318,16 @@ export default function FeedPage() {
                                     <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
-                                              <Avatar className="h-10 w-10">
-                                                  <AvatarImage src={post.avatarUrl} />
-                                                  <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                              </Avatar>
+                                              <Link href={`/seller/profile?userId=${post.sellerId}`}>
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={post.avatarUrl} />
+                                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                              </Link>
                                               <div>
-                                                <p className="font-semibold">{post.sellerName}</p>
+                                                <Link href={`/seller/profile?userId=${post.sellerId}`} className='hover:underline'>
+                                                    <p className="font-semibold">{post.sellerName}</p>
+                                                </Link>
                                                 <p className="text-xs text-muted-foreground">@{post.sellerName.toLowerCase().replace(' ', '')}</p>
                                               </div>
                                           </div>
