@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -295,7 +296,7 @@ export default function FeedPage() {
                                           </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                                                    <Button variant="ghost" size="icon"><VerticalEllipsis /></Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
@@ -320,7 +321,13 @@ export default function FeedPage() {
                                        )}
                                       <div className="p-4">
                                           <p className="text-sm text-muted-foreground">{post.content}</p>
-                                          <p className="text-sm text-primary mt-2">{Array.isArray(post.tags) ? post.tags.map((t: string) => `#${t}`).join(' ') : post.tags}</p>
+                                          {Array.isArray(post.tags) && post.tags.length > 0 && (
+                                              <p className="text-sm text-primary mt-2">
+                                                  {post.tags.map((tag: string, index: number) => (
+                                                      <span key={index}>{`#${tag} `}</span>
+                                                  ))}
+                                              </p>
+                                          )}
                                       </div>
                                       <div className="px-4 pb-4 flex items-center justify-between">
                                           <div className="flex items-center gap-2">
