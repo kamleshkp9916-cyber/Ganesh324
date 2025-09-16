@@ -278,17 +278,10 @@ export default function FeedPage() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-        let hashtags: string[] = [];
-        if (Array.isArray(post.tags)) {
-            hashtags = post.tags.map((tag: string) => `#${tag}`);
-        } else if (typeof post.tags === 'string') {
-            hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
-        }
-
+        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map(match => match[1]);
         hashtags.forEach((tag: string) => {
-            const cleanedTag = tag.substring(1);
-            if (cleanedTag) {
-                hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
+            if (tag) {
+                hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
             }
         });
     });
@@ -314,7 +307,7 @@ export default function FeedPage() {
         sellerId: "mockSellerId",
         sellerName: "Jerome Bell",
         avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
-        content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings.",
+        content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings. #NFT #color #mint #nftdrop #nftnews",
         tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
         images: [
             { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
@@ -746,3 +739,4 @@ export default function FeedPage() {
 }
 
     
+
