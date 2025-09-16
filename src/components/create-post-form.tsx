@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,8 @@ interface CreatePostFormProps {
   onClearReply?: () => void;
   postToEdit?: any | null;
   onFinishEditing?: () => void;
+  isSubmitting: boolean;
+  setIsSubmitting: (isSubmitting: boolean) => void;
 }
 
 const emojis = [
@@ -52,13 +53,12 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, isSubmitting, setIsSubmitting }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
     const [media, setMedia] = useState<{type: 'video' | 'image', file?: File, url: string}[]>([]);
     const [location, setLocation] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
     

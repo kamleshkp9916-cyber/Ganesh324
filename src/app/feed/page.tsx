@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -242,8 +241,8 @@ export default function FeedPage() {
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
-  const [formKey, setFormKey] = useState(Date.now());
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
 
   useEffect(() => {
@@ -370,12 +369,10 @@ export default function FeedPage() {
 
   const handleEditPost = (post: any) => {
       setPostToEdit(post);
-      setFormKey(Date.now()); // Ensure form gets new props
   };
   
   const handleFinishEditing = () => {
       setPostToEdit(null);
-      setFormKey(Date.now()); // Reset the form by changing its key
   };
 
   const handleDeletePost = async (post: any) => {
@@ -448,7 +445,7 @@ export default function FeedPage() {
     return (
         <>
             {relativeTime}
-            {isEdited && <span className="text-muted-foreground/80"> (Edited)</span>}
+            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
         </>
     );
   };
@@ -725,7 +722,8 @@ export default function FeedPage() {
                  <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                         <CreatePostForm
-                            key={formKey}
+                            isSubmitting={isFormSubmitting}
+                            setIsSubmitting={setIsFormSubmitting}
                             postToEdit={postToEdit}
                             onFinishEditing={handleFinishEditing}
                         />
@@ -737,8 +735,6 @@ export default function FeedPage() {
     </>
   );
 }
-
     
 
-
-
+    
