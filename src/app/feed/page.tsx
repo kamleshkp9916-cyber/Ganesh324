@@ -259,11 +259,14 @@ export default function FeedPage() {
                   <Button variant="ghost" className="w-full justify-start gap-3"><Send /> Direct</Button>
                   <Button variant="ghost" className="w-full justify-start gap-3"><Settings /> Settings</Button>
               </nav>
+               <div className="mt-auto">
+                    <CreatePostForm />
+                </div>
           </aside>
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b p-3 flex justify-end">
+               <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b p-3 flex justify-end">
                   <div className={cn("relative flex items-center justify-end transition-all duration-300", isSearchExpanded ? "w-full" : "w-auto")}>
                       <Input
                           placeholder="Search..."
