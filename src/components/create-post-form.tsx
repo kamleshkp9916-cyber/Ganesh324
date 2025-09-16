@@ -341,7 +341,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                             <div className="relative flex-grow">
                                 <Textarea 
                                     placeholder="Share something..." 
-                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] max-h-48 resize-none"
+                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] resize-none"
                                     value={content}
                                     onChange={handleContentChange}
                                     rows={1}
