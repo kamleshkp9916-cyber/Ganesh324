@@ -503,7 +503,6 @@ export default function FeedPage() {
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
             <DialogHeader className="sr-only">
                 <DialogTitle>Post Image</DialogTitle>
-                <DialogDescription>Full screen view of the post image.</DialogDescription>
             </DialogHeader>
             <div className="relative">
                 {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
@@ -739,4 +738,5 @@ export default function FeedPage() {
 }
 
     
+
 
