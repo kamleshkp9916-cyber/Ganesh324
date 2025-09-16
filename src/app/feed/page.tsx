@@ -355,7 +355,7 @@ export default function FeedPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                             placeholder="Search feed..."
-                            className="rounded-full pl-10"
+                            className="bg-muted rounded-full pl-10"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -519,8 +519,8 @@ export default function FeedPage() {
               </Card>
           </aside>
         </div>
-        <div className="fixed bottom-0 lg:left-[18rem] lg:right-[22rem] z-30">
-             <div className="bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
+        <div className="fixed bottom-0 left-0 right-0 lg:left-[18rem] lg:right-[22rem] z-30">
+            <div className="bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
                 <CreatePostForm
                     ref={createPostFormRef}
                     postToEdit={postToEdit}
@@ -532,6 +532,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
