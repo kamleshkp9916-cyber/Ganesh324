@@ -519,19 +519,22 @@ export default function FeedPage() {
               </Card>
           </aside>
         </div>
-        <div className="fixed bottom-0 left-0 right-0 z-30">
-            <div className="bg-background/80 backdrop-blur-sm rounded-t-lg">
-                <CreatePostForm
-                    ref={createPostFormRef}
-                    postToEdit={postToEdit}
-                    onFinishEditing={() => setPostToEdit(null)}
-                />
+        <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
+            <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
+                 <div className="lg:col-start-2 w-[70%] mx-auto pointer-events-auto p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                    <CreatePostForm
+                        ref={createPostFormRef}
+                        postToEdit={postToEdit}
+                        onFinishEditing={() => setPostToEdit(null)}
+                    />
+                </div>
             </div>
         </div>
     </div>
     </>
   );
 }
+
 
 
 
