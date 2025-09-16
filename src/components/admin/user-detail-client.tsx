@@ -60,7 +60,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
@@ -505,7 +505,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
                                     {item.status.split(':')[0]}
                                 </p>
-                                {item.status.includes(':') && (
+                                {index === selectedOrderForTimeline.timeline.length - 1 && item.status.includes(':') && (
                                     <p className="text-sm text-muted-foreground">
                                         {item.status.split(':').slice(1).join(':').trim()}
                                     </p>
