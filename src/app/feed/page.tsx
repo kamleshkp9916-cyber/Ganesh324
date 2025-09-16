@@ -267,7 +267,7 @@ export default function FeedPage() {
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
               <div className="sticky top-0 z-20 p-4 bg-background/80 backdrop-blur-sm">
-                <div className="relative w-full max-w-lg mx-auto">
+                <div className="relative w-full max-w-2xl mx-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         ref={searchInputRef}
