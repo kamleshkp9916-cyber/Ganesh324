@@ -291,16 +291,23 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         <div className="w-full bg-background/80 backdrop-blur-sm rounded-lg" ref={ref}>
             {postToEdit && (
                 <div className="p-3">
-                    <Alert variant="default" className="flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                             <FileEdit className="h-4 w-4 text-primary"/>
-                            <AlertDescription>
-                                You are editing a post.
-                            </AlertDescription>
-                         </div>
-                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onFinishEditing}>
-                             <X className="h-4 w-4"/>
-                         </Button>
+                    <Alert variant="default">
+                        <div className="flex items-start justify-between">
+                             <div className="flex items-start gap-3">
+                                 <FileEdit className="h-5 w-5 text-primary flex-shrink-0 mt-1"/>
+                                <div>
+                                    <AlertDescription>
+                                        Editing post: <span className="italic text-foreground">"{postToEdit.content.substring(0, 50)}..."</span>
+                                    </AlertDescription>
+                                    {postToEdit.images && postToEdit.images.length > 0 && (
+                                        <Image src={postToEdit.images[0].url} alt="Post preview" width={40} height={40} className="rounded-md mt-2" />
+                                    )}
+                                </div>
+                             </div>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 -mr-2 -mt-2 flex-shrink-0" onClick={onFinishEditing}>
+                                 <X className="h-4 w-4"/>
+                             </Button>
+                        </div>
                     </Alert>
                 </div>
             )}
