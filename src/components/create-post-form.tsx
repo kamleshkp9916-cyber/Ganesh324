@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setIsSubmitting(true);
         try {
             const db = getFirestoreDb();
-            const tags = content.match(/#\w+/g)?.map(tag => tag.substring(1)) || [];
+            const tags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
             
             const postData: any = {
                 content: content,
@@ -203,7 +204,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             );
             
             const existingMedia = media.filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
-            const allMedia = [...existingMedia, ...mediaUploads.filter(m => m !== null)];
+            const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
 
             postData.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
 
@@ -212,7 +213,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                onFinishEditing?.();
+                if (onFinishEditing) onFinishEditing();
             } else {
                  // Creating a new post
                 await addDoc(collection(db, "posts"), {
@@ -232,7 +233,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setMedia([]);
             setLocation(null);
             setTaggedProduct(null);
-            onClearReply?.();
+            if (onClearReply) onClearReply();
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
