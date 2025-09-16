@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-debounce";
+import Image from "next/image";
 
 
 export interface PostData {
@@ -272,6 +273,25 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                             </Button>
                         </AlertDescription>
                     </Alert>
+                )}
+                {media && (
+                    <div className="relative mb-2 w-fit">
+                        <Image
+                            src={media.url}
+                            alt="Preview"
+                            width={100}
+                            height={100}
+                            className="rounded-lg object-contain max-h-28 w-auto"
+                        />
+                        <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                            onClick={() => setMedia(null)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
                 )}
                 <div className="flex items-start sm:items-center gap-3 mb-3">
                     <Avatar className="h-9 w-9 hidden sm:flex">
