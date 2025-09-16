@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag } from "lucide-react";
+import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
@@ -13,7 +14,7 @@ import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./ui/pop
 import { useToast } from "@/hooks/use-toast";
 import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
 import { ref as storageRef, uploadString, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp, query, where, getDocs, limit } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, doc, updateDoc } from "firebase/firestore";
 import { getUserByDisplayName, UserData } from "@/lib/follow-data";
 import {
   Select,
@@ -35,6 +36,8 @@ export interface PostData {
 interface CreatePostFormProps {
   replyTo?: string | null;
   onClearReply?: () => void;
+  postToEdit?: any | null;
+  onFinishEditing?: () => void;
 }
 
 const emojis = [
@@ -49,11 +52,11 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
-    const [media, setMedia] = useState<{type: 'video' | 'image', file: File, url: string}[]>([]);
+    const [media, setMedia] = useState<{type: 'video' | 'image', file?: File, url: string}[]>([]);
     const [location, setLocation] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
@@ -67,14 +70,22 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     
     const videoInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
-
+    
     useEffect(() => {
-        if (replyTo) {
+        if (postToEdit) {
+            setContent(postToEdit.content || '');
+            setMedia(postToEdit.images?.map((img: any) => ({ type: 'image', url: img.url })) || []);
+            setLocation(postToEdit.location || null);
+            setTaggedProduct(postToEdit.taggedProduct || null);
+        } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
             setContent("");
+            setMedia([]);
+            setLocation(null);
+            setTaggedProduct(null);
         }
-    }, [replyTo]);
+    }, [postToEdit, replyTo]);
     
     useEffect(() => {
         if (userData?.role === 'seller' || userData?.role === 'admin') {
@@ -155,32 +166,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setIsSubmitting(true);
         try {
             const db = getFirestoreDb();
-            
-            const mediaUploads = await Promise.all(
-                media.map(async (mediaFile) => {
-                    const storage = getFirebaseStorage();
-                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
-                    const fileRef = storageRef(storage, filePath);
-                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
-                    const downloadURL = await getDownloadURL(uploadResult.ref);
-                    return { type: mediaFile.type, url: downloadURL };
-                })
-            );
-
             const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
             
-            const postDocRef = await addDoc(collection(db, "posts"), {
-                sellerId: user.uid,
-                sellerName: userData.displayName,
-                avatarUrl: userData.photoURL,
-                timestamp: serverTimestamp(),
+            const postData = {
                 content: content,
-                images: mediaUploads.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() })),
-                mediaType: mediaUploads.length > 0 ? mediaUploads[0].type : null, // Handle legacy single media
-                mediaUrl: mediaUploads.length > 0 ? mediaUploads[0].url : null, // Handle legacy single media
                 location: location,
-                likes: 0,
-                replies: 0,
                 tags: tags,
                 taggedProduct: taggedProduct ? {
                     id: taggedProduct.id,
@@ -188,43 +178,53 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     price: taggedProduct.price,
                     image: taggedProduct.images[0]?.preview,
                 } : null,
-            });
+            };
 
-            for (const tagName of tags) {
-                const taggedUser = await getUserByDisplayName(tagName);
-                if (taggedUser && taggedUser.uid !== user.uid) {
-                    await addDoc(collection(db, `users/${taggedUser.uid}/notifications`), {
-                        type: 'tag',
-                        message: `${userData.displayName} tagged you in a post.`,
-                        postId: postDocRef.id,
-                        read: false,
-                        timestamp: serverTimestamp(),
-                        fromUser: {
-                            uid: user.uid,
-                            displayName: userData.displayName,
-                            photoURL: userData.photoURL
-                        }
-                    });
-                }
+            if (postToEdit) {
+                // Editing an existing post
+                const postRef = doc(db, 'posts', postToEdit.id);
+                await updateDoc(postRef, postData);
+                toast({ title: "Post Updated!", description: "Your changes have been saved." });
+                onFinishEditing?.();
+            } else {
+                 // Creating a new post
+                const mediaUploads = await Promise.all(
+                    media.filter(m => m.file).map(async (mediaFile) => {
+                        const storage = getFirebaseStorage();
+                        const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
+                        const fileRef = storageRef(storage, filePath);
+                        const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                        const downloadURL = await getDownloadURL(uploadResult.ref);
+                        return { type: mediaFile.type, url: downloadURL };
+                    })
+                );
+
+                const postDocRef = await addDoc(collection(db, "posts"), {
+                    ...postData,
+                    sellerId: user.uid,
+                    sellerName: userData.displayName,
+                    avatarUrl: userData.photoURL,
+                    timestamp: serverTimestamp(),
+                    images: mediaUploads.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() })),
+                    likes: 0,
+                    replies: 0,
+                });
+                
+                toast({ title: "Post Created!", description: "Your post has been successfully shared." });
             }
-
 
             setContent("");
             setMedia([]);
             setLocation(null);
             setTaggedProduct(null);
             onClearReply?.();
-            toast({
-                title: "Post Created!",
-                description: "Your post has been successfully shared.",
-            });
 
         } catch (error) {
-            console.error("Error creating post:", error);
+            console.error("Error creating/updating post:", error);
             toast({
                 variant: 'destructive',
                 title: "Error",
-                description: "Failed to create your post. Please try again."
+                description: "Failed to save your post. Please try again."
             });
         } finally {
             setIsSubmitting(false);
@@ -271,128 +271,140 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     if (!user) {
         return null;
     }
+    
+    const formContent = (
+        <Card className="max-w-3xl mx-auto p-3 shadow-2xl rounded-2xl bg-background/80 backdrop-blur-sm border-border/50">
+            {replyTo && (
+                <Alert variant="default" className="mb-2">
+                    <AlertDescription className="flex items-center justify-between">
+                        Replying to @{replyTo}
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClearReply}>
+                            <X className="h-4 w-4"/>
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+            {media.length > 0 && (
+                 <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
+                    {media.map((item, index) => (
+                         <div key={index} className="relative w-20 h-20 flex-shrink-0">
+                            <Image
+                                src={item.url}
+                                alt="Preview"
+                                width={80}
+                                height={80}
+                                className="rounded-lg object-cover w-full h-full"
+                            />
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                onClick={() => removeMedia(index)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div className="flex items-start sm:items-center gap-3 mb-3">
+                <Avatar className="h-9 w-9 hidden sm:flex">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
+                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                 <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
+                    <PopoverAnchor asChild>
+                        <div className="relative flex-grow">
+                            <Input 
+                                placeholder="Share something..." 
+                                className="bg-muted rounded-full pl-4 pr-10 h-11"
+                                value={content}
+                                onChange={handleContentChange}
+                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
+                                        <Smile className="h-5 w-5 text-muted-foreground" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 h-64">
+                                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                   </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </PopoverAnchor>
+                    <PopoverContent className="w-72 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        {isSuggestionLoading ? (
+                            <div className="p-4 text-center">Loading...</div>
+                        ) : suggestions.length > 0 ? (
+                            <ul className="space-y-1 p-2">
+                                {suggestions.map((item) => (
+                                    <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
+                                        {tagging?.type === '@' ? (
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                <span>{item.displayName}</span>
+                                            </div>
+                                        ) : (
+                                            <span>{item.name}</span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                        )}
+                    </PopoverContent>
+                </Popover>
+            </div>
+            <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
+                <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" disabled={!!postToEdit} />
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5 || !!postToEdit}>
+                    <ImageIcon className="mr-2 h-5 w-5" /> Image
+                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
+                    <MapPin className="mr-2 h-5 w-5" /> Location
+                </Button>
+                 {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
+                    <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))} value={taggedProduct?.id}>
+                         <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
+                            <Tag className="mr-2 h-5 w-5" />
+                            <SelectValue placeholder="Tag Product" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                )}
+                <Button 
+                    className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
+                    onClick={handlePost} 
+                    disabled={!content.trim() || isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                    ) : postToEdit ? (
+                        <FileEdit className="mr-2 h-4 w-4" />
+                    ) : null}
+                    {postToEdit ? 'Save' : 'Send'}
+                </Button>
+            </div>
+        </Card>
+    );
+
+    if (postToEdit) {
+        return formContent;
+    }
 
     return (
         <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 z-50" ref={ref}>
-            <Card className="max-w-3xl mx-auto p-3 shadow-2xl rounded-2xl bg-background/80 backdrop-blur-sm border-border/50">
-                {replyTo && (
-                    <Alert variant="default" className="mb-2">
-                        <AlertDescription className="flex items-center justify-between">
-                            Replying to @{replyTo}
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClearReply}>
-                                <X className="h-4 w-4"/>
-                            </Button>
-                        </AlertDescription>
-                    </Alert>
-                )}
-                {media.length > 0 && (
-                     <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
-                        {media.map((item, index) => (
-                             <div key={index} className="relative w-20 h-20 flex-shrink-0">
-                                <Image
-                                    src={item.url}
-                                    alt="Preview"
-                                    width={80}
-                                    height={80}
-                                    className="rounded-lg object-cover w-full h-full"
-                                />
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                                    onClick={() => removeMedia(index)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                <div className="flex items-start sm:items-center gap-3 mb-3">
-                    <Avatar className="h-9 w-9 hidden sm:flex">
-                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                        <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                     <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
-                        <PopoverAnchor asChild>
-                            <div className="relative flex-grow">
-                                <Input 
-                                    placeholder="Share something..." 
-                                    className="bg-muted rounded-full pl-4 pr-10 h-11"
-                                    value={content}
-                                    onChange={handleContentChange}
-                                />
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full">
-                                            <Smile className="h-5 w-5 text-muted-foreground" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80 h-64">
-                                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                            {emojis.map((emoji, index) => (
-                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                                    {emoji}
-                                                </Button>
-                                            ))}
-                                       </div>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                        </PopoverAnchor>
-                        <PopoverContent className="w-72 p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-                            {isSuggestionLoading ? (
-                                <div className="p-4 text-center">Loading...</div>
-                            ) : suggestions.length > 0 ? (
-                                <ul className="space-y-1 p-2">
-                                    {suggestions.map((item) => (
-                                        <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
-                                            {tagging?.type === '@' ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                    <span>{item.displayName}</span>
-                                                </div>
-                                            ) : (
-                                                <span>{item.name}</span>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                            )}
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
-                    <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5}>
-                        <ImageIcon className="mr-2 h-5 w-5" /> Image
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
-                        <MapPin className="mr-2 h-5 w-5" /> Location
-                    </Button>
-                     {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
-                        <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))}>
-                             <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
-                                <Tag className="mr-2 h-5 w-5" />
-                                <SelectValue placeholder="Tag Product" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    )}
-                    <Button 
-                        className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
-                        onClick={handlePost} 
-                        disabled={!content.trim() || isSubmitting}
-                    >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                        Send
-                    </Button>
-                </div>
-            </Card>
+            {formContent}
         </div>
     );
 });

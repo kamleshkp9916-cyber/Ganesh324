@@ -21,7 +21,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreatePostForm } from '@/components/create-post-form';
@@ -90,6 +90,7 @@ export default function FeedPage() {
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
+  const [postToEdit, setPostToEdit] = useState<any | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -220,9 +221,8 @@ export default function FeedPage() {
     setSelectedReportReason("");
   };
 
-  const handleEditPost = (postId: string) => {
-      // Future implementation: Open a modal with the post data for editing
-      toast({ title: "Edit functionality coming soon!" });
+  const handleEditPost = (post: any) => {
+      setPostToEdit(post);
   };
 
   const handleDeletePost = async (post: any) => {
@@ -298,6 +298,18 @@ export default function FeedPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        <Dialog open={!!postToEdit} onOpenChange={(open) => !open && setPostToEdit(null)}>
+            <DialogContent>
+                 <DialogHeader>
+                    <DialogTitle>Edit Post</DialogTitle>
+                    <DialogDescription>Make changes to your post below.</DialogDescription>
+                </DialogHeader>
+                <CreatePostForm
+                    postToEdit={postToEdit}
+                    onFinishEditing={() => setPostToEdit(null)}
+                />
+            </DialogContent>
+        </Dialog>
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
@@ -394,7 +406,7 @@ export default function FeedPage() {
                                                 <DropdownMenuContent align="end">
                                                     {user && user.uid === post.sellerId && (
                                                         <>
-                                                            <DropdownMenuItem onSelect={() => handleEditPost(post.id)}>
+                                                            <DropdownMenuItem onSelect={() => handleEditPost(post)}>
                                                                 <Edit className="mr-2 h-4 w-4" /> Edit Post
                                                             </DropdownMenuItem>
                                                             <AlertDialog>
@@ -526,5 +538,6 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
