@@ -99,10 +99,10 @@ export default function FeedPage() {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
         let hashtags: string[] = [];
-        if (typeof post.tags === 'string') {
-            hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
-        } else if (Array.isArray(post.tags)) {
+        if (Array.isArray(post.tags)) {
             hashtags = post.tags.map((tag: string) => `#${tag}`);
+        } else if (typeof post.tags === 'string') {
+            hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
         }
 
         hashtags.forEach((tag: string) => {
@@ -283,8 +283,8 @@ export default function FeedPage() {
                               </>
                           ) : (
                               feed.map(post => (
-                                  <Card key={post.id} className="border-x-0 border-b-0 rounded-none shadow-none bg-transparent">
-                                    <div className="border-t border-border/20 opacity-50 absolute top-0 left-0 right-0"></div>
+                                  <Card key={post.id} className="border-x-0 border-t-0 rounded-none shadow-none bg-transparent">
+                                    <div className="border-b border-border/20 opacity-50 absolute bottom-0 left-0 right-0"></div>
                                       <div className="p-4 flex items-center justify-between">
                                            <div className="flex items-center gap-3">
                                               <Avatar className="h-10 w-10">
@@ -330,7 +330,6 @@ export default function FeedPage() {
                                               <Share2 />
                                           </Button>
                                       </div>
-                                       <div className="border-b border-border/20 opacity-50"></div>
                                   </Card>
                               ))
                           )}
