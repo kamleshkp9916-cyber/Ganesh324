@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -102,12 +101,11 @@ export default function FeedPage() {
         if (typeof post.tags === 'string') {
             hashtags = post.tags.split(' ').filter((tag: string) => tag.startsWith('#'));
         } else if (Array.isArray(post.tags)) {
-            // This is for the newly created posts which have an array of tags (without the #)
-            hashtags = post.tags;
+            hashtags = post.tags.map((tag: string) => `#${tag}`);
         }
 
         hashtags.forEach((tag: string) => {
-            const cleanedTag = tag.startsWith('#') ? tag.substring(1) : tag;
+            const cleanedTag = tag.substring(1);
             if (cleanedTag) {
                 hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
             }
@@ -263,8 +261,8 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="px-6 sticky top-0 z-10 bg-transparent py-4">
-                  <div className="relative">
+              <div className="px-6 sticky top-0 z-10 bg-transparent">
+                  <div className="relative py-4">
                       <Input placeholder="Search items, collections, and accounts" className="pl-10 h-12 rounded-full bg-muted border-none"/>
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"/>
                   </div>
@@ -391,3 +389,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    
