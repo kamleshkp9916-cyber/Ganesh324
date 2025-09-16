@@ -192,6 +192,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 
             const mediaUploads = await Promise.all(
                 media.filter(m => m.file).map(async (mediaFile) => {
+                    if (!mediaFile.file) return null;
                     const storage = getFirebaseStorage();
                     const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
                     const fileRef = storageRef(storage, filePath);
@@ -201,10 +202,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 })
             );
             
-            // Filter out existing URLs that don't have files (from editing)
             const existingMedia = media.filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
+            const allMedia = [...existingMedia, ...mediaUploads.filter(m => m !== null)];
 
-            postData.images = [...existingMedia, ...mediaUploads].filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+            postData.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
 
             if (postToEdit) {
                 // Editing an existing post
