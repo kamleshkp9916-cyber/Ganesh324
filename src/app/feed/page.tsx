@@ -267,7 +267,7 @@ export default function FeedPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search..."
-                        className="pl-10 h-10 rounded-full bg-transparent border w-full"
+                        className="pl-10 h-10 rounded-full bg-transparent border text-foreground w-full"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
