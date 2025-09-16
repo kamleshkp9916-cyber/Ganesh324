@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X, Menu } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -78,6 +78,56 @@ function FeedPostSkeleton() {
         </Card>
     );
 }
+
+const SidebarContent = ({ userData, userPosts }: { userData: UserData, userPosts: any[] }) => (
+    <div className="p-6 flex flex-col h-full">
+        <div className="flex flex-col items-center text-center mb-8">
+            <Avatar className="h-20 w-20 mb-3">
+                <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
+                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <p className="font-bold text-lg">{userData.displayName}</p>
+            <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
+
+            <div className="flex justify-around mt-4 w-full text-center">
+                <div>
+                    <p className="font-bold text-lg">{userPosts.length}</p>
+                    <p className="text-xs text-muted-foreground">Posts</p>
+                </div>
+                <div>
+                    <p className="font-bold text-lg">{userData.followers || 0}</p>
+                    <p className="text-xs text-muted-foreground">Followers</p>
+                </div>
+                <div>
+                    <p className="font-bold text-lg">{userData.following || 0}</p>
+                    <p className="text-xs text-muted-foreground">Following</p>
+                </div>
+            </div>
+            <Separator className="my-4" />
+        </div>
+        <nav className="space-y-1 flex-grow">
+            <Collapsible defaultOpen>
+                <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-start gap-3 text-base">
+                        <Home /> Feed
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-8 space-y-1 mt-1">
+                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10">
+                        <Globe className="w-4 h-4" /> Global
+                    </Button>
+                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10">
+                        <Users className="w-4 h-4" /> Following
+                    </Button>
+                </CollapsibleContent>
+            </Collapsible>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Send /> Direct</Button>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
+        </nav>
+    </div>
+);
+
 
 export default function FeedPage() {
   const router = useRouter();
@@ -301,56 +351,23 @@ export default function FeedPage() {
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
-          <aside className="border-r p-6 flex-col hidden lg:flex">
-             <div className="flex flex-col items-center text-center mb-8">
-                 <Avatar className="h-20 w-20 mb-3">
-                     <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
-                     <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                 </Avatar>
-                 <p className="font-bold text-lg">{userData.displayName}</p>
-                 <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
-
-                 <div className="flex justify-around mt-4 w-full text-center">
-                    <div>
-                        <p className="font-bold text-lg">{userPosts.length}</p>
-                        <p className="text-xs text-muted-foreground">Posts</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">{userData.followers || 0}</p>
-                        <p className="text-xs text-muted-foreground">Followers</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">{userData.following || 0}</p>
-                        <p className="text-xs text-muted-foreground">Following</p>
-                    </div>
-                </div>
-                 <Separator className="my-4" />
-             </div>
-              <nav className="space-y-1 flex-grow">
-                  <Collapsible defaultOpen>
-                    <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base">
-                            <Home /> Feed
-                        </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" onClick={() => setFeedFilter('global')} data-active={feedFilter === 'global'}>
-                            <Globe className="w-4 h-4" /> Global
-                        </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" onClick={() => setFeedFilter('following')} data-active={feedFilter === 'following'}>
-                            <Users className="w-4 h-4" /> Following
-                        </Button>
-                    </CollapsibleContent>
-                  </Collapsible>
-                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Send /> Direct</Button>
-                  <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
-              </nav>
+          <aside className="border-r hidden lg:flex">
+             <SidebarContent userData={userData} userPosts={userPosts} />
           </aside>
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30">
+               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="lg:hidden">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0">
+                            <SidebarContent userData={userData} userPosts={userPosts} />
+                        </SheetContent>
+                    </Sheet>
                     <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
@@ -518,39 +535,6 @@ export default function FeedPage() {
                 </CardContent>
               </Card>
           </aside>
-        </div>
-        <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none lg:hidden">
-            <div className="bg-background/80 backdrop-blur-sm border-t pointer-events-auto">
-                <div className="h-16 flex items-center justify-around">
-                    <Link href="/feed" passHref>
-                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
-                            <Home className="w-6 h-6"/>
-                            <span className="text-xs">Feed</span>
-                        </Button>
-                    </Link>
-                     <Link href="/live-selling" passHref>
-                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
-                            <Tv className="w-6 h-6"/>
-                            <span className="text-xs">Live</span>
-                        </Button>
-                    </Link>
-                     <Link href="/saves" passHref>
-                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
-                            <Save className="w-6 h-6"/>
-                            <span className="text-xs">Saves</span>
-                        </Button>
-                    </Link>
-                     <Link href="/profile" passHref>
-                        <Button variant="ghost" size="icon" className="flex flex-col h-auto gap-1">
-                            <Avatar className="h-7 w-7">
-                                <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
-                                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                             <span className="text-xs">Profile</span>
-                        </Button>
-                    </Link>
-                </div>
-            </div>
         </div>
         <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
             <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
