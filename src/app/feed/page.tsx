@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -603,8 +602,18 @@ export default function FeedPage() {
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                       </div>
+                                      <div className="p-4">
+                                          <p className="text-sm text-muted-foreground">{post.content}</p>
+                                          {Array.isArray(post.tags) && post.tags.length > 0 && (
+                                              <p className="text-sm text-primary mt-2">
+                                                  {post.tags.map((tag: string, index: number) => (
+                                                      <span key={index} className="text-primary">{`#${tag} `}</span>
+                                                  ))}
+                                              </p>
+                                          )}
+                                      </div>
                                        {post.images && post.images.length > 0 && (
-                                           <Dialog>
+                                            <Dialog>
                                                <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
                                                   <DialogTrigger asChild>
                                                     <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[0].url)}><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
@@ -625,16 +634,6 @@ export default function FeedPage() {
                                                </div>
                                            </Dialog>
                                        )}
-                                      <div className="p-4">
-                                          <p className="text-sm text-muted-foreground">{post.content}</p>
-                                          {Array.isArray(post.tags) && post.tags.length > 0 && (
-                                              <p className="text-sm text-primary mt-2">
-                                                  {post.tags.map((tag: string, index: number) => (
-                                                      <span key={index} className="text-primary">{`#${tag} `}</span>
-                                                  ))}
-                                              </p>
-                                          )}
-                                      </div>
                                       <div className="px-4 pb-4 flex items-center justify-between">
                                           <div className="flex items-center gap-2">
                                               <Button variant="ghost" className="flex items-center gap-1.5">
@@ -732,3 +731,4 @@ export default function FeedPage() {
 
 
 
+    
