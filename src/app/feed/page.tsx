@@ -1,10 +1,9 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -92,6 +91,8 @@ export default function FeedPage() {
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
+  const createPostFormRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -224,6 +225,7 @@ export default function FeedPage() {
 
   const handleEditPost = (post: any) => {
       setPostToEdit(post);
+      createPostFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const handleDeletePost = async (post: any) => {
@@ -233,7 +235,6 @@ export default function FeedPage() {
       const postRef = doc(db, 'posts', post.id);
 
       try {
-          // First, delete any associated media from storage
           if (post.images && post.images.length > 0) {
               const storage = getFirebaseStorage();
               const deletePromises = post.images.map((image: {url: string}) => {
@@ -244,13 +245,8 @@ export default function FeedPage() {
                   return Promise.resolve();
               });
               await Promise.all(deletePromises);
-          } else if (post.mediaUrl && post.mediaUrl.includes('firebasestorage.googleapis.com')) { // Legacy single media
-              const storage = getFirebaseStorage();
-              const mediaRef = storageRef(storage, post.mediaUrl);
-              await deleteObject(mediaRef);
           }
           
-          // Then, delete the Firestore document
           await deleteDoc(postRef);
 
           toast({
@@ -363,6 +359,7 @@ export default function FeedPage() {
                         />
                     </div>
                      <CreatePostForm
+                        ref={createPostFormRef}
                         postToEdit={postToEdit}
                         onFinishEditing={() => setPostToEdit(null)}
                      />

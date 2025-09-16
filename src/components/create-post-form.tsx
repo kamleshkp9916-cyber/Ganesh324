@@ -68,7 +68,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
     const debouncedTagQuery = useDebounce(tagging?.query, 300);
     
-    const videoInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     
     useEffect(() => {
@@ -80,10 +79,13 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
-            setContent("");
-            setMedia([]);
-            setLocation(null);
-            setTaggedProduct(null);
+            // Only reset if not editing.
+             if(!postToEdit) {
+                setContent("");
+                setMedia([]);
+                setLocation(null);
+                setTaggedProduct(null);
+            }
         }
     }, [postToEdit, replyTo]);
     
@@ -168,7 +170,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             const db = getFirestoreDb();
             const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
             
-            const postData = {
+            const postData: any = {
                 content: content,
                 location: location,
                 tags: tags,
@@ -180,6 +182,22 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 } : null,
             };
 
+            const mediaUploads = await Promise.all(
+                media.filter(m => m.file).map(async (mediaFile) => {
+                    const storage = getFirebaseStorage();
+                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                    const downloadURL = await getDownloadURL(uploadResult.ref);
+                    return { type: mediaFile.type, url: downloadURL };
+                })
+            );
+            
+            // Filter out existing URLs that don't have files (from editing)
+            const existingMedia = media.filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
+
+            postData.images = [...existingMedia, ...mediaUploads].filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+
             if (postToEdit) {
                 // Editing an existing post
                 const postRef = doc(db, 'posts', postToEdit.id);
@@ -188,24 +206,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 onFinishEditing?.();
             } else {
                  // Creating a new post
-                const mediaUploads = await Promise.all(
-                    media.filter(m => m.file).map(async (mediaFile) => {
-                        const storage = getFirebaseStorage();
-                        const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
-                        const fileRef = storageRef(storage, filePath);
-                        const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
-                        const downloadURL = await getDownloadURL(uploadResult.ref);
-                        return { type: mediaFile.type, url: downloadURL };
-                    })
-                );
-
-                const postDocRef = await addDoc(collection(db, "posts"), {
+                await addDoc(collection(db, "posts"), {
                     ...postData,
                     sellerId: user.uid,
                     sellerName: userData.displayName,
                     avatarUrl: userData.photoURL,
                     timestamp: serverTimestamp(),
-                    images: mediaUploads.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() })),
                     likes: 0,
                     replies: 0,
                 });
@@ -272,7 +278,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         return null;
     }
     
-    const formContent = (
+    return (
         <Card className="w-full" ref={ref}>
             {postToEdit && (
                 <CardHeader className="p-3">
@@ -312,6 +318,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                                     className="rounded-lg object-cover w-full h-full"
                                 />
                                 <Button
+                                    type="button"
                                     variant="destructive"
                                     size="icon"
                                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
@@ -380,8 +387,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     </Popover>
                 </div>
                 <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
-                    <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" disabled={!!postToEdit} />
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5 || !!postToEdit}>
+                    <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5}>
                         <ImageIcon className="mr-2 h-5 w-5" /> Image
                     </Button>
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
@@ -408,13 +415,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         ) : postToEdit ? (
                             <FileEdit className="mr-2 h-4 w-4" />
                         ) : null}
-                        {postToEdit ? 'Save' : 'Send'}
+                        {postToEdit ? 'Save Changes' : 'Send'}
                     </Button>
                 </div>
             </div>
         </Card>
     );
-
-    return formContent;
 });
 CreatePostForm.displayName = 'CreatePostForm';
