@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -78,7 +77,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
-        setIsSubmitting(false); 
+        setIsSubmitting(false); // Ensure this is always set to false on reset
     };
     
     useEffect(() => {
@@ -90,6 +89,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
+             // This else block handles clearing the form when not editing or replying
              setContent("");
              setMedia([]);
              setLocation(null);
@@ -218,13 +218,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             postData.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
 
             if (postToEdit) {
-                // Editing an existing post
                 const postRef = doc(db, 'posts', postToEdit.id);
-                postData.lastEditedAt = serverTimestamp(); // Add edited timestamp
+                postData.lastEditedAt = serverTimestamp();
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
+                if (onFinishEditing) onFinishEditing();
             } else {
-                 // Creating a new post
                 await addDoc(collection(db, "posts"), {
                     ...postData,
                     sellerId: user.uid,
@@ -247,7 +246,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 description: "Failed to save your post. Please try again."
             });
         } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // This ensures the loading state is always cleared
         }
     };
 
@@ -447,7 +446,5 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
-
-    
 
     
