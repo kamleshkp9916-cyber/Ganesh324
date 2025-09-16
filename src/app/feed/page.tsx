@@ -266,21 +266,15 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b p-3 flex justify-end">
-                  <div className={cn("relative flex items-center justify-end transition-all duration-300", isSearchExpanded ? "w-full" : "w-auto")}>
+              <div className="sticky top-0 z-20 p-3 bg-transparent">
+                  <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
                           placeholder="Search..."
-                          className={cn(
-                              "pl-10 h-10 rounded-full bg-muted border-none transition-all duration-300",
-                              isSearchExpanded ? "w-full" : "w-0 p-0 border-none"
-                          )}
+                          className="pl-12 py-3 h-12 rounded-full border bg-background placeholder:text-muted-foreground"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          onBlur={() => !searchTerm && setIsSearchExpanded(false)}
                       />
-                      <Button variant="ghost" size="icon" className={cn("rounded-full h-10 w-10", isSearchExpanded && "absolute right-0") } onClick={() => setIsSearchExpanded(true)}>
-                          <Search className="h-5 w-5 text-muted-foreground" />
-                      </Button>
                   </div>
               </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
