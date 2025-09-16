@@ -334,10 +334,10 @@ export default function FeedPage() {
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={() => setFeedFilter('global')} data-active={feedFilter === 'global'}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" onClick={() => setFeedFilter('global')} data-active={feedFilter === 'global'}>
                             <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={() => setFeedFilter('following')} data-active={feedFilter === 'following'}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" onClick={() => setFeedFilter('following')} data-active={feedFilter === 'following'}>
                             <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
@@ -526,4 +526,5 @@ export default function FeedPage() {
     </>
   );
 }
+
 
