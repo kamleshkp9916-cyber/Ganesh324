@@ -78,6 +78,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
+        setIsSubmitting(false);
     };
     
     useEffect(() => {
@@ -88,10 +89,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setTaggedProduct(postToEdit.taggedProduct || null);
         } else if (replyTo) {
             setContent(`@${replyTo} `);
-        } else {
-             if(!postToEdit) {
-                // Do not reset if it was just edited
-             }
         }
     }, [postToEdit, replyTo]);
     
@@ -156,13 +153,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         const textBeforeCursor = value.substring(0, cursorPos);
         
         const atMatch = textBeforeCursor.match(/@(\w+)$/);
-        const hashMatch = textBeforeCursor.match(/#(\w+)/g);
+        const hashMatch = textBeforeCursor.match(/#(\w+)$/);
 
         if (atMatch) {
             setTagging({ type: '@', query: atMatch[1], position: cursorPos });
         } else if (hashMatch) {
-            const lastHash = hashMatch[hashMatch.length-1];
-            setTagging({ type: '#', query: lastHash.substring(1), position: cursorPos });
+            setTagging({ type: '#', query: hashMatch[1], position: cursorPos });
         } else {
             setTagging(null);
         }
@@ -222,7 +218,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                if (onFinishEditing) onFinishEditing();
+                resetForm();
             } else {
                  // Creating a new post
                 await addDoc(collection(db, "posts"), {
@@ -236,9 +232,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 });
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+                resetForm();
             }
-            
-            resetForm();
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -247,8 +242,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 title: "Error",
                 description: "Failed to save your post. Please try again."
             });
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Only set to false on error, otherwise resetForm handles it
         }
     };
 
