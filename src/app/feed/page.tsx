@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, where, doc, deleteDoc, runTransaction, increment, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNowStrict, isToday, isThisWeek, isThisYear, formatDistanceToNow } from 'date-fns';
 import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
@@ -318,11 +318,30 @@ export default function FeedPage() {
   };
 
   const RealtimeTimestamp = ({ date }: { date: Date | string }) => {
-    const [relativeTime, setRelativeTime] = useState(formatDistanceToNow(new Date(date), { addSuffix: true }));
+    const [relativeTime, setRelativeTime] = useState('');
+
+    const formatTimestamp = (d: Date): string => {
+        const now = new Date();
+        const diffInSeconds = (now.getTime() - d.getTime()) / 1000;
+        if (diffInSeconds < 60 * 60 * 24) {
+            const distance = formatDistanceToNowStrict(d, { addSuffix: false });
+            return distance.replace(/about /g, '').replace(/ seconds?/, 's').replace(/ minutes?/, 'm').replace(/ hours?/, 'h');
+        }
+        if (isThisWeek(d, { weekStartsOn: 1 })) {
+            return format(d, 'E'); // Mon, Tue
+        }
+        if (isThisYear(d)) {
+            return format(d, 'MMM d'); // Sep 12
+        }
+        return format(d, 'MMM d, yyyy'); // Sep 12, 2024
+    };
 
     useEffect(() => {
+      const d = new Date(date);
+      setRelativeTime(formatTimestamp(d));
+
       const interval = setInterval(() => {
-        setRelativeTime(formatDistanceToNow(new Date(date), { addSuffix: true }));
+        setRelativeTime(formatTimestamp(d));
       }, 60000); // Update every minute
 
       return () => clearInterval(interval);
@@ -570,6 +589,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
