@@ -4,7 +4,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2 } from 'lucide-react';
+import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin } from 'lucide-react';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -321,6 +321,14 @@ export default function FeedPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    <div className="mt-2 flex items-center gap-4">
+                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                            <Globe className="w-4 h-4"/> Global
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                            <MapPin className="w-4 h-4"/> Nearby
+                        </Button>
+                    </div>
                 </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar pt-4">
                   <section>
@@ -484,3 +492,4 @@ export default function FeedPage() {
     </>
   );
 }
+
