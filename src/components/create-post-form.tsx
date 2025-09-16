@@ -162,8 +162,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const storage = getFirebaseStorage();
                 const filePath = `posts/${user.uid}/${Date.now()}_${media.file.name}`;
                 const fileRef = storageRef(storage, filePath);
-                const uploadTask = await uploadString(fileRef, media.url, 'data_url');
-                mediaUrl = await getDownloadURL(uploadTask.ref);
+                const uploadResult = await uploadString(fileRef, media.url, 'data_url');
+                mediaUrl = await getDownloadURL(uploadResult.ref);
                 mediaType = media.type;
             }
 
