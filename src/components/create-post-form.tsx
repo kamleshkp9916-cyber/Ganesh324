@@ -71,6 +71,15 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
+    const resetForm = () => {
+        setContent("");
+        setMedia([]);
+        setLocation(null);
+        setTaggedProduct(null);
+        if (onClearReply) onClearReply();
+        if (onFinishEditing) onFinishEditing();
+    };
+    
     useEffect(() => {
         if (postToEdit) {
             setContent(postToEdit.content || '');
@@ -80,14 +89,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
-            // Only reset if not editing.
              if(!postToEdit) {
-                setContent("");
-                setMedia([]);
-                setLocation(null);
-                setTaggedProduct(null);
+                resetForm();
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [postToEdit, replyTo]);
     
     useEffect(() => {
@@ -119,8 +125,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const querySnapshot = await getDocs(q);
                 setSuggestions(querySnapshot.docs.map(doc => doc.data() as UserData));
             } else if (tagging?.type === '#') {
-                const filteredProducts = sellerProducts.filter(p => p.name.toLowerCase().includes(debouncedTagQuery.toLowerCase()));
-                setSuggestions(filteredProducts.slice(0, 5));
+                const hashtags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
+                setSuggestions(hashtags.map(tag => ({name: tag})));
             }
             setIsSuggestionLoading(false);
         };
@@ -130,7 +136,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else {
             setSuggestions([]);
         }
-    }, [debouncedTagQuery, tagging, sellerProducts]);
+    }, [debouncedTagQuery, tagging, content]);
 
     // Effect for auto-resizing textarea
     useEffect(() => {
@@ -213,7 +219,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                if (onFinishEditing) onFinishEditing();
             } else {
                  // Creating a new post
                 await addDoc(collection(db, "posts"), {
@@ -229,11 +234,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
             }
 
-            setContent("");
-            setMedia([]);
-            setLocation(null);
-            setTaggedProduct(null);
-            if (onClearReply) onClearReply();
+            resetForm();
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -387,15 +388,15 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                                 <div className="p-4 text-center">Loading...</div>
                             ) : suggestions.length > 0 ? (
                                 <ul className="space-y-1 p-2">
-                                    {suggestions.map((item) => (
-                                        <li key={item.uid || item.id} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
+                                    {suggestions.map((item, index) => (
+                                        <li key={item.uid || item.id || index} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
                                             {tagging?.type === '@' ? (
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
                                                     <span>{item.displayName}</span>
                                                 </div>
                                             ) : (
-                                                <span>{item.name}</span>
+                                                <span>#{item.name}</span>
                                             )}
                                         </li>
                                     ))}
