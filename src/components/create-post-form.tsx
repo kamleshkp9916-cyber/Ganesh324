@@ -288,7 +288,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     }
     
     return (
-        <div className="w-full bg-background/80 backdrop-blur-sm rounded-t-lg" ref={ref}>
+        <div className="w-full bg-background/80 backdrop-blur-sm rounded-lg" ref={ref}>
             {postToEdit && (
                 <div className="p-3">
                     <Alert variant="default" className="flex items-center justify-between">
@@ -350,10 +350,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                                 <Textarea 
                                     ref={textareaRef}
                                     placeholder="Share something..." 
-                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] overflow-hidden resize-none"
+                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] max-h-48 resize-none"
                                     value={content}
                                     onChange={handleContentChange}
                                     rows={1}
+                                    maxLength={600}
                                 />
                                 <Popover>
                                     <PopoverTrigger asChild>
