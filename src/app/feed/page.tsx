@@ -107,7 +107,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, upda
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
-import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
+import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { Logo } from '@/components/logo';
@@ -541,7 +541,7 @@ export default function FeedPage() {
                                           </Link>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon"><MoreVertical /></Button>
+                                                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     {user && user.uid === post.sellerId && (
@@ -700,10 +700,4 @@ export default function FeedPage() {
     </>
   );
 }
-
-
-
-
-
-
 
