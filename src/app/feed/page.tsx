@@ -262,17 +262,6 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-              <div className="p-4 sticky top-0 backdrop-blur-sm z-10">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search..."
-                        className="pl-10 h-10 rounded-full bg-transparent border text-foreground w-full"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-              </div>
               <div className="flex-grow overflow-y-auto thin-scrollbar">
                   <section>
                       <div className="divide-y divide-border/20">
@@ -394,3 +383,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    
