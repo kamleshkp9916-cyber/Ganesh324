@@ -2,35 +2,132 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Flag, MessageCircle, MoreVertical, Share2, Heart, MessageSquare, Save, Trash2, Home, Compass, Star, Send, Settings, BarChart, Search, Plus, RadioTower, Users, ArrowUp, ArrowDown, Tv, Edit, Loader2, Globe, MapPin, FileEdit, X, Menu, ThumbsUp, ThumbsDown } from 'lucide-react';
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, where, doc, deleteDoc, runTransaction, increment, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
-import { format, formatDistanceToNowStrict, isToday, isThisWeek, isThisYear, formatDistanceToNow } from 'date-fns';
-import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-data';
-import { ref as storageRef, deleteObject } from 'firebase/storage';
-import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CreatePostForm } from '@/components/create-post-form';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import {
+  Clapperboard,
+  Home,
+  Bookmark,
+  Heart,
+  Star,
+  Zap,
+  ChevronDown,
+  Bell,
+  Plus,
+  Settings,
+  Users,
+  Menu,
+  User,
+  Award,
+  MessageSquare,
+  Shield,
+  FileText,
+  LifeBuoy,
+  Wallet,
+  ShoppingBag,
+  LogOut,
+  MoreHorizontal,
+  Flag,
+  Share2,
+  MessageCircle,
+  Clipboard,
+  Hash,
+  UserPlus,
+  Video,
+  Globe,
+  File,
+  X,
+  ShoppingCart,
+  Moon,
+  Sun,
+  Search,
+  LayoutDashboard,
+  Repeat,
+  Laptop,
+  Briefcase,
+  Gavel,
+  RadioTower,
+  Trash2,
+  Send,
+  ArrowUp,
+  ArrowDown,
+  Tv,
+  Tags,
+  Flame,
+  TrendingUp,
+  Save,
+  Package,
+  List,
+  Sparkles,
+  Edit,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuthActions } from '@/lib/auth';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Footer } from '@/components/footer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { CreatePostForm } from '@/components/create-post-form';
+import { getCart } from '@/lib/product-history';
+import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { GoLiveDialog } from '@/components/go-live-dialog';
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
+import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
+import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
+import { ref as storageRef, deleteObject } from 'firebase/storage';
+import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
+import { productDetails } from '@/lib/product-data';
+import { PromotionalCarousel } from '@/components/promotional-carousel';
+import { Logo } from '@/components/logo';
+import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
+
+const liveSellers = [
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -45,7 +142,7 @@ const mockFollowers = [
     { id: 3, name: "Robert Fox", country: "United Kingdom", avatar: "https://placehold.co/40x40.png" },
 ];
 
-const liveSellers = [
+const liveSellersData = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
     { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
     { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
@@ -144,6 +241,7 @@ export default function FeedPage() {
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const createPostFormRef = useRef<HTMLDivElement>(null);
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -199,7 +297,7 @@ export default function FeedPage() {
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
-    return [...liveSellers].sort((a,b) => b.viewers - a.viewers).slice(0, 4);
+    return [...liveSellersData].sort((a,b) => b.viewers - a.viewers).slice(0, 4);
   }, []);
 
   useEffect(() => {
@@ -381,6 +479,12 @@ export default function FeedPage() {
         </AlertDialogContent>
       </AlertDialog>
       
+      <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
+            {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
+        </DialogContent>
+      </Dialog>
+      
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
@@ -473,16 +577,22 @@ export default function FeedPage() {
                                       </div>
                                        {post.images && post.images.length > 0 && (
                                            <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
-                                              <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden"><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
-                                              <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden"><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
-                                              <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative">
-                                                <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
-                                                {post.images.length > 3 && (
-                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                        +{post.images.length - 3}
-                                                    </div>
-                                                )}
-                                              </div>
+                                              <DialogTrigger asChild>
+                                                <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[0].url)}><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
+                                              </DialogTrigger>
+                                               <DialogTrigger asChild>
+                                                <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[1].url)}><Image src={post.images[1].url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
+                                               </DialogTrigger>
+                                               <DialogTrigger asChild>
+                                                <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative cursor-pointer" onClick={() => setViewingImage(post.images[2].url)}>
+                                                    <Image src={post.images[2].url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
+                                                    {post.images.length > 3 && (
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                                            +{post.images.length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                               </DialogTrigger>
                                            </div>
                                        )}
                                       <div className="p-4">
@@ -589,6 +699,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
