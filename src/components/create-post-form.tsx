@@ -78,7 +78,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
-        setIsSubmitting(false); // Ensure this is always set to false on reset
+        setIsSubmitting(false); 
     };
     
     useEffect(() => {
@@ -90,7 +90,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
-             // This else block handles clearing the form when not editing or replying
              setContent("");
              setMedia([]);
              setLocation(null);
@@ -223,7 +222,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 postData.lastEditedAt = serverTimestamp();
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                resetForm(); // Reset form after successful edit
             } else {
                 await addDoc(collection(db, "posts"), {
                     ...postData,
@@ -236,8 +234,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 });
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
-                resetForm(); 
             }
+            resetForm(); 
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -247,7 +245,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 description: "Failed to save your post. Please try again."
             });
         } finally {
-            setIsSubmitting(false); // This ensures the loading state is always cleared
+            setIsSubmitting(false);
         }
     };
 
@@ -449,4 +447,3 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 CreatePostForm.displayName = 'CreatePostForm';
 
     
-
