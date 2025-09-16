@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -177,7 +176,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setIsSubmitting(true);
         try {
             const db = getFirestoreDb();
-            const tags = content.match(/@\w+/g)?.map(tag => tag.substring(1)) || [];
+            const tags = content.match(/#\w+/g)?.map(tag => tag.substring(1)) || [];
             
             const postData: any = {
                 content: content,
@@ -442,3 +441,5 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
+    
