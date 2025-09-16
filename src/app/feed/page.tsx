@@ -84,10 +84,7 @@ export default function FeedPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
+  
 
   useEffect(() => {
     setIsMounted(true);
@@ -269,41 +266,6 @@ export default function FeedPage() {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className={cn("sticky top-0 z-20 p-4 bg-background/80 backdrop-blur-sm transition-all duration-300", isSearchOpen ? "h-auto" : "h-16")}>
-                 <div className="relative w-full max-w-xl mx-auto">
-                    <div
-                      className={cn(
-                        "relative flex items-center transition-all duration-300",
-                        isSearchOpen && "mb-2"
-                      )}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "rounded-full h-10 w-10 transition-all duration-300",
-                          isSearchOpen ? "absolute -left-12" : "absolute left-0"
-                        )}
-                        onClick={() => setIsSearchOpen((prev) => !prev)}
-                      >
-                        <Search className="h-5 w-5 text-muted-foreground" />
-                      </Button>
-                      <Input
-                        ref={searchInputRef}
-                        placeholder="Search..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className={cn(
-                          "pl-12 h-12 rounded-full border bg-white placeholder:text-gray-400 transition-all duration-300 w-full"
-                        )}
-                        onFocus={() => setIsSearchOpen(true)}
-                        onBlur={() => !searchTerm && setIsSearchOpen(false)}
-                      />
-                    </div>
-                  </div>
-              </div>
-
-
               <div className="flex-grow overflow-y-auto thin-scrollbar pt-4">
                   <section>
                       <div className="divide-y divide-border/20">
