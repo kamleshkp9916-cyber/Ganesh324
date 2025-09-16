@@ -2,7 +2,6 @@
 
 "use client";
 
-import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -280,9 +279,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     }
     
     return (
-        <Card className="w-full" ref={ref}>
+        <div className="w-full" ref={ref}>
             {postToEdit && (
-                <CardHeader className="p-3">
+                <div className="p-3">
                     <Alert variant="default" className="flex items-center justify-between">
                          <div className="flex items-center gap-2">
                              <FileEdit className="h-4 w-4 text-primary"/>
@@ -294,7 +293,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                              <X className="h-4 w-4"/>
                          </Button>
                     </Alert>
-                </CardHeader>
+                </div>
             )}
              <div className="p-3">
                 {replyTo && (
@@ -341,7 +340,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                             <div className="relative flex-grow">
                                 <Textarea 
                                     placeholder="Share something..." 
-                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] resize-none"
+                                    className="bg-muted rounded-2xl pl-4 pr-10 min-h-[44px] max-h-none resize-none"
                                     value={content}
                                     onChange={handleContentChange}
                                     rows={1}
@@ -421,7 +420,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     </Button>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
