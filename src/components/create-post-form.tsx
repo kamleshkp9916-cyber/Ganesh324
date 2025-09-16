@@ -223,7 +223,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 postData.lastEditedAt = serverTimestamp();
                 await updateDoc(postRef, postData);
                 toast({ title: "Post Updated!", description: "Your changes have been saved." });
-                if (onFinishEditing) onFinishEditing();
+                resetForm(); // Reset form after successful edit
             } else {
                 await addDoc(collection(db, "posts"), {
                     ...postData,
@@ -236,8 +236,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 });
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+                resetForm(); 
             }
-            resetForm(); 
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
@@ -449,3 +449,4 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 CreatePostForm.displayName = 'CreatePostForm';
 
     
+
