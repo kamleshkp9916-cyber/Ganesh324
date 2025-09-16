@@ -21,7 +21,8 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { toggleFollow, isFollowing, UserData, getFollowing } from '@/lib/follow-data';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CreatePostForm } from '@/components/create-post-form';
@@ -538,6 +539,8 @@ export default function FeedPage() {
     </>
   );
 }
+
+
 
 
 
