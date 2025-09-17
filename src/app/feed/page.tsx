@@ -245,7 +245,7 @@ export default function FeedPage() {
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
 
@@ -329,9 +329,17 @@ export default function FeedPage() {
 
             setFeed([mockPost, ...postsData]);
             setIsLoadingFeed(false);
+        }, (error) => {
+            console.error("Error fetching feed:", error);
+            toast({
+                title: "Error",
+                description: "Could not fetch the feed. Please try again later.",
+                variant: "destructive"
+            })
+            setIsLoadingFeed(false);
         });
         unsubscribeRef.current = unsubscribe;
-    }, []);
+    }, [toast]);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -349,74 +357,85 @@ export default function FeedPage() {
   const handlePostSubmit = async (postData: PostData) => {
     if (!postData.content.trim() || !user || !userData) return;
 
-    setIsSubmitting(true);
-    
-    // Detach the listener
-    if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-    }
-    
-    try {
+    if (postToEdit) { // This is an edit
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current(); // Detach listener
+        }
+
         const db = getFirestoreDb();
-        const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
+        const postRef = doc(db, 'posts', postToEdit.id);
         
-        const dataToSave: any = {
-            content: postData.content,
-            location: postData.location,
-            tags: tags,
-            taggedProduct: postData.taggedProduct ? {
-                id: postToEdit ? postToEdit.taggedProduct?.id : postData.taggedProduct.id,
-                name: postData.taggedProduct.name,
-                price: postData.taggedProduct.price,
-                image: postData.taggedProduct.images[0]?.preview,
-            } : null,
-        };
-
-        const mediaUploads = await Promise.all(
-            (postData.media || []).filter(m => m.file).map(async (mediaFile) => {
-                if (!mediaFile.file) return null;
-                const storage = getFirebaseStorage();
-                const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
-                const fileRef = storageRef(storage, filePath);
-                const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
-                return { type: mediaFile.type, url: await getDownloadURL(uploadResult.ref) };
-            })
-        );
-        
-        const existingMedia = (postData.media || []).filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
-        const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
-
-        dataToSave.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
-
-        if (postToEdit) {
-            const postRef = doc(db, 'posts', postToEdit.id);
-            dataToSave.lastEditedAt = serverTimestamp();
-            await updateDoc(postRef, dataToSave);
+        try {
+            const dataToUpdate: any = {
+                content: postData.content,
+                location: postData.location,
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]),
+                lastEditedAt: serverTimestamp(),
+            };
+            
+            await updateDoc(postRef, dataToUpdate);
             toast({ title: "Post Updated!", description: "Done successful. Your changes have been saved." });
-            setPostToEdit(null); // Clear the form
-        } else {
-            await addDoc(collection(db, "posts"), {
-                ...dataToSave,
+            setPostToEdit(null); // This will clear the form via useEffect in CreatePostForm
+        } catch (error: any) {
+            console.error("Error updating post:", error);
+            toast({
+                variant: 'destructive',
+                title: "Update Error",
+                description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
+            });
+        } finally {
+            setupFeedListener(); // Re-attach listener
+        }
+
+    } else { // This is a new post
+        setIsFormSubmitting(true);
+        try {
+            const db = getFirestoreDb();
+            const dataToSave: any = {
+                content: postData.content,
+                location: postData.location,
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]),
+                taggedProduct: postData.taggedProduct ? {
+                    id: postData.taggedProduct.id,
+                    name: postData.taggedProduct.name,
+                    price: postData.taggedProduct.price,
+                    image: postData.taggedProduct.images[0]?.preview,
+                } : null,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
                 avatarUrl: userData.photoURL,
                 timestamp: serverTimestamp(),
                 likes: 0,
                 replies: 0,
-            });
+            };
+
+            const mediaUploads = await Promise.all(
+                (postData.media || []).map(async (mediaFile) => {
+                    if (!mediaFile.file) return null;
+                    const storage = getFirebaseStorage();
+                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                    return { type: mediaFile.type, url: await getDownloadURL(uploadResult.ref) };
+                })
+            );
+            
+            dataToSave.images = mediaUploads.filter((m): m is { type: 'image', url: string } => m?.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+
+            await addDoc(collection(db, "posts"), dataToSave);
+            
             toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+
+        } catch (error: any) {
+            console.error("Error creating post:", error);
+            toast({
+                variant: 'destructive',
+                title: "Submission Error",
+                description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
+            });
+        } finally {
+            setIsFormSubmitting(false);
         }
-    } catch (error: any) {
-        console.error("Error creating/updating post:", error);
-        toast({
-            variant: 'destructive',
-            title: "Submission Error",
-            description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
-        });
-    } finally {
-        setIsSubmitting(false);
-        // Re-attach the listener
-        setupFeedListener();
     }
   };
   
@@ -803,7 +822,6 @@ export default function FeedPage() {
                  <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                         <CreatePostForm
-                            isSubmitting={isSubmitting}
                             onPost={handlePostSubmit}
                             postToEdit={postToEdit}
                             onFinishEditing={handleFinishEditing}
@@ -816,8 +834,4 @@ export default function FeedPage() {
     </>
   );
 }
-
-
-
-
 

@@ -39,7 +39,6 @@ interface CreatePostFormProps {
   postToEdit?: any | null;
   onFinishEditing?: () => void;
   onPost: (data: PostData) => Promise<void>;
-  isSubmitting: boolean;
 }
 
 const emojis = [
@@ -54,7 +53,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost, isSubmitting }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
@@ -62,6 +61,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [location, setLocation] = useState<string | null>(null);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
     // State for tagging suggestions
     const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
@@ -72,14 +72,14 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
-    const resetForm = () => {
+    const resetForm = useCallback(() => {
         setContent("");
         setMedia([]);
         setLocation(null);
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
-    };
+    }, [onClearReply, onFinishEditing]);
     
     useEffect(() => {
         if (postToEdit) {
@@ -90,8 +90,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else {
              resetForm();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [postToEdit]);
+    }, [postToEdit, resetForm]);
     
     useEffect(() => {
         if (userData?.role === 'seller' || userData?.role === 'admin') {
@@ -200,13 +199,14 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        // Optimistically reset form if it's an edit
-        if (postToEdit) {
+        if (postToEdit) { // Edit logic (optimistic UI)
+            await onPost({ content, media, location, taggedProduct });
             resetForm();
-        }
-        await onPost({ content, media, location, taggedProduct });
-        if (!postToEdit) {
-             resetForm();
+        } else { // New post logic
+            setIsSubmitting(true);
+            await onPost({ content, media, location, taggedProduct });
+            setIsSubmitting(false);
+            resetForm();
         }
     };
 
@@ -367,13 +367,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handleSubmit}
-                        disabled={!content.trim() && media.length === 0}
+                        disabled={(!content.trim() && media.length === 0) || (isSubmitting)}
                     >
-                        {isSubmitting ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                        ) : postToEdit ? (
-                            <FileEdit className="mr-2 h-4 w-4" />
-                        ) : null}
+                        {isSubmitting && !postToEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        {postToEdit && <FileEdit className="mr-2 h-4 w-4" />}
                         {postToEdit ? 'Save Changes' : 'Send'}
                     </Button>
                 </div>
