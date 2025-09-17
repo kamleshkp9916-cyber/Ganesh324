@@ -389,6 +389,7 @@ export default function FeedPage() {
                 dataToSave.lastEditedAt = serverTimestamp();
                 await updateDoc(postRef, dataToSave);
                 toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+                setPostToEdit(null);
             } else {
                 await addDoc(collection(db, "posts"), {
                     ...dataToSave,
@@ -410,7 +411,6 @@ export default function FeedPage() {
             });
         } finally {
             setIsFormSubmitting(false);
-            setPostToEdit(null); // This will clear the form via CreatePostForm's useEffect
         }
     };
 
