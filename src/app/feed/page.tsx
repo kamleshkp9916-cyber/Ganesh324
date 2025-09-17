@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -417,7 +418,7 @@ const FeedPost = ({
                     )}
                 </div>
                 {imageCount > 0 && (
-                    <div className="px-4">
+                     <div className="px-4">
                         <div className={cn(
                             "grid gap-1 rounded-lg overflow-hidden",
                             imageCount === 1 && "grid-cols-1",
@@ -1097,7 +1098,7 @@ export default function FeedPage() {
                                             </>
                                         ) : (
                                             filteredFeed.map(post => (
-                                                <div key={post.id} className="py-4">
+                                                <div key={post.id}>
                                                     <FeedPost 
                                                         post={post}
                                                         currentUser={user}
