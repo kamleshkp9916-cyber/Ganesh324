@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -59,6 +60,8 @@ import {
   Sparkles,
   Edit,
   Download,
+  Loader2,
+  FileEdit,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -348,71 +351,71 @@ export default function FeedPage() {
     return null;
   }
 
-    const handlePostSubmit = async (postData: PostData) => {
-        if (!postData.content.trim() || !user || !userData) return;
+  const handlePostSubmit = async (postData: PostData) => {
+    if (!postData.content.trim() || !user || !userData) return;
 
-        setIsFormSubmitting(true);
-        try {
-            const db = getFirestoreDb();
-            const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
-            
-            const dataToSave: any = {
-                content: postData.content,
-                location: postData.location,
-                tags: tags,
-                taggedProduct: postData.taggedProduct ? {
-                    id: postData.taggedProduct.id,
-                    name: postData.taggedProduct.name,
-                    price: postData.taggedProduct.price,
-                    image: postData.taggedProduct.images[0]?.preview,
-                } : null,
-            };
+    setIsFormSubmitting(true);
+    try {
+        const db = getFirestoreDb();
+        const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
+        
+        const dataToSave: any = {
+            content: postData.content,
+            location: postData.location,
+            tags: tags,
+            taggedProduct: postData.taggedProduct ? {
+                id: postData.taggedProduct.id,
+                name: postData.taggedProduct.name,
+                price: postData.taggedProduct.price,
+                image: postData.taggedProduct.images[0]?.preview,
+            } : null,
+        };
 
-            const mediaUploads = await Promise.all(
-                (postData.media || []).filter(m => m.file).map(async (mediaFile) => {
-                    if (!mediaFile.file) return null;
-                    const storage = getFirebaseStorage();
-                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
-                    const fileRef = storageRef(storage, filePath);
-                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
-                    return { type: mediaFile.type, url: await getDownloadURL(uploadResult.ref) };
-                })
-            );
-            
-            const existingMedia = (postData.media || []).filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
-            const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
+        const mediaUploads = await Promise.all(
+            (postData.media || []).filter(m => m.file).map(async (mediaFile) => {
+                if (!mediaFile.file) return null;
+                const storage = getFirebaseStorage();
+                const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
+                const fileRef = storageRef(storage, filePath);
+                const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                return { type: mediaFile.type, url: await getDownloadURL(uploadResult.ref) };
+            })
+        );
+        
+        const existingMedia = (postData.media || []).filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
+        const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
 
-            dataToSave.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+        dataToSave.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
 
-            if (postToEdit) {
-                const postRef = doc(db, 'posts', postToEdit.id);
-                dataToSave.lastEditedAt = serverTimestamp();
-                await updateDoc(postRef, dataToSave);
-                toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
-                setPostToEdit(null);
-            } else {
-                await addDoc(collection(db, "posts"), {
-                    ...dataToSave,
-                    sellerId: user.uid,
-                    sellerName: userData.displayName,
-                    avatarUrl: userData.photoURL,
-                    timestamp: serverTimestamp(),
-                    likes: 0,
-                    replies: 0,
-                });
-                toast({ title: "Post Created!", description: "Your post has been successfully shared." });
-            }
-        } catch (error) {
-            console.error("Error creating/updating post:", error);
-            toast({
-                variant: 'destructive',
-                title: "Error",
-                description: "Failed to save your post. Please try again."
+        if (postToEdit) {
+            const postRef = doc(db, 'posts', postToEdit.id);
+            dataToSave.lastEditedAt = serverTimestamp();
+            await updateDoc(postRef, dataToSave);
+            toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+            setPostToEdit(null);
+        } else {
+            await addDoc(collection(db, "posts"), {
+                ...dataToSave,
+                sellerId: user.uid,
+                sellerName: userData.displayName,
+                avatarUrl: userData.photoURL,
+                timestamp: serverTimestamp(),
+                likes: 0,
+                replies: 0,
             });
-        } finally {
-            setIsFormSubmitting(false);
+            toast({ title: "Post Created!", description: "Your post has been successfully shared." });
         }
-    };
+    } catch (error: any) {
+        console.error("Error creating/updating post:", error);
+        toast({
+            variant: 'destructive',
+            title: "Submission Error",
+            description: `Failed to save your post. Firestore security rules might have rejected the write. (Error: ${error.message})`
+        });
+    } finally {
+        setIsFormSubmitting(false);
+    }
+  };
 
 
   const handleShare = (postId: string) => {
@@ -802,3 +805,4 @@ export default function FeedPage() {
     </>
   );
 }
+
