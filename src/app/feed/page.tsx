@@ -362,10 +362,12 @@ const FeedPost = ({
                             <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <div className="font-semibold group-hover:underline flex items-center gap-2">
+                              <span>{post.sellerName}</span>
+                              <span className="text-xs text-muted-foreground font-normal">
                                 <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                            </p>
+                              </span>
+                            </div>
                         </div>
                     </Link>
                     <DropdownMenu>
@@ -1093,8 +1095,8 @@ export default function FeedPage() {
                                     <div className="divide-y divide-border/20">
                                         {isLoadingFeed ? (
                                             <>
-                                                <div className="py-4"><FeedPostSkeleton /></div>
-                                                <div className="py-4"><FeedPostSkeleton /></div>
+                                                <FeedPostSkeleton />
+                                                <FeedPostSkeleton />
                                             </>
                                         ) : (
                                             filteredFeed.map(post => (
