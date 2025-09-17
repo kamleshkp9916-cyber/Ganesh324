@@ -118,6 +118,9 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { getMessages, sendMessage, getConversations, Message as ChatMessageData, Conversation } from '@/ai/flows/chat-flow';
+import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const liveSellers = [
@@ -180,7 +183,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void }) => (
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMessagesView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setMessagesView: (show: boolean) => void }) => (
     <div className="p-6 flex flex-col h-full">
         <div className="flex flex-col items-center text-center mb-8">
             <Avatar className="h-20 w-20 mb-3">
@@ -222,12 +225,10 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter }: { us
                     </Button>
                 </CollapsibleContent>
             </Collapsible>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
-            <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base">
-                <Link href="/message">
-                    <MessageSquare /> Messages
-                </Link>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
+                <MessageSquare /> Messages
             </Button>
+            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
             <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
         </nav>
     </div>
@@ -444,9 +445,273 @@ const FeedPost = ({
     )
 }
 
+function ChatMessage({ msg, currentUserName }: { msg: ChatMessageData, currentUserName: string | null }) {
+    const isMe = msg.sender === 'customer' || msg.sender === currentUserName;
+    return (
+        <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+            {!isMe && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={`https://placehold.co/40x40.png`} />
+                    <AvatarFallback>{'S'}</AvatarFallback>
+                </Avatar>
+            )}
+            <div className={`max-w-[70%] rounded-lg px-3 py-2 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                {msg.text && <p className="text-sm">{msg.text}</p>}
+                {msg.image && (
+                    <Image src={msg.image} alt="Sent image" width={200} height={200} className="rounded-md mt-2" />
+                )}
+                <p className={`text-xs mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'} text-right`}>
+                    {msg.timestamp}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
+    return (
+        <div 
+            className={cn(
+                "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted",
+                isSelected && "bg-muted"
+            )}
+            onClick={onClick}
+        >
+            <Avatar className="h-12 w-12">
+                <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
+                <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-grow overflow-hidden">
+                <div className="flex justify-between items-center">
+                    <h4 className="font-semibold truncate">{convo.userName}</h4>
+                    <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
+                </div>
+                <div className="flex justify-between items-start">
+                    <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                    {convo.unreadCount > 0 && (
+                        <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs ml-2 flex-shrink-0">
+                            {convo.unreadCount}
+                        </Badge>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBack: () => void, isMobile: boolean }) => {
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const [messages, setMessages] = useState<ChatMessageData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [newMessage, setNewMessage] = useState("");
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                const sellerConvos = await getConversations();
+                
+                const execMessages = await getExecutiveMessages(userData.uid);
+                let executiveConversation: Conversation | null = null;
+                if (execMessages.length > 0) {
+                    const lastMessage = execMessages[execMessages.length - 1];
+                    executiveConversation = {
+                        userId: userData.uid,
+                        userName: 'StreamCart',
+                        avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                        lastMessage: lastMessage.text || 'Image Sent',
+                        lastMessageTimestamp: lastMessage.timestamp,
+                        unreadCount: 0,
+                        isExecutive: true,
+                    };
+                }
+
+                let allConvos = [...sellerConvos];
+                if (executiveConversation) {
+                    allConvos = [executiveConversation, ...allConvos];
+                }
+
+                setConversations(allConvos);
+                if (allConvos.length > 0 && !isMobile) {
+                    handleSelectConversation(allConvos[0]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch conversations:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchConversations();
+    }, [userData, isMobile]);
+    
+    const handleSelectConversation = async (convo: Conversation) => {
+        setSelectedConversation(convo);
+        setIsChatLoading(true);
+        setMessages([]);
+        try {
+            let chatHistory;
+            if (convo.isExecutive) {
+                chatHistory = await getExecutiveMessages(convo.userId);
+            } else {
+                chatHistory = await getMessages(convo.userId);
+            }
+            setMessages(chatHistory);
+        } catch (error) {
+            console.error("Failed to fetch messages for", convo.userId, error);
+        } finally {
+            setIsChatLoading(false);
+        }
+    }
+    
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !selectedConversation || !userData) return;
+
+        const optimisticMessage: ChatMessageData = {
+            id: Math.random(),
+            text: newMessage,
+            sender: 'customer',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
+        const currentMessage = newMessage;
+        setNewMessage("");
+
+        try {
+            let updatedMessages;
+            if (selectedConversation.isExecutive) {
+                updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
+            } else {
+                updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
+            }
+            setMessages(updatedMessages);
+        } catch (error) {
+            console.error("Failed to send message", error);
+             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
+        }
+    };
+    
+    useEffect(() => {
+        chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
+    }, [messages]);
+    
+    const conversationListContent = (
+         <aside className="w-full h-full border-r flex-col flex bg-background">
+            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={onBack}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    <h1 className="text-xl font-bold">Chats</h1>
+                </div>
+            </header>
+            <div className="p-4 border-b">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search conversations..."
+                        className="pl-8 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+            <div className="p-2 flex-grow overflow-y-auto">
+                {conversations.map(convo => (
+                    <ConversationItem 
+                        key={convo.userId} 
+                        convo={convo} 
+                        onClick={() => handleSelectConversation(convo)}
+                        isSelected={selectedConversation?.userId === convo.userId}
+                    />
+                ))}
+            </div>
+        </aside>
+    );
+
+    const chatWindowContent = (
+        <main className="w-full h-full flex flex-col bg-background">
+            {selectedConversation ? (
+                <>
+                    <header className="p-4 border-b flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-3">
+                            {isMobile && (
+                                <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
+                                    <ArrowLeft className="h-6 w-6" />
+                                </Button>
+                            )}
+                            <Link href={selectedConversation.isExecutive ? `#` : `/seller/profile?userId=${selectedConversation.userId}`} className="cursor-pointer group">
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={selectedConversation.avatarUrl} />
+                                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <h2 className="font-semibold group-hover:underline">{selectedConversation.userName}</h2>
+                                        <p className="text-xs text-muted-foreground">Online</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                    </header>
+                    <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
+                        {isChatLoading ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-12 w-2/3" />
+                                <Skeleton className="h-12 w-1/2 ml-auto" />
+                            </div>
+                        ) : (
+                            messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
+                        )}
+                    </div>
+                    <footer className="p-4 border-t shrink-0">
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                             <Input 
+                                placeholder="Type a message" 
+                                className="flex-grow" 
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                            />
+                            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                                <Send className="h-5 w-5"/>
+                            </Button>
+                        </form>
+                    </footer>
+                </>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <MessageSquare className="h-16 w-16 mb-4"/>
+                    <h2 className="text-xl font-semibold">Select a chat</h2>
+                    <p>Choose a conversation to start messaging.</p>
+                </div>
+            )}
+        </main>
+    );
+
+    if(isMobile) {
+        return selectedConversation ? chatWindowContent : conversationListContent;
+    }
+
+    return (
+        <div className="flex h-full">
+            <div className="w-1/3 lg:w-1/4">
+                {conversationListContent}
+            </div>
+            <div className="w-2/3 lg:w-3/4">
+                {chatWindowContent}
+            </div>
+        </div>
+    )
+}
+
 export default function FeedPage() {
   const router = useRouter();
   const { user, userData, loading: authLoading } = useAuth();
+  const isMobile = useIsMobile();
   const [feed, setFeed] = useState<any[]>([]);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -459,6 +724,7 @@ export default function FeedPage() {
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [isMessagesView, setIsMessagesView] = useState(false);
 
   const loadFollowData = useCallback(async () => {
     if (user) {
@@ -731,129 +997,137 @@ export default function FeedPage() {
       </AlertDialog>
       
     <div className="min-h-screen bg-background text-foreground">
-        <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
+        <div className="grid lg:grid-cols-[18rem_1fr] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:flex">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setMessagesView={setIsMessagesView} />
           </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-               <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="lg:hidden">
-                                <Menu className="h-6 w-6" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="p-0">
-                             <SheetHeader className="sr-only">
-                                <SheetTitle>Sidebar Menu</SheetTitle>
-                            </SheetHeader>
-                            <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} />
-                        </SheetContent>
-                    </Sheet>
-                    <div className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            placeholder="Search feed..."
-                            className="bg-transparent rounded-full pl-10"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-              <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
-                  <section>
-                      <div className="divide-y divide-border/20">
-                          {isLoadingFeed ? (
-                              <>
-                                <div className="py-8"><FeedPostSkeleton /></div>
-                                <div className="py-8"><FeedPostSkeleton /></div>
-                              </>
-                          ) : (
-                              filteredFeed.map(post => (
-                                <FeedPost 
-                                    key={post.id}
-                                    post={post}
-                                    currentUser={user}
-                                    onDelete={handleDeletePost}
-                                    onEdit={handleEditPost}
-                                    onShare={handleShare}
-                                    onReport={() => setIsReportDialogOpen(true)}
+          {isMessagesView ? (
+              <MessagesView userData={userData} onBack={() => setIsMessagesView(false)} isMobile={isMobile} />
+          ) : (
+              <>
+                {/* Main Content */}
+                <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+                    <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="lg:hidden">
+                                        <Menu className="h-6 w-6" />
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="p-0">
+                                    <SheetHeader className="sr-only">
+                                        <SheetTitle>Sidebar Menu</SheetTitle>
+                                    </SheetHeader>
+                                    <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setMessagesView={setIsMessagesView} />
+                                </SheetContent>
+                            </Sheet>
+                            <div className="relative w-full">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search feed..."
+                                    className="bg-transparent rounded-full pl-10"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                              ))
-                          )}
-                      </div>
-                  </section>
-              </div>
-          </main>
-          {/* Right Column */}
-           <aside className="p-6 hidden lg:block space-y-6">
-              <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Trending</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {trendingTopics.map((topic, index) => (
-                            <div key={index}>
-                                <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
-                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
                             </div>
-                        ))}
+                        </div>
+                    <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
+                        <section>
+                            <div className="divide-y divide-border/20">
+                                {isLoadingFeed ? (
+                                    <>
+                                        <div className="py-8"><FeedPostSkeleton /></div>
+                                        <div className="py-8"><FeedPostSkeleton /></div>
+                                    </>
+                                ) : (
+                                    filteredFeed.map(post => (
+                                        <FeedPost 
+                                            key={post.id}
+                                            post={post}
+                                            currentUser={user}
+                                            onDelete={handleDeletePost}
+                                            onEdit={handleEditPost}
+                                            onShare={handleShare}
+                                            onReport={() => setIsReportDialogOpen(true)}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </section>
                     </div>
-                </CardContent>
-              </Card>
+                </main>
+                {/* Right Column */}
+                <aside className="p-6 hidden lg:block space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Trending</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {trendingTopics.map((topic, index) => (
+                                    <div key={index}>
+                                        <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
+                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
 
-              <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Trending Streams</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {trendingStreams.map((stream) => (
-                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={stream.avatarUrl}/>
-                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                          <RadioTower className="h-2 w-2 text-white"/>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Trending Streams</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                {trendingStreams.map((stream) => (
+                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={stream.avatarUrl}/>
+                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                <RadioTower className="h-2 w-2 text-white"/>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                    </div>
-                                </div>
-                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <Users className="h-3 w-3"/>
-                                    {stream.viewers}
-                                 </div>
-                            </Link>
-                        ))}
-                    </div>
-                </CardContent>
-              </Card>
-          </aside>
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <Users className="h-3 w-3"/>
+                                            {stream.viewers}
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
+            </>
+          )}
         </div>
-        <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                 <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
-                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
-                        <CreatePostForm
-                            onPost={handlePostSubmit}
-                            postToEdit={postToEdit}
-                            onFinishEditing={onFinishEditing}
-                            isSubmitting={isFormSubmitting}
-                        />
+        {!isMessagesView && (
+            <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
+                <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
+                    <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
+                        <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                            <CreatePostForm
+                                onPost={handlePostSubmit}
+                                postToEdit={postToEdit}
+                                onFinishEditing={onFinishEditing}
+                                isSubmitting={isFormSubmitting}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )}
     </div>
     </Dialog>
   );
