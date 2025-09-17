@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -229,6 +228,211 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter }: { us
     </div>
 );
 
+const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
+    const [relativeTime, setRelativeTime] = useState('');
+
+    const formatTimestamp = useCallback((d: Date): string => {
+        const now = new Date();
+        const diffInSeconds = (now.getTime() - d.getTime()) / 1000;
+        if (diffInSeconds < 60 * 60 * 24) {
+            const distance = formatDistanceToNowStrict(d, { addSuffix: false });
+            return distance.replace(/about /g, '').replace(/ seconds?/, 's').replace(/ minutes?/, 'm').replace(/ hours?/, 'h');
+        }
+        if (isThisWeek(d, { weekStartsOn: 1 })) {
+            return format(d, 'E'); // Mon, Tue
+        }
+        if (isThisYear(d)) {
+            return format(d, 'MMM d'); // Sep 12
+        }
+        return format(d, 'MMM d, yyyy'); // Sep 12, 2024
+    }, []);
+
+    useEffect(() => {
+      const d = new Date(date);
+      setRelativeTime(formatTimestamp(d));
+
+      const interval = setInterval(() => {
+        setRelativeTime(formatTimestamp(d));
+      }, 60000); // Update every minute
+
+      return () => clearInterval(interval);
+    }, [date, formatTimestamp]);
+
+    return (
+        <>
+            {relativeTime}
+            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
+        </>
+    );
+  };
+
+const FeedPost = ({ 
+    post, 
+    onDelete, 
+    onEdit, 
+    onShare,
+    onReport,
+    currentUser,
+} : {
+    post: any,
+    onDelete: (post: any) => void,
+    onEdit: (post: any) => void,
+    onShare: (postId: string) => void,
+    onReport: () => void,
+    currentUser: User | null
+}) => {
+    
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+    const handleDownloadImage = (url: string) => {
+        fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `streamcart_image_${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            })
+            .catch(() => toast({ variant: 'destructive', title: 'Download failed' }));
+    };
+
+    return (
+        <>
+        <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
+                <DialogHeader className="sr-only">
+                    <DialogTitle>Post Image</DialogTitle>
+                </DialogHeader>
+                <div className="relative">
+                    {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
+                    <Button 
+                        variant="secondary" 
+                        size="icon" 
+                        className="absolute bottom-4 right-4 z-10"
+                        onClick={() => viewingImage && handleDownloadImage(viewingImage)}
+                    >
+                        <Download />
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+        <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
+            <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
+                <div className="p-4 flex items-center justify-between">
+                    <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={post.avatarUrl} />
+                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold group-hover:underline">{post.sellerName}</p>
+                        <p className="text-xs text-muted-foreground">
+                            <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                        </p>
+                    </div>
+                    </Link>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {currentUser && currentUser.uid === post.sellerId && (
+                                <>
+                                    <DropdownMenuItem onSelect={() => onEdit(post)}>
+                                        <Edit className="mr-2 h-4 w-4" /> Edit Post
+                                    </DropdownMenuItem>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+
+                                    <DropdownMenuSeparator />
+                                </>
+                            )}
+                            <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="p-4">
+                    <p className="text-sm text-muted-foreground">{post.content}</p>
+                    {Array.isArray(post.tags) && post.tags.length > 0 && (
+                        <p className="text-sm text-primary mt-2">
+                            {post.tags.map((tag: string, index: number) => (
+                                <span key={index} className="text-primary">{`#${tag} `}</span>
+                            ))}
+                        </p>
+                    )}
+                </div>
+                {post.images && post.images.length > 0 && (
+                    <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
+                        {post.images.slice(0, 3).map((image: any, index: number) => {
+                            const isFirst = index === 0;
+                            const isSecond = index === 1;
+                            const isThird = index === 2;
+                            return (
+                                <DialogTrigger key={image.id || index} asChild>
+                                    <div
+                                        className={cn(
+                                            "rounded-lg overflow-hidden cursor-pointer relative group",
+                                            isFirst && "col-span-2 row-span-2",
+                                            isSecond && "col-span-1 row-span-1 rounded-tr-lg",
+                                            isThird && "col-span-1 row-span-1 rounded-br-lg"
+                                        )}
+                                        onClick={() => setViewingImage(image.url)}
+                                    >
+                                        <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
+                                        {isThird && post.images.length > 3 && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                                +{post.images.length - 3}
+                                            </div>
+                                        )}
+                                    </div>
+                                </DialogTrigger>
+                            );
+                        })}
+                    </div>
+                )}
+                <div className="px-4 pb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" className="flex items-center gap-1.5">
+                            <ArrowUp className="w-4 h-4"/>
+                            <span>Upvote</span>
+                        </Button>
+                        <span>{post.likes || 0}</span>
+                        <Button variant="ghost" size="icon"><ArrowDown /></Button>
+                    </div>
+                    <Button variant="ghost" className="flex items-center gap-1.5">
+                        <MessageSquare className="w-4 h-4"/>
+                        <span>{post.comments || 0} Comments</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onShare(post.id)}>
+                        <Share2 />
+                    </Button>
+                </div>
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
+        </Card>
+        </>
+    )
+}
 
 export default function FeedPage() {
   const router = useRouter();
@@ -244,7 +448,6 @@ export default function FeedPage() {
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
   const loadFollowData = useCallback(async () => {
@@ -485,61 +688,7 @@ export default function FeedPage() {
           setDeletingPostId(null);
       }
   };
-
-  const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
-    const [relativeTime, setRelativeTime] = useState('');
-
-    const formatTimestamp = useCallback((d: Date): string => {
-        const now = new Date();
-        const diffInSeconds = (now.getTime() - d.getTime()) / 1000;
-        if (diffInSeconds < 60 * 60 * 24) {
-            const distance = formatDistanceToNowStrict(d, { addSuffix: false });
-            return distance.replace(/about /g, '').replace(/ seconds?/, 's').replace(/ minutes?/, 'm').replace(/ hours?/, 'h');
-        }
-        if (isThisWeek(d, { weekStartsOn: 1 })) {
-            return format(d, 'E'); // Mon, Tue
-        }
-        if (isThisYear(d)) {
-            return format(d, 'MMM d'); // Sep 12
-        }
-        return format(d, 'MMM d, yyyy'); // Sep 12, 2024
-    }, []);
-
-    useEffect(() => {
-      const d = new Date(date);
-      setRelativeTime(formatTimestamp(d));
-
-      const interval = setInterval(() => {
-        setRelativeTime(formatTimestamp(d));
-      }, 60000); // Update every minute
-
-      return () => clearInterval(interval);
-    }, [date, formatTimestamp]);
-
-    return (
-        <>
-            {relativeTime}
-            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
-        </>
-    );
-  };
   
-    const handleDownloadImage = (url: string) => {
-        fetch(url)
-            .then(response => response.blob())
-            .then(blob => {
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = `streamcart_image_${Date.now()}.jpg`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(blobUrl);
-                a.remove();
-            })
-            .catch(() => toast({ variant: 'destructive', title: 'Download failed' }));
-    };
-
   return (
     <>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
@@ -570,25 +719,6 @@ export default function FeedPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
-            <DialogHeader className="sr-only">
-                <DialogTitle>Post Image</DialogTitle>
-            </DialogHeader>
-            <div className="relative">
-                {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
-                <Button 
-                    variant="secondary" 
-                    size="icon" 
-                    className="absolute bottom-4 right-4 z-10"
-                    onClick={() => viewingImage && handleDownloadImage(viewingImage)}
-                >
-                    <Download />
-                </Button>
-            </div>
-        </DialogContent>
-      </Dialog>
       
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
@@ -630,116 +760,15 @@ export default function FeedPage() {
                               </>
                           ) : (
                               filteredFeed.map(post => (
-                                  <Card key={post.id} className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent transition-opacity", deletingPostId === post.id && 'opacity-50')}>
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
-                                      <div className="p-4 flex items-center justify-between">
-                                          <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={post.avatarUrl} />
-                                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                                                </p>
-                                            </div>
-                                          </Link>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    {user && user.uid === post.sellerId && (
-                                                        <>
-                                                            <DropdownMenuItem onSelect={() => handleEditPost(post)}>
-                                                                <Edit className="mr-2 h-4 w-4" /> Edit Post
-                                                            </DropdownMenuItem>
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete Post
-                                                                    </DropdownMenuItem>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeletePost(post)}>Delete</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-
-                                                            <DropdownMenuSeparator />
-                                                        </>
-                                                    )}
-                                                    <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => setIsReportDialogOpen(true)}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                      </div>
-                                      <div className="p-4">
-                                          <p className="text-sm text-muted-foreground">{post.content}</p>
-                                          {Array.isArray(post.tags) && post.tags.length > 0 && (
-                                              <p className="text-sm text-primary mt-2">
-                                                  {post.tags.map((tag: string, index: number) => (
-                                                      <span key={index} className="text-primary">{`#${tag} `}</span>
-                                                  ))}
-                                              </p>
-                                          )}
-                                      </div>
-                                       {post.images && post.images.length > 0 && (
-                                            <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
-                                                {post.images.slice(0, 3).map((image: any, index: number) => {
-                                                    const isFirst = index === 0;
-                                                    const isSecond = index === 1;
-                                                    const isThird = index === 2;
-                                                    return (
-                                                        <DialogTrigger key={image.id || index} asChild>
-                                                            <div
-                                                                className={cn(
-                                                                    "rounded-lg overflow-hidden cursor-pointer relative group",
-                                                                    isFirst && "col-span-2 row-span-2",
-                                                                    isSecond && "col-span-1 row-span-1 rounded-tr-lg",
-                                                                    isThird && "col-span-1 row-span-1 rounded-br-lg"
-                                                                )}
-                                                                onClick={() => setViewingImage(image.url)}
-                                                            >
-                                                                <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
-                                                                {isThird && post.images.length > 3 && (
-                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                                        +{post.images.length - 3}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </DialogTrigger>
-                                                    );
-                                                })}
-                                            </div>
-                                       )}
-                                      <div className="px-4 pb-4 flex items-center justify-between">
-                                          <div className="flex items-center gap-2">
-                                              <Button variant="ghost" className="flex items-center gap-1.5">
-                                                  <ArrowUp className="w-4 h-4"/>
-                                                  <span>Upvote</span>
-                                              </Button>
-                                              <span>{post.likes || 0}</span>
-                                              <Button variant="ghost" size="icon"><ArrowDown /></Button>
-                                          </div>
-                                           <Button variant="ghost" className="flex items-center gap-1.5">
-                                              <MessageSquare className="w-4 h-4"/>
-                                              <span>{post.comments || 0} Comments</span>
-                                          </Button>
-                                          <Button variant="ghost" size="icon" onClick={() => handleShare(post.id)}>
-                                              <Share2 />
-                                          </Button>
-                                      </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
-                                  </Card>
+                                <FeedPost 
+                                    key={post.id}
+                                    post={post}
+                                    currentUser={user}
+                                    onDelete={handleDeletePost}
+                                    onEdit={handleEditPost}
+                                    onShare={handleShare}
+                                    onReport={() => setIsReportDialogOpen(true)}
+                                />
                               ))
                           )}
                       </div>
@@ -816,5 +845,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-    
