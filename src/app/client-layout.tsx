@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AuthProvider } from '@/hooks/use-auth.tsx';
+import { AuthProvider } from '@/hooks/use-auth';
 import { AuthRedirector } from '@/components/auth-redirector';
 import { TopLoader } from '@/components/top-loader';
 import { Toaster } from '@/components/ui/toaster';

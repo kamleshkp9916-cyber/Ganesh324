@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/table"
 import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"

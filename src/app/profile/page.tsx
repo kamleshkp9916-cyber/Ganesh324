@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreHorizontal, Edit, Share2, Flag } from 'lucide-react';

@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
 import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';

@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
 import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     const isMe = msg.sender === 'seller' || msg.sender === currentUserName;

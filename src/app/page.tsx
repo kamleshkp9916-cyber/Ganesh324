@@ -8,7 +8,7 @@ import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
   const { loading } = useAuth();

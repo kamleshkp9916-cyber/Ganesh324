@@ -70,7 +70,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import {
@@ -369,7 +369,7 @@ export default function FeedPage() {
             const dataToUpdate: any = {
                 content: postData.content,
                 location: postData.location,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map(match => match[1]),
                 lastEditedAt: serverTimestamp(),
             };
             
@@ -381,7 +381,7 @@ export default function FeedPage() {
             const dataToSave: any = {
                 content: postData.content,
                 location: postData.location,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map(match => match[1]),
                 taggedProduct: postData.taggedProduct ? {
                     id: postData.taggedProduct.id,
                     name: postData.taggedProduct.name,
