@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -221,7 +222,7 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
+                         <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
@@ -234,10 +235,10 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
@@ -331,6 +332,8 @@ const FeedPost = ({
         return post.content.replace(/#(\w+)/g, '').trim();
     }, [post.content]);
 
+    const imageCount = post.images?.length || 0;
+
 
     return (
         <Dialog>
@@ -414,33 +417,36 @@ const FeedPost = ({
                         </p>
                     )}
                 </div>
-                {post.images && post.images.length > 0 && (
-                    <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
-                        {post.images.slice(0, 3).map((image: any, index: number) => {
-                            const isFirst = index === 0;
-                            const isSecond = index === 1;
-                            const isThird = index === 2;
-                            return (
+                {imageCount > 0 && (
+                    <div className="px-4">
+                        <div className={cn(
+                            "grid gap-1 rounded-lg overflow-hidden",
+                            imageCount === 1 && "grid-cols-1",
+                            imageCount === 2 && "grid-cols-2",
+                            imageCount >= 3 && "grid-cols-2"
+                        )}>
+                            {post.images.slice(0, 3).map((image: any, index: number) => (
                                 <DialogTrigger key={image.id || index} asChild>
                                     <div
                                         className={cn(
-                                            "rounded-lg overflow-hidden cursor-pointer relative group",
-                                            isFirst && "col-span-2 row-span-2",
-                                            isSecond && "col-span-1 row-span-1 rounded-tr-lg",
-                                            isThird && "col-span-1 row-span-1 rounded-br-lg"
+                                            "cursor-pointer relative group bg-muted",
+                                            imageCount === 1 && "aspect-video",
+                                            imageCount === 2 && "aspect-square",
+                                            imageCount >= 3 && index === 0 && "row-span-2 aspect-[2/3]",
+                                            imageCount >= 3 && index > 0 && "aspect-square"
                                         )}
                                         onClick={() => setViewingImage(image.url)}
                                     >
                                         <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
-                                        {isThird && post.images.length > 3 && (
+                                        {index === 2 && imageCount > 3 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                +{post.images.length - 3}
+                                                +{imageCount - 3}
                                             </div>
                                         )}
                                     </div>
                                 </DialogTrigger>
-                            );
-                        })}
+                            ))}
+                        </div>
                     </div>
                 )}
                 <div className="px-4 pb-4 flex items-center justify-between">
@@ -623,6 +629,9 @@ const MessagesView = ({ userData, onBack, isMobile, onSwitchToFeed }: { userData
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={onBack}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
