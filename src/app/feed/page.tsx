@@ -185,7 +185,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: string, setActiveView: (view: 'feed' | 'messages' | 'saves') => void }) => {
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: 'feed' | 'messages' | 'saves', setActiveView: (view: 'feed' | 'messages' | 'saves') => void }) => {
     const router = useRouter();
     return (
         <div className="p-6 flex flex-col h-full">
@@ -222,7 +222,7 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
@@ -235,10 +235,10 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
@@ -1110,7 +1110,7 @@ export default function FeedPage() {
                             </div>
                         </main>
                         {/* Right Column */}
-                        <aside className="p-6 hidden lg:block space-y-6 w-96">
+                        <aside className="p-6 hidden lg:block space-y-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Trending</CardTitle>
@@ -1184,5 +1184,6 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
 
 
