@@ -223,7 +223,11 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter }: { us
                 </CollapsibleContent>
             </Collapsible>
             <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Send /> Direct</Button>
+            <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base">
+                <Link href="/message">
+                    <MessageSquare /> Messages
+                </Link>
+            </Button>
             <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
         </nav>
     </div>
