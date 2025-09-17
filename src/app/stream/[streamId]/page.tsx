@@ -59,7 +59,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "./ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -742,7 +742,7 @@ export default function StreamPage() {
             <aside className="w-full lg:w-96 flex-col bg-black/90 lg:border-l lg:border-white/10 hidden lg:flex">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center">
                     <h3 className="font-bold text-lg">Live Chat</h3>
-                    <div className="flex items-center gap-1">
+                     <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
                             <List />
                         </Button>
@@ -757,7 +757,7 @@ export default function StreamPage() {
                                 <>
                                     <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <AlertDialog>
+                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
                                                 <StopCircle className="mr-2 h-4 w-4" />
