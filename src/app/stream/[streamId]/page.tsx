@@ -659,21 +659,21 @@ export default function StreamPage() {
                             ) : null
                         ))}
                     </ScrollArea>
-
-                    <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
+                    
+                     <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
                             <List />
                         </Button>
-                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
+                        <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
                             <Share2 />
                         </Button>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
+                                 <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
                                     <MoreVertical />
                                 </Button>
                             </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end">
                                 {isAdminView ? (
                                     <>
                                         <DropdownMenuLabel>Admin Controls</DropdownMenuLabel>
@@ -896,3 +896,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
