@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -86,12 +87,10 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
             setMedia(postToEdit.images?.map((img: any) => ({ type: 'image', url: img.url })) || []);
             setLocation(postToEdit.location || null);
             setTaggedProduct(postToEdit.taggedProduct || null);
-        } else if (replyTo) {
-            setContent(`@${replyTo} `);
         } else {
              resetForm();
         }
-    }, [postToEdit, replyTo]);
+    }, [postToEdit]);
     
     useEffect(() => {
         if (userData?.role === 'seller' || userData?.role === 'admin') {
@@ -199,6 +198,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         }
     };
 
+    const handleSubmit = async () => {
+        await onPost({ content, media, location, taggedProduct });
+        if (!postToEdit) { // Only reset if it's a new post, not an edit
+            resetForm();
+        }
+    };
 
     const handleGetLocation = () => {
         setLocation("New York, USA");
@@ -356,7 +361,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     )}
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
-                        onClick={() => onPost({ content, media, location, taggedProduct })}
+                        onClick={handleSubmit}
                         disabled={!content.trim() || isSubmitting}
                     >
                         {isSubmitting ? (

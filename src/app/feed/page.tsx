@@ -345,15 +345,6 @@ export default function FeedPage() {
         }
     };
   }, [isMounted, setupFeedListener]);
-  
-  if (!isMounted || authLoading) {
-    return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
-  }
-  
-  if (!user || !userData) {
-    router.push('/');
-    return null;
-  }
 
   const handlePostSubmit = async (postData: PostData) => {
     if (!postData.content.trim() || !user || !userData) return;
@@ -363,6 +354,7 @@ export default function FeedPage() {
     // Detach listener
     if (unsubscribeRef.current) {
         unsubscribeRef.current();
+        unsubscribeRef.current = null;
     }
 
     try {
@@ -402,6 +394,7 @@ export default function FeedPage() {
             dataToSave.lastEditedAt = serverTimestamp();
             await updateDoc(postRef, dataToSave);
             toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+            setPostToEdit(null); // Clear the form
         } else {
             await addDoc(collection(db, "posts"), {
                 ...dataToSave,
@@ -419,16 +412,23 @@ export default function FeedPage() {
         toast({
             variant: 'destructive',
             title: "Submission Error",
-            description: `Failed to save your post. Firestore security rules might have rejected the write. (Error: ${error.message})`
+            description: `A database error occurred. If you are trying to edit, this may be due to Firestore security rules. (Error: ${error.message})`
         });
     } finally {
         setIsFormSubmitting(false);
-        setPostToEdit(null);
         // Re-attach listener
         setupFeedListener();
     }
   };
-
+  
+  if (!isMounted || authLoading) {
+    return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
+  }
+  
+  if (!user || !userData) {
+    router.push('/');
+    return null;
+  }
 
   const handleShare = (postId: string) => {
     const link = `${window.location.origin}/post/${postId}`;
@@ -817,5 +817,6 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
