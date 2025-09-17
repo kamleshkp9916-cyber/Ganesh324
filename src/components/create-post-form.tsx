@@ -36,7 +36,7 @@ interface CreatePostFormProps {
   replyTo?: string | null;
   onClearReply?: () => void;
   postToEdit?: any | null;
-  onFinishEditing?: () => void;
+  onFinishEditing: () => void;
   onPost: (data: PostData) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -199,9 +199,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
 
     const handleSubmit = async () => {
         await onPost({ content, media, location, taggedProduct });
-        if (!postToEdit) { // Only reset for new posts, edit reset is handled by parent
-             resetForm();
-        }
+        resetForm();
     };
 
     const handleGetLocation = () => {
