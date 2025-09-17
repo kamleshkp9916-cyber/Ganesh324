@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -246,7 +245,6 @@ export default function FeedPage() {
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
-  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
 
   useEffect(() => {
@@ -338,34 +336,32 @@ export default function FeedPage() {
             })
             setIsLoadingFeed(false);
         });
-        unsubscribeRef.current = unsubscribe;
+        return unsubscribe;
     }, [toast]);
 
   useEffect(() => {
     if (!isMounted) return;
 
     setIsLoadingFeed(true);
-    setupFeedListener();
+    const unsubscribe = setupFeedListener();
 
     return () => {
-        if (unsubscribeRef.current) {
-            unsubscribeRef.current();
+        if (unsubscribe) {
+            unsubscribe();
         }
     };
   }, [isMounted, setupFeedListener]);
 
-  const handlePostSubmit = async (postData: PostData) => {
-    if (!postData.content.trim() || !user || !userData) return;
-
-    if (postToEdit) { // This is an edit
-        if (unsubscribeRef.current) {
-            unsubscribeRef.current(); // Detach listener
-        }
-
-        const db = getFirestoreDb();
-        const postRef = doc(db, 'posts', postToEdit.id);
-        
-        try {
+ const handlePostSubmit = async (postData: PostData) => {
+    if ((!postData.content.trim() && (!postData.media || postData.media.length === 0)) || !user || !userData) return;
+    
+    setIsFormSubmitting(true);
+    
+    try {
+        if (postToEdit) { // This is an edit
+            const db = getFirestoreDb();
+            const postRef = doc(db, 'posts', postToEdit.id);
+            
             const dataToUpdate: any = {
                 content: postData.content,
                 location: postData.location,
@@ -374,22 +370,9 @@ export default function FeedPage() {
             };
             
             await updateDoc(postRef, dataToUpdate);
-            toast({ title: "Post Updated!", description: "Done successful. Your changes have been saved." });
-            setPostToEdit(null); // This will clear the form via useEffect in CreatePostForm
-        } catch (error: any) {
-            console.error("Error updating post:", error);
-            toast({
-                variant: 'destructive',
-                title: "Update Error",
-                description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
-            });
-        } finally {
-            setupFeedListener(); // Re-attach listener
-        }
-
-    } else { // This is a new post
-        setIsFormSubmitting(true);
-        try {
+            toast({ title: "Post Updated!", description: "Your changes have been saved." });
+            onFinishEditing(); // This will clear the form via the prop
+        } else { // This is a new post
             const db = getFirestoreDb();
             const dataToSave: any = {
                 content: postData.content,
@@ -425,17 +408,16 @@ export default function FeedPage() {
             await addDoc(collection(db, "posts"), dataToSave);
             
             toast({ title: "Post Created!", description: "Your post has been successfully shared." });
-
-        } catch (error: any) {
-            console.error("Error creating post:", error);
-            toast({
-                variant: 'destructive',
-                title: "Submission Error",
-                description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
-            });
-        } finally {
-            setIsFormSubmitting(false);
         }
+    } catch (error: any) {
+        console.error("Error submitting post:", error);
+        toast({
+            variant: 'destructive',
+            title: "Submission Error",
+            description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
+        });
+    } finally {
+        setIsFormSubmitting(false);
     }
   };
   
@@ -471,7 +453,7 @@ export default function FeedPage() {
       setPostToEdit(post);
   };
   
-  const handleFinishEditing = () => {
+  const onFinishEditing = () => {
       setPostToEdit(null);
   };
 
@@ -824,7 +806,8 @@ export default function FeedPage() {
                         <CreatePostForm
                             onPost={handlePostSubmit}
                             postToEdit={postToEdit}
-                            onFinishEditing={handleFinishEditing}
+                            onFinishEditing={onFinishEditing}
+                            isSubmitting={isFormSubmitting}
                         />
                     </div>
                 </div>
@@ -834,4 +817,3 @@ export default function FeedPage() {
     </>
   );
 }
-

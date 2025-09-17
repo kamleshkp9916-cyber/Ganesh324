@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from '@/hooks/use-auth';
 import React, { useEffect, useState, forwardRef, useRef, useCallback } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
@@ -38,6 +38,7 @@ interface CreatePostFormProps {
   postToEdit?: any | null;
   onFinishEditing?: () => void;
   onPost: (data: PostData) => Promise<void>;
+  isSubmitting: boolean;
 }
 
 const emojis = [
@@ -52,7 +53,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost, isSubmitting }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
@@ -60,7 +61,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [location, setLocation] = useState<string | null>(null);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     
     // State for tagging suggestions
     const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
@@ -198,14 +198,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        if (postToEdit) { // Edit logic
-            await onPost({ content, media, location, taggedProduct });
-            // The onFinishEditing prop, called from the parent, will handle resetting the form.
-        } else { // New post logic
-            setIsSubmitting(true);
-            await onPost({ content, media, location, taggedProduct });
-            setIsSubmitting(false);
-            resetForm();
+        await onPost({ content, media, location, taggedProduct });
+        if (!postToEdit) { // Only reset for new posts, edit reset is handled by parent
+             resetForm();
         }
     };
 
@@ -366,9 +361,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handleSubmit}
-                        disabled={(!content.trim() && media.length === 0) || (isSubmitting && !postToEdit)}
+                        disabled={(!content.trim() && media.length === 0) || (isSubmitting)}
                     >
-                        {isSubmitting && !postToEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                         {postToEdit && <FileEdit className="mr-2 h-4 w-4" />}
                         {postToEdit ? 'Save Changes' : 'Send'}
                     </Button>
@@ -378,5 +373,3 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
-
-    
