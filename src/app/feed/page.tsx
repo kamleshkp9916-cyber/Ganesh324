@@ -64,7 +64,7 @@ import {
   FileEdit,
   ArrowLeft,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -237,8 +237,12 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMes
                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
                     <MessageSquare /> Messages
                 </Button>
-                <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
-                <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
+                <Link href="/wishlist" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                    <Save /> Saves
+                </Link>
+                <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                    <Settings /> Settings
+                </Link>
             </nav>
         </div>
     );
