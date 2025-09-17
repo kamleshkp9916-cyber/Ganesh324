@@ -502,7 +502,7 @@ export default function FeedPage() {
     });
     return Object.entries(hashtagCounts)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
+        .slice(0, 10)
         .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
@@ -696,7 +696,7 @@ export default function FeedPage() {
   };
   
   return (
-    <>
+    <Dialog>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -851,6 +851,6 @@ export default function FeedPage() {
             </div>
         </div>
     </div>
-    </>
+    </Dialog>
   );
 }
