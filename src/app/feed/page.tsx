@@ -122,6 +122,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getMessages, sendMessage, getConversations, Message as ChatMessageData, Conversation } from '@/ai/flows/chat-flow';
 import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 
 
 const liveSellers = [
@@ -184,11 +185,11 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMessagesView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setMessagesView: (show: boolean) => void }) => {
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setActiveView: (view: 'feed' | 'messages' | 'saves') => void }) => {
     const router = useRouter();
     return (
         <div className="p-6 flex flex-col h-full">
-            <div className="flex items-center justify-between mb-8">
+             <div className="flex items-center gap-2 mb-8">
                  <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
                     <ArrowLeft />
                 </Button>
@@ -221,25 +222,25 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMes
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(false)}>
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => { setFeedFilter('global'); setMessagesView(false); }}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => { setFeedFilter('global'); setActiveView('feed'); }}>
                             <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => { setFeedFilter('following'); setMessagesView(false); }}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => { setFeedFilter('following'); setActiveView('feed'); }}>
                             <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Link href="/wishlist" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('saves')}>
                     <Save /> Saves
-                </Link>
+                 </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
                     <Settings /> Settings
                 </Link>
@@ -293,6 +294,8 @@ const FeedPost = ({
     onEdit, 
     onShare,
     onReport,
+    onSaveToggle,
+    isSaved,
     currentUser,
 } : {
     post: any,
@@ -300,6 +303,8 @@ const FeedPost = ({
     onEdit: (post: any) => void,
     onShare: (postId: string) => void,
     onReport: () => void,
+    onSaveToggle: (post: any) => void,
+    isSaved: boolean,
     currentUser: User | null
 }) => {
     
@@ -392,7 +397,9 @@ const FeedPost = ({
                                     <DropdownMenuSeparator />
                                 </>
                             )}
-                            <DropdownMenuItem><Save className="mr-2 h-4 w-4" /> Save Post</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSaveToggle(post)}>
+                                <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave Post' : 'Save Post'}
+                            </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
                             <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -514,7 +521,7 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
     );
 }
 
-const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBack: () => void, isMobile: boolean }) => {
+const MessagesView = ({ userData, onBack, isMobile, onSwitchToFeed }: { userData: UserData, onBack: () => void, isMobile: boolean, onSwitchToFeed: () => void }) => {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<ChatMessageData[]>([]);
@@ -617,6 +624,9 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={onSwitchToFeed}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -721,6 +731,7 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
 }
 
 export default function FeedPage() {
+  type ActiveView = 'feed' | 'messages' | 'saves';
   const router = useRouter();
   const { user, userData, loading: authLoading } = useAuth();
   const isMobile = useIsMobile();
@@ -736,7 +747,8 @@ export default function FeedPage() {
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
-  const [isMessagesView, setIsMessagesView] = useState(false);
+  const [activeView, setActiveView] = useState<ActiveView>('feed');
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
 
   const loadFollowData = useCallback(async () => {
     if (user) {
@@ -744,19 +756,39 @@ export default function FeedPage() {
       setFollowingIds(followingUsers.map(u => u.uid));
     }
   }, [user]);
+  
+  const loadSavedPosts = useCallback(() => {
+    setSavedPosts(getSavedPosts());
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
     loadFollowData();
-  }, [loadFollowData]);
+    loadSavedPosts();
+    
+    const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'streamcart_saved_posts') {
+            loadSavedPosts();
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    }
+  }, [loadFollowData, loadSavedPosts]);
 
   const filteredFeed = useMemo(() => {
-    let currentFeed = feed;
-
-    if (feedFilter === 'following' && user) {
-        currentFeed = currentFeed.filter(post => 
-            followingIds.includes(post.sellerId) || post.sellerId === user.uid
-        );
+    let currentFeed: any[] = [];
+    if (activeView === 'feed') {
+        currentFeed = feed;
+        if (feedFilter === 'following' && user) {
+            currentFeed = currentFeed.filter(post => 
+                followingIds.includes(post.sellerId) || post.sellerId === user.uid
+            );
+        }
+    } else if (activeView === 'saves') {
+        currentFeed = savedPosts;
     }
     
     if (!searchTerm) return currentFeed;
@@ -765,7 +797,7 @@ export default function FeedPage() {
         item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, feed, feedFilter, followingIds, user]);
+  }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -977,6 +1009,11 @@ export default function FeedPage() {
       }
   };
   
+  const handleSaveToggle = (post: any) => {
+    toggleSavePost(post);
+    loadSavedPosts(); // Re-load saved posts to update the state
+  };
+  
   return (
     <Dialog>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
@@ -1012,122 +1049,128 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:flex">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setMessagesView={setIsMessagesView} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setActiveView={setActiveView} />
           </aside>
-
-          {isMessagesView ? (
-              <MessagesView userData={userData} onBack={() => setIsMessagesView(false)} isMobile={isMobile} />
-          ) : (
-              <>
-                {/* Main Content */}
-                <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-                    <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="lg:hidden">
-                                        <Menu className="h-6 w-6" />
-                                    </Button>
-                                </SheetTrigger>
-                                <SheetContent side="left" className="p-0">
-                                    <SheetHeader className="sr-only">
-                                        <SheetTitle>Sidebar Menu</SheetTitle>
-                                    </SheetHeader>
-                                    <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setMessagesView={setIsMessagesView} />
-                                </SheetContent>
-                            </Sheet>
-                            <div className="relative w-full">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search feed..."
-                                    className="bg-transparent rounded-full pl-10"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
-                        <section>
-                            <div className="divide-y divide-border/20">
-                                {isLoadingFeed ? (
-                                    <>
-                                        <div className="py-8"><FeedPostSkeleton /></div>
-                                        <div className="py-8"><FeedPostSkeleton /></div>
-                                    </>
-                                ) : (
-                                    filteredFeed.map(post => (
-                                        <FeedPost 
-                                            key={post.id}
-                                            post={post}
-                                            currentUser={user}
-                                            onDelete={handleDeletePost}
-                                            onEdit={handleEditPost}
-                                            onShare={handleShare}
-                                            onReport={() => setIsReportDialogOpen(true)}
-                                        />
-                                    ))
-                                )}
-                            </div>
-                        </section>
+          
+          <div className="flex h-screen">
+                {activeView === 'messages' ? (
+                    <div className="w-full h-full">
+                      <MessagesView userData={userData} onBack={() => setActiveView('feed')} isMobile={isMobile} onSwitchToFeed={() => setActiveView('feed')} />
                     </div>
-                </main>
-                {/* Right Column */}
-                <aside className="p-6 hidden lg:block space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Trending</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {trendingTopics.map((topic, index) => (
-                                    <div key={index}>
-                                        <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
-                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                ) : (
+                    <div className="flex flex-1 min-w-0">
+                        {/* Main Content */}
+                        <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+                           <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
+                                <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="lg:hidden">
+                                            <Menu className="h-6 w-6" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="p-0">
+                                        <SheetHeader className="sr-only">
+                                            <SheetTitle>Sidebar Menu</SheetTitle>
+                                        </SheetHeader>
+                                        <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setActiveView={setActiveView} />
+                                    </SheetContent>
+                                </Sheet>
+                                <div className="relative w-full">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search feed..."
+                                        className="bg-transparent rounded-full pl-10"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
+                                <section>
+                                    <div className="divide-y divide-border/20">
+                                        {isLoadingFeed ? (
+                                            <>
+                                                <div className="py-8"><FeedPostSkeleton /></div>
+                                                <div className="py-8"><FeedPostSkeleton /></div>
+                                            </>
+                                        ) : (
+                                            filteredFeed.map(post => (
+                                                <FeedPost 
+                                                    key={post.id}
+                                                    post={post}
+                                                    currentUser={user}
+                                                    onDelete={handleDeletePost}
+                                                    onEdit={handleEditPost}
+                                                    onShare={handleShare}
+                                                    onReport={() => setIsReportDialogOpen(true)}
+                                                    onSaveToggle={handleSaveToggle}
+                                                    isSaved={isPostSaved(post.id)}
+                                                />
+                                            ))
+                                        )}
                                     </div>
-                                ))}
+                                </section>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </main>
+                        {/* Right Column */}
+                        <aside className="p-6 hidden lg:block space-y-6 w-96">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Trending</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        {trendingTopics.map((topic, index) => (
+                                            <div key={index}>
+                                                <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
+                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Trending Streams</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {trendingStreams.map((stream) => (
-                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="relative">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={stream.avatarUrl}/>
-                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                <RadioTower className="h-2 w-2 text-white"/>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Trending Streams</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        {trendingStreams.map((stream) => (
+                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative">
+                                                        <Avatar className="h-10 w-10">
+                                                            <AvatarImage src={stream.avatarUrl}/>
+                                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                        <RadioTower className="h-2 w-2 text-white"/>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <Users className="h-3 w-3"/>
-                                            {stream.viewers}
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </aside>
-            </>
-          )}
+                                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <Users className="h-3 w-3"/>
+                                                    {stream.viewers}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </aside>
+                    </div>
+                )}
+          </div>
         </div>
-        {!isMessagesView && (
+        {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-                <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                    <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
+                <div className="lg:grid lg:grid-cols-[18rem_1fr_24rem]">
+                    <div className="lg:col-start-2 w-full lg:w-[calc(100%-24rem)] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
                                 onPost={handlePostSubmit}
@@ -1144,3 +1187,4 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
