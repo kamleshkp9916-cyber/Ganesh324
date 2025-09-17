@@ -172,13 +172,11 @@ export default function WalletPage() {
     <div className="min-h-screen bg-black text-foreground">
       <header className="p-4 sm:p-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
-           </Button>
-          <Logo className="h-8 w-auto hidden sm:block" />
-          <h1 className="text-xl font-bold">Wallet</h1>
         </div>
         <div className="flex items-center gap-4">
+             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => router.push('/live-selling')}>
+              <ArrowLeft className="h-5 w-5" />
+           </Button>
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative">
