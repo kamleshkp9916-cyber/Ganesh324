@@ -185,7 +185,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setActiveView: (view: 'feed' | 'messages' | 'saves') => void }) => {
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: string, setActiveView: (view: 'feed' | 'messages' | 'saves') => void }) => {
     const router = useRouter();
     return (
         <div className="p-6 flex flex-col h-full">
@@ -222,23 +222,23 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setAct
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('feed')}>
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => { setFeedFilter('global'); setActiveView('feed'); }}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global' && activeView === 'feed'} onClick={() => { setFeedFilter('global'); setActiveView('feed'); }}>
                             <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => { setFeedFilter('following'); setActiveView('feed'); }}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following' && activeView === 'feed'} onClick={() => { setFeedFilter('following'); setActiveView('feed'); }}>
                             <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('messages')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setActiveView('saves')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
@@ -624,9 +624,6 @@ const MessagesView = ({ userData, onBack, isMobile, onSwitchToFeed }: { userData
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={onSwitchToFeed}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -1049,7 +1046,7 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:flex">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setActiveView={setActiveView} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
           </aside>
           
           <div className="flex h-screen">
@@ -1072,7 +1069,7 @@ export default function FeedPage() {
                                         <SheetHeader className="sr-only">
                                             <SheetTitle>Sidebar Menu</SheetTitle>
                                         </SheetHeader>
-                                        <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} setActiveView={setActiveView} />
+                                        <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
                                     </SheetContent>
                                 </Sheet>
                                 <div className="relative w-full">
@@ -1187,4 +1184,5 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
 
