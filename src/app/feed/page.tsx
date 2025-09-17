@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -283,7 +284,7 @@ export default function FeedPage() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map(match => match[1]);
+        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map((match: any) => match[1]);
         hashtags.forEach((tag: string) => {
             if (tag) {
                 hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
@@ -319,11 +320,11 @@ export default function FeedPage() {
                 content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings. #NFT #color #mint #nftdrop #nftnews",
                 tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
                 images: [
-                    { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
-                    { id: 2, url: "https://images.unsplash.com/photo-1621419790382-026d3d9547a4?w=800&q=80" },
-                    { id: 3, url: "https://images.unsplash.com/photo-1617791160536-595cfb24464a?w=800&q=80" },
-                    { id: 4, url: "https://images.unsplash.com/photo-1614088484193-a4e9b89791f1?w=800&q=80" },
-                    { id: 5, url: "https://images.unsplash.com/photo-1632516643720-e7f5d7d6086f?w=800&q=80" },
+                    { id: 1, url: "https://picsum.photos/seed/1/800/600" },
+                    { id: 2, url: "https://picsum.photos/seed/2/800/600" },
+                    { id: 3, url: "https://picsum.photos/seed/3/800/600" },
+                    { id: 4, url: "https://picsum.photos/seed/4/800/600" },
+                    { id: 5, url: "https://picsum.photos/seed/5/800/600" },
                 ],
                 likes: 1200,
                 comments: 45,
@@ -369,7 +370,7 @@ export default function FeedPage() {
             const dataToUpdate: any = {
                 content: postData.content,
                 location: postData.location,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map(match => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
             };
             
@@ -381,7 +382,7 @@ export default function FeedPage() {
             const dataToSave: any = {
                 content: postData.content,
                 location: postData.location,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map(match => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 taggedProduct: postData.taggedProduct ? {
                     id: postData.taggedProduct.id,
                     name: postData.taggedProduct.name,
