@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -222,7 +221,7 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
+                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
@@ -235,10 +234,10 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
@@ -1088,7 +1087,7 @@ export default function FeedPage() {
                                     />
                                 </div>
                             </div>
-                            <div className="flex-grow overflow-y-auto thin-scrollbar pb-32">
+                            <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                 <section>
                                     <div className="divide-y divide-border/20">
                                         {isLoadingFeed ? (
