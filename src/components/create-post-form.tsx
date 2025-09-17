@@ -90,6 +90,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else {
              resetForm();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [postToEdit]);
     
     useEffect(() => {
@@ -199,9 +200,13 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        await onPost({ content, media, location, taggedProduct });
-        if (!postToEdit) { // Only reset if it's a new post, not an edit
+        // Optimistically reset form if it's an edit
+        if (postToEdit) {
             resetForm();
+        }
+        await onPost({ content, media, location, taggedProduct });
+        if (!postToEdit) {
+             resetForm();
         }
     };
 
@@ -362,7 +367,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handleSubmit}
-                        disabled={!content.trim() || isSubmitting}
+                        disabled={!content.trim() && media.length === 0}
                     >
                         {isSubmitting ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin"/>

@@ -245,7 +245,7 @@ export default function FeedPage() {
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
 
@@ -349,11 +349,13 @@ export default function FeedPage() {
   const handlePostSubmit = async (postData: PostData) => {
     if (!postData.content.trim() || !user || !userData) return;
 
-    setIsFormSubmitting(true);
+    setIsSubmitting(true);
+    
+    // Detach the listener
     if (unsubscribeRef.current) {
-      unsubscribeRef.current();
+        unsubscribeRef.current();
     }
-
+    
     try {
         const db = getFirestoreDb();
         const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
@@ -412,8 +414,9 @@ export default function FeedPage() {
             description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
         });
     } finally {
-        setIsFormSubmitting(false);
-        setupFeedListener(); // Re-attach listener
+        setIsSubmitting(false);
+        // Re-attach the listener
+        setupFeedListener();
     }
   };
   
@@ -800,7 +803,7 @@ export default function FeedPage() {
                  <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                         <CreatePostForm
-                            isSubmitting={isFormSubmitting}
+                            isSubmitting={isSubmitting}
                             onPost={handlePostSubmit}
                             postToEdit={postToEdit}
                             onFinishEditing={handleFinishEditing}
@@ -813,6 +816,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
