@@ -300,9 +300,16 @@ const FeedPost = ({
             })
             .catch(() => toast({ variant: 'destructive', title: 'Download failed' }));
     };
+    
+    const contentWithoutHashtags = useMemo(() => {
+        if (!post.content) return '';
+        // This regex removes hashtags from the text.
+        return post.content.replace(/#(\w+)/g, '').trim();
+    }, [post.content]);
+
 
     return (
-        <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
+        <Dialog>
             <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                 <DialogHeader className="sr-only">
                     <DialogTitle>Post Image</DialogTitle>
@@ -372,7 +379,7 @@ const FeedPost = ({
                     </DropdownMenu>
                 </div>
                 <div className="p-4">
-                    <p className="text-sm text-muted-foreground">{post.content}</p>
+                    <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                         <p className="text-sm text-primary mt-2">
                             {post.tags.map((tag: string, index: number) => (
@@ -691,10 +698,10 @@ export default function FeedPage() {
   return (
     <>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <AlertDialogContent aria-describedby="report-post-description">
+        <AlertDialogContent>
             <AlertDialogHeader>
             <AlertDialogTitle>Report Post</AlertDialogTitle>
-            <AlertDialogDescription id="report-post-description">
+            <AlertDialogDescription>
                 Please select a reason for reporting this post. Your feedback is important to us.
             </AlertDialogDescription>
             </AlertDialogHeader>
