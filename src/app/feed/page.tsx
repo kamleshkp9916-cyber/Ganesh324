@@ -350,11 +350,8 @@ export default function FeedPage() {
     if (!postData.content.trim() || !user || !userData) return;
 
     setIsFormSubmitting(true);
-    
-    // Detach listener
     if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
+      unsubscribeRef.current();
     }
 
     try {
@@ -393,7 +390,7 @@ export default function FeedPage() {
             const postRef = doc(db, 'posts', postToEdit.id);
             dataToSave.lastEditedAt = serverTimestamp();
             await updateDoc(postRef, dataToSave);
-            toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+            toast({ title: "Post Updated!", description: "Done successful. Your changes have been saved." });
             setPostToEdit(null); // Clear the form
         } else {
             await addDoc(collection(db, "posts"), {
@@ -412,12 +409,11 @@ export default function FeedPage() {
         toast({
             variant: 'destructive',
             title: "Submission Error",
-            description: `A database error occurred. If you are trying to edit, this may be due to Firestore security rules. (Error: ${error.message})`
+            description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
         });
     } finally {
         setIsFormSubmitting(false);
-        // Re-attach listener
-        setupFeedListener();
+        setupFeedListener(); // Re-attach listener
     }
   };
   
@@ -817,6 +813,7 @@ export default function FeedPage() {
     </>
   );
 }
+
 
 
 
