@@ -375,6 +375,7 @@ export default function FeedPage() {
                 timestamp: serverTimestamp(),
                 likes: 0,
                 replies: 0,
+                images: [],
             };
 
             const mediaUploads = await Promise.all(
@@ -388,7 +389,7 @@ export default function FeedPage() {
                 })
             );
             
-            dataToSave.images = mediaUploads.filter((m): m is { type: 'image', url: string } => m?.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+            dataToSave.images = mediaUploads.filter((m): m is { type: 'image', url: string } => !!m && m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
 
             await addDoc(collection(db, "posts"), dataToSave);
             
@@ -453,9 +454,14 @@ export default function FeedPage() {
           if (post.images && post.images.length > 0) {
               const storage = getFirebaseStorage();
               const deletePromises = post.images.map((image: {url: string}) => {
-                  if (image.url.includes('firebasestorage.googleapis.com')) {
-                      const mediaRef = storageRef(storage, image.url);
-                      return deleteObject(mediaRef);
+                  if (image.url && image.url.includes('firebasestorage.googleapis.com')) {
+                      try {
+                          const mediaRef = storageRef(storage, image.url);
+                          return deleteObject(mediaRef);
+                      } catch (e) {
+                          console.warn("Could not create storage ref for deletion. URL might be invalid:", image.url, e);
+                          return Promise.resolve();
+                      }
                   }
                   return Promise.resolve();
               });
@@ -687,26 +693,33 @@ export default function FeedPage() {
                                           )}
                                       </div>
                                        {post.images && post.images.length > 0 && (
-                                           <Dialog>
-                                               <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
-                                                  <DialogTrigger asChild>
-                                                    <div className="col-span-2 row-span-2 rounded-l-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[0].url)}><Image src={post.images[0].url} alt="Post image 1" width={400} height={400} className="w-full h-full object-cover"/></div>
-                                                  </DialogTrigger>
-                                                   <DialogTrigger asChild>
-                                                    <div className="col-span-1 row-span-1 rounded-tr-lg overflow-hidden cursor-pointer" onClick={() => setViewingImage(post.images[1]?.url)}><Image src={post.images[1]?.url} alt="Post image 2" width={200} height={200} className="w-full h-full object-cover"/></div>
-                                                   </DialogTrigger>
-                                                   <DialogTrigger asChild>
-                                                    <div className="col-span-1 row-span-1 rounded-br-lg overflow-hidden relative cursor-pointer" onClick={() => setViewingImage(post.images[2]?.url)}>
-                                                        <Image src={post.images[2]?.url} alt="Post image 3" width={200} height={200} className="w-full h-full object-cover"/>
-                                                        {post.images.length > 3 && (
-                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                                +{post.images.length - 3}
+                                            <div className="grid grid-cols-3 grid-rows-2 gap-1 px-4 h-96">
+                                                {post.images.slice(0, 3).map((image: any, index: number) => {
+                                                    const isFirst = index === 0;
+                                                    const isSecond = index === 1;
+                                                    const isThird = index === 2;
+                                                    return (
+                                                        <DialogTrigger key={image.id || index} asChild>
+                                                            <div
+                                                                className={cn(
+                                                                    "rounded-lg overflow-hidden cursor-pointer relative group",
+                                                                    isFirst && "col-span-2 row-span-2",
+                                                                    isSecond && "col-span-1 row-span-1 rounded-tr-lg",
+                                                                    isThird && "col-span-1 row-span-1 rounded-br-lg"
+                                                                )}
+                                                                onClick={() => setViewingImage(image.url)}
+                                                            >
+                                                                <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
+                                                                {isThird && post.images.length > 3 && (
+                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                                                        +{post.images.length - 3}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                   </DialogTrigger>
-                                               </div>
-                                           </Dialog>
+                                                        </DialogTrigger>
+                                                    );
+                                                })}
+                                            </div>
                                        )}
                                       <div className="px-4 pb-4 flex items-center justify-between">
                                           <div className="flex items-center gap-2">
