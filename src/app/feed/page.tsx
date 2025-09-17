@@ -355,61 +355,62 @@ const FeedPost = ({
                     </div>
                 </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
-                <div className="p-4 flex items-center justify-between">
-                    <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={post.avatarUrl} />
-                            <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <div className="font-semibold group-hover:underline flex items-center gap-2">
-                              <span>{post.sellerName}</span>
-                              <span className="text-xs text-muted-foreground font-normal">
-                                <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                              </span>
-                            </div>
-                        </div>
-                    </Link>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {currentUser && currentUser.uid === post.sellerId && (
-                                <>
-                                    <DropdownMenuItem onSelect={() => onEdit(post)}>
-                                        <Edit className="mr-2 h-4 w-4" /> Edit Post
-                                    </DropdownMenuItem>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                <Trash2 className="mr-2 h-4 w-4" /> Delete Post
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-
-                                    <DropdownMenuSeparator />
-                                </>
-                            )}
-                            <DropdownMenuItem onClick={() => onSaveToggle(post)}>
-                                <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave Post' : 'Save Post'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
                 <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={post.avatarUrl} />
+                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <div className="font-semibold group-hover:underline flex items-center gap-2">
+                                  <span>{post.sellerName}</span>
+                                  <span className="text-xs text-muted-foreground font-normal">
+                                    <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                                  </span>
+                                </div>
+                            </div>
+                        </Link>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {currentUser && currentUser.uid === post.sellerId && (
+                                    <>
+                                        <DropdownMenuItem onSelect={() => onEdit(post)}>
+                                            <Edit className="mr-2 h-4 w-4" /> Edit Post
+                                        </DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+
+                                        <DropdownMenuSeparator />
+                                    </>
+                                )}
+                                <DropdownMenuItem onClick={() => onSaveToggle(post)}>
+                                    <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave Post' : 'Save Post'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
                     {contentWithoutHashtags && <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>}
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                         <p className="text-sm text-primary mt-2">
@@ -419,6 +420,7 @@ const FeedPost = ({
                         </p>
                     )}
                 </div>
+
                 {imageCount > 0 && (
                      <div className="px-4">
                         <div className={cn(
@@ -452,7 +454,7 @@ const FeedPost = ({
                         </div>
                     </div>
                 )}
-                <div className="px-4 pb-4 flex items-center justify-between">
+                <div className="px-4 pb-4 mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" className="flex items-center gap-1.5">
                             <ArrowUp className="w-4 h-4"/>
