@@ -371,7 +371,7 @@ export default function FeedPage() {
             
             await updateDoc(postRef, dataToUpdate);
             toast({ title: "Post Updated!", description: "Your changes have been saved." });
-            onFinishEditing(); // This will clear the form via the prop
+            
         } else { // This is a new post
             const db = getFirestoreDb();
             const dataToSave: any = {
@@ -418,6 +418,7 @@ export default function FeedPage() {
         });
     } finally {
         setIsFormSubmitting(false);
+        onFinishEditing();
     }
   };
   
