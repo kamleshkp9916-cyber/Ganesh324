@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -301,9 +302,8 @@ const FeedPost = ({
     };
 
     return (
-        <>
         <Dialog open={!!viewingImage} onOpenChange={(open) => !open && setViewingImage(null)}>
-            <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none">
+            <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                 <DialogHeader className="sr-only">
                     <DialogTitle>Post Image</DialogTitle>
                 </DialogHeader>
@@ -319,21 +319,20 @@ const FeedPost = ({
                     </Button>
                 </div>
             </DialogContent>
-        </Dialog>
-        <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
-            <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
+            <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
+                <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4 flex items-center justify-between">
                     <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={post.avatarUrl} />
-                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-semibold group-hover:underline">{post.sellerName}</p>
-                        <p className="text-xs text-muted-foreground">
-                            <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                        </p>
-                    </div>
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={post.avatarUrl} />
+                            <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold group-hover:underline">{post.sellerName}</p>
+                            <p className="text-xs text-muted-foreground">
+                                <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                            </p>
+                        </div>
                     </Link>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -428,9 +427,9 @@ const FeedPost = ({
                         <Share2 />
                     </Button>
                 </div>
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
-        </Card>
-        </>
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
+            </Card>
+        </Dialog>
     )
 }
 
@@ -692,10 +691,10 @@ export default function FeedPage() {
   return (
     <>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent aria-describedby="report-post-description">
             <AlertDialogHeader>
             <AlertDialogTitle>Report Post</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription id="report-post-description">
                 Please select a reason for reporting this post. Your feedback is important to us.
             </AlertDialogDescription>
             </AlertDialogHeader>
@@ -737,6 +736,9 @@ export default function FeedPage() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0">
+                             <SheetHeader className="sr-only">
+                                <SheetTitle>Sidebar Menu</SheetTitle>
+                            </SheetHeader>
                             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} />
                         </SheetContent>
                     </Sheet>
