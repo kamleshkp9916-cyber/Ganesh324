@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -70,7 +71,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { useAuthActions } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import {
@@ -259,8 +260,10 @@ export default function FeedPage() {
   const filteredFeed = useMemo(() => {
     let currentFeed = feed;
 
-    if (feedFilter === 'following') {
-        currentFeed = currentFeed.filter(post => followingIds.includes(post.sellerId));
+    if (feedFilter === 'following' && user) {
+        currentFeed = currentFeed.filter(post => 
+            followingIds.includes(post.sellerId) || post.sellerId === user.uid
+        );
     }
     
     if (!searchTerm) return currentFeed;
@@ -269,7 +272,7 @@ export default function FeedPage() {
         item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, feed, feedFilter, followingIds]);
+  }, [searchTerm, feed, feedFilter, followingIds, user]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -417,8 +420,7 @@ export default function FeedPage() {
             description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
         });
     } finally {
-        setIsFormSubmitting(false);
-        onFinishEditing();
+        onFinishEditing(); // This will clear the form state
     }
   };
   
@@ -456,6 +458,7 @@ export default function FeedPage() {
   
   const onFinishEditing = () => {
       setPostToEdit(null);
+      setIsFormSubmitting(false); // Make sure to reset submission state
   };
 
   const handleDeletePost = async (post: any) => {
