@@ -222,7 +222,7 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
+                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
@@ -235,10 +235,10 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
@@ -425,7 +425,7 @@ const FeedPost = ({
                             imageCount === 2 && "grid-cols-2",
                             imageCount >= 3 && "grid-cols-2"
                         )}>
-                            {post.images.slice(0, 3).map((image: any, index: number) => (
+                            {post.images.slice(0, 4).map((image: any, index: number) => (
                                 <DialogTrigger key={image.id || index} asChild>
                                     <div
                                         className={cn(
@@ -433,14 +433,15 @@ const FeedPost = ({
                                             imageCount === 1 && "aspect-video",
                                             imageCount === 2 && "aspect-square",
                                             imageCount >= 3 && index === 0 && "row-span-2 aspect-[2/3]",
-                                            imageCount >= 3 && index > 0 && "aspect-square"
+                                            imageCount >= 3 && index > 0 && "aspect-square",
+                                            imageCount === 4 && "aspect-square",
                                         )}
                                         onClick={() => setViewingImage(image.url)}
                                     >
                                         <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
-                                        {index === 2 && imageCount > 3 && (
+                                        {index === 3 && imageCount > 4 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                +{imageCount - 3}
+                                                +{imageCount - 4}
                                             </div>
                                         )}
                                     </div>
@@ -629,9 +630,6 @@ const MessagesView = ({ userData, onBack, isMobile, onSwitchToFeed }: { userData
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={onBack}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
