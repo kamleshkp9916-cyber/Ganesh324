@@ -106,7 +106,7 @@ import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
 import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
@@ -246,6 +246,7 @@ export default function FeedPage() {
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
 
 
   useEffect(() => {
@@ -297,50 +298,53 @@ export default function FeedPage() {
     return [...liveSellersData].sort((a,b) => b.viewers - a.viewers).slice(0, 4);
   }, []);
 
+  const setupFeedListener = useCallback(() => {
+        const db = getFirestoreDb();
+        const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+            const postsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
+            }));
+
+            const mockPost = {
+                id: "mock1",
+                sellerId: "mockSellerId",
+                sellerName: "Jerome Bell",
+                avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
+                content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings. #NFT #color #mint #nftdrop #nftnews",
+                tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
+                images: [
+                    { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
+                    { id: 2, url: "https://images.unsplash.com/photo-1621419790382-026d3d9547a4?w=800&q=80" },
+                    { id: 3, url: "https://images.unsplash.com/photo-1617791160536-595cfb24464a?w=800&q=80" },
+                    { id: 4, url: "https://images.unsplash.com/photo-1614088484193-a4e9b89791f1?w=800&q=80" },
+                    { id: 5, url: "https://images.unsplash.com/photo-1632516643720-e7f5d7d6086f?w=800&q=80" },
+                ],
+                likes: 1200,
+                comments: 45,
+                timestamp: new Date()
+            };
+
+            setFeed([mockPost, ...postsData]);
+            setIsLoadingFeed(false);
+        });
+        unsubscribeRef.current = unsubscribe;
+    }, []);
+
   useEffect(() => {
     if (!isMounted) return;
 
     setIsLoadingFeed(true);
-    const db = getFirestoreDb();
-    const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-    
-    const mockPost = {
-        id: "mock1",
-        sellerId: "mockSellerId",
-        sellerName: "Jerome Bell",
-        avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
-        content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings. #NFT #color #mint #nftdrop #nftnews",
-        tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
-        images: [
-            { id: 1, url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&q=80" },
-            { id: 2, url: "https://images.unsplash.com/photo-1621419790382-026d3d9547a4?w=800&q=80" },
-            { id: 3, url: "https://images.unsplash.com/photo-1617791160536-595cfb24464a?w=800&q=80" },
-            { id: 4, url: "https://images.unsplash.com/photo-1614088484193-a4e9b89791f1?w=800&q=80" },
-            { id: 5, url: "https://images.unsplash.com/photo-1632516643720-e7f5d7d6086f?w=800&q=80" },
-        ],
-        likes: 1200,
-        comments: 45,
-        timestamp: new Date().toISOString()
-    };
+    setupFeedListener();
 
-    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
-        const postsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
-        }));
-        
-        const formattedMockPost = {
-            ...mockPost,
-            timestamp: new Date(mockPost.timestamp)
+    return () => {
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
         }
-
-        setFeed([formattedMockPost, ...postsData]);
-        setIsLoadingFeed(false);
-    });
-
-    return () => unsubscribe();
-  }, [isMounted]);
+    };
+  }, [isMounted, setupFeedListener]);
   
   if (!isMounted || authLoading) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
@@ -355,6 +359,12 @@ export default function FeedPage() {
     if (!postData.content.trim() || !user || !userData) return;
 
     setIsFormSubmitting(true);
+    
+    // Detach listener
+    if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+    }
+
     try {
         const db = getFirestoreDb();
         const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
@@ -364,7 +374,7 @@ export default function FeedPage() {
             location: postData.location,
             tags: tags,
             taggedProduct: postData.taggedProduct ? {
-                id: postData.taggedProduct.id,
+                id: postToEdit ? postToEdit.taggedProduct?.id : postData.taggedProduct.id,
                 name: postData.taggedProduct.name,
                 price: postData.taggedProduct.price,
                 image: postData.taggedProduct.images[0]?.preview,
@@ -392,7 +402,6 @@ export default function FeedPage() {
             dataToSave.lastEditedAt = serverTimestamp();
             await updateDoc(postRef, dataToSave);
             toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
-            setPostToEdit(null);
         } else {
             await addDoc(collection(db, "posts"), {
                 ...dataToSave,
@@ -414,6 +423,9 @@ export default function FeedPage() {
         });
     } finally {
         setIsFormSubmitting(false);
+        setPostToEdit(null);
+        // Re-attach listener
+        setupFeedListener();
     }
   };
 
@@ -805,4 +817,5 @@ export default function FeedPage() {
     </>
   );
 }
+
 
