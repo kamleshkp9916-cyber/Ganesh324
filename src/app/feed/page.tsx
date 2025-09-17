@@ -176,9 +176,9 @@ function FeedPostSkeleton() {
                 </div>
             </div>
             <div className="px-4 pb-4 space-y-3">
-                <Skeleton className="w-full aspect-[4/3] rounded-lg" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="w-full aspect-video rounded-lg" />
             </div>
         </Card>
     );
@@ -221,26 +221,26 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMes
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base">
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(false)}>
                             <Home /> Feed
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => setFeedFilter('global')}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => { setFeedFilter('global'); setMessagesView(false); }}>
                             <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => setFeedFilter('following')}>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => { setFeedFilter('following'); setMessagesView(false); }}>
                             <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
                     <MessageSquare /> Messages
                 </Button>
-                <Link href="/wishlist" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                 <Link href="/wishlist" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
                     <Save /> Saves
                 </Link>
-                <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                 <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
                     <Settings /> Settings
                 </Link>
             </nav>
