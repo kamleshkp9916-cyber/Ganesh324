@@ -311,27 +311,7 @@ export default function FeedPage() {
                 ...doc.data(),
                 timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
             }));
-
-            const mockPost = {
-                id: "mock1",
-                sellerId: "mockSellerId",
-                sellerName: "Jerome Bell",
-                avatarUrl: "https://placehold.co/40x40/FFC107/000000?text=J",
-                content: "NFTs, presented in high-definition 3D avatars, are created by the HALO label with the Decentralized 3D Artist Community. NFT owners can easily control the avatar's movements and expressions on social platforms like Discord, YouTube and TikTok, or online meetings. #NFT #color #mint #nftdrop #nftnews",
-                tags: ["NFT", "color", "mint", "nftdrop", "nftnews"],
-                images: [
-                    { id: 1, url: "https://picsum.photos/seed/1/800/600" },
-                    { id: 2, url: "https://picsum.photos/seed/2/800/600" },
-                    { id: 3, url: "https://picsum.photos/seed/3/800/600" },
-                    { id: 4, url: "https://picsum.photos/seed/4/800/600" },
-                    { id: 5, url: "https://picsum.photos/seed/5/800/600" },
-                ],
-                likes: 1200,
-                comments: 45,
-                timestamp: new Date()
-            };
-
-            setFeed([mockPost, ...postsData]);
+            setFeed(postsData);
             setIsLoadingFeed(false);
         }, (error) => {
             console.error("Error fetching feed:", error);
