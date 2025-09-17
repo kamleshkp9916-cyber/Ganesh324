@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
 
@@ -243,6 +243,9 @@ export default function AdminMessagePage() {
                             <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
                         </SheetTrigger>
                         <SheetContent side="left">
+                             <SheetHeader>
+                                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+                            </SheetHeader>
                              <nav className="grid gap-6 text-lg font-medium">
                                 <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
                                 <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>

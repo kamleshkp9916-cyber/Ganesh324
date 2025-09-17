@@ -62,13 +62,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getStatusFromTimeline } from "@/lib/order-data"
 import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { updateOrderStatus } from "@/ai/flows/chat-flow"
@@ -274,6 +274,9 @@ export default function AdminOrdersPage() {
             <Sheet>
                 <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
                 <SheetContent side="left">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+                    </SheetHeader>
                     <nav className="grid gap-6 text-lg font-medium">
                         <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
                         <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
@@ -394,10 +397,10 @@ export default function AdminOrdersPage() {
                                                             <XCircle className="mr-2 h-4 w-4" /> Cancel Order
                                                         </DropdownMenuItem>
                                                     </AlertDialogTrigger>
-                                                    <AlertDialogContent>
+                                                    <AlertDialogContent aria-describedby="cancel-order-description">
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
+                                                            <AlertDialogDescription id="cancel-order-description">
                                                                 This will cancel the order for the customer. This action cannot be undone.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>

@@ -20,10 +20,12 @@ import {
   Eye,
   Wallet,
   Send,
+  ShieldAlert,
+  LogIn,
 } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 
 import {
@@ -50,7 +52,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
   Table,
   TableBody,
@@ -75,6 +77,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -87,7 +90,7 @@ const mockPayouts = [
     { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
 ];
 
-const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => {
+const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => setIsMounted(true), []);
 
@@ -103,10 +106,11 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
             </TableHeader>
             <TableBody>
                 {users.map((u, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={index} className={u.role === 'admin' ? 'bg-primary/5' : ''}>
                         <TableCell>
                             <div className="font-medium">{u.name || u.displayName}</div>
                             <div className="text-sm text-muted-foreground">{u.email}</div>
+                             {u.role === 'admin' && <Badge variant="destructive" className="mt-1">Admin</Badge>}
                         </TableCell>
                          <TableCell className="hidden md:table-cell">{isMounted ? new Date(u.date || Date.now()).toLocaleDateString() : '...'}</TableCell>
                         <TableCell className="text-right">
@@ -123,6 +127,17 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                         <DropdownMenuItem onSelect={() => onImpersonate(u)}>
+                                            <LogIn className="mr-2 h-4 w-4" />
+                                            Login as User
+                                        </DropdownMenuItem>
+                                        {u.role !== 'admin' && (
+                                            <DropdownMenuItem onSelect={() => onMakeAdmin(u)}>
+                                                <ShieldAlert className="mr-2 h-4 w-4" />
+                                                Make Admin
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             Delete Account
@@ -147,18 +162,19 @@ export default function AdminUsersPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [userToPromote, setUserToPromote] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isPromoteAlertOpen, setIsPromoteAlertOpen] = useState(false);
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
     const usersRef = collection(db, "users");
-
-    // Fetch all users
     const allUsersQuery = query(usersRef);
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
@@ -190,6 +206,38 @@ export default function AdminUsersPage() {
       setUserToDelete(userToDelete);
       setIsDeleteAlertOpen(true);
   };
+  
+  const handleMakeAdminClick = (userToPromote: any) => {
+      setUserToPromote(userToPromote);
+      setIsPromoteAlertOpen(true);
+  };
+
+  const handleImpersonateUser = async (userToImpersonate: any) => {
+    if (!user || user.uid === userToImpersonate.uid) {
+        toast({ variant: 'destructive', title: "Cannot impersonate yourself."});
+        return;
+    }
+    
+    try {
+        toast({ title: "Generating login token..." });
+        const { token } = await createImpersonationToken(userToImpersonate.uid);
+        
+        // Store the token and current admin's ID to allow returning
+        localStorage.setItem('impersonationToken', token);
+        localStorage.setItem('adminToken', await user.getIdToken()); // Or some other way to re-authenticate as admin
+
+        // Open new tab and sign in with the custom token
+        const newTab = window.open('/', '_blank');
+        if (newTab) {
+            newTab.focus();
+        } else {
+             toast({ variant: 'destructive', title: "Popup blocked", description: "Please allow popups for this site."});
+        }
+    } catch (error) {
+        console.error("Impersonation error:", error);
+        toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
+    }
+  }
 
   const confirmDeleteUser = async () => {
       if (!userToDelete) return;
@@ -203,20 +251,30 @@ export default function AdminUsersPage() {
       setUserToDelete(null);
   }
   
+  const confirmMakeAdmin = async () => {
+      if (!userToPromote) return;
+      await updateUserData(userToPromote.uid, { role: 'admin' });
+      setAllUsersState(prev => prev.map(u => u.uid === userToPromote.uid ? { ...u, role: 'admin'} : u));
+      toast({ title: "Success!", description: `${userToPromote.displayName} is now an administrator.` });
+      setIsPromoteAlertOpen(false);
+      setUserToPromote(null);
+  };
+  
   const handleViewDetails = (userToShow: any) => {
     router.push(`/admin/users/${userToShow.uid}`);
   };
 
   const customers = filteredUsers.filter(u => u.role === 'customer');
   const sellers = filteredUsers.filter(u => u.role === 'seller');
+  const admins = filteredUsers.filter(u => u.role === 'admin');
 
   return (
     <>
     <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent aria-describedby="delete-user-description">
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogDescription id="delete-user-description">
                     This action cannot be undone. This will permanently delete the account for 
                     <strong className="px-1">{userToDelete?.displayName}</strong>
                     and all associated data.
@@ -227,6 +285,20 @@ export default function AdminUsersPage() {
                 <AlertDialogAction onClick={confirmDeleteUser} className={cn(buttonVariants({ variant: "destructive" }))}>
                     Delete
                 </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+     <AlertDialog open={isPromoteAlertOpen} onOpenChange={setIsPromoteAlertOpen}>
+        <AlertDialogContent aria-describedby="promote-user-description">
+            <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
+                <AlertDialogDescription id="promote-user-description">
+                    Are you sure you want to grant administrator privileges to <strong className="px-1">{userToPromote?.displayName}</strong>? This action is irreversible.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmMakeAdmin}>Confirm</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
@@ -301,6 +373,9 @@ export default function AdminUsersPage() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
+            <SheetHeader>
+                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+            </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
               <Link
                 href="/admin/dashboard"
@@ -397,6 +472,7 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
+                    <TabsTrigger value="admins">Admins ({admins.length})</TabsTrigger>
                     <TabsTrigger value="payments">Payments</TabsTrigger>
                     <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
@@ -414,7 +490,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -425,7 +501,18 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
+                    </CardContent>
+                </Card>
+             </TabsContent>
+              <TabsContent value="admins">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Administrators</CardTitle>
+                        <CardDescription>Manage all site administrators.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
