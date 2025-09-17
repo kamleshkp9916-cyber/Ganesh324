@@ -1,41 +1,9 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if the requesting user is an admin.
-    // Admins are defined by their UID being present in the /adminUsers collection.
-    function isAdmin() {
-      return request.auth != null && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
-    }
-
-    // Rules for the 'products' collection
-    match /products/{productId} {
-      // Anyone can view the product catalog
-      allow read: if true;
-
-      // Only authenticated users who are the seller of the product can create it.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.sellerId;
-
-      // The seller of an existing product can update or delete it.
-      allow update, delete: if request.auth != null && resource.data.sellerId == request.auth.uid;
-    }
-
-    // Rules for the 'users' collection
-    match /users/{userId} {
-      // Anyone can read a user's public profile.
-      allow read: if true;
-      // A user can create their own user document and update it.
-      allow create, update: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Example for a collection that only admins can access
-    match /adminOnly/{doc} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Default deny all other collections for security
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
