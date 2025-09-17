@@ -356,7 +356,7 @@ const FeedPost = ({
                 </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between">
                         <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={post.avatarUrl} />
@@ -411,7 +411,7 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
-                    {contentWithoutHashtags && <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>}
+                    {contentWithoutHashtags && <p className="text-sm text-muted-foreground mt-4">{contentWithoutHashtags}</p>}
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                         <p className="text-sm text-primary mt-2">
                             {post.tags.map((tag: string, index: number) => (
@@ -467,9 +467,7 @@ const FeedPost = ({
                         <MessageSquare className="w-4 h-4"/>
                         <span>{post.comments || 0} Comments</span>
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onShare(post.id)}>
-                        <Share2 />
-                    </Button>
+                    
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
             </Card>
