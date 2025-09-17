@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -247,15 +246,17 @@ export default function FeedPage() {
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
+  const loadFollowData = useCallback(async () => {
+    if (user) {
+      const followingUsers = await getFollowing(user.uid);
+      setFollowingIds(followingUsers.map(u => u.uid));
+    }
+  }, [user]);
 
   useEffect(() => {
     setIsMounted(true);
-    if (user) {
-      getFollowing(user.uid).then(followingUsers => {
-        setFollowingIds(followingUsers.map(u => u.uid));
-      });
-    }
-  }, [user]);
+    loadFollowData();
+  }, [loadFollowData]);
 
   const filteredFeed = useMemo(() => {
     let currentFeed = feed;
@@ -300,6 +301,7 @@ export default function FeedPage() {
   }, []);
 
   const setupFeedListener = useCallback(() => {
+        setIsLoadingFeed(true);
         const db = getFirestoreDb();
         const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
@@ -345,7 +347,6 @@ export default function FeedPage() {
   useEffect(() => {
     if (!isMounted) return;
 
-    setIsLoadingFeed(true);
     const unsubscribe = setupFeedListener();
 
     return () => {
@@ -821,3 +822,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    
