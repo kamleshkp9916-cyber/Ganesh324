@@ -1,11 +1,23 @@
 rules_version = '2';
-
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow read and write access for all authenticated users.
-    // This is not recommended for production, but is useful for development.
+    // Avatars (one file per user)
+    match /avatars/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Posts media: only the authenticated user may write into their own folder
+    match /posts/{userId}/{allPaths=**} {
+      allow read: if true; // or restrict to auth if needed
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Fallback: deny all other writes
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if false;
     }
   }
 }
+
