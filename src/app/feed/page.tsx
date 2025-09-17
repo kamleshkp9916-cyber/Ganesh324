@@ -184,56 +184,66 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMessagesView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setMessagesView: (show: boolean) => void }) => (
-    <div className="p-6 flex flex-col h-full">
-        <div className="flex flex-col items-center text-center mb-8">
-            <Avatar className="h-20 w-20 mb-3">
-                <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
-                <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <p className="font-bold text-lg">{userData.displayName}</p>
-            <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
-
-            <div className="flex justify-around mt-4 w-full text-center">
-                <div>
-                    <p className="font-bold text-lg">{userPosts.length}</p>
-                    <p className="text-xs text-muted-foreground">Posts</p>
-                </div>
-                <div>
-                    <p className="font-bold text-lg">{userData.followers || 0}</p>
-                    <p className="text-xs text-muted-foreground">Followers</p>
-                </div>
-                <div>
-                    <p className="font-bold text-lg">{userData.following || 0}</p>
-                    <p className="text-xs text-muted-foreground">Following</p>
-                </div>
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, setMessagesView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, setMessagesView: (show: boolean) => void }) => {
+    const router = useRouter();
+    return (
+        <div className="p-6 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-8">
+                 <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
+                    <ArrowLeft />
+                </Button>
+                <div className="flex-grow" />
             </div>
-            <Separator className="my-4" />
+            <div className="flex flex-col items-center text-center mb-8">
+                <Avatar className="h-20 w-20 mb-3">
+                    <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
+                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <p className="font-bold text-lg">{userData.displayName}</p>
+                <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
+
+                <div className="flex justify-around mt-4 w-full text-center">
+                    <div>
+                        <p className="font-bold text-lg">{userPosts.length}</p>
+                        <p className="text-xs text-muted-foreground">Posts</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">{userData.followers || 0}</p>
+                        <p className="text-xs text-muted-foreground">Followers</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">{userData.following || 0}</p>
+                        <p className="text-xs text-muted-foreground">Following</p>
+                    </div>
+                </div>
+                <Separator className="my-4" />
+            </div>
+            <nav className="space-y-1 flex-grow">
+                <Collapsible defaultOpen>
+                    <CollapsibleTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-start gap-3 text-base">
+                            <Home /> Feed
+                        </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pl-8 space-y-1 mt-1">
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => setFeedFilter('global')}>
+                            <Globe className="w-4 h-4" /> Global
+                        </Button>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => setFeedFilter('following')}>
+                            <Users className="w-4 h-4" /> Following
+                        </Button>
+                    </CollapsibleContent>
+                </Collapsible>
+                <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
+                    <MessageSquare /> Messages
+                </Button>
+                <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
+                <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
+            </nav>
         </div>
-        <nav className="space-y-1 flex-grow">
-            <Collapsible defaultOpen>
-                <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-base">
-                        <Home /> Feed
-                    </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global'} onClick={() => setFeedFilter('global')}>
-                        <Globe className="w-4 h-4" /> Global
-                    </Button>
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following'} onClick={() => setFeedFilter('following')}>
-                        <Users className="w-4 h-4" /> Following
-                    </Button>
-                </CollapsibleContent>
-            </Collapsible>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-base" onClick={() => setMessagesView(true)}>
-                <MessageSquare /> Messages
-            </Button>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Save /> Saves</Button>
-            <Button variant="ghost" className="w-full justify-start gap-3 text-base"><Settings /> Settings</Button>
-        </nav>
-    </div>
-);
+    );
+};
+
 
 const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
     const [relativeTime, setRelativeTime] = useState('');
@@ -603,9 +613,6 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={onBack}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
