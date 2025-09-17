@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -1166,8 +1165,8 @@ export default function FeedPage() {
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-                <div className="lg:grid lg:grid-cols-[18rem_1fr_24rem]">
-                    <div className="lg:col-start-2 w-full lg:w-[calc(100%-24rem)] mx-auto pointer-events-auto">
+                <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
+                    <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
                                 onPost={handlePostSubmit}
@@ -1184,6 +1183,3 @@ export default function FeedPage() {
     </Dialog>
   );
 }
-
-
-
