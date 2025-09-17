@@ -62,6 +62,7 @@ import {
   Download,
   Loader2,
   FileEdit,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -289,6 +290,7 @@ const FeedPost = ({
 }) => {
     
     const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const handleDownloadImage = (url: string) => {
         fetch(url)
@@ -308,30 +310,29 @@ const FeedPost = ({
     
     const contentWithoutHashtags = useMemo(() => {
         if (!post.content) return '';
-        // This regex removes hashtags from the text.
         return post.content.replace(/#(\w+)/g, '').trim();
     }, [post.content]);
 
 
     return (
         <Dialog>
-            <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
-                <DialogHeader className="sr-only">
-                    <DialogTitle>Post Image</DialogTitle>
-                </DialogHeader>
-                <div className="relative">
-                    {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
-                    <Button 
-                        variant="secondary" 
-                        size="icon" 
-                        className="absolute bottom-4 right-4 z-10"
-                        onClick={() => viewingImage && handleDownloadImage(viewingImage)}
-                    >
-                        <Download />
-                    </Button>
-                </div>
-            </DialogContent>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
+                <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Post Image</DialogTitle>
+                    </DialogHeader>
+                    <div className="relative">
+                        {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
+                        <Button 
+                            variant="secondary" 
+                            size="icon" 
+                            className="absolute bottom-4 right-4 z-10"
+                            onClick={() => viewingImage && handleDownloadImage(viewingImage)}
+                        >
+                            <Download />
+                        </Button>
+                    </div>
+                </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4 flex items-center justify-between">
                     <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
@@ -384,7 +385,7 @@ const FeedPost = ({
                     </DropdownMenu>
                 </div>
                 <div className="p-4">
-                    <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>
+                    {contentWithoutHashtags && <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>}
                     {Array.isArray(post.tags) && post.tags.length > 0 && (
                         <p className="text-sm text-primary mt-2">
                             {post.tags.map((tag: string, index: number) => (
