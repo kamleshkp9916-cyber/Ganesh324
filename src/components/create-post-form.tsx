@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.tsx";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
@@ -37,8 +37,6 @@ interface CreatePostFormProps {
   onClearReply?: () => void;
   postToEdit?: any | null;
   onFinishEditing?: () => void;
-  isSubmitting: boolean;
-  setIsSubmitting: (isSubmitting: boolean) => void;
 }
 
 const emojis = [
@@ -53,7 +51,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, isSubmitting, setIsSubmitting }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
@@ -61,6 +59,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [location, setLocation] = useState<string | null>(null);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
     // State for tagging suggestions
     const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
@@ -221,7 +220,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const postRef = doc(db, 'posts', postToEdit.id);
                 postData.lastEditedAt = serverTimestamp();
                 await updateDoc(postRef, postData);
-                toast({ title: "Post Updated!", description: "Your changes have been saved." });
+                toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+                resetForm(); // Reset form after successful edit
             } else {
                 await addDoc(collection(db, "posts"), {
                     ...postData,
@@ -234,8 +234,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 });
                 
                 toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+                resetForm(); 
             }
-            resetForm(); 
 
         } catch (error) {
             console.error("Error creating/updating post:", error);
