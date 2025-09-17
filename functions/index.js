@@ -2,7 +2,7 @@
 'use strict';
 
 const admin = require('firebase-admin');
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
 const sgMail = require('@sendgrid/mail');
 

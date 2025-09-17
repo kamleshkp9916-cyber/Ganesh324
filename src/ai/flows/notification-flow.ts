@@ -51,9 +51,9 @@ const sendAnnouncementFlow = ai.defineFlow(
         return { success: false, message: "No users with valid emails found." };
     }
 
-    // 2. Call the sendNotificationEmail HTTP function
+    // 2. Call the sendEmail HTTP function
     // IMPORTANT: Replace with your actual deployed function URL
-    const functionUrl = "https://us-central1-streamcart-login.cloudfunctions.net/sendNotificationEmail";
+    const functionUrl = "https://us-central1-streamcart-login.cloudfunctions.net/sendEmail";
     
     try {
         const response = await fetch(functionUrl, {
@@ -73,11 +73,12 @@ const sendAnnouncementFlow = ai.defineFlow(
         }
         
         const responseData = await response.json();
-        console.log(`Announcement sent to ${responseData.sent} users.`);
-        return { success: true, message: `Announcement sent to ${responseData.sent} users.` };
+        const sentCount = responseData.debug?.length || (responseData.success ? 1 : 0);
+        console.log(`Announcement sent to ${sentCount} users.`);
+        return { success: true, message: `Announcement sent to ${sentCount} users.` };
 
     } catch (error: any) {
-        console.error("Error calling sendNotificationEmail function:", error);
+        console.error("Error calling sendEmail function:", error);
         return { success: false, message: error.message || "An unknown error occurred." };
     }
   }
@@ -120,8 +121,8 @@ const sendWarningFlow = ai.defineFlow(
       read: false,
     });
 
-    // 3. Call the sendNotificationEmail HTTP function to send an email
-    const functionUrl = "https://us-central1-streamcart-login.cloudfunctions.net/sendNotificationEmail";
+    // 3. Call the sendEmail HTTP function to send an email
+    const functionUrl = "https://us-central1-streamcart-login.cloudfunctions.net/sendEmail";
      try {
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -129,7 +130,7 @@ const sendWarningFlow = ai.defineFlow(
             body: JSON.stringify({
                 subject: "Warning from StreamCart",
                 html: `<p>You have received a warning from a StreamCart administrator:</p><br><p><strong>${message}</strong></p><br><p>Please review our community guidelines. Further violations may result in account suspension.</p>`,
-                recipients: [userEmail]
+                to: [userEmail]
             }),
         });
 
@@ -143,7 +144,7 @@ const sendWarningFlow = ai.defineFlow(
         return { success: true, message: `Warning successfully sent to ${userEmail}.` };
 
     } catch (error: any) {
-        console.error("Error calling sendNotificationEmail function for warning:", error);
+        console.error("Error calling sendEmail function for warning:", error);
         return { success: false, message: error.message || "An unknown error occurred while sending the email." };
     }
   }
