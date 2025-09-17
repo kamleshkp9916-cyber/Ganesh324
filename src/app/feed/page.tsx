@@ -98,7 +98,7 @@ import {
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { CreatePostForm } from '@/components/create-post-form';
+import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -106,7 +106,7 @@ import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
-import { ref as storageRef, deleteObject } from 'firebase/storage';
+import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
@@ -347,6 +347,73 @@ export default function FeedPage() {
     router.push('/');
     return null;
   }
+
+    const handlePostSubmit = async (postData: PostData) => {
+        if (!postData.content.trim() || !user || !userData) return;
+
+        setIsFormSubmitting(true);
+        try {
+            const db = getFirestoreDb();
+            const tags = Array.from(postData.content.matchAll(/#(\w+)/g)).map(match => match[1]);
+            
+            const dataToSave: any = {
+                content: postData.content,
+                location: postData.location,
+                tags: tags,
+                taggedProduct: postData.taggedProduct ? {
+                    id: postData.taggedProduct.id,
+                    name: postData.taggedProduct.name,
+                    price: postData.taggedProduct.price,
+                    image: postData.taggedProduct.images[0]?.preview,
+                } : null,
+            };
+
+            const mediaUploads = await Promise.all(
+                (postData.media || []).filter(m => m.file).map(async (mediaFile) => {
+                    if (!mediaFile.file) return null;
+                    const storage = getFirebaseStorage();
+                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
+                    return { type: mediaFile.type, url: await getDownloadURL(uploadResult.ref) };
+                })
+            );
+            
+            const existingMedia = (postData.media || []).filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
+            const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
+
+            dataToSave.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
+
+            if (postToEdit) {
+                const postRef = doc(db, 'posts', postToEdit.id);
+                dataToSave.lastEditedAt = serverTimestamp();
+                await updateDoc(postRef, dataToSave);
+                toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
+            } else {
+                await addDoc(collection(db, "posts"), {
+                    ...dataToSave,
+                    sellerId: user.uid,
+                    sellerName: userData.displayName,
+                    avatarUrl: userData.photoURL,
+                    timestamp: serverTimestamp(),
+                    likes: 0,
+                    replies: 0,
+                });
+                toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+            }
+        } catch (error) {
+            console.error("Error creating/updating post:", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to save your post. Please try again."
+            });
+        } finally {
+            setIsFormSubmitting(false);
+            setPostToEdit(null); // This will clear the form via CreatePostForm's useEffect
+        }
+    };
+
 
   const handleShare = (postId: string) => {
     const link = `${window.location.origin}/post/${postId}`;
@@ -723,7 +790,7 @@ export default function FeedPage() {
                      <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                         <CreatePostForm
                             isSubmitting={isFormSubmitting}
-                            setIsSubmitting={setIsFormSubmitting}
+                            onPost={handlePostSubmit}
                             postToEdit={postToEdit}
                             onFinishEditing={handleFinishEditing}
                         />
@@ -735,6 +802,3 @@ export default function FeedPage() {
     </>
   );
 }
-    
-
-    

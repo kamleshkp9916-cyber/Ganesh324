@@ -4,16 +4,15 @@
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { useAuth } from "@/hooks/use-auth.tsx";
+import { useAuth } from "@/hooks/use-auth";
 import React, { useEffect, useState, forwardRef, useRef } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { getFirebaseStorage, getFirestoreDb } from "@/lib/firebase";
-import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
-import { collection, addDoc, serverTimestamp, query, where, getDocs, limit, doc, updateDoc } from "firebase/firestore";
-import { getUserByDisplayName, UserData } from "@/lib/follow-data";
+import { getFirestoreDb } from "@/lib/firebase";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { UserData } from "@/lib/follow-data";
 import {
   Select,
   SelectContent,
@@ -28,8 +27,9 @@ import { Textarea } from "./ui/textarea";
 
 export interface PostData {
     content: string;
-    media: { type: 'video' | 'image', url: string }[] | null;
+    media: { type: 'video' | 'image', file?: File, url: string }[] | null;
     location: string | null;
+    taggedProduct: any | null;
 }
   
 interface CreatePostFormProps {
@@ -37,6 +37,8 @@ interface CreatePostFormProps {
   onClearReply?: () => void;
   postToEdit?: any | null;
   onFinishEditing?: () => void;
+  onPost: (data: PostData) => Promise<void>;
+  isSubmitting: boolean;
 }
 
 const emojis = [
@@ -51,7 +53,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost, isSubmitting }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
@@ -59,7 +61,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [location, setLocation] = useState<string | null>(null);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     
     // State for tagging suggestions
     const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
@@ -77,7 +78,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
-        setIsSubmitting(false); 
     };
     
     useEffect(() => {
@@ -89,10 +89,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         } else if (replyTo) {
             setContent(`@${replyTo} `);
         } else {
-             setContent("");
-             setMedia([]);
-             setLocation(null);
-             setTaggedProduct(null);
+             resetForm();
         }
     }, [postToEdit, replyTo]);
     
@@ -177,76 +174,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setContent(`${textBefore}${tagging.type}${tagName} ${textAfter}`);
         setTagging(null);
         setSuggestions([]);
-    };
-
-    const handlePost = async () => {
-        if (!content.trim() || !user || !userData) return;
-
-        setIsSubmitting(true);
-        try {
-            const db = getFirestoreDb();
-            const tags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
-            
-            const postData: any = {
-                content: content,
-                location: location,
-                tags: tags,
-                taggedProduct: taggedProduct ? {
-                    id: taggedProduct.id,
-                    name: taggedProduct.name,
-                    price: taggedProduct.price,
-                    image: taggedProduct.images[0]?.preview,
-                } : null,
-            };
-
-            const mediaUploads = await Promise.all(
-                media.filter(m => m.file).map(async (mediaFile) => {
-                    if (!mediaFile.file) return null;
-                    const storage = getFirebaseStorage();
-                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file!.name}`;
-                    const fileRef = storageRef(storage, filePath);
-                    const uploadResult = await uploadString(fileRef, mediaFile.url, 'data_url');
-                    const downloadURL = await getDownloadURL(uploadResult.ref);
-                    return { type: mediaFile.type, url: downloadURL };
-                })
-            );
-            
-            const existingMedia = media.filter(m => !m.file).map(m => ({type: m.type, url: m.url}));
-            const allMedia = [...existingMedia, ...mediaUploads.filter((m): m is { type: 'video' | 'image', url: string } => m !== null)];
-
-            postData.images = allMedia.filter(m => m.type === 'image').map(m => ({ url: m.url, id: Date.now() + Math.random() }));
-
-            if (postToEdit) {
-                const postRef = doc(db, 'posts', postToEdit.id);
-                postData.lastEditedAt = serverTimestamp();
-                await updateDoc(postRef, postData);
-                toast({ title: "Post Updated!", description: "Your changes have been successfully saved." });
-                resetForm(); // Reset form after successful edit
-            } else {
-                await addDoc(collection(db, "posts"), {
-                    ...postData,
-                    sellerId: user.uid,
-                    sellerName: userData.displayName,
-                    avatarUrl: userData.photoURL,
-                    timestamp: serverTimestamp(),
-                    likes: 0,
-                    replies: 0,
-                });
-                
-                toast({ title: "Post Created!", description: "Your post has been successfully shared." });
-                resetForm(); 
-            }
-
-        } catch (error) {
-            console.error("Error creating/updating post:", error);
-            toast({
-                variant: 'destructive',
-                title: "Error",
-                description: "Failed to save your post. Please try again."
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image') => {
@@ -429,7 +356,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     )}
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
-                        onClick={handlePost} 
+                        onClick={() => onPost({ content, media, location, taggedProduct })}
                         disabled={!content.trim() || isSubmitting}
                     >
                         {isSubmitting ? (
