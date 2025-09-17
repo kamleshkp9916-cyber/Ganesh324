@@ -1,12 +1,11 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
-import React, { useEffect, useState, forwardRef, useRef } from "react";
+import React, { useEffect, useState, forwardRef, useRef, useCallback } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "./ui/popover";
@@ -199,9 +198,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        if (postToEdit) { // Edit logic (optimistic UI)
+        if (postToEdit) { // Edit logic
             await onPost({ content, media, location, taggedProduct });
-            resetForm();
+            // The onFinishEditing prop, called from the parent, will handle resetting the form.
         } else { // New post logic
             setIsSubmitting(true);
             await onPost({ content, media, location, taggedProduct });
@@ -367,7 +366,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handleSubmit}
-                        disabled={(!content.trim() && media.length === 0) || (isSubmitting)}
+                        disabled={(!content.trim() && media.length === 0) || (isSubmitting && !postToEdit)}
                     >
                         {isSubmitting && !postToEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                         {postToEdit && <FileEdit className="mr-2 h-4 w-4" />}
@@ -379,3 +378,5 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
+    
