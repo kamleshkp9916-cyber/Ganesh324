@@ -331,11 +331,6 @@ const FeedPost = ({
             .catch(() => toast({ variant: 'destructive', title: 'Download failed' }));
     };
     
-    const contentWithoutHashtags = useMemo(() => {
-        if (!post.content) return '';
-        return post.content.replace(/#(\w+)/g, '').trim();
-    }, [post.content]);
-
     const imageCount = post.images?.length || 0;
 
 
@@ -413,19 +408,8 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
-                    <div className="pt-4">
-                        {contentWithoutHashtags && (
-                            <p className="text-sm text-muted-foreground">
-                                <Highlight text={contentWithoutHashtags} highlight={highlightTerm} />
-                            </p>
-                        )}
-                        {Array.isArray(post.tags) && post.tags.length > 0 && (
-                            <p className="text-sm text-primary mt-2">
-                                {post.tags.map((tag: string, index: number) => (
-                                    <span key={index} className="text-primary">{`#${tag} `}</span>
-                                ))}
-                            </p>
-                        )}
+                    <div className="pt-4 text-sm text-muted-foreground">
+                        <Highlight text={post.content} highlight={highlightTerm} />
                     </div>
                 </div>
 
@@ -789,26 +773,27 @@ export default function FeedPage() {
   }, [loadFollowData, loadSavedPosts]);
 
   const filteredFeed = useMemo(() => {
-    let currentFeed: any[] = [];
-    if (activeView === 'feed') {
-        currentFeed = feed;
-        if (feedFilter === 'following' && user) {
-            currentFeed = currentFeed.filter(post => 
-                followingIds.includes(post.sellerId) || post.sellerId === user.uid
-            );
-        }
-    } else if (activeView === 'saves') {
-        currentFeed = savedPosts;
-    }
-    
-    if (!debouncedSearchTerm) return currentFeed;
+      let currentFeed: any[] = [];
+      if (activeView === 'feed') {
+          currentFeed = feed;
+          if (feedFilter === 'following' && user) {
+              currentFeed = currentFeed.filter(post => 
+                  followingIds.includes(post.sellerId) || post.sellerId === user.uid
+              );
+          }
+      } else if (activeView === 'saves') {
+          currentFeed = savedPosts;
+      }
+      
+      if (!debouncedSearchTerm) return currentFeed;
 
-    const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
-    return currentFeed.filter(item => 
-        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
-        item.content.toLowerCase().includes(lowercasedSearchTerm)
-    );
-  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+      const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
+      return currentFeed.filter(item => 
+          item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
+          item.content.toLowerCase().includes(lowercasedSearchTerm) ||
+          (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm)))
+      );
+    }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -1183,7 +1168,7 @@ export default function FeedPage() {
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
                 <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                    <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
+                    <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
                                 onPost={handlePostSubmit}
