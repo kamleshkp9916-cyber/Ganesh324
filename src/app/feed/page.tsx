@@ -179,7 +179,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
             const commentsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                timestamp: doc.data().timestamp ? format((doc.data().timestamp as Timestamp).toDate(), 'PPp') : 'just now'
+                timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
             }));
             setComments(commentsData);
             setIsLoading(false);
@@ -233,7 +233,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                                 <div className="flex-grow bg-muted p-2 rounded-lg">
                                     <div className="flex justify-between items-center text-xs">
                                         <p className="font-semibold">{comment.authorName}</p>
-                                        <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(new Date(comment.timestamp), { addSuffix: true }) : 'just now'}</p>
+                                        <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(comment.timestamp, { addSuffix: true }) : 'just now'}</p>
                                     </div>
                                     <p className="text-sm">{comment.text}</p>
                                 </div>
