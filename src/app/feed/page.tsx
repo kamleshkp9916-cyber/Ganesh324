@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -374,7 +373,7 @@ const FeedPost = ({
                 </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4">
-                     <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between">
                         <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={post.avatarUrl} />
@@ -421,7 +420,7 @@ const FeedPost = ({
                                     </>
                                 )}
                                 <DropdownMenuItem onClick={() => onSaveToggle(post)}>
-                                    <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave Post' : 'Save Post'}
+                                    <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave' : 'Save'}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
                                 <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
@@ -466,12 +465,14 @@ const FeedPost = ({
                 )}
                 <div className="px-4 pb-4 mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" className="flex items-center gap-1.5">
+                        <Button variant="ghost" className="flex items-center gap-1.5 px-2">
                             <ArrowUp className="w-4 h-4"/>
-                            <span>Upvote</span>
+                            <span>{post.likes || 0}</span>
                         </Button>
-                        <span>{post.likes || 0}</span>
-                        <Button variant="ghost" size="icon"><ArrowDown /></Button>
+                        <Button variant="ghost" className="flex items-center gap-1.5 px-2">
+                            <ArrowDown className="w-4 h-4"/>
+                            <span>{post.downvotes || 0}</span>
+                        </Button>
                     </div>
                     <Button variant="ghost" className="flex items-center gap-1.5">
                         <MessageSquare className="w-4 h-4"/>
@@ -1309,3 +1310,6 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
+
+    
