@@ -99,7 +99,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(comment.id, replyText, comment.authorName);
+        onReply(comment.parentId || comment.id, replyText, comment.authorName);
         setReplyText('');
         setIsReplying(false);
     };
@@ -161,9 +161,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             </div>
-             <div className="w-[85%] mx-auto mt-4 space-y-4">
-                 {replies}
-                 {isReplying && (
+            {/* Centered container for replies and the reply form */}
+            <div className="w-[85%] mx-auto mt-4 space-y-4">
+                {replies}
+                {isReplying && (
                     <div className="flex items-start gap-2 pt-2">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.photoURL || undefined} />
@@ -188,6 +189,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         </div>
     );
 };
+
 
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
