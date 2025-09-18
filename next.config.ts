@@ -12,7 +12,6 @@ const ContentSecurityPolicy = `
   object-src 'none';
   base-uri 'self';
   form-action 'self';
-  frame-ancestors 'none';
 `;
 
 const nextConfig: NextConfig = {
