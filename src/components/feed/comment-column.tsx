@@ -15,6 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface CommentType {
     id: string;
@@ -127,6 +128,13 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState("");
+    const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (isReplying && replyTextareaRef.current) {
+            replyTextareaRef.current.focus();
+        }
+    }, [isReplying]);
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -212,17 +220,18 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                             <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow space-y-2">
-                            <Textarea
-                                placeholder={`Replying to ${comment.authorName}...`}
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                className="text-sm"
-                                rows={2}
-                                autoFocus
-                            />
-                             <div className="flex gap-2">
-                                <Button size="sm" className="h-7 px-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>Post</Button>
-                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsReplying(false)}>Cancel</Button>
+                             <div className="relative">
+                                <Textarea
+                                    ref={replyTextareaRef}
+                                    placeholder={`Replying to ${comment.authorName}...`}
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    className="text-sm pr-12"
+                                    rows={1}
+                                />
+                                <Button size="icon" className="h-7 w-7 absolute right-2 bottom-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>
+                                    <Send className="w-4 h-4" />
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -232,26 +241,31 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
     );
 };
 
-const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike, level = 0 }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, level?: number }) => {
+    const [isExpanded, setIsExpanded] = useState(level < 2); // Auto-expand first two levels
     const hasReplies = comment.replies && comment.replies.length > 0;
-    const visibleReplies = isExpanded ? comment.replies : (comment.replies || []).slice(0, 1);
+    
+    // Progressively scale down replies
+    const scale = 1 - (level * 0.05);
 
     return (
-        <div className="relative">
+        <div 
+            className="relative transition-transform duration-300 ease-out" 
+            style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+        >
              <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
              {hasReplies && (
-                <div className="relative mt-6 pl-8">
+                <div className="relative mt-4 pl-8">
                     <span className="absolute left-[26px] top-0 h-full w-px bg-muted-foreground/20" aria-hidden="true" />
-                     <div className="space-y-6">
-                        {visibleReplies?.map(reply => (
-                            <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
-                        ))}
-
-                        {!isExpanded && comment.replies && comment.replies.length > 1 && (
-                            <Button variant="link" size="sm" className="h-auto p-0 text-xs flex items-center gap-2" onClick={() => setIsExpanded(true)}>
+                     <div className="space-y-4">
+                        {isExpanded ? (
+                           comment.replies?.map(reply => (
+                                <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} level={level + 1} />
+                           ))
+                        ) : (
+                             <Button variant="link" size="sm" className="h-auto p-0 text-xs flex items-center gap-2" onClick={() => setIsExpanded(true)}>
                                 <ChevronDown className="w-3 h-3" />
-                                View all {comment.replies.length} replies
+                                View all {comment.replies?.length} replies
                             </Button>
                         )}
                     </div>
@@ -365,7 +379,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     <X className="h-5 w-5"/>
                 </Button>
             </div>
-            <div className="flex-grow overflow-hidden relative">
+            <div className="flex-grow relative overflow-hidden">
                 <ScrollArea className="absolute inset-0">
                      <div className="p-4">
                         {isLoading ? (
@@ -374,7 +388,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                                  <Skeleton className="h-16 w-full" />
                             </div>
                         ) : comments.length > 0 ? (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {comments.map(comment => (
                                    <CommentThread key={comment.id} comment={comment} onReply={handleReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} />
                                 ))}
