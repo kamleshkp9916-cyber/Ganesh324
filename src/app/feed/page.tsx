@@ -974,59 +974,58 @@ export default function FeedPage() {
                         </section>
                     </div>
                 </main>
-                {/* Right Column */}
-                <aside className="p-6 hidden lg:block space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Trending</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {trendingTopics.map((topic, index) => (
-                                    <div key={index}>
-                                        <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Trending Streams</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {trendingStreams.map((stream) => (
-                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="relative">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={stream.avatarUrl}/>
-                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                <RadioTower className="h-2 w-2 text-white"/>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                            <Users className="h-3 w-3"/>
-                                            {stream.viewers}
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </aside>
             </div>
-          
+          {/* Right Column */}
+            <aside className="p-6 hidden lg:block space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Trending</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {trendingTopics.map((topic, index) => (
+                                <div key={index}>
+                                    <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
+                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Trending Streams</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {trendingStreams.map((stream) => (
+                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={stream.avatarUrl}/>
+                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                            <RadioTower className="h-2 w-2 text-white"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Users className="h-3 w-3"/>
+                                        {stream.viewers}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </aside>
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
@@ -1052,3 +1051,4 @@ export default function FeedPage() {
     
 
     
+
