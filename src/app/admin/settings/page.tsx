@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -64,7 +63,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { sendAnnouncement, sendWarning } from "@/ai/flows/notification-flow"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Image from "next/image"
 import {
@@ -635,36 +633,22 @@ export default function AdminSettingsPage() {
   
   const onSendAnnouncement = async (values: z.infer<typeof announcementSchema>) => {
     setIsSendingAnnouncement(true)
-    try {
-        const result = await sendAnnouncement(values.title, values.message)
-        if (result.success) {
-            toast({ title: "Announcement Sent!", description: result.message })
-            announcementForm.reset()
-        } else {
-             toast({ variant: "destructive", title: "Announcement Failed", description: result.message || "Could not send the announcement. Please check server logs." })
-        }
-    } catch (error: any) {
-        toast({ variant: "destructive", title: "Error Sending Announcement", description: error.message || "An unknown error occurred. Please try again." })
-    } finally {
+    // Mock functionality since flow is removed
+    setTimeout(() => {
+        toast({ title: "Announcement Sent!", description: "This is a mock confirmation." })
+        announcementForm.reset()
         setIsSendingAnnouncement(false)
-    }
+    }, 1000);
   }
 
   const onSendWarning = async (values: z.infer<typeof warningSchema>) => {
     setIsSendingWarning(true)
-    try {
-        const result = await sendWarning(values.userId, values.message)
-        if (result.success) {
-            toast({ title: "Warning Sent!", description: result.message })
-            warningForm.reset()
-        } else {
-            toast({ variant: "destructive", title: "Warning Failed", description: result.message || "Could not send the warning. Please check the user ID and try again." })
-        }
-    } catch (error: any) {
-        toast({ variant: "destructive", title: "Error Sending Warning", description: error.message || "Could not send the warning. Please try again." })
-    } finally {
+     // Mock functionality since flow is removed
+    setTimeout(() => {
+        toast({ title: "Warning Sent!", description: `Warning sent to ${values.userId}.` })
+        warningForm.reset()
         setIsSendingWarning(false)
-    }
+    }, 1000);
   }
 
   const handleReviewContent = (item: typeof contentList[0]) => {
@@ -859,24 +843,24 @@ export default function AdminSettingsPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle>User Notifications</CardTitle>
-                        <CardDescription>Send notifications to all users or a specific user.</CardDescription>
+                        <CardDescription>Send notifications to all users or a specific user. This feature is currently disabled.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Tabs defaultValue="announcement">
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="announcement">Announcement</TabsTrigger>
-                                <TabsTrigger value="warning">Warning</TabsTrigger>
+                                <TabsTrigger value="announcement" disabled>Announcement</TabsTrigger>
+                                <TabsTrigger value="warning" disabled>Warning</TabsTrigger>
                             </TabsList>
                             <TabsContent value="announcement" className="pt-4">
                                 <Form {...announcementForm}>
                                     <form onSubmit={announcementForm.handleSubmit(onSendAnnouncement)} className="space-y-4">
                                     <FormField control={announcementForm.control} name="title" render={({ field }) => (
-                                        <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., New Feature Added!" {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., New Feature Added!" {...field} disabled/></FormControl><FormMessage /></FormItem>
                                     )}/>
                                         <FormField control={announcementForm.control} name="message" render={({ field }) => (
-                                        <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Describe the announcement..." {...field} /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Describe the announcement..." {...field} disabled/></FormControl><FormMessage /></FormItem>
                                     )}/>
-                                        <Button type="submit" disabled={isSendingAnnouncement}>{isSendingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Send className="mr-2 h-4 w-4" /> Send to All Users</Button>
+                                        <Button type="submit" disabled><Send className="mr-2 h-4 w-4" /> Send to All Users</Button>
                                     </form>
                                 </Form>
                             </TabsContent>
@@ -884,12 +868,12 @@ export default function AdminSettingsPage() {
                                  <Form {...warningForm}>
                                     <form onSubmit={warningForm.handleSubmit(onSendWarning)} className="space-y-4">
                                         <FormField control={warningForm.control} name="userId" render={({ field }) => (
-                                            <FormItem><FormLabel>User ID or Email</FormLabel><FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabel>User ID or Email</FormLabel><FormControl><Input placeholder="Enter the user's unique ID or email address" {...field} disabled/></FormControl><FormMessage /></FormItem>
                                         )}/>
                                         <FormField control={warningForm.control} name="message" render={({ field }) => (
-                                            <FormItem><FormLabel>Warning Message</FormLabel><FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabel>Warning Message</FormLabel><FormControl><Textarea placeholder="Clearly state the reason for the warning..." {...field} disabled/></FormControl><FormMessage /></FormItem>
                                         )}/>
-                                        <Button type="submit" variant="destructive" disabled={isSendingWarning}>{isSendingWarning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}<Annoyed className="mr-2 h-4 w-4" /> Send Warning</Button>
+                                        <Button type="submit" variant="destructive" disabled><Annoyed className="mr-2 h-4 w-4" /> Send Warning</Button>
                                     </form>
                                 </Form>
                             </TabsContent>
@@ -935,3 +919,5 @@ export default function AdminSettingsPage() {
     </>
   )
 }
+
+    
