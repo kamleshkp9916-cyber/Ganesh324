@@ -118,12 +118,11 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
 };
 
 const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState("");
-    const { userData } = useAuth();
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -209,8 +208,9 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                             <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow space-y-2">
+                             <div className="text-xs text-muted-foreground mb-1">Replying to {comment.authorName}</div>
                             <Textarea
-                                placeholder={`Replying to ${comment.authorName}...`}
+                                placeholder={`Type your reply...`}
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
                                 className="text-sm"
@@ -252,6 +252,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const { toast } = useToast();
     const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [newComment, setNewComment] = useState("");
+    const mainInputRef = useRef<HTMLTextAreaElement>(null);
 
      useEffect(() => {
         setIsLoading(true);
@@ -260,6 +262,23 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             setIsLoading(false);
         }, 500);
     }, [post?.id]);
+    
+     const handleNewCommentSubmit = () => {
+        if (!newComment.trim() || !user || !userData) return;
+        const newTopLevelComment: CommentType = {
+            id: Date.now().toString(),
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL || '',
+            text: newComment.trim(),
+            timestamp: new Date(),
+            isEdited: false,
+            likes: 0,
+            replies: [],
+        };
+        setComments(prev => [...prev, newTopLevelComment]);
+        setNewComment("");
+    };
 
     const addReplyRecursive = (allComments: CommentType[], parentId: string, newReply: CommentType): CommentType[] => {
         return allComments.map(comment => {
@@ -325,9 +344,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     return (
-        <div className="flex flex-col h-full border-l bg-background">
+        <div className="flex flex-col h-full border-l bg-background overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Comments</h3>
+                <h3 className="font-semibold text-lg">Comments on {post.sellerName}'s post</h3>
                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 flex-shrink-0">
                     <X className="h-5 w-5"/>
                 </Button>
@@ -354,8 +373,27 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     )}
                  </div>
             </ScrollArea>
+             <div className="p-4 border-t bg-background">
+                <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={userData?.photoURL || ''} />
+                        <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                     <div className="flex-grow flex items-center gap-2">
+                        <Textarea
+                            ref={mainInputRef}
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            className="text-sm min-h-10"
+                            rows={1}
+                        />
+                        <Button size="icon" className="h-10 w-10 flex-shrink-0" onClick={handleNewCommentSubmit} disabled={!newComment.trim()}>
+                            <Send className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
-
-    
