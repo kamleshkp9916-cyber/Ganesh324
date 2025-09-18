@@ -15,6 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CommentType {
     id: string;
@@ -196,10 +197,10 @@ const Comment = ({ comment, onReply, onEdit, onDelete, level }: { comment: Comme
                     </div>
                      {isEditing ? (
                         <div className="mt-2 space-y-2">
-                            <Input value={editedText} onChange={(e) => setEditedText(e.target.value)} className="h-8 text-sm" />
+                            <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm" rows={2}/>
                             <div className="flex gap-2">
-                                <Button size="sm" className="h-6" onClick={handleEditSubmit}>Save</Button>
-                                <Button size="sm" variant="ghost" className="h-6" onClick={() => setIsEditing(false)}>Cancel</Button>
+                                <Button size="sm" className="h-7 px-2" onClick={handleEditSubmit}>Save</Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsEditing(false)}>Cancel</Button>
                             </div>
                         </div>
                     ) : (
@@ -217,15 +218,18 @@ const Comment = ({ comment, onReply, onEdit, onDelete, level }: { comment: Comme
                     )}
                 </div>
                  {isReplying && (
-                    <div className="flex items-center gap-2 mt-2">
-                        <Input 
+                    <div className="flex items-start gap-2 mt-2">
+                        <Textarea 
                             placeholder={`Replying to ${comment.authorName}...`} 
-                            className="h-8 text-sm"
+                            className="text-sm"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
+                            rows={2}
                         />
-                        <Button size="sm" className="h-8" onClick={handleReplySubmit} disabled={!replyText.trim()}>Send</Button>
-                        <Button size="sm" variant="ghost" className="h-8" onClick={() => setIsReplying(false)}>Cancel</Button>
+                        <div className="flex flex-col gap-2">
+                            <Button size="sm" className="h-7 px-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>Send</Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsReplying(false)}>Cancel</Button>
+                        </div>
                     </div>
                 )}
                 {showReplies && comment.replies.length > 0 && (
@@ -326,7 +330,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
     return (
         <div className="flex flex-col h-full border-l bg-background">
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-3 border-b flex items-center justify-between">
                 <div className="flex-grow overflow-hidden">
                     <h3 className="font-semibold">Comments on</h3>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">"{post.content.substring(0, 50)}..."</p>
