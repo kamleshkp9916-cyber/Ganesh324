@@ -175,7 +175,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
-             <div className={cn("pl-14", areRepliesVisible && "mt-2")}>
+             <div className="pl-14">
                 {areRepliesVisible && children}
             </div>
             {comment.replyCount > 0 && (
@@ -235,14 +235,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         try {
             await runTransaction(db, async (transaction) => {
                 const postRef = doc(db, 'posts', post.id);
-                let parentRef = null;
                 
-                // --- READS FIRST ---
+                // Perform all reads first
                 const postDoc = await transaction.get(postRef);
                 if (!postDoc.exists()) {
                     throw new Error("Post does not exist!");
                 }
                 
+                let parentRef = null;
                 if (parentId) {
                     parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     const parentDoc = await transaction.get(parentRef);
@@ -251,7 +251,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     }
                 }
                 
-                // --- WRITES SECOND ---
+                // Perform all writes after reads
                 const newCommentRef = doc(collection(db, `posts/${post.id}/comments`));
                 const newCommentData: any = {
                     userId: user.uid,
@@ -265,7 +265,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     replyCount: 0,
                     parentId: parentId,
                 };
-
+                
                 transaction.set(newCommentRef, newCommentData);
                 transaction.update(postRef, { replies: increment(1) });
                 if (parentRef) {
@@ -418,5 +418,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
-
-    
