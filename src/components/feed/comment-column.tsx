@@ -244,21 +244,22 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
             if (parentId) {
                 newCommentData.parentId = parentId;
-            } else {
-                 newCommentData.parentId = null;
             }
 
-            const newCommentDocRef = await addDoc(commentsRef, newCommentData);
+            // Create the new comment document first.
+            await addDoc(commentsRef, newCommentData);
             
+            // Then, run a transaction to update counts.
             await runTransaction(db, async (transaction) => {
                 const postDoc = await transaction.get(postRef);
-                if (!postDoc.exists()) throw "Post does not exist!";
+                if (!postDoc.exists()) throw new Error("Post does not exist!");
+                
                 transaction.update(postRef, { replies: increment(1) });
 
                 if (parentId) {
                     const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     const parentDoc = await transaction.get(parentRef);
-                    if (!parentDoc.exists()) throw "Parent comment does not exist!";
+                    if (!parentDoc.exists()) throw new Error("Parent comment does not exist!");
                     transaction.update(parentRef, { replyCount: increment(1) });
                 }
             });
