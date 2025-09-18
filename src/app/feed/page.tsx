@@ -374,7 +374,7 @@ const FeedPost = ({
                 </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4">
-                    <div className="flex items-start justify-between">
+                     <div className="flex items-start justify-between">
                         <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={post.avatarUrl} />
@@ -397,12 +397,12 @@ const FeedPost = ({
                                 {currentUser && currentUser.uid === post.sellerId && (
                                     <>
                                         <DropdownMenuItem onSelect={() => onEdit(post)}>
-                                            <Edit className="mr-2 h-4 w-4" /> Edit Post
+                                            <Edit className="mr-2 h-4 w-4" /> Edit
                                         </DropdownMenuItem>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
                                                 </DropdownMenuItem>
                                             </AlertDialogTrigger>
                                             <AlertDialogContent>
