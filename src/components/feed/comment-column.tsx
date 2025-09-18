@@ -214,19 +214,19 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                 </div>
                 
                  {isReplying && (
-                    <div className="mt-4 flex items-start gap-3">
+                     <div className="mt-4 flex items-start gap-3">
                          <Avatar className="h-8 w-8">
                             <AvatarImage src={userData?.photoURL || ''} />
                             <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow space-y-2">
-                             <div className="relative">
+                            <div className="relative">
                                 <Textarea
                                     ref={replyTextareaRef}
                                     placeholder={`Replying to ${comment.authorName}...`}
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
-                                    className="text-sm pr-12"
+                                    className="text-sm pr-12 min-h-[40px]"
                                     rows={1}
                                 />
                                 <Button size="icon" className="h-7 w-7 absolute right-2 bottom-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>
@@ -241,32 +241,36 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
     );
 };
 
-const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike, level = 0 }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, level?: number }) => {
-    const [isExpanded, setIsExpanded] = useState(level < 2); // Auto-expand first two levels
+const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
     const hasReplies = comment.replies && comment.replies.length > 0;
     
-    // Progressively scale down replies
-    const scale = 1 - (level * 0.05);
+    // Show the first reply by default if it exists
+    const firstReply = hasReplies ? comment.replies![0] : null;
+    const remainingReplies = hasReplies ? comment.replies!.slice(1) : [];
 
     return (
-        <div 
-            className="relative transition-transform duration-300 ease-out" 
-            style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
-        >
+        <div className="relative transition-opacity duration-300 ease-out">
              <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
              {hasReplies && (
                 <div className="relative mt-4 pl-8">
                     <span className="absolute left-[26px] top-0 h-full w-px bg-muted-foreground/20" aria-hidden="true" />
                      <div className="space-y-4">
-                        {isExpanded ? (
-                           comment.replies?.map(reply => (
-                                <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} level={level + 1} />
-                           ))
-                        ) : (
-                             <Button variant="link" size="sm" className="h-auto p-0 text-xs flex items-center gap-2" onClick={() => setIsExpanded(true)}>
-                                <ChevronDown className="w-3 h-3" />
-                                View all {comment.replies?.length} replies
-                            </Button>
+                        {firstReply && (
+                            <CommentThread key={firstReply.id} comment={firstReply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+                        )}
+                        
+                        {remainingReplies.length > 0 && (
+                            isExpanded ? (
+                                remainingReplies.map(reply => (
+                                    <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+                                ))
+                            ) : (
+                                <Button variant="link" size="sm" className="h-auto p-0 text-xs flex items-center gap-2" onClick={() => setIsExpanded(true)}>
+                                    <ChevronDown className="w-3 h-3" />
+                                    View all {comment.replies?.length} replies
+                                </Button>
+                            )
                         )}
                     </div>
                 </div>
@@ -282,6 +286,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isLoading, setIsLoading] = useState(true);
     const [newComment, setNewComment] = useState("");
     const mainInputRef = useRef<HTMLTextAreaElement>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+
 
      useEffect(() => {
         setIsLoading(true);
@@ -290,6 +296,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             setIsLoading(false);
         }, 500);
     }, [post?.id]);
+
+    useEffect(() => {
+      const viewport = scrollAreaRef.current;
+      if (viewport) {
+        setTimeout(() => {
+          viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        }, 100);
+      }
+    }, [comments]);
     
      const handleNewCommentSubmit = () => {
         if (!newComment.trim() || !user || !userData) return;
@@ -380,7 +395,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </Button>
             </div>
             <div className="flex-grow relative overflow-hidden">
-                <ScrollArea className="absolute inset-0">
+                <ScrollArea className="absolute inset-0" ref={scrollAreaRef}>
                      <div className="p-4">
                         {isLoading ? (
                             <div className="space-y-4">
