@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -96,22 +96,23 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike, onReport, level = 0 }: { comment: CommentType, onReply: (comment: CommentType) => void, onEdit: (id: string, text: string, parentId: string | null) => void, onDelete: (id: string) => void, onLike: (id: string) => void, onReport: (commentId: string) => void, level?: number }) => {
+const CommentThread = ({ comment, onAddReply, onEdit, onDelete, onLike, onReport, level = 0 }: { comment: CommentType, onAddReply: (parentId: string, text: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, onReport: (commentId: string) => void, level?: number }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(level < 1); // Expand first level by default
     const [showReplyBox, setShowReplyBox] = useState(false);
     const [replyText, setReplyText] = useState("");
 
     const handleEditSubmit = () => {
-        onEdit(comment.id, editedText, comment.parentId);
+        onEdit(comment.id, editedText);
         setIsEditing(false);
     };
 
     const handleReplySubmit = () => {
-        onEdit(Date.now().toString(), replyText, comment.id); // This is a bit of a hack, we should have a proper addReply function
+        if (!replyText.trim()) return;
+        onAddReply(comment.id, replyText);
         setShowReplyBox(false);
         setReplyText("");
     }
@@ -143,14 +144,14 @@ const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike, onReport, l
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm mt-1">{comment.text}</p>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">{comment.text}</p>
                 )}
                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
                         <ThumbsUp className="w-4 h-4" />
                         <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
-                    <button onClick={() => setShowReplyBox(!showReplyBox)} className="hover:text-primary">Reply</button>
+                    <button onClick={() => setShowReplyBox(prev => !prev)} className="hover:text-primary">Reply</button>
                 </div>
 
                 {showReplyBox && (
@@ -181,7 +182,7 @@ const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike, onReport, l
                          {isExpanded ? (
                              <div className="space-y-4 border-l-2 pl-4">
                                 {comment.replies?.map(reply => (
-                                    <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} onReport={onReport} level={level + 1}/>
+                                    <CommentThread key={reply.id} comment={reply} onAddReply={onAddReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} onReport={onReport} level={level + 1}/>
                                 ))}
                             </div>
                          ) : (
@@ -288,13 +289,38 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         setNewComment("");
     };
 
-    const handleReplyClick = (commentToReply: CommentType) => {
-        setNewComment(`@${commentToReply.authorName} `);
-        mainInputRef.current?.focus();
+    const handleAddReply = (parentId: string, text: string) => {
+        if (!user || !userData) return;
+
+        const newReply: CommentType = {
+             id: Date.now().toString(),
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL || '',
+            text: text,
+            timestamp: new Date(),
+            isEdited: false,
+            likes: 0,
+            parentId: parentId,
+        };
+        
+        const addReplyToTree = (items: CommentType[]): CommentType[] => {
+            return items.map(item => {
+                if (item.id === parentId) {
+                    const updatedReplies = item.replies ? [newReply, ...item.replies] : [newReply];
+                    return { ...item, replies: updatedReplies };
+                }
+                if (item.replies) {
+                    return { ...item, replies: addReplyToTree(item.replies) };
+                }
+                return item;
+            });
+        };
+        
+        setComments(prev => addReplyToTree(prev));
     };
-    
+
     const handleEdit = (commentId: string, newText: string) => {
-        // Recursive function to find and update the comment
         const updateComment = (items: CommentType[]): CommentType[] => {
             return items.map(item => {
                 if (item.id === commentId) {
@@ -311,7 +337,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     const handleDelete = (commentId: string) => {
-        // Recursive function to find and remove the comment
          const removeComment = (items: CommentType[]): CommentType[] => {
             return items.filter(item => {
                 if (item.id === commentId) return false;
@@ -365,7 +390,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     ) : comments.length > 0 ? (
                         <div className="space-y-4">
                             {comments.map(comment => (
-                               <CommentThread key={comment.id} comment={comment} onReply={handleReplyClick} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} onReport={handleReport} />
+                               <CommentThread key={comment.id} comment={comment} onAddReply={handleAddReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} onReport={handleReport} />
                             ))}
                         </div>
                     ) : (
