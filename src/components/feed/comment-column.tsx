@@ -199,7 +199,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!post?.id) return;
+        if (!post?.id) {
+            setComments([]);
+            setIsLoading(false);
+            return;
+        };
 
         setIsLoading(true);
         const db = getFirestoreDb();
@@ -241,15 +245,12 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 replyingTo: replyingTo,
                 replyCount: 0,
             };
-
             if (parentId) {
                 newCommentData.parentId = parentId;
             }
 
-            // Create the new comment document first.
             await addDoc(commentsRef, newCommentData);
             
-            // Then, run a transaction to update counts.
             await runTransaction(db, async (transaction) => {
                 const postDoc = await transaction.get(postRef);
                 if (!postDoc.exists()) throw new Error("Post does not exist!");
