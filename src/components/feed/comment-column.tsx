@@ -66,7 +66,7 @@ interface CommentType {
 
 const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, children }: {
     comment: CommentType,
-    onReply: (parentId: string, text: string, replyingTo: string) => void,
+    onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
@@ -89,7 +89,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(comment.id, replyText, comment.authorName);
+        onReply(replyText, comment.id, comment.authorName);
         setReplyText('');
         setIsReplying(false);
     };
