@@ -110,7 +110,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
-import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
+import { format, formatDistanceToNow, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
 import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
@@ -233,7 +233,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                                 <div className="flex-grow bg-muted p-2 rounded-lg">
                                     <div className="flex justify-between items-center text-xs">
                                         <p className="font-semibold">{comment.authorName}</p>
-                                        <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(comment.timestamp, { addSuffix: true }) : 'just now'}</p>
+                                        <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} /></p>
                                     </div>
                                     <p className="text-sm">{comment.text}</p>
                                 </div>
@@ -364,14 +364,19 @@ const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?:
     }, []);
 
     useEffect(() => {
-      const d = new Date(date);
-      setRelativeTime(formatTimestamp(d));
+        const d = date instanceof Date ? date : new Date(date);
+        if (isNaN(d.getTime())) {
+            setRelativeTime('Invalid date');
+            return;
+        }
 
-      const interval = setInterval(() => {
         setRelativeTime(formatTimestamp(d));
-      }, 60000); // Update every minute
+        
+        const interval = setInterval(() => {
+            setRelativeTime(formatTimestamp(d));
+        }, 60000); // Update every minute
 
-      return () => clearInterval(interval);
+        return () => clearInterval(interval);
     }, [date, formatTimestamp]);
 
     return (
