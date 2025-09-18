@@ -20,7 +20,6 @@ import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Loader2, Upload, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
-import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,12 +55,6 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Image Cropper State
-  const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [imgSrc, setImgSrc] = useState('');
-  const [crop, setCrop] = useState<Crop>();
-  const imgRef = useRef<HTMLImageElement>(null);
-
   const defaultPhotoURL = `https://placehold.co/128x128.png?text=${(currentUser.displayName || 'U').charAt(0)}`;
 
 
@@ -83,46 +76,12 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImgSrc(reader.result as string);
-                setIsCropperOpen(true);
+                const result = reader.result as string;
+                setPhotoPreview(result);
+                profileForm.setValue('photoURL', result);
             };
             reader.readAsDataURL(file);
         }
-    };
-    
-    const getCroppedImg = (image: HTMLImageElement, crop: Crop) => {
-        const canvas = document.createElement('canvas');
-        const scaleX = image.naturalWidth / image.width;
-        const scaleY = image.naturalHeight / image.height;
-        canvas.width = crop.width;
-        canvas.height = crop.height;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) return null;
-
-        ctx.drawImage(
-            image,
-            crop.x * scaleX,
-            crop.y * scaleY,
-            crop.width * scaleX,
-            crop.height * scaleY,
-            0,
-            0,
-            crop.width,
-            crop.height
-        );
-        return canvas.toDataURL('image/jpeg');
-    }
-
-    const handleCropComplete = () => {
-        if (imgRef.current && crop?.width && crop?.height) {
-            const croppedImageUrl = getCroppedImg(imgRef.current, crop);
-            if (croppedImageUrl) {
-                setPhotoPreview(croppedImageUrl);
-                profileForm.setValue('photoURL', croppedImageUrl);
-            }
-        }
-        setIsCropperOpen(false);
     };
 
     const handleRemovePhoto = () => {
@@ -148,28 +107,6 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
 
   return (
     <>
-      <Dialog open={isCropperOpen} onOpenChange={setIsCropperOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Crop Your Image</DialogTitle>
-          </DialogHeader>
-          {imgSrc && (
-            <ReactCrop
-              crop={crop}
-              onChange={c => setCrop(c)}
-              aspect={1}
-              circularCrop
-            >
-              <img ref={imgRef} src={imgSrc} alt="Crop preview" style={{maxHeight: "70vh"}} />
-            </ReactCrop>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCropperOpen(false)}>Cancel</Button>
-            <Button onClick={handleCropComplete}>Apply Crop</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
       <Form {...profileForm}>
         <form onSubmit={profileForm.handleSubmit(handleProfileSave)}>
             <ScrollArea className="h-[55vh] max-h-[55vh]">
