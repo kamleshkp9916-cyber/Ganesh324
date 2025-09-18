@@ -11,7 +11,6 @@ const ContentSecurityPolicy = `
   font-src 'self' data:;
   object-src 'none';
   base-uri 'self';
-  form-action 'self';
 `;
 
 const nextConfig: NextConfig = {
