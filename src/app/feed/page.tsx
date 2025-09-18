@@ -1005,6 +1005,10 @@ export default function FeedPage() {
              {isMobile && selectedPostForComments && (
                 <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                     <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
+                        <SheetHeader className="sr-only">
+                            <SheetTitle>Comments</SheetTitle>
+                            <DialogDescription>View and add comments to this post.</DialogDescription>
+                        </SheetHeader>
                          <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
