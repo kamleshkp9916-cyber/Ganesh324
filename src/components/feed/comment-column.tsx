@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, Timestamp, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, increment } from 'firebase/firestore';
-import { format, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
+import { formatDistanceToNowStrict } from 'date-fns';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CommentType {
@@ -27,6 +26,7 @@ interface CommentType {
     isEdited: boolean;
     likes: number;
     replies?: CommentType[];
+    replyingTo?: string;
 }
 
 const mockCommentsData: CommentType[] = [
@@ -49,6 +49,7 @@ const mockCommentsData: CommentType[] = [
                 timestamp: new Date(Date.now() - 44 * 60 * 1000), // 44m ago
                 isEdited: false,
                 likes: 1,
+                replyingTo: 'Heart_beat',
                 replies: [
                     {
                         id: '3',
@@ -59,11 +60,23 @@ const mockCommentsData: CommentType[] = [
                         timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10m ago
                         isEdited: false,
                         likes: 0,
+                        replyingTo: 'Motorro_',
                         replies: [],
                     }
                 ],
             },
         ],
+    },
+    {
+        id: '4',
+        authorName: 'SoloLeveling',
+        authorId: 'user4',
+        authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=S',
+        text: 'This is another top-level comment to demonstrate the structure. How is everyone doing?',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
+        isEdited: false,
+        likes: 5,
+        replies: [],
     },
 ];
 
@@ -123,11 +136,12 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
             id: Date.now().toString(),
             authorName: userData.displayName,
             authorId: user.uid,
-            authorAvatar: userData.photoURL,
+            authorAvatar: userData.photoURL || '',
             text: replyText.trim(),
             timestamp: new Date(),
             isEdited: false,
             likes: 0,
+            replyingTo: comment.authorName,
             replies: [],
         };
         onReply(comment.id, newReply);
@@ -148,14 +162,17 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                 </div>
                  {isEditing ? (
                     <div className="mt-2 space-y-2">
-                        <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm" rows={2}/>
+                        <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm" rows={2} autoFocus/>
                         <div className="flex gap-2">
                             <Button size="sm" className="h-7 px-2" onClick={handleEditSubmit}>Save</Button>
                             <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsEditing(false)}>Cancel</Button>
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm mt-1">{comment.text}</p>
+                    <p className="text-sm mt-1">
+                        {comment.replyingTo && <span className="text-primary font-medium mr-1">@{comment.replyingTo}</span>}
+                        {comment.text}
+                    </p>
                 )}
                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
@@ -188,7 +205,7 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                  {isReplying && (
                     <div className="mt-4 flex items-start gap-3">
                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={userData?.photoURL} />
+                            <AvatarImage src={userData?.photoURL || ''} />
                             <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow space-y-2">
@@ -214,13 +231,16 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
 
 const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
     return (
-        <div>
-            <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
-            {comment.replies && comment.replies.length > 0 && (
-                <div className="ml-8 pl-6 border-l border-muted-foreground/20 space-y-6 mt-6">
-                    {comment.replies.map(reply => (
-                        <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
-                    ))}
+        <div className="relative">
+             <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+             {comment.replies && comment.replies.length > 0 && (
+                <div className="relative mt-6 pl-8">
+                    <span className="absolute left-4 top-0 h-full w-px bg-muted-foreground/20" aria-hidden="true" />
+                     <div className="space-y-6">
+                        {comment.replies.map(reply => (
+                            <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
@@ -337,3 +357,5 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     )
 }
+
+    
