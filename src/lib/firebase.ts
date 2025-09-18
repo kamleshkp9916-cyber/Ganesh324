@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, Firestore, initializeFirestore, memoryLocalCache } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -25,19 +25,17 @@ function initializeFirebase() {
         app = getApp();
     }
     auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-    
-    // Enable offline persistence
+    // Use initializeFirestore to configure persistence
     try {
-        enableIndexedDbPersistence(db);
-    } catch (error: any) {
-        if (error.code == 'failed-precondition') {
-            console.warn('Firestore persistence failed: Multiple tabs open.');
-        } else if (error.code == 'unimplemented') {
-            console.warn('Firestore persistence failed: Browser does not support it.');
-        }
+      db = initializeFirestore(app, {
+        localCache: memoryLocalCache(),
+      });
+    } catch (error) {
+      console.error("Firestore initialization error:", error)
+      db = getFirestore(app);
     }
+
+    storage = getStorage(app);
 }
 
 // Initialize on load
