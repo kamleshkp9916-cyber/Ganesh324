@@ -628,7 +628,7 @@ export default function FeedPage() {
     return Object.entries(hashtagCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([topic, posts]) => ({ topic, posts, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+        .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
@@ -857,14 +857,13 @@ export default function FeedPage() {
       </AlertDialog>
       
     <div className="min-h-screen bg-background text-foreground">
-        <div className="grid lg:grid-cols-[18rem_1fr] min-h-screen">
+        <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:flex">
              <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
           </aside>
           
-          <div className="flex h-screen">
-            <div className="flex flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                    <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
@@ -1027,7 +1026,7 @@ export default function FeedPage() {
                     </Card>
                 </aside>
             </div>
-          </div>
+          
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
@@ -1038,7 +1037,7 @@ export default function FeedPage() {
                                 onPost={handlePostSubmit}
                                 postToEdit={postToEdit}
                                 onFinishEditing={onFinishEditing}
-                                isSubmitting={isFormSubmitting}
+                                isSubmitting={isSubmitting}
                             />
                         </div>
                     </div>
