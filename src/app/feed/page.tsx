@@ -125,7 +125,7 @@ import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
-import { CommentColumn, RealtimeTimestamp } from '@/components/feed/comment-column';
+import { CommentColumn } from '@/components/feed/comment-column';
 
 
 const liveSellers = [
@@ -347,7 +347,7 @@ const FeedPost = ({
                                     <Highlight text={post.sellerName} highlight={highlightTerm} />
                                 </span>
                                 <div className="text-xs text-muted-foreground font-normal">
-                                <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                                    {post.timestamp}
                                 </div>
                             </div>
                         </Link>
@@ -606,7 +606,7 @@ export default function FeedPage() {
             const postsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                timestamp: doc.data().timestamp ? (doc.data().timestamp as Timestamp).toDate() : new Date()
+                timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
             }));
             setFeed(postsData);
             setIsLoadingFeed(false);
@@ -942,10 +942,12 @@ export default function FeedPage() {
           {/* Right Column */}
             <aside className="hidden lg:block h-screen overflow-y-auto no-scrollbar">
                {selectedPostForComments ? (
-                    <CommentColumn 
-                        post={selectedPostForComments} 
-                        onClose={() => setSelectedPostForComments(null)} 
-                    />
+                    isMobile ? null : (
+                         <CommentColumn 
+                            post={selectedPostForComments} 
+                            onClose={() => setSelectedPostForComments(null)} 
+                        />
+                    )
                 ) : (
                 <div className="p-6 space-y-6 h-full">
                     <Card>
@@ -999,6 +1001,17 @@ export default function FeedPage() {
                 </div>
                 )}
             </aside>
+
+             {isMobile && selectedPostForComments && (
+                <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
+                    <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
+                         <CommentColumn 
+                            post={selectedPostForComments} 
+                            onClose={() => setSelectedPostForComments(null)} 
+                        />
+                    </SheetContent>
+                </Sheet>
+            )}
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">

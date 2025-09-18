@@ -5,79 +5,65 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, Timestamp, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, increment } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  Timestamp,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  increment,
+  runTransaction,
+} from 'firebase/firestore';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2 } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
+
 
 interface CommentType {
-    id: string;
-    authorName: string;
-    authorId: string;
-    authorAvatar: string;
-    text: string;
-    timestamp: string; // Use ISO string for consistency with localStorage
-    isEdited: boolean;
-    likes: number;
-    replyingTo?: string | null;
-    parentId?: string | null;
+  id: string;
+  authorName: string;
+  authorId: string;
+  authorAvatar: string;
+  text: string;
+  timestamp: Timestamp;
+  isEdited: boolean;
+  likes: string[];
+  replyingTo?: string | null;
+  parentId: string | null;
+  replyCount: number;
 }
 
-const mockCommentsData: CommentType[] = [
-    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 255, parentId: null, replyingTo: null },
-    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 2.9 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 63, parentId: '1', replyingTo: 'Heart_beat' },
-    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 18, parentId: '1', replyingTo: 'Heart_beat' },
-    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree!', timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), isEdited: false, likes: 5, parentId: '3', replyingTo: 'Receptionist77' },
-    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(), isEdited: false, likes: 42, parentId: null, replyingTo: null },
-];
-
-
-export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Timestamp, isEdited?: boolean }) => {
-    const [relativeTime, setRelativeTime] = useState('');
-
-    const formatTimestamp = useCallback((d: Date | string | Timestamp): string => {
-        let dateObj: Date;
-
-        if (d instanceof Timestamp) {
-            dateObj = d.toDate();
-        } else if (d instanceof Date) {
-            dateObj = d;
-        } else {
-            dateObj = new Date(d);
-        }
-
-        if (isNaN(dateObj.getTime())) return 'Invalid date';
-        
-        return formatDistanceToNowStrict(dateObj, { addSuffix: true });
-    }, []);
-
-    useEffect(() => {
-        setRelativeTime(formatTimestamp(date));
-        
-        const interval = setInterval(() => {
-            setRelativeTime(formatTimestamp(date));
-        }, 60000); // Update every minute
-
-        return () => clearInterval(interval);
-    }, [date, formatTimestamp]);
-
-    return (
-        <>
-            {relativeTime}
-            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
-        </>
-    );
-};
-
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, children }: {
     comment: CommentType,
     onReply: (parentId: string, text: string, replyingTo: string) => void,
     onLike: (id: string) => void,
@@ -85,12 +71,15 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
+    children: React.ReactNode
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
+    const [areRepliesVisible, setAreRepliesVisible] = useState(false);
+    const hasLiked = user ? comment.likes.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -103,9 +92,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         setReplyText('');
         setIsReplying(false);
     };
-    
+
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
             <div className="flex items-start gap-3">
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={comment.authorAvatar} />
@@ -117,7 +106,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <p className="text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button><MoreHorizontal className="w-4 h-4" /></button>
+                                <button className="ml-auto"><MoreHorizontal className="w-4 h-4" /></button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start">
                                 {user?.uid === comment.authorId ? (
@@ -153,9 +142,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </p>
                     )}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
-                            <ThumbsUp className="w-4 h-4" />
-                            <span>{comment.likes > 0 ? comment.likes : ''}</span>
+                        <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
+                            <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
+                            <span>{comment.likes.length > 0 ? comment.likes.length : ''}</span>
                         </button>
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
@@ -163,9 +152,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {isReplying && (
-                <div className="pl-12 w-[70%] mx-auto">
+                <div className="pl-12">
                     <div className="flex items-start gap-2">
-                         <Avatar className="h-8 w-8">
+                        <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.photoURL || undefined} />
                             <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -185,108 +174,158 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
+             {comment.replyCount > 0 && (
+                <div className="pl-14">
+                    <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
+                         <div className="w-6 h-px bg-border" />
+                         {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
+                    </button>
+                    {areRepliesVisible && (
+                        <div className="mt-4 space-y-4">{children}</div>
+                    )}
+                </div>
+            )}
+            {!comment.replyCount && <div className="pl-14">{children}</div>}
         </div>
     );
 };
 
-const renderComments = (
-    allComments: CommentType[],
-    parentId: string | null,
-    handlers: {
-        onReply: (parentId: string, text: string, replyingTo: string) => void,
-        onLike: (id: string) => void,
-        onReport: (id: string) => void,
-        onCopyLink: (id: string) => void,
-        onEdit: (id: string, text: string) => void,
-        onDelete: (id: string) => void,
-    }
-) => {
-    return allComments
-        .filter(comment => comment.parentId === parentId)
-        .map(comment => (
-            <div key={comment.id}>
-                <Comment comment={comment} {...handlers} />
-                <div className="pl-12 w-[70%] mx-auto mt-4 space-y-4">
-                    {renderComments(allComments, comment.id, handlers)}
-                </div>
-            </div>
-        ));
-};
-
-
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post?.id}`, mockCommentsData);
-    const [isLoading, setIsLoading] = useState(false);
+    const [comments, setComments] = useState<CommentType[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleNewCommentSubmit = (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
+    useEffect(() => {
+        if (!post?.id) return;
+        const db = getFirestoreDb();
+        const commentsQuery = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
+        
+        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            } as CommentType));
+            setComments(commentsData);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [post?.id]);
+
+    const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
+        if (isSubmitting) return;
 
-        const newCommentData: CommentType = {
-            id: Date.now().toString(),
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL || '',
-            text: text,
-            timestamp: new Date().toISOString(),
-            isEdited: false,
-            likes: 0,
-            parentId: parentId,
-            replyingTo: replyingTo,
-        };
-        setComments(prev => [...prev, newCommentData].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
-        if (!parentId) {
-            setNewCommentText("");
+        setIsSubmitting(true);
+        try {
+            const db = getFirestoreDb();
+            const commentsRef = collection(db, `posts/${post.id}/comments`);
+            const postRef = doc(db, 'posts', post.id);
+
+            await addDoc(commentsRef, {
+                authorName: userData.displayName,
+                authorId: user.uid,
+                authorAvatar: userData.photoURL || '',
+                text: text,
+                timestamp: serverTimestamp(),
+                isEdited: false,
+                likes: [],
+                parentId: parentId,
+                replyingTo: replyingTo,
+                replyCount: 0,
+            });
+            
+            await updateDoc(postRef, { replies: increment(1) });
+            if(parentId) {
+                await updateDoc(doc(db, `posts/${post.id}/comments`, parentId), { replyCount: increment(1) });
+            }
+
+            if (!parentId) setNewCommentText("");
+
+        } catch (error) {
+            console.error("Error posting comment:", error);
+            toast({ variant: 'destructive', title: "Error", description: "Could not post your comment." });
+        } finally {
+            setIsSubmitting(false);
         }
     };
     
-    const handleEdit = (commentId: string, newText: string) => {
-        setComments(prev => prev.map(c => c.id === commentId ? {...c, text: newText, isEdited: true} : c));
-        toast({ title: "Comment Updated" });
+    const handleEdit = async (commentId: string, newText: string) => {
+        try {
+            const db = getFirestoreDb();
+            await updateDoc(doc(db, `posts/${post.id}/comments`, commentId), {
+                text: newText,
+                isEdited: true,
+            });
+            toast({ title: "Comment Updated" });
+        } catch (error) {
+            console.error("Error editing comment:", error);
+            toast({ variant: 'destructive', title: "Error", description: "Could not update comment." });
+        }
     };
 
-    const handleDelete = (commentId: string) => {
-        const commentIdsToDelete = new Set<string>();
-        const queue = [commentId];
-        commentIdsToDelete.add(commentId);
-        
-        while(queue.length > 0) {
-            const currentId = queue.shift();
-            comments.forEach(comment => {
-                if (comment.parentId === currentId) {
-                    commentIdsToDelete.add(comment.id);
-                    queue.push(comment.id);
+    const handleDelete = async (commentId: string) => {
+        try {
+            const db = getFirestoreDb();
+            await deleteDoc(doc(db, `posts/${post.id}/comments`, commentId));
+            await updateDoc(doc(db, 'posts', post.id), { replies: increment(-1) });
+            toast({ title: "Comment Deleted" });
+        } catch (error) {
+             console.error("Error deleting comment:", error);
+            toast({ variant: 'destructive', title: "Error", description: "Could not delete comment." });
+        }
+    };
+    
+    const handleLike = async (commentId: string) => {
+        if (!user) return;
+        try {
+            const db = getFirestoreDb();
+            const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
+            await runTransaction(db, async (transaction) => {
+                const commentDoc = await transaction.get(commentRef);
+                if (!commentDoc.exists()) throw "Comment does not exist!";
+                
+                const likes: string[] = commentDoc.data().likes || [];
+                if (likes.includes(user.uid)) {
+                    transaction.update(commentRef, { likes: likes.filter(uid => uid !== user.uid) });
+                } else {
+                    transaction.update(commentRef, { likes: [...likes, user.uid] });
                 }
             });
+        } catch (error) {
+            console.error("Error liking comment:", error);
         }
-
-        setComments(prev => prev.filter(c => !commentIdsToDelete.has(c.id)));
-        toast({ title: "Comment Deleted" });
-    };
-    
-    const handleLike = (commentId: string) => {
-        setComments(prev => prev.map(c => c.id === commentId ? {...c, likes: c.likes + 1} : c));
     };
 
     const handleReport = (commentId: string) => {
         toast({
             title: "Comment Reported",
-            description: "Thank you for your feedback. Our moderators will review this comment.",
+            description: "Thank you for your feedback.",
         });
     };
     
-     const handleCopyLink = (commentId: string) => {
+    const handleCopyLink = (commentId: string) => {
         navigator.clipboard.writeText(`${window.location.href}#comment-${commentId}`);
-        toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
+        toast({ title: "Link Copied!" });
     };
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
-
+    
+    const renderComments = (parentId: string | null) => {
+        return comments
+            .filter(comment => comment.parentId === parentId)
+            .map(comment => (
+                <Comment key={comment.id} comment={comment} {...handlers}>
+                    {renderComments(comment.id)}
+                </Comment>
+            ));
+    };
 
     return (
-        <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm animate-in slide-in-from-bottom-full lg:slide-in-from-bottom-0 duration-500">
+        <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center">
                 <h3 className="font-bold text-lg">Comments ({post.replies || comments.length})</h3>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
@@ -301,7 +340,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                         </div>
                     ) : comments.length > 0 ? (
-                        renderComments(comments, null, handlers)
+                        renderComments(null)
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
@@ -324,9 +363,49 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         rows={1}
                         className="flex-grow resize-none"
                     />
-                    <Button type="submit" disabled={!newCommentText.trim()}><Send className="w-4 h-4" /></Button>
+                    <Button type="submit" disabled={!newCommentText.trim() || isSubmitting}>
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </Button>
                 </form>
             </div>
         </div>
-    )
+    );
 }
+
+// Separate RealtimeTimestamp into its own component to use "use client"
+const RealtimeTimestampComponent = ({ date, isEdited }: { date: Date | string | Timestamp, isEdited?: boolean }) => {
+    const [relativeTime, setRelativeTime] = useState('');
+
+    const formatTimestamp = useCallback((d: Date | string | Timestamp): string => {
+        let dateObj: Date;
+
+        if (d instanceof Timestamp) {
+            dateObj = d.toDate();
+        } else if (d instanceof Date) {
+            dateObj = d;
+        } else {
+            dateObj = new Date(d);
+        }
+
+        if (isNaN(dateObj.getTime())) return 'Invalid date';
+        
+        return formatDistanceToNowStrict(dateObj, { addSuffix: true });
+    }, []);
+
+    useEffect(() => {
+        setRelativeTime(formatTimestamp(date));
+        
+        const interval = setInterval(() => {
+            setRelativeTime(formatTimestamp(date));
+        }, 60000); // Update every minute
+
+        return () => clearInterval(interval);
+    }, [date, formatTimestamp]);
+
+    return (
+        <>
+            {relativeTime}
+            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
+        </>
+    );
+};
