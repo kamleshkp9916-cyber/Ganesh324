@@ -132,6 +132,7 @@ export default function CategoryPage() {
                                                 src={product.images[0]}
                                                 alt={product.name}
                                                 fill
+                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                                                 className="object-cover transition-transform group-hover:scale-105"
                                                 data-ai-hint={product.hint}
                                             />

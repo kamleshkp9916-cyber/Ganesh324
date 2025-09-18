@@ -177,6 +177,7 @@ export default function ListedProductsPage() {
                       src={hubBanner.imageUrl}
                       alt={hubBanner.title}
                       fill
+                      sizes="100vw"
                       className="object-cover"
                       data-ai-hint="electronics sale gadgets"
                     />
@@ -190,7 +191,7 @@ export default function ListedProductsPage() {
                     {featuredProducts.map((product, index) => (
                       <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
                         <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
+                           <Image src={product.imageUrl} alt={product.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
                         </div>
                         <div>
                           <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
@@ -216,6 +217,7 @@ export default function ListedProductsPage() {
                             src={cat.imageUrl}
                             alt={cat.name}
                             fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
                             className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
                             data-ai-hint={cat.hint}
                         />

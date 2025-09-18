@@ -185,7 +185,7 @@ export default function SellerKycPage() {
                             <FormControl>
                                  <div className="w-full h-40 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground hover:border-primary hover:text-primary cursor-pointer relative" onClick={() => photoInputRef.current?.click()}>
                                     {photoPreview ? (
-                                        <Image src={photoPreview} alt="Photo Preview" layout="fill" className="object-cover rounded-lg" />
+                                        <Image src={photoPreview} alt="Photo Preview" fill sizes="100vw" className="object-cover rounded-lg" />
                                     ) : (
                                         <div className="text-center"><Camera className="h-8 w-8 mx-auto" /><p className="text-xs mt-1">Click to Upload</p></div>
                                     )}

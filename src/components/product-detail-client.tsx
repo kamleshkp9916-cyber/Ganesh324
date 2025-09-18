@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -361,7 +361,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                            ))}
                         </div>
                         <div className="flex-1 aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-                            {selectedImage && <Image src={selectedImage} alt={product.name} width={600} height={600} className="object-cover w-full h-full" data-ai-hint={product.hint} />}
+                            {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover w-full h-full" data-ai-hint={product.hint} />}
                             <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                                  <Button
                                     size="icon"
@@ -577,7 +577,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             )}
                             {product.images.length > 1 && (
                                  <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
-                                     <Image src={product.images[1]} alt={`${product.name} highlight`} width={400} height={400} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                                     <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
                                  </div>
                             )}
                         </CardContent>
@@ -615,7 +615,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Link href={`/product/${p.key}`} key={p.id} className="w-32 flex-shrink-0">
                                                 <Card className="overflow-hidden group">
                                                     <div className="aspect-square bg-muted relative">
-                                                        <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                                        <Image src={p.images[0]} alt={p.name} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                                     </div>
                                                     <div className="p-3">
                                                         <h4 className="font-semibold text-xs truncate">{p.name}</h4>
@@ -796,7 +796,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <Link href={`/product/${p.key}`} key={p.id}>
                                 <Card className="overflow-hidden group">
                                     <div className="aspect-square bg-muted relative">
-                                        <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                        <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                     </div>
                                     <div className="p-2 sm:p-3">
                                         <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
@@ -856,7 +856,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Link href={`/product/${p.key}`} key={p.id}>
                                     <Card className="overflow-hidden group">
                                         <div className="aspect-square bg-muted relative">
-                                            <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                            <Image src={p.imageUrl} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                         </div>
                                         <div className="p-2 sm:p-3">
                                             <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
@@ -894,7 +894,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                     {post.mediaUrl && (
                                         <div className="w-full aspect-video bg-muted relative">
-                                            <Image src={post.mediaUrl} alt="Post media" fill className="object-cover" />
+                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
                                         </div>
                                     )}
                                 </Card>

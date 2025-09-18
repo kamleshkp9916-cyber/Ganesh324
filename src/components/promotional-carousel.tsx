@@ -61,6 +61,7 @@ export function PromotionalCarousel() {
                     src={slide.imageUrl}
                     alt={slide.title}
                     fill
+                    sizes="100vw"
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
