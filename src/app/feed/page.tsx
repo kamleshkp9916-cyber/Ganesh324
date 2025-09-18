@@ -171,6 +171,8 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editedContent, setEditedContent] = useState("");
 
     useEffect(() => {
         const db = getFirestoreDb();
@@ -198,6 +200,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
             authorAvatar: userData.photoURL,
             text: newComment.trim(),
             timestamp: serverTimestamp(),
+            isEdited: false,
         });
 
         await updateDoc(doc(db, 'posts', postId), {
@@ -205,6 +208,34 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
         });
 
         setNewComment("");
+    };
+
+    const handleEditComment = (comment: any) => {
+        setEditingCommentId(comment.id);
+        setEditedContent(comment.text);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editedContent.trim() || !editingCommentId) return;
+
+        const db = getFirestoreDb();
+        const commentRef = doc(db, `posts/${postId}/comments`, editingCommentId);
+
+        await updateDoc(commentRef, {
+            text: editedContent,
+            isEdited: true,
+        });
+
+        setEditingCommentId(null);
+        setEditedContent("");
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        const db = getFirestoreDb();
+        await deleteDoc(doc(db, `posts/${postId}/comments`, commentId));
+        await updateDoc(doc(db, 'posts', postId), {
+            replies: increment(-1)
+        });
     };
 
     return (
@@ -225,7 +256,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                 ) : comments.length > 0 ? (
                     <div className="space-y-4 py-4">
                         {comments.map(comment => (
-                            <div key={comment.id} className="flex items-start gap-3">
+                            <div key={comment.id} className="flex items-start gap-3 group">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={comment.authorAvatar} />
                                     <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -233,9 +264,50 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                                 <div className="flex-grow bg-muted p-2 rounded-lg">
                                     <div className="flex justify-between items-center text-xs">
                                         <p className="font-semibold">{comment.authorName}</p>
-                                        <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} /></p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
+                                            {user?.uid === comment.authorId && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onSelect={() => handleEditComment(comment)}>
+                                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                                        </DropdownMenuItem>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                 <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive">
+                                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                </DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Delete Comment?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>This will permanently delete your comment.</AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteComment(comment.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-sm">{comment.text}</p>
+                                    {editingCommentId === comment.id ? (
+                                        <div className="mt-2 space-y-2">
+                                            <Input value={editedContent} onChange={(e) => setEditedContent(e.target.value)} className="h-8 text-sm" />
+                                            <div className="flex gap-2">
+                                                <Button size="sm" className="h-6" onClick={handleSaveEdit}>Save</Button>
+                                                <Button size="sm" variant="ghost" className="h-6" onClick={() => setEditingCommentId(null)}>Cancel</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm">{comment.text}</p>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -346,34 +418,36 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
 
 const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
     const [relativeTime, setRelativeTime] = useState('');
+  
+    const formatTimestamp = useCallback((d: Date | string): string => {
+        const dateObj = typeof d === 'string' ? new Date(d) : d;
+        if (isNaN(dateObj.getTime())) return 'Invalid date';
 
-    const formatTimestamp = useCallback((d: Date): string => {
         const now = new Date();
-        const diffInSeconds = (now.getTime() - d.getTime()) / 1000;
+        const diffInSeconds = (now.getTime() - dateObj.getTime()) / 1000;
+        if (diffInSeconds < 60) {
+            return 'just now';
+        }
+        if (diffInSeconds < 60 * 60) {
+             return `${Math.floor(diffInSeconds / 60)}m`;
+        }
         if (diffInSeconds < 60 * 60 * 24) {
-            const distance = formatDistanceToNowStrict(d, { addSuffix: false });
-            return distance.replace(/about /g, '').replace(/ seconds?/, 's').replace(/ minutes?/, 'm').replace(/ hours?/, 'h');
+             return `${Math.floor(diffInSeconds / 3600)}h`;
         }
-        if (isThisWeek(d, { weekStartsOn: 1 })) {
-            return format(d, 'E'); // Mon, Tue
+        if (isThisWeek(dateObj, { weekStartsOn: 1 })) {
+            return format(dateObj, 'E'); // Mon, Tue
         }
-        if (isThisYear(d)) {
-            return format(d, 'MMM d'); // Sep 12
+        if (isThisYear(dateObj)) {
+            return format(dateObj, 'MMM d'); // Sep 12
         }
-        return format(d, 'MMM d, yyyy'); // Sep 12, 2024
+        return format(dateObj, 'MMM d, yyyy'); // Sep 12, 2024
     }, []);
 
     useEffect(() => {
-        const d = date instanceof Date ? date : new Date(date);
-        if (isNaN(d.getTime())) {
-            setRelativeTime('Invalid date');
-            return;
-        }
-
-        setRelativeTime(formatTimestamp(d));
+        setRelativeTime(formatTimestamp(date));
         
         const interval = setInterval(() => {
-            setRelativeTime(formatTimestamp(d));
+            setRelativeTime(formatTimestamp(date));
         }, 60000); // Update every minute
 
         return () => clearInterval(interval);
@@ -385,7 +459,7 @@ const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?:
             {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
         </>
     );
-  };
+};
 
 const FeedPost = ({ 
     post, 
