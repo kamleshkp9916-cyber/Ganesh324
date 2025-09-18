@@ -26,37 +26,16 @@ interface CommentType {
     timestamp: Date;
     isEdited: boolean;
     likes: number;
-    parentId: string | null;
-    replies?: CommentType[];
+    replyingTo?: string; // Add this field to indicate a reply
 }
 
-const mockCommentsData: Omit<CommentType, 'replies'>[] = [
-    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255, parentId: null },
-    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 63, parentId: '1' },
-    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, parentId: '1' },
-    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree with @Receptionist77!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, parentId: '3' },
-    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42, parentId: null },
+const mockCommentsData: CommentType[] = [
+    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255 },
+    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 63, replyingTo: 'Heart_beat' },
+    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, replyingTo: 'Heart_beat' },
+    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree with @Receptionist77!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, replyingTo: 'Receptionist77' },
+    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42 },
 ];
-
-// Function to build the comment tree from a flat list
-const buildCommentTree = (comments: Omit<CommentType, 'replies'>[]): CommentType[] => {
-    const commentMap: { [key: string]: CommentType } = {};
-    const rootComments: CommentType[] = [];
-
-    comments.forEach(comment => {
-        commentMap[comment.id] = { ...comment, replies: [] };
-    });
-
-    Object.values(commentMap).forEach(comment => {
-        if (comment.parentId && commentMap[comment.parentId]) {
-            commentMap[comment.parentId].replies!.push(comment);
-        } else {
-            rootComments.push(comment);
-        }
-    });
-
-    return rootComments;
-};
 
 
 export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Timestamp, isEdited?: boolean }) => {
@@ -96,36 +75,24 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const CommentThread = ({ comment, onAddReply, onEdit, onDelete, onLike, onReport, level = 0 }: { comment: CommentType, onAddReply: (parentId: string, text: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, onReport: (commentId: string) => void, level?: number }) => {
+const Comment = ({ comment, onReply, onEdit, onDelete, onLike, onReport }: { comment: CommentType, onReply: (authorName: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, onReport: (commentId: string) => void }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
-    const [isExpanded, setIsExpanded] = useState(level < 1); // Expand first level by default
-    const [showReplyBox, setShowReplyBox] = useState(false);
-    const [replyText, setReplyText] = useState("");
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
         setIsEditing(false);
     };
 
-    const handleReplySubmit = () => {
-        if (!replyText.trim()) return;
-        onAddReply(comment.id, replyText);
-        setShowReplyBox(false);
-        setReplyText("");
-    }
-
     const handleCopyLink = () => {
         navigator.clipboard.writeText(`${window.location.href}#comment-${comment.id}`);
         toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
     }
 
-    const hasReplies = comment.replies && comment.replies.length > 0;
-
     return (
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 group">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -144,55 +111,20 @@ const CommentThread = ({ comment, onAddReply, onEdit, onDelete, onLike, onReport
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm mt-1 whitespace-pre-wrap">{comment.text}</p>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">
+                        {comment.replyingTo && (
+                            <span className="text-primary font-medium mr-1">@{comment.replyingTo}</span>
+                        )}
+                        {comment.text}
+                    </p>
                 )}
                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
                         <ThumbsUp className="w-4 h-4" />
                         <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
-                    <button onClick={() => setShowReplyBox(prev => !prev)} className="hover:text-primary">Reply</button>
+                    <button onClick={() => onReply(comment.authorName)} className="hover:text-primary">Reply</button>
                 </div>
-
-                {showReplyBox && (
-                     <div className="mt-3 flex items-start gap-2">
-                        <Avatar className="h-8 w-8">
-                           <AvatarImage src={user?.photoURL || ''} />
-                           <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow space-y-2">
-                            <Textarea 
-                                placeholder={`Replying to ${comment.authorName}...`} 
-                                className="text-sm" 
-                                value={replyText} 
-                                onChange={(e) => setReplyText(e.target.value)} 
-                                rows={2}
-                                autoFocus
-                            />
-                             <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setShowReplyBox(false)}>Cancel</Button>
-                                <Button size="sm" className="h-7 px-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-                
-                {hasReplies && (
-                    <div className="mt-3">
-                         {isExpanded ? (
-                             <div className="space-y-4 border-l-2 pl-4">
-                                {comment.replies?.map(reply => (
-                                    <CommentThread key={reply.id} comment={reply} onAddReply={onAddReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} onReport={onReport} level={level + 1}/>
-                                ))}
-                            </div>
-                         ) : (
-                             <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setIsExpanded(true)}>
-                                View all {comment.replies?.length} replies
-                            </Button>
-                         )}
-                    </div>
-                )}
-
             </div>
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -215,7 +147,7 @@ const CommentThread = ({ comment, onAddReply, onEdit, onDelete, onLike, onReport
                                  <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Delete Comment?</AlertDialogTitle>
-                                        <AlertDialogDescription>This will permanently delete your comment and all its replies.</AlertDialogDescription>
+                                        <AlertDialogDescription>This will permanently delete your comment.</AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -265,8 +197,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     useEffect(() => {
         setIsLoading(true);
         setTimeout(() => {
-            const commentTree = buildCommentTree(mockCommentsData);
-            setComments(commentTree.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
+            setComments(mockCommentsData.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
             setIsLoading(false);
         }, 500);
     }, [post?.id]);
@@ -274,26 +205,12 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const handleNewCommentSubmit = () => {
         if (!newComment.trim() || !user || !userData) return;
 
+        const isReply = newComment.startsWith('@');
+        const replyingTo = isReply ? newComment.split(' ')[0].substring(1) : undefined;
+        const text = isReply ? newComment.substring(newComment.indexOf(' ') + 1) : newComment;
+
         const newCommentData: CommentType = {
             id: Date.now().toString(),
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL || '',
-            text: newComment,
-            timestamp: new Date(),
-            isEdited: false,
-            likes: 0,
-            parentId: null,
-        };
-        setComments(prev => [newCommentData, ...prev]);
-        setNewComment("");
-    };
-
-    const handleAddReply = (parentId: string, text: string) => {
-        if (!user || !userData) return;
-
-        const newReply: CommentType = {
-             id: Date.now().toString(),
             authorName: userData.displayName,
             authorId: user.uid,
             authorAvatar: userData.photoURL || '',
@@ -301,68 +218,29 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             timestamp: new Date(),
             isEdited: false,
             likes: 0,
-            parentId: parentId,
+            replyingTo: replyingTo,
         };
-        
-        const addReplyToTree = (items: CommentType[]): CommentType[] => {
-            return items.map(item => {
-                if (item.id === parentId) {
-                    const updatedReplies = item.replies ? [newReply, ...item.replies] : [newReply];
-                    return { ...item, replies: updatedReplies };
-                }
-                if (item.replies) {
-                    return { ...item, replies: addReplyToTree(item.replies) };
-                }
-                return item;
-            });
-        };
-        
-        setComments(prev => addReplyToTree(prev));
+        setComments(prev => [newCommentData, ...prev]);
+        setNewComment("");
+    };
+    
+    const handleReply = (authorName: string) => {
+        setNewComment(`@${authorName} `);
+        mainInputRef.current?.focus();
     };
 
     const handleEdit = (commentId: string, newText: string) => {
-        const updateComment = (items: CommentType[]): CommentType[] => {
-            return items.map(item => {
-                if (item.id === commentId) {
-                    return { ...item, text: newText, isEdited: true };
-                }
-                if (item.replies) {
-                    return { ...item, replies: updateComment(item.replies) };
-                }
-                return item;
-            });
-        };
-        setComments(prev => updateComment(prev));
+        setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: newText, isEdited: true } : c));
         toast({ title: "Comment Updated" });
     };
 
     const handleDelete = (commentId: string) => {
-         const removeComment = (items: CommentType[]): CommentType[] => {
-            return items.filter(item => {
-                if (item.id === commentId) return false;
-                if (item.replies) {
-                    item.replies = removeComment(item.replies);
-                }
-                return true;
-            });
-        };
-        setComments(prev => removeComment(prev));
+        setComments(prev => prev.filter(c => c.id !== commentId));
         toast({ title: "Comment Deleted" });
     };
     
     const handleLike = (commentId: string) => {
-        const likeComment = (items: CommentType[]): CommentType[] => {
-            return items.map(item => {
-                if (item.id === commentId) {
-                    return { ...item, likes: item.likes + 1 };
-                }
-                if (item.replies) {
-                    return { ...item, replies: likeComment(item.replies) };
-                }
-                return item;
-            });
-        };
-        setComments(prev => likeComment(prev));
+        setComments(prev => prev.map(c => c.id === commentId ? { ...c, likes: c.likes + 1 } : c));
     };
 
     const handleReport = (commentId: string) => {
@@ -390,7 +268,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     ) : comments.length > 0 ? (
                         <div className="space-y-4">
                             {comments.map(comment => (
-                               <CommentThread key={comment.id} comment={comment} onAddReply={handleAddReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} onReport={handleReport} />
+                               <Comment key={comment.id} comment={comment} onReply={handleReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} onReport={handleReport} />
                             ))}
                         </div>
                     ) : (
