@@ -362,7 +362,9 @@ const FeedPost = ({
                                 <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="font-semibold group-hover:underline">
-                                <span>{post.sellerName}</span>
+                                <span>
+                                    <Highlight text={post.sellerName} highlight={highlightTerm} />
+                                </span>
                                 <div className="text-xs text-muted-foreground font-normal">
                                 <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
                                 </div>
@@ -773,27 +775,27 @@ export default function FeedPage() {
   }, [loadFollowData, loadSavedPosts]);
 
   const filteredFeed = useMemo(() => {
-      let currentFeed: any[] = [];
-      if (activeView === 'feed') {
-          currentFeed = feed;
-          if (feedFilter === 'following' && user) {
-              currentFeed = currentFeed.filter(post => 
-                  followingIds.includes(post.sellerId) || post.sellerId === user.uid
-              );
-          }
-      } else if (activeView === 'saves') {
-          currentFeed = savedPosts;
-      }
-      
-      if (!debouncedSearchTerm) return currentFeed;
+    let currentFeed: any[] = [];
+    if (activeView === 'feed') {
+        currentFeed = feed;
+        if (feedFilter === 'following' && user) {
+            currentFeed = currentFeed.filter(post => 
+                followingIds.includes(post.sellerId) || post.sellerId === user.uid
+            );
+        }
+    } else if (activeView === 'saves') {
+        currentFeed = savedPosts;
+    }
+    
+    if (!debouncedSearchTerm) return currentFeed;
 
-      const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
-      return currentFeed.filter(item => 
-          item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
-          item.content.toLowerCase().includes(lowercasedSearchTerm) ||
-          (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm)))
-      );
-    }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+    const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
+    return currentFeed.filter(item => 
+        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
+        item.content.toLowerCase().includes(lowercasedSearchTerm) ||
+        (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm)))
+    );
+  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
