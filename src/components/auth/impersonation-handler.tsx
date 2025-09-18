@@ -52,9 +52,6 @@ export function ImpersonationHandler() {
 
     try {
         await firebaseSignOut(auth);
-        // This will effectively sign out the impersonated user.
-        // We can't easily sign back in as admin without their password.
-        // The best approach is to close the tab and return to the admin panel.
         toast({ title: "Session Ended", description: "You are no longer impersonating the user. You can close this tab."});
         window.close();
     } catch (error) {
