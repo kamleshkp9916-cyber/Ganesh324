@@ -16,6 +16,12 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 
+const mockCommentsData = [
+    { id: '1', authorName: 'Alice', authorId: 'user1', authorAvatar: 'https://placehold.co/40x40.png?text=A', text: 'This is a great post! Thanks for sharing.', timestamp: new Date(Date.now() - 5 * 60 * 1000), isEdited: false },
+    { id: '2', authorName: 'Bob', authorId: 'user2', authorAvatar: 'https://placehold.co/40x40.png?text=B', text: 'I agree with Alice. Super insightful!', timestamp: new Date(Date.now() - 3 * 60 * 1000), isEdited: true },
+    { id: '3', authorName: 'Charlie', authorId: 'user3', authorAvatar: 'https://placehold.co/40x40.png?text=C', text: 'Does anyone know where to find more information on this topic?', timestamp: new Date(Date.now() - 1 * 60 * 1000), isEdited: false },
+];
+
 export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Timestamp, isEdited?: boolean }) => {
     const [relativeTime, setRelativeTime] = useState('');
   
@@ -81,81 +87,45 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [editedContent, setEditedContent] = useState("");
 
     useEffect(() => {
-        if (!post?.id) return;
-        const db = getFirestoreDb();
-        const commentsQuery = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setComments(commentsData);
+        // Use mock data instead of Firestore
+        setIsLoading(true);
+        setTimeout(() => {
+            setComments(mockCommentsData);
             setIsLoading(false);
-        }, (error) => {
-            console.error("Error fetching comments:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: "Could not load comments. You may not have permission to view them."
-            });
-            setIsLoading(false);
-        });
-        return () => unsubscribe();
-    }, [post?.id, toast]);
+        }, 500);
+    }, [post?.id]);
 
     const handlePostComment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newComment.trim() || !user || !userData || !post?.id) return;
         
-        const db = getFirestoreDb();
-        try {
-            await addDoc(collection(db, `posts/${post.id}/comments`), {
-                authorName: userData.displayName,
-                authorId: user.uid,
-                authorAvatar: userData.photoURL,
-                text: newComment.trim(),
-                timestamp: serverTimestamp(),
-                isEdited: false,
-            });
+        const newCommentData = {
+            id: Date.now().toString(),
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL,
+            text: newComment.trim(),
+            timestamp: new Date(),
+            isEdited: false,
+        };
 
-            await updateDoc(doc(db, 'posts', post.id), {
-                replies: increment(1)
-            });
-
-            setNewComment("");
-        } catch (error: any) {
-             console.error("Error posting comment:", error.message);
-             toast({
-                variant: 'destructive',
-                title: 'Comment Failed',
-                description: `Could not post your comment. You may not have permission to do this. (Error: ${error.code})`
-             });
-        }
+        setComments(prev => [...prev, newCommentData]);
+        setNewComment("");
+        toast({ title: "Comment Posted (Mock)" });
     };
 
     const handleSaveEdit = async () => {
         if (!editedContent.trim() || !editingCommentId || !post?.id) return;
 
-        const db = getFirestoreDb();
-        const commentRef = doc(db, `posts/${post.id}/comments`, editingCommentId);
-
-        try {
-            await updateDoc(commentRef, {
-                text: editedContent,
-                isEdited: true,
-            });
-            toast({title: "Comment Updated!"});
-        } catch (error: any) {
-             console.error("Error updating comment:", error.message);
-             toast({
-                variant: 'destructive',
-                title: 'Update Failed',
-                description: `Could not save your changes. You may not have permission to do this. (Error: ${error.code})`
-             });
-        } finally {
-            setEditingCommentId(null);
-            setEditedContent("");
-        }
+        setComments(prev => prev.map(c => 
+            c.id === editingCommentId 
+            ? { ...c, text: editedContent, isEdited: true }
+            : c
+        ));
+        
+        toast({title: "Comment Updated (Mock)"});
+        setEditingCommentId(null);
+        setEditedContent("");
     };
 
     const handleEditComment = (comment: any) => {
@@ -165,21 +135,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
     const handleDeleteComment = async (commentId: string) => {
         if (!post?.id) return;
-        const db = getFirestoreDb();
-        try {
-            await deleteDoc(doc(db, `posts/${post.id}/comments`, commentId));
-            await updateDoc(doc(db, 'posts', post.id), {
-                replies: increment(-1)
-            });
-             toast({title: "Comment Deleted"});
-        } catch (error: any) {
-            console.error("Error deleting comment:", error.message);
-             toast({
-                variant: 'destructive',
-                title: 'Delete Failed',
-                description: `Could not delete the comment. You may not have permission to do this. (Error: ${error.code})`
-             });
-        }
+        setComments(prev => prev.filter(c => c.id !== commentId));
+        toast({title: "Comment Deleted (Mock)"});
     };
 
     return (
