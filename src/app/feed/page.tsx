@@ -166,6 +166,97 @@ const liveSellersData = [
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
+function CommentSheet({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
+    const { user, userData } = useAuth();
+    const [comments, setComments] = useState<any[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const db = getFirestoreDb();
+        const commentsQuery = query(collection(db, `posts/${postId}/comments`), orderBy("timestamp", "asc"));
+        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                timestamp: doc.data().timestamp ? format((doc.data().timestamp as Timestamp).toDate(), 'PPp') : 'just now'
+            }));
+            setComments(commentsData);
+            setIsLoading(false);
+        });
+        return () => unsubscribe();
+    }, [postId]);
+
+    const handlePostComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newComment.trim() || !user || !userData) return;
+        
+        const db = getFirestoreDb();
+        await addDoc(collection(db, `posts/${postId}/comments`), {
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL,
+            text: newComment.trim(),
+            timestamp: serverTimestamp(),
+        });
+
+        await updateDoc(doc(db, 'posts', postId), {
+            replies: increment(1)
+        });
+
+        setNewComment("");
+    };
+
+    return (
+         <Sheet>
+            <SheetTrigger asChild>{trigger}</SheetTrigger>
+            <SheetContent side="right" className="flex flex-col p-0">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Comments</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-1 px-4">
+                    {isLoading ? (
+                        <div className="space-y-4 py-4">
+                             <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : comments.length > 0 ? (
+                        <div className="space-y-4 py-4">
+                            {comments.map(comment => (
+                                <div key={comment.id} className="flex items-start gap-3">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={comment.authorAvatar} />
+                                        <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow bg-muted p-2 rounded-lg">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <p className="font-semibold">{comment.authorName}</p>
+                                            <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(new Date(comment.timestamp), { addSuffix: true }) : 'just now'}</p>
+                                        </div>
+                                        <p className="text-sm">{comment.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
+                    )}
+                </ScrollArea>
+                <DialogFooter className="p-4 border-t">
+                    <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
+                        <Input 
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                        />
+                        <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
+                    </form>
+                </DialogFooter>
+            </SheetContent>
+        </Sheet>
+    )
+}
+
 function FeedPostSkeleton() {
     return (
         <Card className="overflow-hidden border-none shadow-none bg-transparent">
@@ -479,10 +570,12 @@ const FeedPost = ({
                             <span>{post.downvotes || 0}</span>
                         </Button>
                     </div>
-                    <Button variant="ghost" className="flex items-center gap-1.5">
-                        <MessageSquare className="w-4 h-4"/>
-                        <span>{post.comments || 0} Comments</span>
-                    </Button>
+                    <CommentSheet postId={post.id} trigger={
+                        <Button variant="ghost" className="flex items-center gap-1.5">
+                            <MessageSquare className="w-4 h-4"/>
+                            <span>{post.replies || 0} Comments</span>
+                        </Button>
+                    } />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
             </Card>
@@ -859,7 +952,7 @@ export default function FeedPage() {
     <div className="min-h-screen bg-background text-foreground">
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
-          <aside className="border-r hidden lg:flex">
+          <aside className="border-r hidden lg:block">
              <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
           </aside>
           
@@ -1051,6 +1144,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
