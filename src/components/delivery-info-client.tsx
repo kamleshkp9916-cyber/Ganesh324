@@ -34,7 +34,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
-import { HelpChat } from './help-chat';
 import { Badge } from './ui/badge';
 import { productDetails } from '@/lib/product-data';
 import { addReview, Review, updateReview, getReviews } from '@/lib/review-data';
@@ -179,7 +178,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const { user, userData, loading } = useAuth();
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
-    const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
     
     const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
     
@@ -398,26 +396,9 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         });
     };
 
-    const handleChatAction = (action: string) => {
-        if (action === 'cancel_order') {
-            setIsHelpChatOpen(false);
-            // Wait for chat to close before opening dialog
-            setTimeout(() => setIsCancelFlowOpen(true), 100);
-        } else if (action === 'return_order') {
-            setIsHelpChatOpen(false);
-            setTimeout(() => setIsReturnFlowOpen(true), 100);
-        } else if (action === 'talk_to_executive') {
-            // This case is now handled inside HelpChat component, but as a fallback.
-            setIsHelpChatOpen(false);
-             if (user && userData) {
-                const adminUrl = `/admin/messages?userId=${user.uid}&userName=${userData.displayName}`;
-                window.open(adminUrl, '_blank');
-             }
-        }
-    };
-
     const handleHelp = () => {
-        setIsHelpChatOpen(true);
+        // This can now just open a contact form or a generic help page
+        router.push('/contact');
     };
     
     const showCancelButton = !['Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
@@ -756,14 +737,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     </Card>
                 )}
             </main>
-            {isHelpChatOpen && (
-                <HelpChat 
-                    order={order} 
-                    onClose={() => setIsHelpChatOpen(false)}
-                    onExecuteAction={handleChatAction}
-                    initialOptions={currentStatus === 'Delivered' ? ["Problem with my item", "Return & Refund Policy", "Talk to a support executive"] : undefined}
-                />
-            )}
         </div>
     );
 }
