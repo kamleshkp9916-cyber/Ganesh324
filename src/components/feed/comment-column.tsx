@@ -181,14 +181,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </button>
                 </div>
             )}
-            <div className="pl-14 mt-4 space-y-4">
-                 {areRepliesVisible && children}
+            <div className={cn("pl-14 mt-4 space-y-4", !areRepliesVisible && "hidden")}>
+                {children}
             </div>
-            {!children && comment.replyCount === 0 ? null : (
-                !areRepliesVisible && comment.replyCount > 0 ? null : (
-                    <div className="pl-14">{!areRepliesVisible && children}</div>
-                )
-            )}
         </div>
     );
 };
@@ -196,7 +191,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post.id}`, []);
+    const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -220,7 +215,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         });
 
         return () => unsubscribe();
-    }, [post?.id, setComments]);
+    }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -246,16 +241,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
             if (parentId) {
                 newCommentData.parentId = parentId;
-            } else {
-                 newCommentData.parentId = null;
             }
             
-            // To satisfy the security rule, we must remove parentId if it's null
-            if(!parentId){
-              delete newCommentData.parentId;
-            }
-
-
             await addDoc(commentsRef, newCommentData);
             
             await runTransaction(db, async (transaction) => {
