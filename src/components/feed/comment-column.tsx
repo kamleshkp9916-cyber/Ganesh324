@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, Timestamp, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, increment } from 'firebase/firestore';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,9 +31,9 @@ interface CommentType {
 }
 
 const mockCommentsData: CommentType[] = [
-    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 10 * 60 * 1000), isEdited: false, likes: 255, parentId: null },
-    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 21 * 60 * 1000), isEdited: false, likes: 63, replyingTo: 'Heart_beat', parentId: '1' },
-    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 60 * 60 * 1000), isEdited: false, likes: 18, replyingTo: 'Olivia55_12', parentId: '1' },
+    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255, parentId: null },
+    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 63, replyingTo: 'Heart_beat', parentId: '1' },
+    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, replyingTo: 'Olivia55_12', parentId: '1' },
     { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree with @Receptionist77!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, replyingTo: 'Receptionist77', parentId: '1' },
     { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42, parentId: null },
 ];
@@ -75,8 +75,9 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (comment: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
+const Comment = ({ comment, onReply, onEdit, onDelete, onLike, onReport }: { comment: CommentType, onReply: (comment: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void, onReport: (commentId: string) => void }) => {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
 
@@ -84,6 +85,11 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
         onEdit(comment.id, editedText);
         setIsEditing(false);
     };
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(`${window.location.href}#comment-${comment.id}`);
+        toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
+    }
 
     return (
         <div className="flex items-start gap-4 group">
@@ -116,14 +122,27 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                         <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
                     <button onClick={() => onReply(comment)} className="hover:text-primary">Reply</button>
-                    {user?.uid === comment.authorId && (
+                </div>
+            </div>
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    {user?.uid === comment.authorId ? (
                         <>
-                            <button onClick={() => setIsEditing(true)} className="hover:text-primary">Edit</button>
-                             <AlertDialog>
+                            <DropdownMenuItem onSelect={() => setIsEditing(true)}>
+                                <Edit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <button className="text-destructive/80 hover:text-destructive">Delete</button>
+                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                    </DropdownMenuItem>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent>
+                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Delete Comment?</AlertDialogTitle>
                                         <AlertDialogDescription>This will permanently delete your comment.</AlertDialogDescription>
@@ -134,10 +153,32 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
+                            <DropdownMenuSeparator />
                         </>
-                    )}
-                </div>
-            </div>
+                    ) : null}
+                     <DropdownMenuItem onSelect={handleCopyLink}>
+                        <Link2 className="mr-2 h-4 w-4" />
+                        Copy link
+                    </DropdownMenuItem>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                <Flag className="mr-2 h-4 w-4" /> Report
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Report Comment?</AlertDialogTitle>
+                                <AlertDialogDescription>This comment will be reported for review. This action cannot be undone.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onReport(comment.id)}>Report</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     );
 };
@@ -175,7 +216,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             isEdited: false,
             likes: 0,
             replyingTo: replyingTo,
-            parentId: isReply ? (comments.find(c => c.authorName === replyingTo)?.parentId || comments.find(c => c.authorName === replyingTo)?.id) : null,
+            parentId: null, // This simplified view doesn't need parentId
         };
         setComments(prev => [newCommentData, ...prev]);
         setNewComment("");
@@ -192,12 +233,19 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     const handleDelete = (commentId: string) => {
-        setComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
+        setComments(prev => prev.filter(c => c.id !== commentId));
         toast({ title: "Comment Deleted" });
     };
     
     const handleLike = (commentId: string) => {
         setComments(prev => prev.map(c => c.id === commentId ? { ...c, likes: c.likes + 1 } : c));
+    };
+
+    const handleReport = (commentId: string) => {
+        toast({
+            title: "Comment Reported",
+            description: "Thank you for your feedback. Our moderators will review this comment.",
+        });
     };
 
     return (
@@ -218,7 +266,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     ) : comments.length > 0 ? (
                         <div className="space-y-4">
                             {comments.map(comment => (
-                               <Comment key={comment.id} comment={comment} onReply={handleReplyClick} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} />
+                               <Comment key={comment.id} comment={comment} onReply={handleReplyClick} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} onReport={handleReport} />
                             ))}
                         </div>
                     ) : (
