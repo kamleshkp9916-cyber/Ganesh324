@@ -26,7 +26,7 @@ interface CommentType {
     timestamp: Date;
     isEdited: boolean;
     likes: number;
-    replyingTo?: string; // e.g. "Heart_beat"
+    replyingTo?: string; 
 }
 
 
@@ -59,9 +59,8 @@ const mockCommentsData: CommentType[] = [
         authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
         text: 'Each song in this album is a hit',
         timestamp: new Date(Date.now() - 60 * 60 * 1000),
-        isEdited: false,
+        isEdited: true,
         likes: 102,
-        replyingTo: 'Olivia55_12'
     },
 ];
 
@@ -195,6 +194,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [newComment, setNewComment] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
      useEffect(() => {
         setIsLoading(true);
@@ -250,6 +250,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const handleReplyClick = (authorName: string) => {
         setReplyingTo(authorName);
         setNewComment(`@${authorName} `);
+        inputRef.current?.focus();
     }
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,7 +293,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             </ScrollArea>
              <div className="p-4 border-t bg-background">
                 <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }} className="w-full flex items-center gap-2">
-                    <Input 
+                    <Input
+                        ref={inputRef}
                         placeholder={replyingTo ? `Replying to ${replyingTo}...` : "Add a comment..."}
                         value={newComment}
                         onChange={handleInputChange}
