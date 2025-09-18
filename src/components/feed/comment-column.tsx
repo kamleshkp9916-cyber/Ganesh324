@@ -75,12 +75,23 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: { comment: CommentType, allReplies: CommentType[], onReply: (parentId: string, text: string) => void, onLike: (id: string) => void, onReport: (id: string) => void, onCopyLink: (id: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void }) => {
+const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, level }: {
+    comment: CommentType,
+    allReplies: CommentType[],
+    onReply: (parentId: string, text: string) => void,
+    onLike: (id: string) => void,
+    onReport: (id: string) => void,
+    onCopyLink: (id: string) => void,
+    onEdit: (id: string, text: string) => void,
+    onDelete: (id: string) => void,
+    level: number,
+}) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [showReply, setShowReply] = useState(false);
     const [replyText, setReplyText] = useState('');
+    const [showAllReplies, setShowAllReplies] = useState(false);
     
     const childReplies = allReplies.filter(r => r.parentId === comment.id);
 
@@ -161,8 +172,7 @@ const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, o
                 </div>
             </div>
             
-            {/* Centered container for replies and reply form */}
-            <div className="w-[70%] mt-2 space-y-4">
+            <div className={cn("w-[90%] mt-2 space-y-4", level > 0 && "w-full pl-0")}>
                  {showReply && (
                     <div className="flex gap-2 pt-2">
                          <Avatar className="h-8 w-8">
@@ -184,21 +194,31 @@ const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, o
                         </div>
                     </div>
                 )}
-                 {childReplies.map(reply => (
-                    <div key={reply.id} className="flex items-start gap-3 group relative">
-                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={reply.authorAvatar} />
-                            <AvatarFallback>{reply.authorName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
-                            <div className="flex items-center gap-2 text-sm">
-                                <p className="font-semibold">{reply.authorName}</p>
-                                <p className="text-muted-foreground"><RealtimeTimestamp date={reply.timestamp} isEdited={reply.isEdited} /></p>
-                            </div>
-                            <p className="text-sm mt-1">{reply.text}</p>
+                <div className="space-y-4">
+                    {childReplies.slice(0, showAllReplies ? childReplies.length : 1).map(reply => (
+                        <div key={reply.id} className="relative pl-6">
+                             <div className="absolute left-0 top-0 h-full w-px bg-border -translate-x-1/2"></div>
+                             <div className="absolute left-0 top-5 h-px w-3 bg-border -translate-x-1/2"></div>
+                            <Comment 
+                                comment={reply}
+                                allReplies={allReplies}
+                                onReply={onReply}
+                                onLike={onLike}
+                                onReport={onReport}
+                                onCopyLink={onCopyLink}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                level={level + 1}
+                            />
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                 {childReplies.length > 1 && !showAllReplies && (
+                    <Button variant="link" size="sm" onClick={() => setShowAllReplies(true)} className="text-muted-foreground">
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        View all {childReplies.length -1} replies
+                    </Button>
+                 )}
             </div>
         </div>
     );
@@ -296,6 +316,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                                 onCopyLink={handleCopyLink}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
+                                level={0}
                            />
                         ))
                     ) : (
