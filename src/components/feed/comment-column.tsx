@@ -153,8 +153,8 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {isReplying && (
-                <div className="pl-8 pr-4">
-                    <div className="flex items-start gap-2">
+                <div className="pl-12">
+                    <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.photoURL || undefined} />
                             <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
