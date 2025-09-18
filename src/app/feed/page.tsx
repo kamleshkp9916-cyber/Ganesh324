@@ -1036,7 +1036,7 @@ export default function FeedPage() {
                                 onPost={handlePostSubmit}
                                 postToEdit={postToEdit}
                                 onFinishEditing={onFinishEditing}
-                                isSubmitting={isSubmitting}
+                                isSubmitting={isFormSubmitting}
                             />
                         </div>
                     </div>
@@ -1051,4 +1051,5 @@ export default function FeedPage() {
     
 
     
+
 
