@@ -125,7 +125,7 @@ const findCommentAndExec = (comments: CommentType[], commentId: string, action: 
             return true;
         }
         if (comment.replies && comment.replies.length > 0) {
-            if (findCommentAndExec(comment.replies, commentId, action, comments, i)) {
+            if (findCommentAndExec(comment.replies, commentId, action, comment.replies, i)) {
                 return true;
             }
         }
@@ -235,7 +235,7 @@ const Comment = ({ comment, onReply, onEdit, onDelete, level }: { comment: Comme
                     </div>
                 )}
                 {showReplies && comment.replies.length > 0 && (
-                    <div className="mt-4 space-y-4 pl-4 border-l-2">
+                    <div className="mt-4 space-y-4 pl-6 border-l-2">
                         {comment.replies.map(reply => (
                             <Comment key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} level={level + 1} />
                         ))}
@@ -318,12 +318,22 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const handleDeleteComment = (commentId: string) => {
         const newComments = structuredClone(comments);
         let found = false;
-        findCommentAndExec(newComments, commentId, (comment, parent, index) => {
-            if (parent && index > -1) {
-                parent.splice(index, 1);
-                found = true;
-            }
-        });
+        
+        // Check top-level comments first
+        const topLevelIndex = newComments.findIndex(c => c.id === commentId);
+        if (topLevelIndex !== -1) {
+            newComments.splice(topLevelIndex, 1);
+            found = true;
+        } else {
+            // Check nested comments
+            findCommentAndExec(newComments, commentId, (comment, parent, index) => {
+                if (parent && index > -1) {
+                    parent.splice(index, 1);
+                    found = true;
+                }
+            });
+        }
+        
         if(found){
              setComments(newComments);
              toast({ title: "Comment Deleted (Mock)" });
@@ -341,25 +351,27 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     <X className="h-5 w-5"/>
                 </Button>
             </div>
-            <ScrollArea className="flex-1 px-4">
-                {isLoading ? (
-                    <div className="space-y-4 py-4">
-                         <Skeleton className="h-10 w-full" />
-                         <Skeleton className="h-10 w-full" />
-                    </div>
-                ) : comments.length > 0 ? (
-                    <div className="space-y-4 py-4">
-                        {comments.map(comment => (
-                           <Comment key={comment.id} comment={comment} onReply={handlePostComment} onEdit={handleEditComment} onDelete={handleDeleteComment} level={0} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4">
-                        <MessageSquare className="w-10 h-10 mb-2" />
-                        <h4 className="font-semibold">No comments yet</h4>
-                        <p className="text-sm">Be the first one to comment.</p>
-                    </div>
-                )}
+            <ScrollArea className="flex-1">
+                 <div className="p-4">
+                    {isLoading ? (
+                        <div className="space-y-4">
+                             <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" />
+                        </div>
+                    ) : comments.length > 0 ? (
+                        <div className="space-y-4">
+                            {comments.map(comment => (
+                               <Comment key={comment.id} comment={comment} onReply={handlePostComment} onEdit={handleEditComment} onDelete={handleDeleteComment} level={0} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4">
+                            <MessageSquare className="w-10 h-10 mb-2" />
+                            <h4 className="font-semibold">No comments yet</h4>
+                            <p className="text-sm">Be the first one to comment.</p>
+                        </div>
+                    )}
+                 </div>
             </ScrollArea>
              <div className="p-4 border-t bg-background">
                 <form onSubmit={(e) => { e.preventDefault(); handlePostComment(newComment); }} className="w-full flex items-center gap-2">
