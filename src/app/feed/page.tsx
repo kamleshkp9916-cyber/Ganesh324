@@ -63,6 +63,7 @@ import {
   Loader2,
   FileEdit,
   ArrowLeft,
+  BookText,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -125,6 +126,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 
 
 const liveSellers = [
@@ -361,8 +363,8 @@ const FeedPost = ({
                                 <AvatarImage src={post.avatarUrl} />
                                 <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="font-semibold group-hover:underline">
-                                <span>
+                            <div>
+                                <span className="font-semibold group-hover:underline">
                                     <Highlight text={post.sellerName} highlight={highlightTerm} />
                                 </span>
                                 <div className="text-xs text-muted-foreground font-normal">
@@ -745,6 +747,50 @@ export default function FeedPage() {
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [activeView, setActiveView] = useState<ActiveView>('feed');
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
+
+  const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
+    if (type === 'user') {
+        setSearchTerm(value); // Show the name in search bar
+    } else {
+        setSearchTerm(`#${value}`); // Show the hashtag in search bar
+    }
+    setSearchSuggestions({users: [], hashtags: [], posts: []}); // Close popover
+  }
+
+  useEffect(() => {
+    const getSuggestions = async () => {
+        if (debouncedSearchTerm.trim() === '') {
+            setSearchSuggestions({users: [], hashtags: [], posts: []});
+            return;
+        }
+
+        const lowercasedTerm = debouncedSearchTerm.toLowerCase();
+        
+        // Users
+        const db = getFirestoreDb();
+        const usersRef = collection(db, "users");
+        const userQuery = query(usersRef, 
+            where("displayName", ">=", debouncedSearchTerm), 
+            where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
+            limit(3)
+        );
+        const userSnapshot = await getDocs(userQuery);
+        const users = userSnapshot.docs.map(doc => doc.data() as UserData);
+
+        // Posts and Hashtags
+        const posts = feed.filter(post => 
+            post.content.toLowerCase().includes(lowercasedTerm)
+        ).slice(0, 5);
+        
+        const hashtags = Array.from(new Set(feed.flatMap(post => 
+            (post.tags || []).filter((tag: string) => tag.toLowerCase().includes(lowercasedTerm.replace('#', '')))
+        ))).slice(0, 5);
+
+        setSearchSuggestions({users, hashtags, posts});
+    }
+    getSuggestions();
+  }, [debouncedSearchTerm, feed]);
 
   const loadFollowData = useCallback(async () => {
     if (user) {
@@ -787,15 +833,19 @@ export default function FeedPage() {
         currentFeed = savedPosts;
     }
     
-    if (!debouncedSearchTerm) return currentFeed;
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    if (!lowercasedSearchTerm) return currentFeed;
 
-    const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
+    if(lowercasedSearchTerm.startsWith('#')) {
+        return currentFeed.filter(item => 
+            (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm.substring(1))))
+        );
+    }
+
     return currentFeed.filter(item => 
-        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
-        item.content.toLowerCase().includes(lowercasedSearchTerm) ||
-        (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm)))
+        item.sellerName.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+  }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -1073,15 +1123,63 @@ export default function FeedPage() {
                                         <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
                                     </SheetContent>
                                 </Sheet>
-                                <div className="relative w-full">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search feed..."
-                                        className="bg-transparent rounded-full pl-10"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
+                                <Popover open={debouncedSearchTerm.length > 0}>
+                                    <PopoverAnchor asChild>
+                                        <div className="relative w-full">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search for users, posts, #tags"
+                                                className="bg-transparent rounded-full pl-10"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                    </PopoverAnchor>
+                                     <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                        <div className="space-y-4">
+                                            {searchSuggestions.users.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                                    {searchSuggestions.users.map(u => (
+                                                         <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.displayName)}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {searchSuggestions.hashtags.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                                     {searchSuggestions.hashtags.map(h => (
+                                                        <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                            <div className="flex items-center gap-2 font-semibold">
+                                                                <Hash className="h-4 w-4 text-muted-foreground" />
+                                                                <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                            </div>
+                                                        </button>
+                                                     ))}
+                                                </div>
+                                            )}
+                                             {searchSuggestions.posts.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                                    {searchSuggestions.posts.map(p => (
+                                                         <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                            <BookText className="h-4 w-4 inline-block mr-2" />
+                                                            <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                             )}
+                                             {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && (
+                                                 <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                             )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                 <section>
@@ -1107,6 +1205,12 @@ export default function FeedPage() {
                                                     />
                                                 </div>
                                             ))
+                                        )}
+                                        {filteredFeed.length === 0 && !isLoadingFeed && (
+                                            <div className="text-center py-16 text-muted-foreground">
+                                                <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                                <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                            </div>
                                         )}
                                     </div>
                                 </section>
