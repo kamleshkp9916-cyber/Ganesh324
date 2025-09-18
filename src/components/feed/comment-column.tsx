@@ -173,15 +173,22 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
-             {comment.replyCount > 0 ? (
+             {comment.replyCount > 0 && (
                 <div className="pl-14">
                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
                          {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
                     </button>
-                    {areRepliesVisible && <div className="mt-4 space-y-4">{children}</div>}
                 </div>
-            ) : <div className="pl-14">{children}</div>}
+            )}
+            <div className="pl-14 mt-4 space-y-4">
+                 {areRepliesVisible && children}
+            </div>
+            {!children && comment.replyCount === 0 ? null : (
+                !areRepliesVisible && comment.replyCount > 0 ? null : (
+                    <div className="pl-14">{!areRepliesVisible && children}</div>
+                )
+            )}
         </div>
     );
 };
@@ -189,7 +196,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useState<CommentType[]>([]);
+    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post.id}`, []);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -213,7 +220,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         });
 
         return () => unsubscribe();
-    }, [post?.id]);
+    }, [post?.id, setComments]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -244,17 +251,31 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             }
             
             // To satisfy the security rule, we must remove parentId if it's null
-            if(newCommentData.parentId === null){
+            if(!parentId){
               delete newCommentData.parentId;
             }
 
 
             await addDoc(commentsRef, newCommentData);
             
-            await updateDoc(postRef, { replies: increment(1) });
-            if(parentId) {
-                await updateDoc(doc(db, `posts/${post.id}/comments`, parentId), { replyCount: increment(1) });
-            }
+            await runTransaction(db, async (transaction) => {
+                const postDoc = await transaction.get(postRef);
+                if (!postDoc.exists()) {
+                    throw "Post does not exist!";
+                }
+                const newReplies = (postDoc.data().replies || 0) + 1;
+                transaction.update(postRef, { replies: newReplies });
+
+                 if(parentId) {
+                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                    const parentDoc = await transaction.get(parentRef);
+                     if (!parentDoc.exists()) {
+                        throw "Parent comment does not exist!";
+                    }
+                    const newReplyCount = (parentDoc.data().replyCount || 0) + 1;
+                    transaction.update(parentRef, { replyCount: newReplyCount });
+                }
+            });
 
             if (!parentId) setNewCommentText("");
 
