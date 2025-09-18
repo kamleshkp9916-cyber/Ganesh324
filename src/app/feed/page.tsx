@@ -168,6 +168,7 @@ const liveSellersData = [
 
 function CommentColumn({ postId, post, onClose }: { postId: string, post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
+    const { toast } = useToast();
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
     const [isLoading, setIsLoading] = useState(true);
@@ -185,34 +186,46 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
             }));
             setComments(commentsData);
             setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching comments:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: "Could not load comments. You may not have permission to view them."
+            });
+            setIsLoading(false);
         });
         return () => unsubscribe();
-    }, [postId]);
+    }, [postId, toast]);
 
     const handlePostComment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newComment.trim() || !user || !userData) return;
         
         const db = getFirestoreDb();
-        await addDoc(collection(db, `posts/${postId}/comments`), {
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL,
-            text: newComment.trim(),
-            timestamp: serverTimestamp(),
-            isEdited: false,
-        });
+        try {
+            await addDoc(collection(db, `posts/${postId}/comments`), {
+                authorName: userData.displayName,
+                authorId: user.uid,
+                authorAvatar: userData.photoURL,
+                text: newComment.trim(),
+                timestamp: serverTimestamp(),
+                isEdited: false,
+            });
 
-        await updateDoc(doc(db, 'posts', postId), {
-            replies: increment(1)
-        });
+            await updateDoc(doc(db, 'posts', postId), {
+                replies: increment(1)
+            });
 
-        setNewComment("");
-    };
-
-    const handleEditComment = (comment: any) => {
-        setEditingCommentId(comment.id);
-        setEditedContent(comment.text);
+            setNewComment("");
+        } catch (error) {
+             console.error("Error posting comment:", error);
+             toast({
+                variant: 'destructive',
+                title: 'Comment Failed',
+                description: 'Could not post your comment. You may not have permission to do this.'
+             });
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -221,21 +234,46 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
         const db = getFirestoreDb();
         const commentRef = doc(db, `posts/${postId}/comments`, editingCommentId);
 
-        await updateDoc(commentRef, {
-            text: editedContent,
-            isEdited: true,
-        });
+        try {
+            await updateDoc(commentRef, {
+                text: editedContent,
+                isEdited: true,
+            });
+            toast({title: "Comment Updated!"});
+        } catch (error) {
+             console.error("Error updating comment:", error);
+             toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not save your changes. You may not have permission to do this.'
+             });
+        } finally {
+            setEditingCommentId(null);
+            setEditedContent("");
+        }
+    };
 
-        setEditingCommentId(null);
-        setEditedContent("");
+    const handleEditComment = (comment: any) => {
+        setEditingCommentId(comment.id);
+        setEditedContent(comment.text);
     };
 
     const handleDeleteComment = async (commentId: string) => {
         const db = getFirestoreDb();
-        await deleteDoc(doc(db, `posts/${postId}/comments`, commentId));
-        await updateDoc(doc(db, 'posts', postId), {
-            replies: increment(-1)
-        });
+        try {
+            await deleteDoc(doc(db, `posts/${postId}/comments`, commentId));
+            await updateDoc(doc(db, 'posts', postId), {
+                replies: increment(-1)
+            });
+             toast({title: "Comment Deleted"});
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+             toast({
+                variant: 'destructive',
+                title: 'Delete Failed',
+                description: 'Could not delete the comment. You may not have permission to do this.'
+             });
+        }
     };
 
     return (
@@ -245,7 +283,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                     <h3 className="font-semibold">Comments on</h3>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">"{post.content.substring(0, 50)}..."</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5"/></Button>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 -mr-2"><X className="h-5 w-5"/></Button>
             </div>
             <ScrollArea className="flex-1 px-4">
                 {isLoading ? (
@@ -264,7 +302,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                                 <div className="flex-grow bg-muted p-2 rounded-lg">
                                     <div className="flex justify-between items-center text-xs">
                                         <p className="font-semibold">{comment.authorName}</p>
-                                        <div className="flex items-center gap-2">
+                                         <div className="flex items-center gap-2">
                                             <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
                                             {user?.uid === comment.authorId && (
                                                 <DropdownMenu>
@@ -420,7 +458,7 @@ const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?:
     const [relativeTime, setRelativeTime] = useState('');
   
     const formatTimestamp = useCallback((d: Date | string): string => {
-        const dateObj = typeof d === 'string' ? new Date(d) : d;
+        const dateObj = d instanceof Date ? d : new Date(d);
         if (isNaN(dateObj.getTime())) return 'Invalid date';
 
         const now = new Date();
