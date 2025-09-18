@@ -172,7 +172,7 @@ const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, o
                 </div>
             </div>
             
-            <div className={cn("w-[90%] mt-2 space-y-4", level > 0 && "w-full pl-0")}>
+            <div className={cn("w-[70%] mx-auto mt-2 space-y-4", level > 0 && "w-full pl-0")}>
                  {showReply && (
                     <div className="flex gap-2 pt-2">
                          <Avatar className="h-8 w-8">
@@ -196,9 +196,7 @@ const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, o
                 )}
                 <div className="space-y-4">
                     {childReplies.slice(0, showAllReplies ? childReplies.length : 1).map(reply => (
-                        <div key={reply.id} className="relative pl-6">
-                             <div className="absolute left-0 top-0 h-full w-px bg-border -translate-x-1/2"></div>
-                             <div className="absolute left-0 top-5 h-px w-3 bg-border -translate-x-1/2"></div>
+                        <div key={reply.id}>
                             <Comment 
                                 comment={reply}
                                 allReplies={allReplies}
