@@ -76,7 +76,7 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, replies }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, repliesNode }: {
     comment: CommentType,
     onReply: (parentId: string | null, text: string, replyingTo: string | null) => void,
     onLike: (id: string) => void,
@@ -84,7 +84,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
-    replies: React.ReactNode;
+    repliesNode: React.ReactNode;
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -99,7 +99,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(comment.parentId || comment.id, replyText, comment.authorName);
+        onReply(comment.id, replyText, comment.authorName);
         setReplyText('');
         setIsReplying(false);
     };
@@ -161,9 +161,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             </div>
-            {/* Centered container for replies and the reply form */}
+            
             <div className="w-[85%] mx-auto mt-4 space-y-4">
-                {replies}
+                {repliesNode}
                 {isReplying && (
                     <div className="flex items-start gap-2 pt-2">
                         <Avatar className="h-8 w-8">
@@ -224,7 +224,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         };
         setComments(prev => [...prev, newCommentData]);
         if (!parentId) {
-            setNewCommentText(""); // Only clear the main input for top-level comments
+            setNewCommentText("");
         }
     };
     
@@ -254,7 +254,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
     };
 
-    const renderComments = (parentId: string | null = null) => {
+    const renderComments = useCallback((parentId: string | null = null): React.ReactNode => {
         return comments
             .filter(comment => comment.parentId === parentId)
             .map(comment => (
@@ -267,13 +267,13 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     onCopyLink={handleCopyLink}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
-                    replies={renderComments(comment.id)}
+                    repliesNode={renderComments(comment.id)}
                 />
             ));
-    };
+    }, [comments]);
 
     return (
-        <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm animate-in slide-in-from-bottom-full duration-500">
+        <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm animate-in slide-in-from-bottom-full lg:slide-in-from-bottom-0 duration-500">
             <div className="p-4 border-b flex justify-between items-center">
                 <h3 className="font-bold text-lg">Comments ({post.replies || comments.length})</h3>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
