@@ -28,7 +28,7 @@ interface CommentType {
     timestamp: Date;
     isEdited: boolean;
     likes: number;
-    replyingTo?: string | null; // User name being replied to
+    replyingTo?: string | null;
     parentId?: string | null;
 }
 
@@ -271,17 +271,33 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         </div>
                     ) : rootComments.length > 0 ? (
                         rootComments.map(comment => (
-                            <Comment
-                                key={comment.id}
-                                comment={comment}
-                                onReply={handleNewCommentSubmit}
-                                onLike={handleLike}
-                                onReport={handleReport}
-                                onCopyLink={handleCopyLink}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                                level={0}
-                            />
+                            <div key={comment.id}>
+                                <Comment
+                                    comment={comment}
+                                    onReply={handleNewCommentSubmit}
+                                    onLike={handleLike}
+                                    onReport={handleReport}
+                                    onCopyLink={handleCopyLink}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    level={0}
+                                />
+                                 <div className="pl-8 mt-4 space-y-4 border-l-2 ml-5">
+                                    {getReplies(comment.id).map(reply => (
+                                        <Comment
+                                            key={reply.id}
+                                            comment={reply}
+                                            onReply={handleNewCommentSubmit}
+                                            onLike={handleLike}
+                                            onReport={handleReport}
+                                            onCopyLink={handleCopyLink}
+                                            onEdit={handleEdit}
+                                            onDelete={handleDelete}
+                                            level={1}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
