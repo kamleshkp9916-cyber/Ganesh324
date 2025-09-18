@@ -192,7 +192,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useState<CommentType[]>([]);
+    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post?.id}`, []);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -209,10 +209,13 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             } as CommentType));
             setComments(commentsData);
             setIsLoading(false);
+        }, (error) => {
+             console.error("Firestore snapshot error:", error);
+            setIsLoading(false);
         });
 
         return () => unsubscribe();
-    }, [post?.id]);
+    }, [post?.id, setComments]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -371,3 +374,4 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     );
 }
 
+    
