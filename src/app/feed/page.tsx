@@ -166,7 +166,7 @@ const liveSellersData = [
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
-function CommentSheet({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
+function CommentColumn({ postId, post, onClose }: { postId: string, post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
@@ -208,52 +208,53 @@ function CommentSheet({ postId, trigger }: { postId: string, trigger: React.Reac
     };
 
     return (
-         <Sheet>
-            <SheetTrigger asChild>{trigger}</SheetTrigger>
-            <SheetContent side="right" className="flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Comments</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1 px-4">
-                    {isLoading ? (
-                        <div className="space-y-4 py-4">
-                             <Skeleton className="h-10 w-full" />
-                             <Skeleton className="h-10 w-full" />
-                        </div>
-                    ) : comments.length > 0 ? (
-                        <div className="space-y-4 py-4">
-                            {comments.map(comment => (
-                                <div key={comment.id} className="flex items-start gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={comment.authorAvatar} />
-                                        <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow bg-muted p-2 rounded-lg">
-                                        <div className="flex justify-between items-center text-xs">
-                                            <p className="font-semibold">{comment.authorName}</p>
-                                            <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(new Date(comment.timestamp), { addSuffix: true }) : 'just now'}</p>
-                                        </div>
-                                        <p className="text-sm">{comment.text}</p>
+        <div className="flex flex-col h-full border-l bg-background">
+            <div className="p-4 border-b flex items-center justify-between">
+                <div>
+                    <h3 className="font-semibold">Comments on</h3>
+                    <p className="text-sm text-muted-foreground truncate max-w-xs">"{post.content.substring(0, 50)}..."</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5"/></Button>
+            </div>
+            <ScrollArea className="flex-1 px-4">
+                {isLoading ? (
+                    <div className="space-y-4 py-4">
+                         <Skeleton className="h-10 w-full" />
+                         <Skeleton className="h-10 w-full" />
+                    </div>
+                ) : comments.length > 0 ? (
+                    <div className="space-y-4 py-4">
+                        {comments.map(comment => (
+                            <div key={comment.id} className="flex items-start gap-3">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={comment.authorAvatar} />
+                                    <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-grow bg-muted p-2 rounded-lg">
+                                    <div className="flex justify-between items-center text-xs">
+                                        <p className="font-semibold">{comment.authorName}</p>
+                                        <p className="text-muted-foreground">{comment.timestamp ? formatDistanceToNowStrict(new Date(comment.timestamp), { addSuffix: true }) : 'just now'}</p>
                                     </div>
+                                    <p className="text-sm">{comment.text}</p>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
-                    )}
-                </ScrollArea>
-                <DialogFooter className="p-4 border-t">
-                    <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
-                        <Input 
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                        />
-                        <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
-                    </form>
-                </DialogFooter>
-            </SheetContent>
-        </Sheet>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
+                )}
+            </ScrollArea>
+             <div className="p-4 border-t bg-background">
+                <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
+                    <Input 
+                        placeholder="Add a comment..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
+                </form>
+            </div>
+        </div>
     )
 }
 
@@ -392,6 +393,7 @@ const FeedPost = ({
     currentUser,
     highlightTerm,
     onHashtagClick,
+    onCommentClick,
 } : {
     post: any,
     onDelete: (post: any) => void,
@@ -403,6 +405,7 @@ const FeedPost = ({
     currentUser: User | null,
     highlightTerm?: string,
     onHashtagClick: (tag: string) => void;
+    onCommentClick: (post: any) => void;
 }) => {
     
     const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -525,37 +528,35 @@ const FeedPost = ({
 
                 {imageCount > 0 && (
                     <div className="px-4">
-                        <div
-                        className={cn(
-                            "grid gap-1 rounded-lg overflow-hidden",
-                            imageCount === 1 ? "grid-cols-1" : "grid-cols-2"
-                        )}
+                         <div
+                            className={cn(
+                                "grid gap-1 rounded-lg overflow-hidden",
+                                imageCount === 1 ? "grid-cols-1" : "grid-cols-2"
+                            )}
                         >
-                        {post.images.slice(0, 4).map((image: any, index: number) => (
-                            <DialogTrigger key={image.id || index} asChild>
-                            <div
-                                className={cn(
-                                "cursor-pointer relative group bg-muted",
-                                imageCount === 1
-                                    ? "aspect-video"
-                                    : "aspect-square"
-                                )}
-                                onClick={() => setViewingImage(image.url)}
-                            >
-                                <Image
-                                src={image.url}
-                                alt={`Post image ${index + 1}`}
-                                fill
-                                className="object-cover w-full h-full"
-                                />
-                                {index === 3 && imageCount > 4 && (
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                    +{imageCount - 4}
+                            {post.images.slice(0, 4).map((image: any, index: number) => (
+                                <DialogTrigger key={image.id || index} asChild>
+                                <div
+                                    className={cn(
+                                    "cursor-pointer relative group bg-muted",
+                                    imageCount === 1 ? "aspect-video" : "aspect-square"
+                                    )}
+                                    onClick={() => setViewingImage(image.url)}
+                                >
+                                    <Image
+                                    src={image.url}
+                                    alt={`Post image ${index + 1}`}
+                                    fill
+                                    className="object-cover w-full h-full"
+                                    />
+                                    {index === 3 && imageCount > 4 && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                        +{imageCount - 4}
+                                    </div>
+                                    )}
                                 </div>
-                                )}
-                            </div>
-                            </DialogTrigger>
-                        ))}
+                                </DialogTrigger>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -570,12 +571,10 @@ const FeedPost = ({
                             <span>{post.downvotes || 0}</span>
                         </Button>
                     </div>
-                    <CommentSheet postId={post.id} trigger={
-                        <Button variant="ghost" className="flex items-center gap-1.5">
-                            <MessageSquare className="w-4 h-4"/>
-                            <span>{post.replies || 0} Comments</span>
-                        </Button>
-                    } />
+                    <Button variant="ghost" className="flex items-center gap-1.5" onClick={() => onCommentClick(post)}>
+                        <MessageSquare className="w-4 h-4"/>
+                        <span>{post.replies || 0} Comments</span>
+                    </Button>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
             </Card>
@@ -604,6 +603,7 @@ export default function FeedPage() {
   const [activeView, setActiveView] = useState<ActiveView>('feed');
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
+  const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
@@ -1053,6 +1053,7 @@ export default function FeedPage() {
                                                 isSaved={isPostSaved(post.id)}
                                                 highlightTerm={debouncedSearchTerm}
                                                 onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                onCommentClick={() => setSelectedPostForComments(post)}
                                             />
                                         </div>
                                     ))
@@ -1069,55 +1070,65 @@ export default function FeedPage() {
                 </main>
             </div>
           {/* Right Column */}
-            <aside className="p-6 hidden lg:block space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Trending</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {trendingTopics.map((topic, index) => (
-                                <div key={index}>
-                                    <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+            <aside className="hidden lg:block h-screen overflow-y-hidden">
+                 {selectedPostForComments ? (
+                    <CommentColumn
+                        postId={selectedPostForComments.id}
+                        post={selectedPostForComments}
+                        onClose={() => setSelectedPostForComments(null)}
+                    />
+                ) : (
+                    <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Trending</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {trendingTopics.map((topic, index) => (
+                                        <div key={index}>
+                                            <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
+                                            <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                            </CardContent>
+                        </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Trending Streams</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {trendingStreams.map((stream) => (
-                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={stream.avatarUrl}/>
-                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                            <RadioTower className="h-2 w-2 text-white"/>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Trending Streams</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {trendingStreams.map((stream) => (
+                                        <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={stream.avatarUrl}/>
+                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                    <RadioTower className="h-2 w-2 text-white"/>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <Users className="h-3 w-3"/>
-                                        {stream.viewers}
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Users className="h-3 w-3"/>
+                                                {stream.viewers}
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
             </aside>
         </div>
         {activeView === 'feed' && (
@@ -1140,11 +1151,3 @@ export default function FeedPage() {
     </Dialog>
   );
 }
-
-    
-
-    
-
-
-
-
