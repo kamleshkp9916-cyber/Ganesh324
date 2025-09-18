@@ -358,36 +358,38 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     return (
-        <div className="flex flex-col h-full border-l bg-background overflow-hidden">
-            <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex flex-col h-full border-l bg-background">
+            <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <h3 className="font-semibold text-lg">Comments ({post.replies || 0})</h3>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 flex-shrink-0">
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
                     <X className="h-5 w-5"/>
                 </Button>
             </div>
-            <ScrollArea className="flex-1">
-                 <div className="p-4">
-                    {isLoading ? (
-                        <div className="space-y-4">
-                             <Skeleton className="h-16 w-full" />
-                             <Skeleton className="h-16 w-full" />
-                        </div>
-                    ) : comments.length > 0 ? (
-                        <div className="space-y-6">
-                            {comments.map(comment => (
-                               <CommentThread key={comment.id} comment={comment} onReply={handleReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
-                            <MessageSquare className="w-10 h-10 mb-2" />
-                            <h4 className="font-semibold">No comments yet</h4>
-                            <p className="text-sm">Be the first one to comment.</p>
-                        </div>
-                    )}
-                 </div>
-            </ScrollArea>
-             <div className="p-4 border-t bg-background">
+            <div className="flex-grow overflow-hidden relative">
+                <ScrollArea className="absolute inset-0">
+                     <div className="p-4">
+                        {isLoading ? (
+                            <div className="space-y-4">
+                                 <Skeleton className="h-16 w-full" />
+                                 <Skeleton className="h-16 w-full" />
+                            </div>
+                        ) : comments.length > 0 ? (
+                            <div className="space-y-6">
+                                {comments.map(comment => (
+                                   <CommentThread key={comment.id} comment={comment} onReply={handleReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
+                                <MessageSquare className="w-10 h-10 mb-2" />
+                                <h4 className="font-semibold">No comments yet</h4>
+                                <p className="text-sm">Be the first one to comment.</p>
+                            </div>
+                        )}
+                     </div>
+                </ScrollArea>
+            </div>
+             <div className="p-4 border-t bg-background flex-shrink-0">
                 <div className="flex items-start gap-3">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={userData?.photoURL || ''} />
