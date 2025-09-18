@@ -175,11 +175,11 @@ function FeedPostSkeleton() {
                         <Skeleton className="h-3 w-1/4" />
                     </div>
                 </div>
-            </div>
-            <div className="px-4 pb-4 space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="w-full aspect-video rounded-lg" />
+                <div className="space-y-3 mt-3">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
             </div>
         </Card>
     );
@@ -362,13 +362,11 @@ const FeedPost = ({
                                 <AvatarImage src={post.avatarUrl} />
                                 <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div>
-                                <div className="font-semibold group-hover:underline flex items-center gap-2">
-                                  <span>{post.sellerName}</span>
-                                  <span className="text-xs text-muted-foreground font-normal">
-                                    <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                                  </span>
-                                </div>
+                            <div className="font-semibold group-hover:underline flex items-center gap-2">
+                                <span>{post.sellerName}</span>
+                                <span className="text-xs text-muted-foreground font-normal">
+                                <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
+                                </span>
                             </div>
                         </Link>
                         <DropdownMenu>
@@ -411,14 +409,16 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
-                    {contentWithoutHashtags && <p className="text-sm text-muted-foreground mt-4">{contentWithoutHashtags}</p>}
-                    {Array.isArray(post.tags) && post.tags.length > 0 && (
-                        <p className="text-sm text-primary mt-2">
-                            {post.tags.map((tag: string, index: number) => (
-                                <span key={index} className="text-primary">{`#${tag} `}</span>
-                            ))}
-                        </p>
-                    )}
+                    <div className="pt-4">
+                        {contentWithoutHashtags && <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>}
+                        {Array.isArray(post.tags) && post.tags.length > 0 && (
+                            <p className="text-sm text-primary mt-2">
+                                {post.tags.map((tag: string, index: number) => (
+                                    <span key={index} className="text-primary">{`#${tag} `}</span>
+                                ))}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {imageCount > 0 && (
@@ -467,7 +467,6 @@ const FeedPost = ({
                         <MessageSquare className="w-4 h-4"/>
                         <span>{post.comments || 0} Comments</span>
                     </Button>
-                    
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
             </Card>
@@ -798,9 +797,10 @@ export default function FeedPage() {
     
     if (!searchTerm) return currentFeed;
 
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
     return currentFeed.filter(item => 
-        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchTerm.toLowerCase())
+        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
+        item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
   }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
