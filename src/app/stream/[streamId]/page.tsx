@@ -59,7 +59,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -349,16 +349,10 @@ export default function StreamPage() {
     };
     
     const handleTerminateStream = () => {
+        // Use localStorage to trigger a 'storage' event across tabs
         localStorage.setItem(STREAM_TERMINATED_KEY, streamId);
-        // If this is my own stream, also remove my live data
-        const liveStreamDataRaw = localStorage.getItem('liveStream');
-        if (liveStreamDataRaw) {
-            const liveStreamData = JSON.parse(liveStreamDataRaw);
-            if (liveStreamData.seller.uid === streamId) {
-                localStorage.removeItem('liveStream');
-            }
-        }
-        window.dispatchEvent(new Event('storage')); // Notify other tabs
+        // Immediately remove it so it doesn't persist, the event is what matters
+        localStorage.removeItem(STREAM_TERMINATED_KEY);
         
         setIsStreamTerminated(true);
         toast({
@@ -896,5 +890,7 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
 
     
