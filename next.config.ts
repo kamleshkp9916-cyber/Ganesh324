@@ -1,8 +1,35 @@
 
 import type {NextConfig} from 'next';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+// Define the Content Security Policy
+const ContentSecurityPolicy = `
+  script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ''};
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: https:;
+  font-src 'self' data:;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+`;
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Add headers to the Next.js app
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim(),
+          },
+        ],
+      },
+    ]
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -30,7 +57,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https://',
         hostname: 'firebasestorage.googleapis.com',
         port: '',
         pathname: '/**',
