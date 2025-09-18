@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot, Timestamp, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, increment } from 'firebase/firestore';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,48 +32,52 @@ interface CommentType {
 const mockCommentsData: CommentType[] = [
     {
         id: '1',
-        authorName: 'Heart_beat',
+        authorName: 'Veronica',
         authorId: 'user1',
         authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop',
         text: 'Lol you forgot overpower pulverize. It\'s top 2 on your list',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
         isEdited: false,
-        likes: 2,
+        likes: 255,
         replies: [
             {
                 id: '2',
-                authorName: 'Motorro_',
+                authorName: 'Andrew',
                 authorId: 'user2',
-                authorAvatar: 'https://placehold.co/100x100/f44336/ffffff?text=M',
+                authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
                 text: 'In the druids favour is it was way more tanky',
-                timestamp: new Date(Date.now() - 44 * 60 * 1000), // 44m ago
+                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
                 isEdited: false,
-                likes: 1,
-                replyingTo: 'Heart_beat',
+                likes: 18,
+                replyingTo: 'Veronica',
                 replies: [
                     {
                         id: '3',
-                        authorName: 'Fluffyfox32',
+                        authorName: 'Halina B.',
                         authorId: 'user3',
                         authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
                         text: "Don't see the barb build with link is where's the",
-                        timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10m ago
+                        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3h ago
                         isEdited: false,
                         likes: 0,
-                        replyingTo: 'Motorro_',
+                        replyingTo: 'Andrew',
                         replies: [],
-                    }
+                    },
+                     { id: '5', authorName: 'SoloLeveling', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=S', text: 'Another reply in the thread.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 5, replies: [] },
+                     { id: '6', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'Testing another reply.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 2, replies: [] },
+                     { id: '7', authorName: 'Motorro_', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'More discussion.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 1, replyingTo: 'Heart_beat', replies: [] },
+                     { id: '8', authorName: 'Fluffyfox32', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: 'Final thoughts.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 0, replyingTo: 'Motorro_', replies: [] },
                 ],
             },
         ],
     },
     {
         id: '4',
-        authorName: 'SoloLeveling',
-        authorId: 'user4',
-        authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=S',
+        authorName: 'Halina B.',
+        authorId: 'user3',
+        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
         text: 'This is another top-level comment to demonstrate the structure. How is everyone doing?',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2h ago
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3h ago
         isEdited: false,
         likes: 5,
         replies: [],
@@ -208,9 +212,8 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                             <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow space-y-2">
-                             <div className="text-xs text-muted-foreground mb-1">Replying to {comment.authorName}</div>
                             <Textarea
-                                placeholder={`Type your reply...`}
+                                placeholder={`Replying to ${comment.authorName}...`}
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
                                 className="text-sm"
@@ -230,16 +233,27 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
 };
 
 const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const visibleReplies = isExpanded ? comment.replies : (comment.replies || []).slice(0, 1);
+
     return (
         <div className="relative">
              <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
-             {comment.replies && comment.replies.length > 0 && (
+             {hasReplies && (
                 <div className="relative mt-6 pl-8">
-                    <span className="absolute left-4 top-0 h-full w-px bg-muted-foreground/20" aria-hidden="true" />
+                    <span className="absolute left-[26px] top-0 h-full w-px bg-muted-foreground/20" aria-hidden="true" />
                      <div className="space-y-6">
-                        {comment.replies.map(reply => (
+                        {visibleReplies?.map(reply => (
                             <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
                         ))}
+
+                        {!isExpanded && comment.replies && comment.replies.length > 1 && (
+                            <Button variant="link" size="sm" className="h-auto p-0 text-xs flex items-center gap-2" onClick={() => setIsExpanded(true)}>
+                                <ChevronDown className="w-3 h-3" />
+                                View all {comment.replies.length} replies
+                            </Button>
+                        )}
                     </div>
                 </div>
             )}
@@ -258,7 +272,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
      useEffect(() => {
         setIsLoading(true);
         setTimeout(() => {
-            setComments(mockCommentsData.sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime()));
+            setComments(mockCommentsData.sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()));
             setIsLoading(false);
         }, 500);
     }, [post?.id]);
@@ -276,14 +290,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             likes: 0,
             replies: [],
         };
-        setComments(prev => [...prev, newTopLevelComment]);
+        setComments(prev => [newTopLevelComment, ...prev]);
         setNewComment("");
     };
 
     const addReplyRecursive = (allComments: CommentType[], parentId: string, newReply: CommentType): CommentType[] => {
         return allComments.map(comment => {
             if (comment.id === parentId) {
-                return { ...comment, replies: [...(comment.replies || []), newReply] };
+                return { ...comment, replies: [...(comment.replies || []), newReply].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()) };
             }
             if (comment.replies) {
                 return { ...comment, replies: addReplyRecursive(comment.replies, parentId, newReply) };
@@ -346,7 +360,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     return (
         <div className="flex flex-col h-full border-l bg-background overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Comments on {post.sellerName}'s post</h3>
+                <h3 className="font-semibold text-lg">Comments ({post.replies || 0})</h3>
                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 flex-shrink-0">
                     <X className="h-5 w-5"/>
                 </Button>
@@ -365,7 +379,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4">
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
                             <h4 className="font-semibold">No comments yet</h4>
                             <p className="text-sm">Be the first one to comment.</p>
