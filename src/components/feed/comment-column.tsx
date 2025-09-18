@@ -26,9 +26,8 @@ interface CommentType {
     timestamp: Date;
     isEdited: boolean;
     likes: number;
-    replyingTo?: string; 
+    replies?: CommentType[];
 }
-
 
 const mockCommentsData: CommentType[] = [
     {
@@ -36,31 +35,35 @@ const mockCommentsData: CommentType[] = [
         authorName: 'Heart_beat',
         authorId: 'user1',
         authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop',
-        text: 'An artist in every sense! Absolutely love his work.',
-        timestamp: new Date(Date.now() - 10 * 60 * 1000),
+        text: 'Lol you forgot overpower pulverize. It\'s top 2 on your list',
+        timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
         isEdited: false,
-        likes: 255,
-    },
-    {
-        id: '2',
-        authorName: 'Olivia55_12',
-        authorId: 'user2',
-        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-        text: 'He is a legend. One of my favorites!',
-        timestamp: new Date(Date.now() - 21 * 60 * 1000),
-        isEdited: false,
-        likes: 63,
-        replyingTo: 'Heart_beat',
-    },
-    {
-        id: '3',
-        authorName: 'Receptionist77',
-        authorId: 'user3',
-        authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-        text: 'Each song in this album is a hit',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000),
-        isEdited: true,
-        likes: 102,
+        likes: 2,
+        replies: [
+            {
+                id: '2',
+                authorName: 'Motorro_',
+                authorId: 'user2',
+                authorAvatar: 'https://placehold.co/100x100/f44336/ffffff?text=M',
+                text: 'In the druids favour is it was way more tanky',
+                timestamp: new Date(Date.now() - 44 * 60 * 1000), // 44m ago
+                isEdited: false,
+                likes: 1,
+                replies: [
+                    {
+                        id: '3',
+                        authorName: 'Fluffyfox32',
+                        authorId: 'user3',
+                        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+                        text: "Don't see the barb build with link is where's the",
+                        timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10m ago
+                        isEdited: false,
+                        likes: 0,
+                        replies: [],
+                    }
+                ],
+            },
+        ],
     },
 ];
 
@@ -79,25 +82,8 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
         }
 
         if (isNaN(dateObj.getTime())) return 'Invalid date';
-
-        const now = new Date();
-        const diffInSeconds = (now.getTime() - dateObj.getTime()) / 1000;
-        if (diffInSeconds < 60) {
-            return 'just now';
-        }
-        if (diffInSeconds < 60 * 60) {
-             return `${Math.floor(diffInSeconds / 60)}m ago`;
-        }
-        if (diffInSeconds < 60 * 60 * 24) {
-             return `${Math.floor(diffInSeconds / 3600)}h ago`;
-        }
-        if (isThisWeek(dateObj, { weekStartsOn: 1 })) {
-            return format(dateObj, 'E'); // Mon, Tue
-        }
-        if (isThisYear(dateObj)) {
-            return format(dateObj, 'MMM d'); // Sep 12
-        }
-        return format(dateObj, 'MMM d, yyyy'); // Sep 12, 2024
+        
+        return formatDistanceToNowStrict(dateObj, { addSuffix: true });
     }, []);
 
     useEffect(() => {
@@ -118,15 +104,35 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-
-const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (authorName: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
+const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
+    const [isReplying, setIsReplying] = useState(false);
+    const [replyText, setReplyText] = useState("");
+    const { userData } = useAuth();
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
         setIsEditing(false);
+    };
+
+    const handleReplySubmit = () => {
+        if (!replyText.trim() || !user || !userData) return;
+        const newReply: CommentType = {
+            id: Date.now().toString(),
+            authorName: userData.displayName,
+            authorId: user.uid,
+            authorAvatar: userData.photoURL,
+            text: replyText.trim(),
+            timestamp: new Date(),
+            isEdited: false,
+            likes: 0,
+            replies: [],
+        };
+        onReply(comment.id, newReply);
+        setIsReplying(false);
+        setReplyText("");
     };
 
     return (
@@ -149,17 +155,14 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm mt-1">
-                        {comment.replyingTo && <Button variant="link" className="text-primary p-0 h-auto mr-1">@{comment.replyingTo}</Button>}
-                        {comment.text}
-                    </p>
+                    <p className="text-sm mt-1">{comment.text}</p>
                 )}
                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                     <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
                         <ThumbsUp className="w-4 h-4" />
-                        <span>{comment.likes}</span>
+                        <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
-                    <button onClick={() => onReply(comment.authorName)} className="hover:text-primary">Reply</button>
+                    <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                      {user?.uid === comment.authorId && (
                         <>
                             <button onClick={() => setIsEditing(true)} className="hover:text-primary">Edit</button>
@@ -181,20 +184,54 @@ const Comment = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: Comm
                         </>
                     )}
                 </div>
+                
+                 {isReplying && (
+                    <div className="mt-4 flex items-start gap-3">
+                         <Avatar className="h-8 w-8">
+                            <AvatarImage src={userData?.photoURL} />
+                            <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow space-y-2">
+                            <Textarea
+                                placeholder={`Replying to ${comment.authorName}...`}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                className="text-sm"
+                                rows={2}
+                                autoFocus
+                            />
+                             <div className="flex gap-2">
+                                <Button size="sm" className="h-7 px-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>Post</Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsReplying(false)}>Cancel</Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
+const CommentThread = ({ comment, onReply, onEdit, onDelete, onLike }: { comment: CommentType, onReply: (parentId: string, newReply: CommentType) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void, onLike: (id: string) => void }) => {
+    return (
+        <div>
+            <Comment comment={comment} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+            {comment.replies && comment.replies.length > 0 && (
+                <div className="ml-8 pl-6 border-l border-muted-foreground/20 space-y-6 mt-6">
+                    {comment.replies.map(reply => (
+                        <CommentThread key={reply.id} comment={reply} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onLike={onLike} />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
 
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [comments, setComments] = useState<CommentType[]>([]);
-    const [newComment, setNewComment] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const [replyingTo, setReplyingTo] = useState<string | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
 
      useEffect(() => {
         setIsLoading(true);
@@ -204,62 +241,68 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         }, 500);
     }, [post?.id]);
 
-    const handlePostComment = () => {
-        if (!newComment.trim() || !user || !userData) {
-            toast({ variant: 'destructive', title: "Login Required", description: "You must be logged in to comment." });
-            return;
-        }
-        
-        let text = newComment.trim();
-        if(replyingTo) {
-            text = text.replace(`@${replyingTo} `, '');
-        }
-
-        const newCommentData: CommentType = {
-            id: Date.now().toString(),
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL,
-            text: text,
-            timestamp: new Date(),
-            isEdited: false,
-            likes: 0,
-            replyingTo: replyingTo || undefined
-        };
-        
-        setComments(prev => [...prev, newCommentData]);
-        setNewComment("");
-        setReplyingTo(null);
-        toast({ title: "Comment Posted" });
+    const addReplyRecursive = (allComments: CommentType[], parentId: string, newReply: CommentType): CommentType[] => {
+        return allComments.map(comment => {
+            if (comment.id === parentId) {
+                return { ...comment, replies: [...(comment.replies || []), newReply] };
+            }
+            if (comment.replies) {
+                return { ...comment, replies: addReplyRecursive(comment.replies, parentId, newReply) };
+            }
+            return comment;
+        });
     };
 
-    const handleEditComment = (commentId: string, newText: string) => {
-        setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: newText, isEdited: true } : c));
+    const editCommentRecursive = (allComments: CommentType[], commentId: string, newText: string): CommentType[] => {
+        return allComments.map(comment => {
+            if (comment.id === commentId) {
+                return { ...comment, text: newText, isEdited: true };
+            }
+            if (comment.replies) {
+                return { ...comment, replies: editCommentRecursive(comment.replies, commentId, newText) };
+            }
+            return comment;
+        });
+    };
+
+     const deleteCommentRecursive = (allComments: CommentType[], commentId: string): CommentType[] => {
+        return allComments.filter(c => c.id !== commentId).map(comment => {
+            if (comment.replies) {
+                return { ...comment, replies: deleteCommentRecursive(comment.replies, commentId) };
+            }
+            return comment;
+        });
+    };
+
+    const likeCommentRecursive = (allComments: CommentType[], commentId: string): CommentType[] => {
+         return allComments.map(comment => {
+            if (comment.id === commentId) {
+                return { ...comment, likes: comment.likes + 1 };
+            }
+            if (comment.replies) {
+                return { ...comment, replies: likeCommentRecursive(comment.replies, commentId) };
+            }
+            return comment;
+        });
+    }
+
+    const handleReply = (parentId: string, newReply: CommentType) => {
+        setComments(prev => addReplyRecursive(prev, parentId, newReply));
+    };
+
+    const handleEdit = (commentId: string, newText: string) => {
+        setComments(prev => editCommentRecursive(prev, commentId, newText));
         toast({ title: "Comment Updated" });
     };
 
-    const handleDeleteComment = (commentId: string) => {
-        setComments(prev => prev.filter(c => c.id !== commentId));
+    const handleDelete = (commentId: string) => {
+        setComments(prev => deleteCommentRecursive(prev, commentId));
         toast({ title: "Comment Deleted" });
     };
-
-    const handleLike = (commentId: string) => {
-        setComments(prev => prev.map(c => c.id === commentId ? { ...c, likes: c.likes + 1 } : c));
-    };
-
-    const handleReplyClick = (authorName: string) => {
-        setReplyingTo(authorName);
-        setNewComment(`@${authorName} `);
-        inputRef.current?.focus();
-    }
     
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (replyingTo && !value.startsWith(`@${replyingTo} `)) {
-            setReplyingTo(null);
-        }
-        setNewComment(value);
-    }
+    const handleLike = (commentId: string) => {
+        setComments(prev => likeCommentRecursive(prev, commentId));
+    };
 
     return (
         <div className="flex flex-col h-full border-l bg-background">
@@ -279,7 +322,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     ) : comments.length > 0 ? (
                         <div className="space-y-6">
                             {comments.map(comment => (
-                               <Comment key={comment.id} comment={comment} onReply={handleReplyClick} onEdit={handleEditComment} onDelete={handleDeleteComment} onLike={handleLike} />
+                               <CommentThread key={comment.id} comment={comment} onReply={handleReply} onEdit={handleEdit} onDelete={handleDelete} onLike={handleLike} />
                             ))}
                         </div>
                     ) : (
@@ -291,17 +334,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     )}
                  </div>
             </ScrollArea>
-             <div className="p-4 border-t bg-background">
-                <form onSubmit={(e) => { e.preventDefault(); handlePostComment(); }} className="w-full flex items-center gap-2">
-                    <Input
-                        ref={inputRef}
-                        placeholder={replyingTo ? `Replying to ${replyingTo}...` : "Add a comment..."}
-                        value={newComment}
-                        onChange={handleInputChange}
-                    />
-                    <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
-                </form>
-            </div>
         </div>
     )
 }
