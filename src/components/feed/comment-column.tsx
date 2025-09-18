@@ -193,13 +193,14 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post?.id}`, []);
+    const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!post?.id) return;
+
         setIsLoading(true);
         const db = getFirestoreDb();
         const commentsQuery = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
@@ -217,7 +218,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         });
 
         return () => unsubscribe();
-    }, [post?.id, setComments]);
+    }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -229,7 +230,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             const postRef = doc(db, 'posts', post.id);
             const commentsRef = collection(db, `posts/${post.id}/comments`);
 
-            // 1. Create the new comment data object
             const newCommentData: any = {
                 userId: user.uid,
                 authorName: userData.displayName,
@@ -241,20 +241,18 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 replyingTo: replyingTo,
                 replyCount: 0,
             };
-            if(parentId) {
+
+            if (parentId) {
                 newCommentData.parentId = parentId;
+            } else {
+                 newCommentData.parentId = null;
             }
 
-            // 2. Add the document to Firestore
             const newCommentDocRef = await addDoc(commentsRef, newCommentData);
             
-            // 3. Update counts in a transaction
             await runTransaction(db, async (transaction) => {
-                // Read operations first
                 const postDoc = await transaction.get(postRef);
                 if (!postDoc.exists()) throw "Post does not exist!";
-
-                // Write operations
                 transaction.update(postRef, { replies: increment(1) });
 
                 if (parentId) {
@@ -365,7 +363,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="font-bold text-lg">Comments ({post.replies || comments.length})</h3>
+                <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
                     <X />
                 </Button>
