@@ -16,6 +16,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 interface CommentType {
     id: string;
@@ -23,7 +24,7 @@ interface CommentType {
     authorId: string;
     authorAvatar: string;
     text: string;
-    timestamp: Date;
+    timestamp: string; // Use ISO string for consistency with localStorage
     isEdited: boolean;
     likes: number;
     replyingTo?: string | null;
@@ -31,11 +32,11 @@ interface CommentType {
 }
 
 const mockCommentsData: CommentType[] = [
-    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255, parentId: null, replyingTo: null },
-    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 2.9 * 60 * 60 * 1000), isEdited: false, likes: 63, parentId: '1', replyingTo: 'Heart_beat' },
-    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, parentId: '1', replyingTo: 'Heart_beat' },
-    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, parentId: '3', replyingTo: 'Receptionist77' },
-    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42, parentId: null, replyingTo: null },
+    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 255, parentId: null, replyingTo: null },
+    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 2.9 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 63, parentId: '1', replyingTo: 'Heart_beat' },
+    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), isEdited: false, likes: 18, parentId: '1', replyingTo: 'Heart_beat' },
+    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree!', timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), isEdited: false, likes: 5, parentId: '3', replyingTo: 'Receptionist77' },
+    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(), isEdited: false, likes: 42, parentId: null, replyingTo: null },
 ];
 
 
@@ -165,30 +166,31 @@ const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, 
             </div>
             
             {isReplying && (
-                <div className="flex items-start gap-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.photoURL || undefined} />
-                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="w-full space-y-2">
-                        <Textarea 
-                            placeholder={`Replying to @${comment.authorName}...`} 
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            autoFocus
-                            rows={2}
-                        />
-                        <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                            <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                <div className="pl-12 w-[70%] mx-auto">
+                    <div className="flex items-start gap-2">
+                         <Avatar className="h-8 w-8">
+                            <AvatarImage src={user?.photoURL || undefined} />
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="w-full space-y-2">
+                            <Textarea 
+                                placeholder={`Replying to @${comment.authorName}...`} 
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                autoFocus
+                                rows={2}
+                            />
+                            <div className="flex justify-end gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* This div is now correctly placed to not cause indentation */}
+            
             {replies.length > 0 && (
-                <div className="space-y-4">
+                <div className="pl-12 w-[70%] mx-auto space-y-4">
                     {replies.map(reply => (
                         <Comment
                             key={reply.id}
@@ -208,23 +210,13 @@ const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, 
     );
 };
 
-
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useState<CommentType[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post?.id}`, mockCommentsData);
+    const [isLoading, setIsLoading] = useState(false);
     const [newCommentText, setNewCommentText] = useState("");
-    
-    useEffect(() => {
-        setIsLoading(true);
-        setTimeout(() => {
-            const sortedComments = mockCommentsData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-            setComments(sortedComments);
-            setIsLoading(false);
-        }, 500);
-    }, [post?.id]);
-    
+
     const handleNewCommentSubmit = (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
 
@@ -234,13 +226,13 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             authorId: user.uid,
             authorAvatar: userData.photoURL || '',
             text: text,
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
             isEdited: false,
             likes: 0,
             parentId: parentId,
             replyingTo: replyingTo,
         };
-        setComments(prev => [...prev, newCommentData]);
+        setComments(prev => [...prev, newCommentData].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
         if (!parentId) {
             setNewCommentText("");
         }
@@ -252,7 +244,21 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     const handleDelete = (commentId: string) => {
-        setComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
+        const commentIdsToDelete = new Set<string>();
+        const queue = [commentId];
+        commentIdsToDelete.add(commentId);
+        
+        while(queue.length > 0) {
+            const currentId = queue.shift();
+            comments.forEach(comment => {
+                if (comment.parentId === currentId) {
+                    commentIdsToDelete.add(comment.id);
+                    queue.push(comment.id);
+                }
+            });
+        }
+
+        setComments(prev => prev.filter(c => !commentIdsToDelete.has(c.id)));
         toast({ title: "Comment Deleted" });
     };
     

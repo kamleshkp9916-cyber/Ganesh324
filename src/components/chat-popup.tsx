@@ -10,7 +10,6 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Image from 'next/image';
-import { getMessages, sendMessage, Message } from '@/ai/flows/chat-flow';
 import { Skeleton } from './ui/skeleton';
 
 interface ChatPopupProps {
@@ -21,6 +20,20 @@ interface ChatPopupProps {
   onClose: () => void;
 }
 
+type Message = { id: number, text?: string, sender: 'user' | 'bot' | 'system' | 'seller' | 'customer', timestamp: string, image?: string };
+
+const mockChatDatabase: Record<string, Message[]> = {
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+  ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
+  ],
+};
+
+
 export function ChatPopup({ user, onClose }: ChatPopupProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -29,11 +42,11 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchMessages = () => {
       setIsLoading(true);
       try {
-        // Fetch message history between customer and this seller
-        const history = await getMessages(user.displayName); 
+        // Fetch message history between customer and this seller from mock data
+        const history = mockChatDatabase[user.displayName] || []; 
         setMessages(history);
       } catch (error) {
         console.error("Failed to fetch messages:", error);
@@ -53,25 +66,26 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
       setNewMessage('');
     }
 
-    // Optimistically update the UI. 'them' is the customer, 'me' is the seller in the mock data.
-    // So when a customer sends a message it should appear as 'them' from the data's point of view.
-    // However, for the UI, 'me' is always the person using the chat.
     const optimisticMessage: Message = {
-      id: Math.random(), // Temporary ID
+      id: Math.random(),
       ...content,
-      sender: 'them', // This should be the customer's perspective. In the mock, customer is 'them'.
+      sender: 'customer',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
+    
     setMessages(prev => [...prev, optimisticMessage]);
 
-    try {
-      const updatedMessages = await sendMessage(user.displayName, content, 'customer');
-      setMessages(updatedMessages);
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      // Revert optimistic update on error if needed
-      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
-    }
+    // Mock receiving a reply
+    setTimeout(() => {
+        const reply: Message = {
+            id: Math.random(),
+            sender: 'seller',
+            text: "Thanks for your message! We'll get back to you shortly.",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages(prev => [...prev, reply]);
+    }, 1500);
+
   };
 
   const handleSendOrderStatus = () => {
@@ -125,10 +139,7 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
                 </>
               ) : (
                 messages.map((msg) => {
-                  // In the mock data, seller is 'me', customer is 'them'.
-                  // The person using the chat popup is always the customer.
-                  // So, msg.sender === 'them' means it's a message from the customer.
-                  const isMyMessage = msg.sender === 'them';
+                  const isMyMessage = msg.sender === 'customer';
                   return (
                       <div key={msg.id} className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[75%] rounded-lg px-3 py-2 ${
