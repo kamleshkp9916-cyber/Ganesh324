@@ -151,7 +151,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {isReplying && (
-                <div className="pl-12">
+                 <div className="pl-12 w-[70%] mx-auto">
                     <div className="flex items-start gap-2">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.photoURL || undefined} />
@@ -173,18 +173,15 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
-             {comment.replyCount > 0 && (
+             {comment.replyCount > 0 ? (
                 <div className="pl-14">
                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
                          {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
                     </button>
-                    {areRepliesVisible && (
-                        <div className="mt-4 space-y-4">{children}</div>
-                    )}
+                    {areRepliesVisible && <div className="mt-4 space-y-4">{children}</div>}
                 </div>
-            )}
-            {!comment.replyCount && <div className="pl-14">{children}</div>}
+            ) : <div className="pl-14">{children}</div>}
         </div>
     );
 };
@@ -192,13 +189,14 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useLocalStorage<CommentType[]>(`comments_${post?.id}`, []);
+    const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!post?.id) return;
+        setIsLoading(true);
         const db = getFirestoreDb();
         const commentsQuery = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
         
@@ -215,7 +213,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         });
 
         return () => unsubscribe();
-    }, [post?.id, setComments]);
+    }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -272,8 +270,23 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const handleDelete = async (commentId: string) => {
         try {
             const db = getFirestoreDb();
-            await deleteDoc(doc(db, `posts/${post.id}/comments`, commentId));
-            await updateDoc(doc(db, 'posts', post.id), { replies: increment(-1) });
+            const postRef = doc(db, 'posts', post.id);
+            const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
+            
+            await runTransaction(db, async (transaction) => {
+                const commentDoc = await transaction.get(commentRef);
+                if (!commentDoc.exists()) return;
+
+                transaction.delete(commentRef);
+                transaction.update(postRef, { replies: increment(-1) });
+
+                const parentId = commentDoc.data().parentId;
+                if (parentId) {
+                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                    transaction.update(parentRef, { replyCount: increment(-1) });
+                }
+            });
+
             toast({ title: "Comment Deleted" });
         } catch (error) {
              console.error("Error deleting comment:", error);
@@ -321,7 +334,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             .filter(comment => comment.parentId === parentId)
             .map(comment => (
                 <Comment key={comment.id} comment={comment} {...handlers}>
-                    {renderComments(comment.id)}
+                     <div className="w-[70%] mx-auto">
+                        {renderComments(comment.id)}
+                     </div>
                 </Comment>
             ));
     };
@@ -374,4 +389,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     );
 }
 
-    
