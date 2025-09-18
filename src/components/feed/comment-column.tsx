@@ -175,7 +175,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
-             {comment.replyCount > 0 && (
+             <div className={cn("pl-14", !areRepliesVisible && "hidden")}>
+                {children}
+            </div>
+            {comment.replyCount > 0 && (
                 <div className="pl-14">
                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
@@ -183,9 +186,6 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </button>
                 </div>
             )}
-            <div className={cn("pl-14 mt-4 space-y-4", !areRepliesVisible && "hidden")}>
-                {children}
-            </div>
         </div>
     );
 };
@@ -229,38 +229,48 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         if (isSubmitting) return;
 
         setIsSubmitting(true);
+        const db = getFirestoreDb();
+        const postRef = doc(db, 'posts', post.id);
+        const commentsRef = collection(db, `posts/${post.id}/comments`);
+
+        const newCommentData: any = {
+            userId: user.uid,
+            authorName: userData.displayName,
+            authorAvatar: userData.photoURL || '',
+            text: text,
+            timestamp: serverTimestamp(),
+            isEdited: false,
+            likes: [],
+            replyingTo: replyingTo,
+            replyCount: 0,
+        };
+
+        if (parentId) {
+            newCommentData.parentId = parentId;
+        } else {
+             newCommentData.parentId = null;
+        }
+        
         try {
-            const db = getFirestoreDb();
-            const postRef = doc(db, 'posts', post.id);
-            const commentsRef = collection(db, `posts/${post.id}/comments`);
+            const newCommentRef = await addDoc(commentsRef, newCommentData);
 
-            const newCommentData: any = {
-                userId: user.uid,
-                authorName: userData.displayName,
-                authorAvatar: userData.photoURL || '',
-                text: text,
-                timestamp: serverTimestamp(),
-                isEdited: false,
-                likes: [],
-                replyingTo: replyingTo,
-                replyCount: 0,
-            };
-            if (parentId) {
-                newCommentData.parentId = parentId;
-            }
-
-            await addDoc(commentsRef, newCommentData);
-            
             await runTransaction(db, async (transaction) => {
+                // READ operations first
                 const postDoc = await transaction.get(postRef);
-                if (!postDoc.exists()) throw new Error("Post does not exist!");
-                
-                transaction.update(postRef, { replies: increment(1) });
+                let parentDoc = null;
+                let parentRef = null;
 
                 if (parentId) {
-                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
-                    const parentDoc = await transaction.get(parentRef);
+                    parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                    parentDoc = await transaction.get(parentRef);
                     if (!parentDoc.exists()) throw new Error("Parent comment does not exist!");
+                }
+                
+                if (!postDoc.exists()) throw new Error("Post does not exist!");
+
+                // WRITE operations last
+                transaction.update(postRef, { replies: increment(1) });
+                if (parentId && parentRef) {
                     transaction.update(parentRef, { replyCount: increment(1) });
                 }
             });
@@ -270,6 +280,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         } catch (error: any) {
             console.error("Error posting comment:", error);
             toast({ variant: 'destructive', title: "Error posting comment", description: error.message });
+            // Optionally remove the failed comment from the UI if it was added optimistically
         } finally {
             setIsSubmitting(false);
         }
