@@ -19,7 +19,6 @@ import {
   increment,
   runTransaction,
 } from 'firebase/firestore';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -52,7 +51,7 @@ import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
 interface CommentType {
   id: string;
   authorName: string;
-  authorId: string;
+  userId: string;
   authorAvatar: string;
   text: string;
   timestamp: Timestamp;
@@ -109,7 +108,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                                 <button className="ml-auto"><MoreHorizontal className="w-4 h-4" /></button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start">
-                                {user?.uid === comment.authorId ? (
+                                {user?.uid === comment.userId ? (
                                     <>
                                         <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
                                         <AlertDialog>
@@ -227,7 +226,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
             await addDoc(commentsRef, {
                 authorName: userData.displayName,
-                authorId: user.uid,
+                userId: user.uid,
                 authorAvatar: userData.photoURL || '',
                 text: text,
                 timestamp: serverTimestamp(),
@@ -372,40 +371,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     );
 }
 
-// Separate RealtimeTimestamp into its own component to use "use client"
-const RealtimeTimestampComponent = ({ date, isEdited }: { date: Date | string | Timestamp, isEdited?: boolean }) => {
-    const [relativeTime, setRelativeTime] = useState('');
-
-    const formatTimestamp = useCallback((d: Date | string | Timestamp): string => {
-        let dateObj: Date;
-
-        if (d instanceof Timestamp) {
-            dateObj = d.toDate();
-        } else if (d instanceof Date) {
-            dateObj = d;
-        } else {
-            dateObj = new Date(d);
-        }
-
-        if (isNaN(dateObj.getTime())) return 'Invalid date';
-        
-        return formatDistanceToNowStrict(dateObj, { addSuffix: true });
-    }, []);
-
-    useEffect(() => {
-        setRelativeTime(formatTimestamp(date));
-        
-        const interval = setInterval(() => {
-            setRelativeTime(formatTimestamp(date));
-        }, 60000); // Update every minute
-
-        return () => clearInterval(interval);
-    }, [date, formatTimestamp]);
-
-    return (
-        <>
-            {relativeTime}
-            {isEdited && <span className="text-muted-foreground/80"> • Edited</span>}
-        </>
-    );
-};
