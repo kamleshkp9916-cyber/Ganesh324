@@ -26,16 +26,15 @@ interface CommentType {
     timestamp: Date;
     isEdited: boolean;
     likes: number;
-    replyingTo?: string; // Author name of the parent comment
+    parentId?: string | null; // ID of the comment this is a reply to
 }
 
-// Flattened data structure
 const mockCommentsData: CommentType[] = [
-    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255 },
-    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 2.9 * 60 * 60 * 1000), isEdited: false, likes: 63, replyingTo: 'Heart_beat' },
-    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, replyingTo: 'Heart_beat'},
-    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, replyingTo: 'Receptionist77' },
-    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42 },
+    { id: '1', authorName: 'Heart_beat', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'An artist in every sense! Absolutely love his work.', timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), isEdited: false, likes: 255, parentId: null },
+    { id: '2', authorName: 'Olivia55_12', authorId: 'user2', authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop', text: 'He is a legend. One of my favorites!', timestamp: new Date(Date.now() - 2.9 * 60 * 60 * 1000), isEdited: false, likes: 63, parentId: '1' },
+    { id: '3', authorName: 'Receptionist77', authorId: 'user3', authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: "Each song in this album is a hit", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), isEdited: false, likes: 18, parentId: '1' },
+    { id: '4', authorName: 'Andrew', authorId: 'user4', authorAvatar: 'https://placehold.co/100x100/4caf50/ffffff?text=A', text: 'Totally agree!', timestamp: new Date(Date.now() - 90 * 60 * 1000), isEdited: false, likes: 5, parentId: '3' },
+    { id: '5', authorName: 'Veronica', authorId: 'user1', authorAvatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=100&h=100&fit=crop', text: 'This is another top level comment.', timestamp: new Date(Date.now() - 120 * 60 * 1000), isEdited: false, likes: 42, parentId: null },
 ];
 
 
@@ -76,12 +75,14 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: { comment: CommentType, onReply: (authorName: string, replyText: string) => void, onLike: (id: string) => void, onReport: (id: string) => void, onCopyLink: (id: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void }) => {
+const Comment = ({ comment, allReplies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: { comment: CommentType, allReplies: CommentType[], onReply: (parentId: string, text: string) => void, onLike: (id: string) => void, onReport: (id: string) => void, onCopyLink: (id: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [showReply, setShowReply] = useState(false);
     const [replyText, setReplyText] = useState('');
+    
+    const childReplies = allReplies.filter(r => r.parentId === comment.id);
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -90,78 +91,85 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(comment.authorName, replyText);
+        onReply(comment.id, replyText);
         setReplyText('');
         setShowReply(false);
     };
     
     return (
-        <div className="flex items-start gap-3 group relative">
-            <Avatar className="h-10 w-10">
-                <AvatarImage src={comment.authorAvatar} />
-                <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-grow space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                    <p className="font-semibold">{comment.authorName}</p>
-                    <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
-                </div>
-                 {isEditing ? (
-                    <div className="space-y-2">
-                        <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
-                        <div className="flex gap-2">
-                            <Button size="sm" onClick={handleEditSubmit}>Save</Button>
-                            <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                        </div>
+        <div className="flex flex-col items-center">
+            <div className="w-full flex items-start gap-3 group relative">
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={comment.authorAvatar} />
+                    <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-grow space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                        <p className="font-semibold">{comment.authorName}</p>
+                        <p className="text-muted-foreground"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
                     </div>
-                ) : (
-                    <p className="text-sm mt-1 whitespace-pre-wrap">
-                        {comment.replyingTo && <strong className="text-primary mr-1">@{comment.replyingTo}</strong>}
-                        {comment.text}
-                    </p>
-                )}
-                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                    <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{comment.likes > 0 ? comment.likes : ''}</span>
-                    </button>
-                    <button onClick={() => setShowReply(prev => !prev)} className="hover:text-primary">Reply</button>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                            {user?.uid === comment.authorId ? (
-                                <>
-                                    <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Edit
-                                    </DropdownMenuItem>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                            <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                    <DropdownMenuSeparator />
-                                </>
-                            ) : null}
-                            <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {isEditing ? (
+                        <div className="space-y-2">
+                            <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
+                            <div className="flex gap-2">
+                                <Button size="sm" onClick={handleEditSubmit}>Save</Button>
+                                <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm mt-1 whitespace-pre-wrap">{comment.text}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <button onClick={() => onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
+                            <ThumbsUp className="w-4 h-4" />
+                            <span>{comment.likes > 0 ? comment.likes : ''}</span>
+                        </button>
+                        <button onClick={() => setShowReply(prev => !prev)} className="hover:text-primary">Reply</button>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                {user?.uid === comment.authorId ? (
+                                    <>
+                                        <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            Edit
+                                        </DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                        <DropdownMenuSeparator />
+                                    </>
+                                ) : null}
+                                <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
+            </div>
+            
+            {/* Centered container for replies and reply form */}
+            <div className="w-[70%] mt-2 space-y-4">
                  {showReply && (
-                    <div className="flex justify-center pt-2">
-                        <div className="w-[70%] space-y-2">
+                    <div className="flex gap-2 pt-2">
+                         <Avatar className="h-8 w-8">
+                             <AvatarImage src={user?.photoURL || undefined} />
+                             <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                        <div className="w-full space-y-2">
                             <Textarea 
                                 placeholder={`Replying to @${comment.authorName}...`} 
                                 value={replyText}
@@ -176,6 +184,21 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </div>
                     </div>
                 )}
+                 {childReplies.map(reply => (
+                    <div key={reply.id} className="flex items-start gap-3 group relative">
+                         <Avatar className="h-8 w-8">
+                            <AvatarImage src={reply.authorAvatar} />
+                            <AvatarFallback>{reply.authorName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                            <div className="flex items-center gap-2 text-sm">
+                                <p className="font-semibold">{reply.authorName}</p>
+                                <p className="text-muted-foreground"><RealtimeTimestamp date={reply.timestamp} isEdited={reply.isEdited} /></p>
+                            </div>
+                            <p className="text-sm mt-1">{reply.text}</p>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -187,18 +210,18 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const { toast } = useToast();
     const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [newCommentText, setNewCommentText] = useState("");
 
     useEffect(() => {
         setIsLoading(true);
         setTimeout(() => {
-            // Sort by timestamp for chronological order
             const sortedComments = mockCommentsData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
             setComments(sortedComments);
             setIsLoading(false);
         }, 500);
     }, [post?.id]);
     
-    const handleNewCommentSubmit = (authorName: string, text: string) => {
+    const handleNewCommentSubmit = (text: string, parentId: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
 
         const newCommentData: CommentType = {
@@ -210,9 +233,12 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             timestamp: new Date(),
             isEdited: false,
             likes: 0,
-            replyingTo: authorName,
+            parentId: parentId,
         };
         setComments(prev => [...prev, newCommentData]);
+        if (!parentId) {
+            setNewCommentText(""); // Only clear the main input for top-level comments
+        }
     };
     
     const handleEdit = (commentId: string, newText: string) => {
@@ -241,6 +267,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
     };
 
+    const topLevelComments = comments.filter(c => !c.parentId);
+
     return (
         <div className="flex flex-col h-full border-l bg-background">
             <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
@@ -256,12 +284,13 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                              <Skeleton className="h-16 w-full" />
                              <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : comments.length > 0 ? (
-                        comments.map(comment => (
+                    ) : topLevelComments.length > 0 ? (
+                        topLevelComments.map(comment => (
                            <Comment
                                 key={comment.id}
                                 comment={comment}
-                                onReply={handleNewCommentSubmit}
+                                allReplies={comments.filter(c => c.parentId)}
+                                onReply={(parentId, text) => handleNewCommentSubmit(text, parentId)}
                                 onLike={handleLike}
                                 onReport={handleReport}
                                 onCopyLink={handleCopyLink}
@@ -278,6 +307,22 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     )}
                  </div>
             </ScrollArea>
+             <div className="p-4 border-t flex-shrink-0">
+                 <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText); }} className="flex items-start gap-2">
+                    <Avatar>
+                        <AvatarImage src={user?.photoURL || undefined} />
+                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <Textarea 
+                        placeholder="Add a comment..."
+                        value={newCommentText}
+                        onChange={(e) => setNewCommentText(e.target.value)}
+                        rows={1}
+                        className="flex-grow resize-none"
+                    />
+                    <Button type="submit" disabled={!newCommentText.trim()}><Send className="w-4 h-4" /></Button>
+                 </form>
+            </div>
         </div>
     )
 }
