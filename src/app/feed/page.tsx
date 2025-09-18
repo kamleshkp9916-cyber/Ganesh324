@@ -241,7 +241,7 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
     return (
         <div className="flex flex-col h-full border-l bg-background">
             <div className="p-4 border-b flex items-center justify-between">
-                <div>
+                <div className="flex-grow overflow-hidden">
                     <h3 className="font-semibold">Comments on</h3>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">"{post.content.substring(0, 50)}..."</p>
                 </div>
