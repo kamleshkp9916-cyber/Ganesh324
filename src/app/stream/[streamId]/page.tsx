@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -35,6 +36,7 @@ import {
   StopCircle,
   Rewind,
   FastForward,
+  WifiOff,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -221,6 +223,8 @@ export default function StreamPage() {
   const doubleClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const streamId = params.streamId as string;
   const [isClient, setIsClient] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
@@ -236,8 +240,53 @@ export default function StreamPage() {
     setIsClient(true);
   }, []);
 
+  const connectWebSocket = useCallback(() => {
+    // In a real app, this would be your WebSocket connection logic
+    console.log("Attempting to connect WebSocket...");
+    setIsConnecting(true);
+
+    const ws = new WebSocket("wss://echo.websocket.org/"); // Using a public test server
+
+    ws.onopen = () => {
+      console.log("WebSocket connected!");
+      setIsConnecting(false);
+      setChatMessages(prev => [...prev, { id: Date.now(), type: 'chat', user: 'System', message: 'Chat connected.' }]);
+       if (reconnectTimeoutRef.current) {
+            clearInterval(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+       }
+    };
+
+    ws.onmessage = (event) => {
+        // Echo server just sends back what you send it
+        console.log("Received:", event.data);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      // The 'close' event will usually fire right after 'error'
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected.");
+      setIsConnecting(false);
+      setChatMessages(prev => [...prev, { id: Date.now(), type: 'chat', user: 'System', message: 'Chat disconnected. Reconnecting...' }]);
+
+      // Simple exponential backoff reconnection strategy
+       if (!reconnectTimeoutRef.current) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+                connectWebSocket();
+            }, 3000); // Attempt to reconnect after 3 seconds
+       }
+    };
+    
+    return ws;
+  }, []);
+
   useEffect(() => {
     if (!isClient) return;
+
+    const ws = connectWebSocket();
 
     const handleStorageChange = (event: StorageEvent) => {
         if (event.key === STREAM_TERMINATED_KEY && event.newValue === streamId) {
@@ -245,10 +294,15 @@ export default function StreamPage() {
         }
     };
     window.addEventListener('storage', handleStorageChange);
+    
     return () => {
+        ws.close(); // Clean up WebSocket connection on component unmount
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+        }
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isClient, streamId]);
+  }, [isClient, streamId, connectWebSocket]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -697,6 +751,12 @@ export default function StreamPage() {
                     </div>
 
                     <div className="p-3 border-t border-white/10 bg-black flex flex-col gap-3 flex-shrink-0 z-10">
+                        {isConnecting && (
+                            <div className="flex items-center gap-2 text-xs text-yellow-400 px-2">
+                                <WifiOff className="h-4 w-4" />
+                                Chat connection lost. Reconnecting...
+                            </div>
+                        )}
                         <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
                             <div className="relative flex-grow">
                                 <Input 
@@ -852,6 +912,12 @@ export default function StreamPage() {
                     </div>
                 </div>
                 <div className="p-3 border-t border-white/10">
+                     {isConnecting && (
+                        <div className="flex items-center gap-2 text-xs text-yellow-400 px-2 pb-2">
+                            <WifiOff className="h-4 w-4" />
+                            Chat connection lost. Reconnecting...
+                        </div>
+                    )}
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                         <div className="relative flex-grow">
                             <Input 
@@ -890,7 +956,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
-
-    
