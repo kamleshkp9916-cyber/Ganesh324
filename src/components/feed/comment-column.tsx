@@ -77,10 +77,9 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
-    allComments: CommentType[],
-    onReply: (parentId: string | null, text: string, replyingTo: string | null) => void,
+    onReply: (parentId: string, text: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
@@ -92,8 +91,6 @@ const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, 
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-
-    const replies = allComments.filter(c => c.parentId === comment.id);
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -188,27 +185,34 @@ const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, 
                     </div>
                 </div>
             )}
-            
-            {replies.length > 0 && (
-                <div className="pl-12 w-[70%] mx-auto space-y-4">
-                    {replies.map(reply => (
-                        <Comment
-                            key={reply.id}
-                            comment={reply}
-                            allComments={allComments}
-                            onReply={onReply}
-                            onLike={onLike}
-                            onReport={onReport}
-                            onCopyLink={onCopyLink}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                        />
-                    ))}
-                </div>
-            )}
         </div>
     );
 };
+
+const renderComments = (
+    allComments: CommentType[],
+    parentId: string | null,
+    handlers: {
+        onReply: (parentId: string, text: string, replyingTo: string) => void,
+        onLike: (id: string) => void,
+        onReport: (id: string) => void,
+        onCopyLink: (id: string) => void,
+        onEdit: (id: string, text: string) => void,
+        onDelete: (id: string) => void,
+    }
+) => {
+    return allComments
+        .filter(comment => comment.parentId === parentId)
+        .map(comment => (
+            <div key={comment.id}>
+                <Comment comment={comment} {...handlers} />
+                <div className="pl-12 w-[70%] mx-auto mt-4 space-y-4">
+                    {renderComments(allComments, comment.id, handlers)}
+                </div>
+            </div>
+        ));
+};
+
 
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
@@ -277,8 +281,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         navigator.clipboard.writeText(`${window.location.href}#comment-${commentId}`);
         toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
     };
+    
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
 
-    const topLevelComments = comments.filter(comment => !comment.parentId);
 
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm animate-in slide-in-from-bottom-full lg:slide-in-from-bottom-0 duration-500">
@@ -295,20 +300,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : topLevelComments.length > 0 ? (
-                        topLevelComments.map(comment => (
-                            <Comment
-                                key={comment.id}
-                                comment={comment}
-                                allComments={comments}
-                                onReply={handleNewCommentSubmit}
-                                onLike={handleLike}
-                                onReport={handleReport}
-                                onCopyLink={handleCopyLink}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                            />
-                        ))
+                    ) : comments.length > 0 ? (
+                        renderComments(comments, null, handlers)
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
