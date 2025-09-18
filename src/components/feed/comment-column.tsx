@@ -176,7 +176,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             )}
              <div className={cn("pl-14", areRepliesVisible && "mt-2")}>
-                {children}
+                {areRepliesVisible && children}
             </div>
             {comment.replyCount > 0 && (
                 <div className="pl-14 mt-2">
@@ -225,34 +225,34 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
+        console.log("Replying:", { postId: post.id, parentId, parentType: typeof parentId });
         if (!text.trim() || !user || !userData) return;
         if (isSubmitting) return;
-    
+
         setIsSubmitting(true);
         const db = getFirestoreDb();
-        const postRef = doc(db, 'posts', post.id);
-        const commentsRef = collection(db, `posts/${post.id}/comments`);
-    
+        
         try {
             await runTransaction(db, async (transaction) => {
-                // 1. Perform all reads first.
+                const postRef = doc(db, 'posts', post.id);
+                let parentRef = null;
+                
+                // --- READS FIRST ---
                 const postDoc = await transaction.get(postRef);
                 if (!postDoc.exists()) {
                     throw new Error("Post does not exist!");
                 }
-    
-                let parentRef = null;
+                
                 if (parentId) {
-                    parentRef = doc(commentsRef, parentId);
+                    parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     const parentDoc = await transaction.get(parentRef);
                     if (!parentDoc.exists()) {
                         throw new Error("Parent comment does not exist!");
                     }
                 }
-    
-                // 2. Perform all writes.
-                const newCommentRef = doc(commentsRef); // Generate a new ref for the comment
-    
+                
+                // --- WRITES SECOND ---
+                const newCommentRef = doc(collection(db, `posts/${post.id}/comments`));
                 const newCommentData: any = {
                     userId: user.uid,
                     authorName: userData.displayName,
@@ -263,22 +263,16 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     likes: [],
                     replyingTo: replyingTo,
                     replyCount: 0,
+                    parentId: parentId,
                 };
-    
-                if (parentId) {
-                    newCommentData.parentId = parentId;
-                } else {
-                    newCommentData.parentId = null;
-                }
-    
+
                 transaction.set(newCommentRef, newCommentData);
                 transaction.update(postRef, { replies: increment(1) });
-    
                 if (parentRef) {
                     transaction.update(parentRef, { replyCount: increment(1) });
                 }
             });
-    
+
             if (!parentId) {
                 setNewCommentText("");
             }
@@ -367,7 +361,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const renderComments = (parentId: string | null) => {
+    const renderComments = (parentId: string | null): JSX.Element[] => {
         return comments
             .filter(comment => comment.parentId === parentId)
             .map(comment => (
@@ -424,3 +418,5 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
+
+    
