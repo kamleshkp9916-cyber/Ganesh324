@@ -15,8 +15,8 @@
   "dependencies": {
     "@sendgrid/client": "^8.1.5",
     "@sendgrid/mail": "^8.1.5",
-    "firebase-admin": "^12.6.0",
-    "firebase-functions": "^6.4.0"
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.1"
   },
   "devDependencies": {
     "firebase-functions-test": "^3.1.0"
