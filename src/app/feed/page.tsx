@@ -123,6 +123,8 @@ import { getMessages, sendMessage, getConversations, Message as ChatMessageData,
 import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Highlight } from '@/components/highlight';
 
 
 const liveSellers = [
@@ -297,6 +299,7 @@ const FeedPost = ({
     onSaveToggle,
     isSaved,
     currentUser,
+    highlightTerm,
 } : {
     post: any,
     onDelete: (post: any) => void,
@@ -305,7 +308,8 @@ const FeedPost = ({
     onReport: () => void,
     onSaveToggle: (post: any) => void,
     isSaved: boolean,
-    currentUser: User | null
+    currentUser: User | null,
+    highlightTerm?: string,
 }) => {
     
     const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -356,17 +360,17 @@ const FeedPost = ({
                 </DialogContent>
                 <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-start justify-between">
                         <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={post.avatarUrl} />
                                 <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="font-semibold group-hover:underline flex items-center gap-2">
+                            <div className="font-semibold group-hover:underline">
                                 <span>{post.sellerName}</span>
-                                <span className="text-xs text-muted-foreground font-normal">
+                                <div className="text-xs text-muted-foreground font-normal">
                                 <RealtimeTimestamp date={post.timestamp} isEdited={!!post.lastEditedAt} />
-                                </span>
+                                </div>
                             </div>
                         </Link>
                         <DropdownMenu>
@@ -410,7 +414,11 @@ const FeedPost = ({
                     </div>
 
                     <div className="pt-4">
-                        {contentWithoutHashtags && <p className="text-sm text-muted-foreground">{contentWithoutHashtags}</p>}
+                        {contentWithoutHashtags && (
+                            <p className="text-sm text-muted-foreground">
+                                <Highlight text={contentWithoutHashtags} highlight={highlightTerm} />
+                            </p>
+                        )}
                         {Array.isArray(post.tags) && post.tags.length > 0 && (
                             <p className="text-sm text-primary mt-2">
                                 {post.tags.map((tag: string, index: number) => (
@@ -435,10 +443,7 @@ const FeedPost = ({
                                         className={cn(
                                             "cursor-pointer relative group bg-muted",
                                             imageCount === 1 && "aspect-video",
-                                            imageCount === 2 && "aspect-square",
-                                            imageCount >= 3 && index === 0 && "row-span-2 aspect-[2/3]",
-                                            imageCount >= 3 && index > 0 && "aspect-square",
-                                            imageCount === 4 && "aspect-square",
+                                            imageCount >= 2 && "aspect-square",
                                         )}
                                         onClick={() => setViewingImage(image.url)}
                                     >
@@ -746,6 +751,7 @@ export default function FeedPage() {
   const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
@@ -795,14 +801,14 @@ export default function FeedPage() {
         currentFeed = savedPosts;
     }
     
-    if (!searchTerm) return currentFeed;
+    if (!debouncedSearchTerm) return currentFeed;
 
-    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
     return currentFeed.filter(item => 
         item.sellerName.toLowerCase().includes(lowercasedSearchTerm) ||
         item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -1110,6 +1116,7 @@ export default function FeedPage() {
                                                         onReport={() => setIsReportDialogOpen(true)}
                                                         onSaveToggle={handleSaveToggle}
                                                         isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
                                                     />
                                                 </div>
                                             ))
@@ -1176,7 +1183,7 @@ export default function FeedPage() {
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
                 <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
-                    <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
+                    <div className="lg:col-start-2 w-full lg:w-[70%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
                                 onPost={handlePostSubmit}
