@@ -151,7 +151,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {isReplying && (
-                 <div className="pl-12 w-[70%] mx-auto">
+                <div className="pl-12">
                     <div className="flex items-start gap-2">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.photoURL || undefined} />
@@ -225,18 +225,31 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             const commentsRef = collection(db, `posts/${post.id}/comments`);
             const postRef = doc(db, 'posts', post.id);
 
-            await addDoc(commentsRef, {
-                authorName: userData.displayName,
+            const newCommentData: any = {
                 userId: user.uid,
+                authorName: userData.displayName,
                 authorAvatar: userData.photoURL || '',
                 text: text,
                 timestamp: serverTimestamp(),
                 isEdited: false,
                 likes: [],
-                parentId: parentId,
                 replyingTo: replyingTo,
                 replyCount: 0,
-            });
+            };
+
+            if (parentId) {
+                newCommentData.parentId = parentId;
+            } else {
+                 newCommentData.parentId = null;
+            }
+            
+            // To satisfy the security rule, we must remove parentId if it's null
+            if(newCommentData.parentId === null){
+              delete newCommentData.parentId;
+            }
+
+
+            await addDoc(commentsRef, newCommentData);
             
             await updateDoc(postRef, { replies: increment(1) });
             if(parentId) {
@@ -245,9 +258,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
             if (!parentId) setNewCommentText("");
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error posting comment:", error);
-            toast({ variant: 'destructive', title: "Error", description: "Could not post your comment." });
+            toast({ variant: 'destructive', title: "Error posting comment", description: error.message });
         } finally {
             setIsSubmitting(false);
         }
@@ -334,9 +347,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             .filter(comment => comment.parentId === parentId)
             .map(comment => (
                 <Comment key={comment.id} comment={comment} {...handlers}>
-                     <div className="w-[70%] mx-auto">
-                        {renderComments(comment.id)}
-                     </div>
+                    {renderComments(comment.id)}
                 </Comment>
             ));
     };
@@ -388,4 +399,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
-
