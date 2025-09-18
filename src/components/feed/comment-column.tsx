@@ -18,6 +18,7 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
+  getDoc,
 } from 'firebase/firestore';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -173,7 +174,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 </div>
             )}
-             {comment.replyCount > 0 && (
+            {comment.replyCount > 0 && (
                 <div className="pl-14">
                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
@@ -181,7 +182,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </button>
                 </div>
             )}
-            <div className={cn("pl-14 mt-4 space-y-4", !areRepliesVisible && "hidden")}>
+             <div className={cn("pl-14 mt-4 space-y-4", !areRepliesVisible && "hidden")}>
                 {children}
             </div>
         </div>
@@ -239,31 +240,35 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 replyCount: 0,
             };
 
+            // Only add parentId if it's a reply
             if (parentId) {
                 newCommentData.parentId = parentId;
             }
+
+            // Create the new comment document first
+            const newCommentDoc = await addDoc(commentsRef, newCommentData);
             
-            await addDoc(commentsRef, newCommentData);
-            
+            // Then run a transaction to update counts
             await runTransaction(db, async (transaction) => {
                 const postDoc = await transaction.get(postRef);
                 if (!postDoc.exists()) {
                     throw "Post does not exist!";
                 }
-                const newReplies = (postDoc.data().replies || 0) + 1;
-                transaction.update(postRef, { replies: newReplies });
 
-                 if(parentId) {
+                if (parentId) {
                     const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     const parentDoc = await transaction.get(parentRef);
                      if (!parentDoc.exists()) {
                         throw "Parent comment does not exist!";
                     }
-                    const newReplyCount = (parentDoc.data().replyCount || 0) + 1;
+                     const newReplyCount = (parentDoc.data().replyCount || 0) + 1;
                     transaction.update(parentRef, { replyCount: newReplyCount });
                 }
-            });
 
+                const newReplies = (postDoc.data().replies || 0) + 1;
+                transaction.update(postRef, { replies: newReplies });
+            });
+            
             if (!parentId) setNewCommentText("");
 
         } catch (error: any) {
@@ -298,10 +303,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 const commentDoc = await transaction.get(commentRef);
                 if (!commentDoc.exists()) return;
 
+                const parentId = commentDoc.data().parentId;
+                
                 transaction.delete(commentRef);
                 transaction.update(postRef, { replies: increment(-1) });
 
-                const parentId = commentDoc.data().parentId;
                 if (parentId) {
                     const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     transaction.update(parentRef, { replyCount: increment(-1) });
@@ -407,3 +413,5 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
+
+    
