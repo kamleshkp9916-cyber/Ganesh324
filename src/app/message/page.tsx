@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -60,6 +61,7 @@ import {
   Download,
   Loader2,
   FileEdit,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -116,8 +118,6 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { getMessages, sendMessage, getConversations, Message as ChatMessageData, Conversation } from '@/ai/flows/chat-flow';
-import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 
@@ -443,7 +443,32 @@ const FeedPost = ({
     )
 }
 
-function ChatMessage({ msg, currentUserName }: { msg: ChatMessageData, currentUserName: string | null }) {
+type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
+type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
+
+// Mock data to replace AI flows
+const mockChatDatabase: Record<string, Message[]> = {
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
+  ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
+  ],
+  "StreamCart": [
+      { id: 1, text: "Welcome to StreamCart support!", sender: 'StreamCart', timestamp: 'Yesterday' },
+  ]
+};
+
+const mockConversations: Conversation[] = [
+    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+];
+
+
+function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     const isMe = msg.sender === 'customer' || msg.sender === currentUserName;
     return (
         <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -500,19 +525,18 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
 const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBack: () => void, isMobile: boolean }) => {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-    const [messages, setMessages] = useState<ChatMessageData[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [inputValue, setInputValue] = useState("");
     
     useEffect(() => {
         const fetchConversations = async () => {
             try {
-                const sellerConvos = await getConversations();
-                
-                const execMessages = await getExecutiveMessages(userData.uid);
+                let execMessages = mockChatDatabase['StreamCart'] || [];
                 let executiveConversation: Conversation | null = null;
                 if (execMessages.length > 0) {
                     const lastMessage = execMessages[execMessages.length - 1];
@@ -527,7 +551,7 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
                     };
                 }
 
-                let allConvos = [...sellerConvos];
+                let allConvos = [...mockConversations];
                 if (executiveConversation) {
                     allConvos = [executiveConversation, ...allConvos];
                 }
@@ -549,47 +573,37 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
         setSelectedConversation(convo);
         setIsChatLoading(true);
         setMessages([]);
-        try {
-            let chatHistory;
-            if (convo.isExecutive) {
-                chatHistory = await getExecutiveMessages(convo.userId);
-            } else {
-                chatHistory = await getMessages(convo.userId);
+        setTimeout(() => {
+            try {
+                let chatHistory;
+                if (convo.isExecutive) {
+                    chatHistory = mockChatDatabase['StreamCart'] || [];
+                } else {
+                    chatHistory = mockChatDatabase[convo.userId] || [];
+                }
+                setMessages(chatHistory);
+            } catch (error) {
+                console.error("Failed to fetch messages for", convo.userId, error);
+            } finally {
+                setIsChatLoading(false);
             }
-            setMessages(chatHistory);
-        } catch (error) {
-            console.error("Failed to fetch messages for", convo.userId, error);
-        } finally {
-            setIsChatLoading(false);
-        }
+        }, 500);
     }
     
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedConversation || !userData) return;
 
-        const optimisticMessage: ChatMessageData = {
+        const optimisticMessage: Message = {
             id: Math.random(),
             text: newMessage,
             sender: 'customer',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages(prev => [...prev, optimisticMessage]);
-        const currentMessage = newMessage;
         setNewMessage("");
 
-        try {
-            let updatedMessages;
-            if (selectedConversation.isExecutive) {
-                updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
-            } else {
-                updatedMessages = await sendMessage(selectedConversation.userId, { text: currentMessage }, 'customer');
-            }
-            setMessages(updatedMessages);
-        } catch (error) {
-            console.error("Failed to send message", error);
-             setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
-        }
+        // Mock sending message
     };
     
     useEffect(() => {
@@ -672,9 +686,9 @@ const MessagesView = ({ userData, onBack, isMobile }: { userData: UserData, onBa
                                 placeholder="Type a message" 
                                 className="flex-grow" 
                                 value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
+                                onChange={(e) => setInputValue(e.target.value)}
                             />
-                            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                            <Button type="submit" size="icon" disabled={!inputValue.trim()}>
                                 <Send className="h-5 w-5"/>
                             </Button>
                         </form>
@@ -1130,3 +1144,5 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
+    
