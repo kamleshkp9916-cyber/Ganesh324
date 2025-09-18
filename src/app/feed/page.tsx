@@ -474,7 +474,6 @@ export default function FeedPage() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
-  const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
@@ -788,11 +787,6 @@ export default function FeedPage() {
     toggleSavePost(post);
     loadSavedPosts(); // Re-load saved posts to update the state
   };
-
-  const handleCommentClick = (post: any) => {
-    setSelectedPostForComments(post);
-    setIsCommentSheetOpen(true);
-  };
   
   return (
     <>
@@ -929,7 +923,7 @@ export default function FeedPage() {
                                                 isSaved={isPostSaved(post.id)}
                                                 highlightTerm={debouncedSearchTerm}
                                                 onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                onCommentClick={handleCommentClick}
+                                                onCommentClick={(post) => setSelectedPostForComments(post)}
                                             />
                                         </div>
                                     ))
@@ -947,6 +941,12 @@ export default function FeedPage() {
             </div>
           {/* Right Column */}
             <aside className="hidden lg:block h-screen overflow-y-auto no-scrollbar">
+               {selectedPostForComments ? (
+                    <CommentColumn 
+                        post={selectedPostForComments} 
+                        onClose={() => setSelectedPostForComments(null)} 
+                    />
+                ) : (
                 <div className="p-6 space-y-6 h-full">
                     <Card>
                         <CardHeader>
@@ -997,6 +997,7 @@ export default function FeedPage() {
                         </CardContent>
                     </Card>
                 </div>
+                )}
             </aside>
         </div>
         {activeView === 'feed' && (
@@ -1015,16 +1016,6 @@ export default function FeedPage() {
                 </div>
             </div>
         )}
-      {selectedPostForComments && (
-        <CommentColumn 
-            post={selectedPostForComments} 
-            isOpen={isCommentSheetOpen}
-            onClose={() => {
-                setIsCommentSheetOpen(false);
-                setSelectedPostForComments(null);
-            }} 
-        />
-      )}
     </div>
     </>
   );
