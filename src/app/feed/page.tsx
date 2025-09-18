@@ -218,8 +218,8 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
             });
 
             setNewComment("");
-        } catch (error) {
-             console.error("Error posting comment:", error);
+        } catch (error: any) {
+             console.error("Error posting comment:", error.message);
              toast({
                 variant: 'destructive',
                 title: 'Comment Failed',
@@ -240,8 +240,8 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                 isEdited: true,
             });
             toast({title: "Comment Updated!"});
-        } catch (error) {
-             console.error("Error updating comment:", error);
+        } catch (error: any) {
+             console.error("Error updating comment:", error.message);
              toast({
                 variant: 'destructive',
                 title: 'Update Failed',
@@ -266,8 +266,8 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                 replies: increment(-1)
             });
              toast({title: "Comment Deleted"});
-        } catch (error) {
-            console.error("Error deleting comment:", error);
+        } catch (error: any) {
+            console.error("Error deleting comment:", error.message);
              toast({
                 variant: 'destructive',
                 title: 'Delete Failed',
@@ -283,7 +283,9 @@ function CommentColumn({ postId, post, onClose }: { postId: string, post: any, o
                     <h3 className="font-semibold">Comments on</h3>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">"{post.content.substring(0, 50)}..."</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 -mr-2"><X className="h-5 w-5"/></Button>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 -mr-2 flex-shrink-0">
+                    <X className="h-5 w-5"/>
+                </Button>
             </div>
             <ScrollArea className="flex-1 px-4">
                 {isLoading ? (
