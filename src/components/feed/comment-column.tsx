@@ -78,20 +78,19 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, level }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
-    onReply: (parentId: string, text: string, replyingTo: string) => void,
+    onReply: (parentId: string | null, text: string, replyingTo: string | null) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
-    level: number,
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
-    const [showReply, setShowReply] = useState(false);
+    const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
     
     const handleEditSubmit = () => {
@@ -103,7 +102,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         if (!replyText.trim()) return;
         onReply(comment.id, replyText, comment.authorName);
         setReplyText('');
-        setShowReply(false);
+        setIsReplying(false);
     };
     
     return (
@@ -158,9 +157,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <ThumbsUp className="w-4 h-4" />
                         <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
-                    <button onClick={() => setShowReply(prev => !prev)} className="hover:text-primary">Reply</button>
+                    <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                 </div>
-                 {showReply && (
+                 {isReplying && (
                     <div className="w-[70%] mx-auto pt-2">
                         <div className="flex items-start gap-2">
                          <Avatar className="h-8 w-8">
@@ -176,7 +175,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                                 rows={2}
                             />
                             <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => setShowReply(false)}>Cancel</Button>
+                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
                                 <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
                             </div>
                         </div>
@@ -280,9 +279,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                                     onCopyLink={handleCopyLink}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
-                                    level={0}
                                 />
-                                 <div className="pl-8 mt-4 space-y-4 border-l-2 ml-5">
+                                 <div className="w-[70%] mx-auto mt-4 space-y-4">
                                     {getReplies(comment.id).map(reply => (
                                         <Comment
                                             key={reply.id}
@@ -293,7 +291,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                                             onCopyLink={handleCopyLink}
                                             onEdit={handleEdit}
                                             onDelete={handleDelete}
-                                            level={1}
                                         />
                                     ))}
                                 </div>
