@@ -76,22 +76,24 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, repliesNode }: {
+const Comment = ({ comment, allComments, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
+    allComments: CommentType[],
     onReply: (parentId: string | null, text: string, replyingTo: string | null) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
-    repliesNode: React.ReactNode;
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-    
+
+    const replies = allComments.filter(c => c.parentId === comment.id);
+
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
         setIsEditing(false);
@@ -105,7 +107,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
     
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4">
             <div className="flex items-start gap-3">
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={comment.authorAvatar} />
@@ -162,30 +164,46 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             </div>
             
-            <div className="w-[85%] mx-auto mt-4 space-y-4">
-                {repliesNode}
-                {isReplying && (
-                    <div className="flex items-start gap-2 pt-2">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={user?.photoURL || undefined} />
-                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="w-full space-y-2">
-                            <Textarea 
-                                placeholder={`Replying to @${comment.authorName}...`} 
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                autoFocus
-                                rows={2}
-                            />
-                            <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                            </div>
+            {isReplying && (
+                <div className="flex items-start gap-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.photoURL || undefined} />
+                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="w-full space-y-2">
+                        <Textarea 
+                            placeholder={`Replying to @${comment.authorName}...`} 
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            autoFocus
+                            rows={2}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                            <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+
+            {/* This div is now correctly placed to not cause indentation */}
+            {replies.length > 0 && (
+                <div className="space-y-4">
+                    {replies.map(reply => (
+                        <Comment
+                            key={reply.id}
+                            comment={reply}
+                            allComments={allComments}
+                            onReply={onReply}
+                            onLike={onLike}
+                            onReport={onReport}
+                            onCopyLink={onCopyLink}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
@@ -254,23 +272,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Link Copied!", description: "A link to this comment has been copied." });
     };
 
-    const renderComments = useCallback((parentId: string | null = null): React.ReactNode => {
-        return comments
-            .filter(comment => comment.parentId === parentId)
-            .map(comment => (
-                <Comment
-                    key={comment.id}
-                    comment={comment}
-                    onReply={handleNewCommentSubmit}
-                    onLike={handleLike}
-                    onReport={handleReport}
-                    onCopyLink={handleCopyLink}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    repliesNode={renderComments(comment.id)}
-                />
-            ));
-    }, [comments]);
+    const topLevelComments = comments.filter(comment => !comment.parentId);
 
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm animate-in slide-in-from-bottom-full lg:slide-in-from-bottom-0 duration-500">
@@ -287,8 +289,20 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : comments.filter(c => !c.parentId).length > 0 ? (
-                        renderComments(null)
+                    ) : topLevelComments.length > 0 ? (
+                        topLevelComments.map(comment => (
+                            <Comment
+                                key={comment.id}
+                                comment={comment}
+                                allComments={comments}
+                                onReply={handleNewCommentSubmit}
+                                onLike={handleLike}
+                                onReport={handleReport}
+                                onCopyLink={handleCopyLink}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                            />
+                        ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
