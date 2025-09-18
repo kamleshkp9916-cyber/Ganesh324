@@ -227,12 +227,7 @@ export default function AdminUsersPage() {
         localStorage.setItem('adminToken', await user.getIdToken()); // Or some other way to re-authenticate as admin
 
         // Open new tab and sign in with the custom token
-        const newTab = window.open('/', '_blank');
-        if (newTab) {
-            newTab.focus();
-        } else {
-             toast({ variant: 'destructive', title: "Popup blocked", description: "Please allow popups for this site."});
-        }
+        window.open('/', '_blank');
     } catch (error) {
         console.error("Impersonation error:", error);
         toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
@@ -271,10 +266,10 @@ export default function AdminUsersPage() {
   return (
     <>
     <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent aria-describedby="delete-user-description">
+        <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription id="delete-user-description">
+                <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete the account for 
                     <strong className="px-1">{userToDelete?.displayName}</strong>
                     and all associated data.
@@ -289,10 +284,10 @@ export default function AdminUsersPage() {
         </AlertDialogContent>
     </AlertDialog>
      <AlertDialog open={isPromoteAlertOpen} onOpenChange={setIsPromoteAlertOpen}>
-        <AlertDialogContent aria-describedby="promote-user-description">
+        <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
-                <AlertDialogDescription id="promote-user-description">
+                <AlertDialogDescription>
                     Are you sure you want to grant administrator privileges to <strong className="px-1">{userToPromote?.displayName}</strong>? This action is irreversible.
                 </AlertDialogDescription>
             </AlertDialogHeader>
