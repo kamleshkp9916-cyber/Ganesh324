@@ -302,6 +302,7 @@ const FeedPost = ({
     isSaved,
     currentUser,
     highlightTerm,
+    onHashtagClick,
 } : {
     post: any,
     onDelete: (post: any) => void,
@@ -312,6 +313,7 @@ const FeedPost = ({
     isSaved: boolean,
     currentUser: User | null,
     highlightTerm?: string,
+    onHashtagClick: (tag: string) => void;
 }) => {
     
     const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -334,6 +336,21 @@ const FeedPost = ({
     };
     
     const imageCount = post.images?.length || 0;
+    
+    const renderContentWithHashtags = (text: string) => {
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('#')) {
+                const tag = part.substring(1);
+                return (
+                    <button key={index} className="text-primary hover:underline" onClick={() => onHashtagClick(tag)}>
+                       <Highlight text={part} highlight={highlightTerm} />
+                    </button>
+                );
+            }
+            return <Highlight key={index} text={part} highlight={highlightTerm} />;
+        });
+    };
 
 
     return (
@@ -412,8 +429,8 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
-                    <div className="pt-4 text-sm text-muted-foreground">
-                        <Highlight text={post.content} highlight={highlightTerm} />
+                     <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
+                        {renderContentWithHashtags(post.content)}
                     </div>
                 </div>
 
@@ -843,7 +860,7 @@ export default function FeedPage() {
     }
 
     return currentFeed.filter(item => 
-        item.sellerName.toLowerCase().includes(lowercasedSearchTerm)
+        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
   }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
@@ -1123,7 +1140,7 @@ export default function FeedPage() {
                                         <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
                                     </SheetContent>
                                 </Sheet>
-                                <Popover open={debouncedSearchTerm.length > 0}>
+                                <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                     <PopoverAnchor asChild>
                                         <div className="relative w-full">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -1162,7 +1179,7 @@ export default function FeedPage() {
                                                         </button>
                                                      ))}
                                                 </div>
-                                            )}
+                                             )}
                                              {searchSuggestions.posts.length > 0 && (
                                                 <div>
                                                     <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
@@ -1174,7 +1191,7 @@ export default function FeedPage() {
                                                     ))}
                                                 </div>
                                              )}
-                                             {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && (
+                                             {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
                                                  <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
                                              )}
                                         </div>
@@ -1202,6 +1219,7 @@ export default function FeedPage() {
                                                         onSaveToggle={handleSaveToggle}
                                                         isSaved={isPostSaved(post.id)}
                                                         highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                                                     />
                                                 </div>
                                             ))
@@ -1226,7 +1244,7 @@ export default function FeedPage() {
                                     <div className="space-y-4">
                                         {trendingTopics.map((topic, index) => (
                                             <div key={index}>
-                                                <Link href="#" className="font-semibold hover:underline">#{topic.topic}</Link>
+                                                <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
                                                 <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                             </div>
                                         ))}
