@@ -218,17 +218,19 @@ const Comment = ({ comment, onReply, onEdit, onDelete, level }: { comment: Comme
                     )}
                 </div>
                  {isReplying && (
-                    <div className="flex items-start gap-2 mt-2">
+                    <div className="mt-2 p-2 border rounded-lg bg-background">
+                         <p className="text-xs text-muted-foreground mb-1">Replying to <span className="font-semibold">{comment.authorName}</span></p>
                         <Textarea 
-                            placeholder={`Replying to ${comment.authorName}...`} 
-                            className="text-sm"
+                            placeholder="Write a reply..."
+                            className="text-sm bg-transparent border-0 focus-visible:ring-0 p-0"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             rows={2}
+                            autoFocus
                         />
-                        <div className="flex flex-col gap-2">
+                        <div className="flex justify-end gap-2 mt-2">
+                             <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsReplying(false)}>Cancel</Button>
                             <Button size="sm" className="h-7 px-2" onClick={handleReplySubmit} disabled={!replyText.trim()}>Send</Button>
-                            <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsReplying(false)}>Cancel</Button>
                         </div>
                     </div>
                 )}
@@ -352,7 +354,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         ))}
                     </div>
                 ) : (
-                    <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4">
+                        <MessageSquare className="w-10 h-10 mb-2" />
+                        <h4 className="font-semibold">No comments yet</h4>
+                        <p className="text-sm">Be the first one to comment.</p>
+                    </div>
                 )}
             </ScrollArea>
              <div className="p-4 border-t bg-background">
