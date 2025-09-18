@@ -149,44 +149,44 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </button>
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
+                     {isReplying && (
+                        <div className="pt-2">
+                            <div className="flex items-start gap-3">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={user?.photoURL || undefined} />
+                                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="w-full space-y-2">
+                                    <Textarea 
+                                        placeholder={`Replying to @${comment.authorName}...`} 
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        autoFocus
+                                        rows={2}
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                                        <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             
-            {isReplying && (
-                <div className="pl-12">
-                    <div className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={user?.photoURL || undefined} />
-                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="w-full space-y-2">
-                            <Textarea 
-                                placeholder={`Replying to @${comment.authorName}...`} 
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                autoFocus
-                                rows={2}
-                            />
-                            <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {areRepliesVisible && (
-                 <div className="pl-14">
-                    {children}
-                 </div>
-            )}
             {comment.replyCount > 0 && (
-                <div className="pl-14 mt-2">
-                    <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
+                <div className="pl-14">
+                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
                          {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
                     </button>
                 </div>
+            )}
+             {areRepliesVisible && (
+                 <div className="pl-14">
+                    {children}
+                 </div>
             )}
         </div>
     );
@@ -227,6 +227,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
+        console.log("Replying:", { postId: post.id, parentId: parentId, parentType: typeof parentId });
         if (!text.trim() || !user || !userData) return;
         if (isSubmitting) return;
 
@@ -236,11 +237,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
         try {
             await runTransaction(db, async (transaction) => {
-                const postDoc = await transaction.get(postRef);
-                if (!postDoc.exists()) {
-                    throw new Error("Post does not exist!");
-                }
-
                 let parentRef = null;
                 if (parentId) {
                     parentRef = doc(db, `posts/${post.id}/comments`, parentId);
@@ -248,8 +244,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     if (!parentDoc.exists()) {
                         throw new Error("Parent comment does not exist!");
                     }
+                    transaction.update(parentRef, { replyCount: increment(1) });
                 }
-
+                
+                const postDoc = await transaction.get(postRef);
+                if (!postDoc.exists()) {
+                    throw new Error("Post does not exist!");
+                }
+                
                 const newCommentRef = doc(collection(db, `posts/${post.id}/comments`));
                 const newCommentData: any = {
                     userId: user.uid,
@@ -266,9 +268,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
                 transaction.set(newCommentRef, newCommentData);
                 transaction.update(postRef, { replies: increment(1) });
-                if (parentRef) {
-                    transaction.update(parentRef, { replyCount: increment(1) });
-                }
             });
 
             if (!parentId) {
