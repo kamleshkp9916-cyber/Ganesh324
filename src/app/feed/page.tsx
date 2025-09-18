@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -432,32 +433,38 @@ const FeedPost = ({
                 </div>
 
                 {imageCount > 0 && (
-                     <div className="px-4">
-                        <div className={cn(
+                    <div className="px-4">
+                        <div
+                        className={cn(
                             "grid gap-1 rounded-lg overflow-hidden",
-                            imageCount === 1 && "grid-cols-1",
-                            imageCount === 2 && "grid-cols-2",
-                            imageCount >= 3 && "grid-cols-2"
-                        )}>
-                            {post.images.slice(0, 4).map((image: any, index: number) => (
-                                <DialogTrigger key={image.id || index} asChild>
-                                    <div
-                                        className={cn(
-                                            "cursor-pointer relative group bg-muted",
-                                            imageCount === 1 && "aspect-video",
-                                            imageCount >= 2 && "aspect-square",
-                                        )}
-                                        onClick={() => setViewingImage(image.url)}
-                                    >
-                                        <Image src={image.url} alt={`Post image ${index + 1}`} fill className="object-cover w-full h-full" />
-                                        {index === 3 && imageCount > 4 && (
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                                                +{imageCount - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                </DialogTrigger>
-                            ))}
+                            imageCount === 1 ? "grid-cols-1" : "grid-cols-2"
+                        )}
+                        >
+                        {post.images.slice(0, 4).map((image: any, index: number) => (
+                            <DialogTrigger key={image.id || index} asChild>
+                            <div
+                                className={cn(
+                                "cursor-pointer relative group bg-muted",
+                                imageCount === 1
+                                    ? "aspect-video"
+                                    : "aspect-square"
+                                )}
+                                onClick={() => setViewingImage(image.url)}
+                            >
+                                <Image
+                                src={image.url}
+                                alt={`Post image ${index + 1}`}
+                                fill
+                                className="object-cover w-full h-full"
+                                />
+                                {index === 3 && imageCount > 4 && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                                    +{imageCount - 4}
+                                </div>
+                                )}
+                            </div>
+                            </DialogTrigger>
+                        ))}
                         </div>
                     </div>
                 )}
@@ -1042,5 +1049,7 @@ export default function FeedPage() {
     </Dialog>
   );
 }
+
+    
 
     
