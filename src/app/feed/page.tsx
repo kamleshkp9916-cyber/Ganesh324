@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -240,6 +239,9 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                  <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
+                 <Link href="/message" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                    <MessageSquare /> Messages
+                 </Link>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
                     <Settings /> Settings
                 </Link>
@@ -619,7 +621,7 @@ export default function FeedPage() {
     return Object.entries(hashtagCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+        .map(([topic, posts]) => ({ topic, posts, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
@@ -1041,4 +1043,4 @@ export default function FeedPage() {
   );
 }
 
-      
+    
