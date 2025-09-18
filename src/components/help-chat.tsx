@@ -12,7 +12,6 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Input } from './ui/input';
 import { Order } from '@/lib/order-data';
-import { getHelpChatResponse } from '@/ai/flows/help-chat-flow';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
 import { useRouter } from 'next/navigation';
@@ -66,7 +65,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
      useEffect(() => {
         const initialReplies = initialOptions || defaultInitialQuickReplies;
         const initialState = {
-            message: "Hi there! How can I help you today?",
+            message: "Hi there! This is an automated assistant. How can I help you today?",
             quickReplies: initialReplies
         };
         addMessageWithReplies('bot', initialState.message, initialState.quickReplies);
@@ -95,24 +94,8 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
 
     const processUserQuery = async (query: string) => {
         setIsLoadingResponse(true);
-        try {
-            const currentStatus = [...order.timeline].reverse().find(step => step.completed)?.status || "Unknown";
-            const result = await getHelpChatResponse({ message: query, orderStatus: currentStatus });
-            
-            if (result.action && onExecuteAction && !result.quickReplies.some(r => r.toLowerCase().includes('executive'))) {
-                addMessageWithReplies('bot', result.response, result.quickReplies);
-                onExecuteAction(result.action);
-            }
-            else {
-                addMessageWithReplies('bot', result.response, result.quickReplies);
-            }
-
-        } catch (error) {
-            console.error("AI response error:", error);
-            addMessageWithReplies('bot', "I'm having a little trouble right now. Please try again or connect to a support executive.", ["Talk to a support executive"]);
-        } finally {
-            setIsLoadingResponse(false);
-        }
+        addMessageWithReplies('bot', "I'm sorry, I'm having trouble understanding. Please try again or connect to a support executive.", ["Talk to a support executive"]);
+        setIsLoadingResponse(false);
     }
     
     const handleQuickReply = (reply: string) => {
