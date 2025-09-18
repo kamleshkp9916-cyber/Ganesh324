@@ -77,7 +77,6 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
-import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -213,32 +212,13 @@ export default function AdminUsersPage() {
   };
 
   const handleImpersonateUser = async (userToImpersonate: any) => {
-    if (!user || user.uid === userToImpersonate.uid) {
-        toast({ variant: 'destructive', title: "Cannot impersonate yourself."});
-        return;
-    }
-    
-    try {
-        toast({ title: "Generating login token..." });
-        const { token } = await createImpersonationToken(userToImpersonate.uid);
-        
-        // Store the token and current admin's ID to allow returning
-        localStorage.setItem('impersonationToken', token);
-        localStorage.setItem('adminToken', await user.getIdToken()); // Or some other way to re-authenticate as admin
-
-        // Open new tab and sign in with the custom token
-        window.open('/', '_blank');
-    } catch (error) {
-        console.error("Impersonation error:", error);
-        toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
-    }
+    toast({ variant: 'destructive', title: "Impersonation Disabled", description: "This feature is temporarily unavailable." });
   }
 
   const confirmDeleteUser = async () => {
       if (!userToDelete) return;
       toast({ title: `Deleting user ${userToDelete.displayName}...` });
       // In a real app, you would call a server function to delete the user
-      // from Firebase Auth and Firestore. For now, we'll just remove from state.
       console.log("Simulating deletion of user:", userToDelete.uid);
       setAllUsersState(prev => prev.filter(u => u.uid !== userToDelete.uid));
       toast({ title: "User Deleted", description: `${userToDelete.displayName} has been removed.` });

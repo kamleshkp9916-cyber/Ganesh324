@@ -8,8 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
-import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,6 +22,27 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
+
+// Mock data until flows are restored
+type Message = { id: number, text?: string, sender: string, timestamp: string, image?: string };
+type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
+
+const mockChatDatabase: Record<string, Message[]> = {
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
+  ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
+  ]
+};
+
+const mockConversations: Conversation[] = [
+    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+];
 
 function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
     const isMe = msg.sender === 'StreamCart';
@@ -99,7 +118,6 @@ export default function AdminMessagePage() {
     return conversations.filter(convo => convo.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
   }, [conversations, debouncedSearchTerm]);
 
-  // This param comes from the inquiries page or the help chat
   const preselectUserId = searchParams.get('userId');
   const preselectUserName = searchParams.get('userName');
 
@@ -107,10 +125,7 @@ export default function AdminMessagePage() {
     if (user && userData?.role === 'admin') {
         const fetchConversations = async () => {
             try {
-                // In a real app, you would fetch all conversations an executive is a part of.
-                // For this mock, we will just use the general conversations list.
-                const convos = await getConversations();
-                let allConvos = [...convos];
+                let allConvos = [...mockConversations];
                 let convoToSelect: Conversation | null = null;
 
                 if (preselectUserId) {
@@ -148,7 +163,6 @@ export default function AdminMessagePage() {
         };
         fetchConversations();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userData, preselectUserId, preselectUserName]);
   
   useEffect(() => {
@@ -160,7 +174,7 @@ export default function AdminMessagePage() {
     setIsChatLoading(true);
     setMessages([]);
     try {
-        let chatHistory = await getExecutiveMessages(convo.userId);
+        let chatHistory = mockChatDatabase[convo.userId] || [];
         setMessages(chatHistory);
     } catch (error) {
         console.error("Failed to fetch messages for", convo.userId, error);
@@ -182,16 +196,7 @@ export default function AdminMessagePage() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
-    const currentMessage = newMessage;
     setNewMessage("");
-
-    try {
-        const updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, from);
-        setMessages(updatedMessages);
-    } catch (error) {
-        console.error("Failed to send message", error);
-         setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
-    }
   };
   
   if (loading || isLoading) {

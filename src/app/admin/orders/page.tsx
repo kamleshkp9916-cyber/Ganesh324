@@ -71,7 +71,6 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { updateOrderStatus } from "@/ai/flows/chat-flow"
 import { useDebounce } from "@/hooks/use-debounce";
 
 type Order = {
@@ -197,11 +196,9 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, userData]);
 
   const handleCancelOrder = async (orderId: string) => {
-    // Prevent cancelling mock orders
     if (orderId.startsWith('#MOCK')) {
         toast({
             title: "Demo Action",
@@ -209,22 +206,7 @@ export default function AdminOrdersPage() {
         });
         return;
     }
-    try {
-        await updateOrderStatus(orderId, 'Cancelled by admin');
-        toast({
-            title: "Order Cancelled",
-            description: `Order ${orderId} has been successfully cancelled.`,
-        });
-        // Refetch orders to show the updated status
-        fetchOrders();
-    } catch (error) {
-        console.error("Error cancelling order:", error);
-        toast({
-            variant: "destructive",
-            title: "Cancellation Failed",
-            description: "Could not cancel the order. Please try again.",
-        });
-    }
+    // Logic for cancelling real orders would go here
   };
 
   const filteredOrders = useMemo(() => {
@@ -397,10 +379,10 @@ export default function AdminOrdersPage() {
                                                             <XCircle className="mr-2 h-4 w-4" /> Cancel Order
                                                         </DropdownMenuItem>
                                                     </AlertDialogTrigger>
-                                                    <AlertDialogContent aria-describedby="cancel-order-description">
+                                                    <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                            <AlertDialogDescription id="cancel-order-description">
+                                                            <AlertDialogDescription>
                                                                 This will cancel the order for the customer. This action cannot be undone.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>

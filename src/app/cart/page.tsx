@@ -17,7 +17,6 @@ import { format, addDays } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
-import { createOrder } from '@/ai/flows/chat-flow';
 import { UserData, updateUserData } from '@/lib/follow-data';
 import { COUPONS_KEY } from '@/app/admin/settings/page';
 
@@ -126,8 +125,6 @@ export default function CartPage() {
   const handleAddressesUpdate = (newAddresses: any[]) => {
     if(user){
       updateUserData(user.uid, { addresses: newAddresses });
-      // The useAuth hook will propagate this change, no need to set state here
-      // We might need to select the new/edited address though
     }
   }
 
@@ -149,7 +146,6 @@ export default function CartPage() {
         return subtotal * (appliedCoupon.discountValue / 100);
     }
     if (appliedCoupon.discountType === 'fixed') {
-        // Example condition, this could be more complex
         if (appliedCoupon.code === 'SAVE100' && subtotal < 1000) return 0;
         return appliedCoupon.discountValue;
     }
@@ -184,41 +180,19 @@ export default function CartPage() {
   };
 
   const handleCheckout = async () => {
-    if (!user) return;
-     if (!address) {
-        toast({
-            variant: 'destructive',
-            title: 'No Address Selected',
-            description: 'Please add or select a delivery address to continue.',
-        });
-        setIsAddressDialogOpen(true);
-        return;
-    }
+    // Mock checkout
     setIsCheckingOut(true);
-    try {
-        const { orderId } = await createOrder(user.uid, cartItems, address, total);
-        
-        // Clear cart from local storage
-        if (!isBuyNow) {
-            localStorage.removeItem('streamcart_cart');
-        }
-
-        toast({
-            title: "Order Placed!",
-            description: `Your order ${orderId} has been successfully placed.`,
-        });
-
-        router.push(`/delivery-information/${orderId}`);
-
-    } catch (error) {
-        console.error("Failed to create order:", error);
-        toast({
-            variant: "destructive",
-            title: "Checkout Failed",
-            description: "Could not place your order. Please try again.",
-        });
-        setIsCheckingOut(false);
-    }
+    setTimeout(() => {
+      if (!isBuyNow) {
+        localStorage.removeItem('streamcart_cart');
+      }
+      toast({
+        title: "Order Placed!",
+        description: `Your order has been successfully placed.`,
+      });
+      router.push(`/delivery-information/mock-order-id`);
+      setIsCheckingOut(false);
+    }, 1500)
   };
 
 

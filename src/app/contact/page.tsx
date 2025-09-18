@@ -14,7 +14,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
-import { submitInquiry, InquirySchema } from "@/ai/flows/contact-flow";
+
+const InquirySchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+  createdAt: z.string().datetime().optional(),
+  isRead: z.boolean().optional(),
+});
 
 
 export default function ContactPage() {
@@ -42,9 +50,9 @@ export default function ContactPage() {
 
   const onSubmit = async (values: z.infer<typeof InquirySchema>) => {
     setIsLoading(true);
-    try {
-        await submitInquiry(values);
-        toast({
+    // Mock submission since flows are removed
+    setTimeout(() => {
+         toast({
             title: "Message Sent!",
             description: "Thank you for contacting us. We will get back to you shortly.",
         });
@@ -53,15 +61,8 @@ export default function ContactPage() {
             form.setValue("name", user.displayName || "");
             form.setValue("email", user.email || "");
         }
-    } catch (error) {
-         toast({
-            title: "Something went wrong.",
-            description: "Could not send your message. Please try again.",
-            variant: "destructive",
-        });
-    } finally {
         setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -149,5 +150,3 @@ export default function ContactPage() {
     </div>
   );
 }
-
-    
