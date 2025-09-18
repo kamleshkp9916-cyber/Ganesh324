@@ -76,15 +76,24 @@ export const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string | Ti
     );
 };
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: { comment: CommentType, onReply: (authorName: string) => void, onLike: (id: string) => void, onReport: (id: string) => void, onCopyLink: (id: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void }) => {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: { comment: CommentType, onReply: (authorName: string, replyText: string) => void, onLike: (id: string) => void, onReport: (id: string) => void, onCopyLink: (id: string) => void, onEdit: (id: string, text: string) => void, onDelete: (id: string) => void }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
+    const [showReply, setShowReply] = useState(false);
+    const [replyText, setReplyText] = useState('');
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
         setIsEditing(false);
     }
+
+    const handleReplySubmit = () => {
+        if (!replyText.trim()) return;
+        onReply(comment.authorName, replyText);
+        setReplyText('');
+        setShowReply(false);
+    };
     
     return (
         <div className="flex items-start gap-3 group relative">
@@ -116,7 +125,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <ThumbsUp className="w-4 h-4" />
                         <span>{comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
-                    <button onClick={() => onReply(comment.authorName)} className="hover:text-primary">Reply</button>
+                    <button onClick={() => setShowReply(prev => !prev)} className="hover:text-primary">Reply</button>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -142,7 +151,6 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                                             <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
-
                                     <DropdownMenuSeparator />
                                 </>
                             ) : null}
@@ -151,6 +159,23 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+                 {showReply && (
+                    <div className="flex justify-center pt-2">
+                        <div className="w-[70%] space-y-2">
+                            <Textarea 
+                                placeholder={`Replying to @${comment.authorName}...`} 
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                autoFocus
+                                rows={2}
+                            />
+                            <div className="flex justify-end gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => setShowReply(false)}>Cancel</Button>
+                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -162,9 +187,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const { toast } = useToast();
     const [comments, setComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [newComment, setNewComment] = useState("");
-    const mainInputRef = useRef<HTMLTextAreaElement>(null);
-    const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
     useEffect(() => {
         setIsLoading(true);
@@ -176,29 +198,21 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         }, 500);
     }, [post?.id]);
     
-    const handleNewCommentSubmit = () => {
-        if (!newComment.trim() || !user || !userData) return;
+    const handleNewCommentSubmit = (authorName: string, text: string) => {
+        if (!text.trim() || !user || !userData) return;
 
         const newCommentData: CommentType = {
             id: Date.now().toString(),
             authorName: userData.displayName,
             authorId: user.uid,
             authorAvatar: userData.photoURL || '',
-            text: newComment,
+            text: text,
             timestamp: new Date(),
             isEdited: false,
             likes: 0,
-            replyingTo: replyingTo || undefined,
+            replyingTo: authorName,
         };
         setComments(prev => [...prev, newCommentData]);
-        setNewComment("");
-        setReplyingTo(null);
-    };
-    
-    const handleReplyClick = (authorName: string) => {
-        setReplyingTo(authorName);
-        setNewComment(`@${authorName} `);
-        mainInputRef.current?.focus();
     };
     
     const handleEdit = (commentId: string, newText: string) => {
@@ -247,7 +261,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                            <Comment
                                 key={comment.id}
                                 comment={comment}
-                                onReply={handleReplyClick}
+                                onReply={handleNewCommentSubmit}
                                 onLike={handleLike}
                                 onReport={handleReport}
                                 onCopyLink={handleCopyLink}
@@ -264,35 +278,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                     )}
                  </div>
             </ScrollArea>
-             <div className="p-4 border-t bg-background flex-shrink-0">
-                {replyingTo && (
-                    <div className="text-xs text-muted-foreground mb-2 flex justify-between items-center">
-                        <span>Replying to @{replyingTo}</span>
-                        <button onClick={() => { setReplyingTo(null); setNewComment(''); }} className="hover:text-primary">
-                            <X className="h-3 w-3"/>
-                        </button>
-                    </div>
-                )}
-                <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={userData?.photoURL || ''} />
-                        <AvatarFallback>{userData?.displayName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                     <div className="flex-grow flex items-center gap-2">
-                        <Textarea
-                            ref={mainInputRef}
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            className="text-sm min-h-10"
-                            rows={1}
-                        />
-                        <Button size="icon" className="h-10 w-10 flex-shrink-0" onClick={handleNewCommentSubmit} disabled={!newComment.trim()}>
-                            <Send className="w-4 h-4" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }
