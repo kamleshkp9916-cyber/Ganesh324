@@ -19,8 +19,6 @@ import { ScrollArea } from "./ui/scroll-area";
 import { useState, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Loader2, Upload, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
-import 'react-image-crop/dist/ReactCrop.css';
 import { useToast } from "@/hooks/use-toast";
 
 
