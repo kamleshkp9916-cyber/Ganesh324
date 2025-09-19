@@ -451,6 +451,7 @@ export default function StreamPage() {
     };
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!e.currentTarget) return;
         const videoRect = e.currentTarget.getBoundingClientRect();
         const clickX = e.clientX - videoRect.left;
         if (clickX < videoRect.width / 2) {
@@ -477,6 +478,7 @@ export default function StreamPage() {
             doubleClickTimeoutRef.current = null;
             handleDoubleClick(e);
         } else {
+            const eventCopy = { ...e };
             doubleClickTimeoutRef.current = setTimeout(() => {
                 handleSingleClick();
                 doubleClickTimeoutRef.current = null;
@@ -591,7 +593,7 @@ export default function StreamPage() {
 
         {/* Combined layout for small screens */}
         <div className="lg:hidden flex flex-col h-screen w-full bg-black">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10">
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handleClick}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
@@ -825,10 +827,7 @@ export default function StreamPage() {
                                                     This action will immediately terminate the stream for {seller.name} and all viewers.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction>
-                                            </AlertDialogFooter>
+                                            <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction></AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
                                 </>
