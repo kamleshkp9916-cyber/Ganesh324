@@ -126,8 +126,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
-import MessagePage from '@/app/message/page';
-
+import { ConversationList, ChatWindow, Conversation } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -166,6 +165,11 @@ const liveSellersData = [
     { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
+
+const mockConversations: Conversation[] = [
+    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
 ];
 
 function FeedPostSkeleton() {
@@ -475,7 +479,10 @@ export default function FeedPage() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
-  
+
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
         setSearchTerm(value); // Show the name in search bar
@@ -530,10 +537,19 @@ export default function FeedPage() {
     setSavedPosts(getSavedPosts());
   }, []);
 
+  const loadConversations = useCallback(() => {
+    // Using mock data for now. In a real app, this would be a fetch call.
+    setConversations(mockConversations);
+    if (mockConversations.length > 0) {
+        setSelectedConversation(mockConversations[0]);
+    }
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
     loadFollowData();
     loadSavedPosts();
+    loadConversations();
     
     const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'streamcart_saved_posts') {
@@ -545,7 +561,7 @@ export default function FeedPage() {
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     }
-  }, [loadFollowData, loadSavedPosts]);
+  }, [loadFollowData, loadSavedPosts, loadConversations]);
 
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
@@ -821,38 +837,47 @@ export default function FeedPage() {
       </AlertDialog>
       
     <div className="min-h-screen bg-background text-foreground">
-        <div className="grid min-h-screen lg:grid-cols-[18rem_1fr_22rem]">
+        <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[18rem_22rem_1fr]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
           {/* Sidebar */}
           <aside className="border-r hidden lg:block">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
           </aside>
           
-          {/* Main Content */}
+          {/* Main Content / Conversation List */}
           <div className="flex-1 min-w-0">
-                <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-                   <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                        <div className="flex items-center gap-2">
-                           <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="lg:hidden">
-                                        <Menu className="h-6 w-6" />
-                                    </Button>
-                                </SheetTrigger>
-                                <SheetContent side="left" className="p-0">
-                                    <SheetHeader className="sr-only">
-                                        <SheetTitle>Sidebar Menu</SheetTitle>
-                                    </SheetHeader>
-                                    <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
-                                </SheetContent>
-                            </Sheet>
+                {activeView === 'messages' ? (
+                    <div className="h-screen border-r">
+                        <ConversationList 
+                            conversations={conversations} 
+                            selectedConversation={selectedConversation} 
+                            onSelectConversation={setSelectedConversation}
+                            isIntegrated={true}
+                        />
+                    </div>
+                ) : (
+                    <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
+                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                             <div className="flex items-center gap-2">
-                                <Logo className="h-7 w-7" />
-                                <h1 className="font-bold text-xl hidden sm:inline">Feed</h1>
+                            <Sheet>
+                                    <SheetTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="lg:hidden">
+                                            <Menu className="h-6 w-6" />
+                                        </Button>
+                                    </SheetTrigger>
+                                    <SheetContent side="left" className="p-0">
+                                        <SheetHeader className="sr-only">
+                                            <SheetTitle>Sidebar Menu</SheetTitle>
+                                        </SheetHeader>
+                                        <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
+                                    </SheetContent>
+                                </Sheet>
+                                <div className="flex items-center gap-2">
+                                    <Logo className="h-7 w-7" />
+                                    <h1 className="font-bold text-xl hidden sm:inline">Feed</h1>
+                                </div>
                             </div>
-                        </div>
 
-                         {activeView !== 'messages' && (
-                             <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
+                            <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                 <PopoverAnchor asChild>
                                     <div className="relative w-full max-w-sm">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -909,59 +934,69 @@ export default function FeedPage() {
                                     </div>
                                 </PopoverContent>
                             </Popover>
-                         )}
 
-                         <div className="w-10 h-10" />
-                    </header>
-                    <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
-                        <section>
-                            <div className="divide-y divide-border/20">
-                                {isLoadingFeed ? (
-                                    <>
-                                        <FeedPostSkeleton />
-                                        <FeedPostSkeleton />
-                                    </>
-                                ) : (
-                                    filteredFeed.map(post => (
-                                        <div key={post.id}>
-                                            <FeedPost 
-                                                post={post}
-                                                currentUser={user}
-                                                onDelete={handleDeletePost}
-                                                onEdit={handleEditPost}
-                                                onShare={handleShare}
-                                                onReport={() => setIsReportDialogOpen(true)}
-                                                onSaveToggle={handleSaveToggle}
-                                                isSaved={isPostSaved(post.id)}
-                                                highlightTerm={debouncedSearchTerm}
-                                                onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                onCommentClick={(post) => setSelectedPostForComments(post)}
-                                            />
+                            <div className="w-10 h-10" />
+                        </header>
+                        <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
+                            <section>
+                                <div className="divide-y divide-border/20">
+                                    {isLoadingFeed ? (
+                                        <>
+                                            <FeedPostSkeleton />
+                                            <FeedPostSkeleton />
+                                        </>
+                                    ) : (
+                                        filteredFeed.map(post => (
+                                            <div key={post.id}>
+                                                <FeedPost 
+                                                    post={post}
+                                                    currentUser={user}
+                                                    onDelete={handleDeletePost}
+                                                    onEdit={handleEditPost}
+                                                    onShare={handleShare}
+                                                    onReport={() => setIsReportDialogOpen(true)}
+                                                    onSaveToggle={handleSaveToggle}
+                                                    isSaved={isPostSaved(post.id)}
+                                                    highlightTerm={debouncedSearchTerm}
+                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                />
+                                            </div>
+                                        ))
+                                    )}
+                                    {filteredFeed.length === 0 && !isLoadingFeed && (
+                                        <div className="text-center py-16 text-muted-foreground">
+                                            <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                            <p className="text-sm">Try changing your filters or searching for something else.</p>
                                         </div>
-                                    ))
-                                )}
-                                {filteredFeed.length === 0 && !isLoadingFeed && (
-                                    <div className="text-center py-16 text-muted-foreground">
-                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </section>
-                    </div>
-                </main>
+                                    )}
+                                </div>
+                            </section>
+                        </div>
+                    </main>
+                )}
             </div>
-          {/* Right Column */}
+          {/* Right Column / Chat Window */}
             <aside className="hidden lg:flex flex-col h-screen">
-               {selectedPostForComments ? (
+               {activeView === 'messages' ? (
+                   selectedConversation ? (
+                        <ChatWindow 
+                            conversation={selectedConversation} 
+                            userData={userData}
+                            isIntegrated={true}
+                            onBack={() => {}}
+                        />
+                   ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                            <MessageSquare className="h-16 w-16 mb-4"/>
+                            <h2 className="text-xl font-semibold">Select a chat</h2>
+                        </div>
+                   )
+               ) : selectedPostForComments ? (
                     <CommentColumn 
                         post={selectedPostForComments} 
                         onClose={() => setSelectedPostForComments(null)} 
                     />
-                ) : activeView === 'messages' ? (
-                   <div className="h-full border-l">
-                     <MessagePage />
-                   </div>
                 ) : (
                 <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
                     <Card>
@@ -1047,3 +1082,5 @@ export default function FeedPage() {
     </>
   );
 }
+
+    
