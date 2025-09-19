@@ -150,9 +150,11 @@ export default function AdminMessagePage() {
   return (
     <div className="h-screen w-full flex bg-background text-foreground">
         <aside className="w-full md:w-1/3 lg:w-1/4 h-full border-r flex-col hidden md:flex">
-             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
-                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
+                <nav className="flex flex-row items-center gap-5 text-sm">
                     <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Admin</span></Link>
+                     <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
+                    <Link href="/admin/messages" className="font-semibold text-primary transition-colors hover:text-primary">Messages</Link>
                 </nav>
             </header>
             <div className="p-4 border-b">
@@ -180,7 +182,7 @@ export default function AdminMessagePage() {
         </aside>
         
         <main className="w-full md:w-2/3 lg:w-3/4 h-full flex flex-col">
-            <header className="p-4 border-b flex items-center justify-between shrink-0">
+            <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-2">
                     <Sheet>
                         <SheetTrigger asChild>
