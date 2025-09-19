@@ -971,7 +971,7 @@ export default function FeedPage() {
                             onClose={() => setSelectedPostForComments(null)} 
                         />
                     )
-                ) : rightColumnView === 'messages' ? (
+                ) : rightColumnView === 'messages' && userData ? (
                    <MessagesView userData={userData} isIntegrated={true}/>
                 ): (
                 <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
