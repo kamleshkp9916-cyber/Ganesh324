@@ -223,12 +223,12 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     );
 
     const chatWindowContent = (
-        <div className="w-full h-full flex flex-col bg-background">
+        <>
             {selectedConversation ? (
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                            {isMobile && !isIntegrated && (
+                            {(isMobile && !isIntegrated) && (
                                 <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
                                     <ArrowLeft className="h-6 w-6" />
                                 </Button>
@@ -279,11 +279,11 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                     </div>
                  )
             )}
-        </div>
+        </>
     );
 
     if(isMobile && !isIntegrated) {
-        return selectedConversation ? chatWindowContent : conversationListContent;
+        return selectedConversation ? <div className="h-full flex flex-col">{chatWindowContent}</div> : conversationListContent;
     }
 
     return (
@@ -319,4 +319,3 @@ export default function MessagePage() {
     );
 }
 
-    
