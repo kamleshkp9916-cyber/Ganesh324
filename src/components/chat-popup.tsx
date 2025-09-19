@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, X, PlusCircle, Image as ImageIcon, FileText } from 'lucide-react';
+import { Send, X, PlusCircle, Image as ImageIcon, FileText, Paperclip, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,6 +33,18 @@ const mockChatDatabase: Record<string, Message[]> = {
       { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
   ],
 };
+
+const emojis = [
+    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
+    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
+    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
+    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
+    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
+    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
+    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
+];
 
 
 export function ChatPopup({ user, onClose }: ChatPopupProps) {
@@ -104,6 +117,10 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
     }
   };
 
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
   useEffect(() => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
@@ -168,8 +185,8 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
           <form onSubmit={handleSendMessage} className="flex w-full items-center gap-2">
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon">
-                        <PlusCircle className="h-5 w-5" />
+                    <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
+                        <Paperclip className="h-5 w-5" />
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-48 p-2">
@@ -200,13 +217,34 @@ export function ChatPopup({ user, onClose }: ChatPopupProps) {
                 accept="image/*" 
                 onChange={handleImageSelect}
             />
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              autoComplete="off"
-            />
-            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+            <div className="relative flex-grow">
+                <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                autoComplete="off"
+                className="rounded-full bg-muted pr-10 border-transparent focus:border-primary focus:bg-background"
+                />
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                            <Smile className="h-5 w-5"/>
+                        </Button>
+                    </PopoverTrigger>
+                     <PopoverContent className="w-80 h-64">
+                        <ScrollArea className="h-full">
+                            <div className="grid grid-cols-8 gap-1">
+                                {emojis.map((emoji, index) => (
+                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                        {emoji}
+                                    </Button>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </PopoverContent>
+                </Popover>
+            </div>
+            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="flex-shrink-0 rounded-full">
               <Send className="h-4 w-4" />
             </Button>
           </form>

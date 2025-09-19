@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -7,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu, FileText, ImageIcon, Trash2, Edit, Flag, Link as Link2 } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -17,12 +16,29 @@ import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
 import { useAuth, type UserData } from '@/hooks/use-auth';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { ScrollArea } from '../ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+
 
 export type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
 export type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
 
+const emojis = [
+    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
+    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
+    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
+    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
+    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
+    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
+    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
+];
 
-export function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
+
+export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, currentUserName: string | null, onDelete: (id: string | number) => void }) {
     const isMe = msg.sender === 'customer' || msg.sender === currentUserName || (currentUserName === 'StreamCart' && msg.sender === 'StreamCart');
 
     let avatarInitial = 'S'; // Seller/System default
@@ -34,8 +50,8 @@ export function ChatMessage({ msg, currentUserName }: { msg: Message, currentUse
 
 
     return (
-        <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-            {!isMe && (
+        <div className={`group flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+             {!isMe && (
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={`https://placehold.co/40x40.png`} />
                     <AvatarFallback>{avatarInitial}</AvatarFallback>
@@ -50,6 +66,35 @@ export function ChatMessage({ msg, currentUserName }: { msg: Message, currentUse
                     {msg.timestamp}
                 </p>
             </div>
+             {isMe && (
+                <AlertDialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Message?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(msg.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+             )}
         </div>
     );
 }
@@ -102,7 +147,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     {userData && (
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="lg:hidden">
+                                <Button variant="ghost" size="icon">
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
@@ -166,6 +211,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     const [isLoading, setIsLoading] = useState(true);
     const [inputValue, setInputValue] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
      useEffect(() => {
         const fetchMessages = () => {
@@ -194,18 +240,41 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
     }, [messages]);
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!inputValue.trim() || !userData) return;
+    const handleSendMessage = async (e?: React.FormEvent, content?: {text?: string, image?: string}) => {
+        if (e) e.preventDefault();
+        const messageContent = content || { text: inputValue.trim() };
+        if (!messageContent.text && !messageContent.image) return;
+
+        if (!content) {
+            setInputValue('');
+        }
 
         const optimisticMessage: Message = {
             id: Math.random(),
-            text: inputValue,
+            ...messageContent,
             sender: 'customer',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages(prev => [...prev, optimisticMessage]);
-        setInputValue("");
+    };
+    
+    const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                handleSendMessage(undefined, { image: reader.result as string });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const addEmoji = (emoji: string) => {
+        setInputValue(prev => prev + emoji);
+    };
+
+    const handleDeleteMessage = (id: string | number) => {
+        setMessages(prev => prev.filter(m => m.id !== id));
     };
 
     return (
@@ -238,18 +307,68 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                         <Skeleton className="h-12 w-1/2 ml-auto" />
                     </div>
                 ) : (
-                    messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
+                    messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} onDelete={handleDeleteMessage}/>)
                 )}
             </div>
             <footer className="p-4 border-t shrink-0 bg-background">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                     <Input 
-                        placeholder="Type a message" 
-                        className="flex-grow" 
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                    />
-                    <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
+                                <Paperclip className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2">
+                            <div className="grid gap-1">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start"
+                                    onClick={() => handleSendMessage(undefined, {text: "Hi, I'd like to check my order status."})}
+                                >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Order Status
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <ImageIcon className="mr-2 h-4 w-4" />
+                                    Send Image
+                                </Button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                    <input type="file" ref={fileInputRef} onChange={handleImageSelect} className="hidden" accept="image/*" />
+
+                    <div className="relative flex-grow">
+                         <Input 
+                            placeholder="Type a message" 
+                            className="flex-grow pr-10 rounded-full bg-muted border-transparent focus:border-primary focus:bg-background" 
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                        />
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                                    <Smile className="h-5 w-5"/>
+                                </Button>
+                            </PopoverTrigger>
+                             <PopoverContent className="w-80 h-64">
+                                <ScrollArea className="h-full">
+                                    <div className="grid grid-cols-8 gap-1">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <Button type="submit" size="icon" disabled={!inputValue.trim()} className="rounded-full flex-shrink-0">
                         <Send className="h-5 w-5"/>
                     </Button>
                 </form>
