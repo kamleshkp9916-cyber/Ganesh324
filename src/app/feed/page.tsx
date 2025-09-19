@@ -127,6 +127,7 @@ import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
 import { ConversationList, ChatWindow, Conversation } from '@/components/messaging/common';
+import { MainSidebar } from '@/components/main-sidebar';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -192,70 +193,6 @@ function FeedPostSkeleton() {
         </Card>
     );
 }
-
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: 'feed' | 'saves' | 'messages', setActiveView: (view: 'feed' | 'saves' | 'messages') => void }) => {
-    const router = useRouter();
-    return (
-        <div className="p-6 flex flex-col h-full">
-             <div className="flex items-center gap-2 mb-8">
-                 <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
-                    <ArrowLeft />
-                </Button>
-                <div className="flex-grow" />
-            </div>
-            <div className="flex flex-col items-center text-center mb-8">
-                <Avatar className="h-20 w-20 mb-3">
-                    <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
-                    <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <p className="font-bold text-lg">{userData.displayName}</p>
-                <p className="text-sm text-muted-foreground">@{userData.displayName.toLowerCase().replace(' ', '')}</p>
-
-                <div className="flex justify-around mt-4 w-full text-center">
-                    <div>
-                        <p className="font-bold text-lg">{userPosts.length}</p>
-                        <p className="text-xs text-muted-foreground">Posts</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">{userData.followers || 0}</p>
-                        <p className="text-xs text-muted-foreground">Followers</p>
-                    </div>
-                    <div>
-                        <p className="font-bold text-lg">{userData.following || 0}</p>
-                        <p className="text-xs text-muted-foreground">Following</p>
-                    </div>
-                </div>
-                <Separator className="my-4" />
-            </div>
-            <nav className="space-y-1 flex-grow">
-                <Collapsible defaultOpen>
-                    <CollapsibleTrigger asChild>
-                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => setActiveView('feed')}>
-                            <Home /> Feed
-                        </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global' && activeView === 'feed'} onClick={() => { setFeedFilter('global'); setActiveView('feed'); }}>
-                            <Globe className="w-4 h-4" /> Global
-                        </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following' && activeView === 'feed'} onClick={() => { setFeedFilter('following'); setActiveView('feed'); }}>
-                            <Users className="w-4 h-4" /> Following
-                        </Button>
-                    </CollapsibleContent>
-                </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
-                    <Save /> Saves
-                 </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
-                    <MessageSquare /> Messages
-                 </Button>
-                 <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
-                    <Settings /> Settings
-                </Link>
-            </nav>
-        </div>
-    );
-};
 
 const FeedPost = ({ 
     post, 
@@ -840,7 +777,7 @@ export default function FeedPage() {
         <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[18rem_22rem_1fr]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
           {/* Sidebar */}
           <aside className="border-r hidden lg:block">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
+             <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
           </aside>
           
           {/* Main Content / Conversation List */}
@@ -868,7 +805,7 @@ export default function FeedPage() {
                                         <SheetHeader className="sr-only">
                                             <SheetTitle>Sidebar Menu</SheetTitle>
                                         </SheetHeader>
-                                        <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
+                                        <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
                                     </SheetContent>
                                 </Sheet>
                                 <div className="flex items-center gap-2">

@@ -6,13 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import { MainSidebar } from '../main-sidebar';
+import { useAuth } from '@/hooks/use-auth';
 
 export type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
 export type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
@@ -144,6 +147,7 @@ const mockChatDatabase: Record<string, Message[]> = {
 };
 
 export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBack }: { conversation: Conversation, userData: any, isIntegrated?: boolean, onBack: () => void }) => {
+    const { user } = useAuth();
     const isMobile = useIsMobile();
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -213,6 +217,18 @@ export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBac
                         </div>
                     </Link>
                 </div>
+                 {(isMobile && user && userData) && (
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0">
+                            <MainSidebar userData={userData} userPosts={[]} feedFilter="global" setFeedFilter={()=>{}} activeView="messages" setActiveView={()=>{}} />
+                        </SheetContent>
+                    </Sheet>
+                )}
             </header>
             <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
                 {isLoading ? (
