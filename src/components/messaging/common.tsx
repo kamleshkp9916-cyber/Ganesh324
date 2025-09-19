@@ -102,14 +102,13 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     {userData && (
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="md:hidden">
+                                <Button variant="ghost" size="icon" className="lg:hidden">
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0">
                                  <SheetHeader className="sr-only">
                                     <SheetTitle>Sidebar Menu</SheetTitle>
-                                    <p>Navigation menu for the application.</p>
                                 </SheetHeader>
                                 <MainSidebar userData={userData} userPosts={userPosts} />
                             </SheetContent>
