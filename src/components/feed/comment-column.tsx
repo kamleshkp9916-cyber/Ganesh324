@@ -64,8 +64,9 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
+    children?: React.ReactNode,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
@@ -93,10 +94,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
 
     return (
-        <div className={cn(
-            "flex items-start gap-3",
-            comment.parentId && "w-4/5 self-end" // Applied here: 80% width and aligned to the end (right)
-        )}>
+        <div className={cn("flex items-start gap-3", comment.parentId && "w-4/5 mx-auto")}>
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -334,37 +332,28 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const getRenderableComments = useCallback((): CommentType[] => {
+    const renderableComments = useCallback(() => {
         if (comments.length === 0) return [];
         
         const commentMap = new Map<string, CommentType>();
         comments.forEach(c => commentMap.set(c.id, c));
+        
+        const topLevelComments = comments.filter(c => !c.parentId);
+        
+        const result: { comment: CommentType, depth: number }[] = [];
 
-        const adj = new Map<string, string[]>();
-        const topLevelComments: string[] = [];
-
-        comments.forEach(c => {
-            if (c.parentId) {
-                if (!adj.has(c.parentId)) adj.set(c.parentId, []);
-                adj.get(c.parentId)!.push(c.id);
-            } else {
-                topLevelComments.push(c.id);
-            }
-        });
-
-        const result: CommentType[] = [];
-        const dfs = (commentId: string) => {
-            const comment = commentMap.get(commentId);
-            if (comment) {
-                result.push(comment);
-                const children = adj.get(commentId) || [];
-                children.forEach(dfs);
-            }
+        const traverse = (comment: CommentType, depth: number) => {
+            result.push({ comment, depth });
+            const replies = comments.filter(c => c.parentId === comment.id);
+            replies.forEach(reply => traverse(reply, depth + 1));
         };
 
-        topLevelComments.forEach(dfs);
-        return result;
-    }, [comments]);
+        topLevelComments.forEach(comment => traverse(comment, 0));
+        
+        return result.map(({ comment }) => (
+            <Comment key={comment.id} comment={comment} {...handlers} />
+        ));
+    }, [comments, handlers]);
 
 
     return (
@@ -382,10 +371,8 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : getRenderableComments().length > 0 ? (
-                        getRenderableComments().map(comment => (
-                            <Comment key={comment.id} comment={comment} {...handlers} />
-                        ))
+                    ) : comments.length > 0 ? (
+                        renderableComments()
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
