@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -545,7 +544,7 @@ function FeedPageContent() {
     return Object.entries(hashtagCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+        .map(([topic, posts]) => ({ topic, posts, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
@@ -816,7 +815,7 @@ function FeedPageContent() {
                                     <div className="lg:hidden">
                                         <Sheet>
                                             <SheetTrigger asChild>
-                                                <Button variant="ghost" size="icon">
+                                                <Button variant="ghost" size="icon" className="lg:hidden">
                                                     <Menu className="h-6 w-6" />
                                                 </Button>
                                             </SheetTrigger>
@@ -1052,3 +1051,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
