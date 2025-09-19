@@ -802,15 +802,13 @@ function FeedPageContent() {
                 renderMobileMessages()
             ) : (
                 <SidebarProvider>
-                    <Sidebar variant="sidebar" collapsible="offcanvas" className="border-r">
-                       <SidebarContent>
-                           <MainSidebar userData={userData!} userPosts={userPosts} />
-                       </SidebarContent>
-                    </Sidebar>
                     <div className={cn("grid min-h-screen lg:grid-cols-[18rem_1fr_22rem]")}>
-                        <div className="hidden lg:block border-r">
-                             <MainSidebar userData={userData!} userPosts={userPosts} />
-                        </div>
+                        <Sidebar variant="sidebar" collapsible="offcanvas" className="border-r hidden lg:block">
+                           <SidebarContent>
+                               <MainSidebar userData={userData!} userPosts={userPosts} />
+                           </SidebarContent>
+                        </Sidebar>
+                        
                         {activeView === 'messages' ? (
                             <>
                                 <div className="h-screen flex flex-col border-r">
