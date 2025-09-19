@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -789,8 +788,7 @@ function FeedPageContent() {
         </AlertDialogContent>
       </AlertDialog>
       
-    <div className="min-h-screen bg-background text-foreground">
-        <div className={cn(isMobile && activeView === 'messages' && "h-screen")}>
+    <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             {isMobile && activeView === 'messages' ? (
                 renderMobileMessages()
             ) : (
@@ -813,18 +811,16 @@ function FeedPageContent() {
                         ) : (
                             <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                                    <div className="flex items-center gap-2">
                                     <Sheet>
-                                            <SheetTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="lg:hidden">
-                                                    <Menu className="h-6 w-6" />
-                                                </Button>
-                                            </SheetTrigger>
-                                            <SheetContent side="left" className="p-0">
-                                                <MainSidebar userData={userData} userPosts={userPosts} />
-                                            </SheetContent>
-                                        </Sheet>
-                                    </div>
+                                        <SheetTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="lg:hidden">
+                                                <Menu className="h-6 w-6" />
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="left" className="p-0">
+                                            <MainSidebar userData={userData} userPosts={userPosts} />
+                                        </SheetContent>
+                                    </Sheet>
 
                                     <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                         <PopoverAnchor asChild>
@@ -1002,8 +998,8 @@ function FeedPageContent() {
                         <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                             <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
                                 <SheetHeader className="sr-only">
-                                    <SheetTitle>Comments</SheetTitle>
-                                    <SheetDescription>Comments on the post</SheetDescription>
+                                  <SheetTitle>Comments</SheetTitle>
+                                  <SheetDescription>View and post comments.</SheetDescription>
                                 </SheetHeader>
                                 <CommentColumn 
                                     post={selectedPostForComments} 
@@ -1031,7 +1027,6 @@ function FeedPageContent() {
                 </div>
             </div>
         )}
-    </div>
     </>
   );
 }
@@ -1044,3 +1039,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
