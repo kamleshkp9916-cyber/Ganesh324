@@ -26,16 +26,20 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
 
     const isActive = (path: string, tab?: string | null, filter?: string | null) => {
         const isPathMatch = pathname === path;
-        const isTabMatch = (tab || null) === (activeTab || null);
-        const isFilterMatch = (filter || 'global') === (feedFilter || 'global');
+        
+        // For /feed?tab=...
+        if (tab) {
+            return isPathMatch && activeTab === tab;
+        }
 
+        // For /feed?filter=...
+        if (filter) {
+            return isPathMatch && (feedFilter === filter || (filter === 'global' && !feedFilter));
+        }
+
+        // For top-level /feed link (no specific tab or filter)
         if (path === '/feed') {
-            if (tab) {
-                // This is for 'Saves' or 'Messages'
-                return isPathMatch && isTabMatch;
-            }
-            // This is for 'Global' or 'Following'
-            return isPathMatch && !activeTab && isFilterMatch;
+            return isPathMatch && !activeTab;
         }
 
         return isPathMatch;
@@ -76,7 +80,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={pathname === '/feed' && !activeTab}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed')}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
@@ -89,10 +93,10 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'saves')}>
+                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'saves')}>
                     <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
                  </Button>
-                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'messages')}>
+                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')}>
                     <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                  </Button>
             </nav>
