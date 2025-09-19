@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -824,9 +825,6 @@ function FeedPageContent() {
                                 <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                         <div className="flex items-center gap-2">
                                             <SidebarTrigger className="lg:hidden" />
-                                            <Button variant="ghost" size="icon" className="hidden lg:flex" onClick={() => router.push('/live-selling')}>
-                                                <ArrowLeft />
-                                            </Button>
                                         </div>
 
                                         <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -1031,5 +1029,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
