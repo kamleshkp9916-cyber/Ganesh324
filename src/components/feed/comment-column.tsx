@@ -150,24 +150,22 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
                     {isReplying && (
-                        <div className="pt-2">
-                            <div className="flex items-start gap-3">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={user?.photoURL || undefined} />
-                                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="w-full space-y-2">
-                                    <Textarea 
-                                        placeholder={`Replying to @${comment.authorName}...`} 
-                                        value={replyText}
-                                        onChange={(e) => setReplyText(e.target.value)}
-                                        autoFocus
-                                        rows={2}
-                                    />
-                                    <div className="flex justify-end gap-2">
-                                        <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                                        <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                                    </div>
+                         <div className="pt-2 flex items-start gap-3">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={user?.photoURL || undefined} />
+                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="w-full space-y-2">
+                                <Textarea 
+                                    placeholder={`Replying to @${comment.authorName}...`} 
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    autoFocus
+                                    rows={2}
+                                />
+                                <div className="flex justify-end gap-2">
+                                    <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                                    <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
                                 </div>
                             </div>
                         </div>
@@ -236,19 +234,18 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
         try {
             await runTransaction(db, async (transaction) => {
-                let parentRef = null;
+                const postDoc = await transaction.get(postRef);
+                if (!postDoc.exists()) {
+                    throw new Error("Post does not exist!");
+                }
+
                 if (parentId) {
-                    parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
                     const parentDoc = await transaction.get(parentRef);
                     if (!parentDoc.exists()) {
                         throw new Error("Parent comment does not exist!");
                     }
                     transaction.update(parentRef, { replyCount: increment(1) });
-                }
-                
-                const postDoc = await transaction.get(postRef);
-                if (!postDoc.exists()) {
-                    throw new Error("Post does not exist!");
                 }
                 
                 const newCommentRef = doc(collection(db, `posts/${post.id}/comments`));
