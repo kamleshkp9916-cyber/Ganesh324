@@ -25,21 +25,20 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const feedFilter = searchParams.get('filter');
 
     const isActive = (path: string, tab?: string | null, filter?: string | null) => {
-        if (pathname !== path) return false;
+        const isPathMatch = pathname === path;
+        const isTabMatch = (tab || null) === (activeTab || null);
+        const isFilterMatch = (filter || 'global') === (feedFilter || 'global');
 
-        const currentTab = searchParams.get('tab');
-        const currentFilter = searchParams.get('filter');
-
-        const isTabMatch = (tab || null) === (currentTab || null);
-        
-        if (tab === 'feed') {
-             const isFeedPage = pathname === '/feed';
-             const noTab = !searchParams.has('tab') || searchParams.get('tab') === 'feed';
-             if (!filter) return isFeedPage && noTab;
-             return isFeedPage && noTab && (filter === (currentFilter || 'global'));
+        if (path === '/feed') {
+            if (tab) {
+                // This is for 'Saves' or 'Messages'
+                return isPathMatch && isTabMatch;
+            }
+            // This is for 'Global' or 'Following'
+            return isPathMatch && !activeTab && isFilterMatch;
         }
-        
-        return isTabMatch;
+
+        return isPathMatch;
     }
     
     return (
@@ -77,15 +76,15 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'feed')}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={pathname === '/feed' && !activeTab}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'feed', 'global')}>
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'global')}>
                             <Link href="/feed"><Globe className="w-4 h-4" /> Global</Link>
                         </Button>
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'feed', 'following')}>
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'following')}>
                            <Link href={{ pathname: '/feed', query: { filter: 'following' } }}><Users className="w-4 h-4" /> Following</Link>
                         </Button>
                     </CollapsibleContent>
@@ -96,13 +95,15 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                  <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'messages')}>
                     <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                  </Button>
+            </nav>
+            <div className="mt-auto">
                  <Link href="/setting" className={cn(
                      "flex items-center w-full p-2 rounded-md hover:bg-muted justify-start gap-3 text-base",
                      "text-foreground hover:bg-accent hover:text-accent-foreground" 
                  )}>
                     <Settings /> Settings
                 </Link>
-            </nav>
+            </div>
         </div>
     );
 };
