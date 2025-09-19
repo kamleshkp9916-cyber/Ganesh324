@@ -397,7 +397,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     };
 
     const handleHelp = () => {
-        // This can now just open a contact form or a generic help page
         router.push('/contact');
     };
     
@@ -410,7 +409,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const product = order.products[0];
 
     return (
-        <div className="min-h-screen bg-black text-foreground flex flex-col">
+        <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
@@ -424,7 +423,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
             </header>
 
             <main className="flex-grow p-4 lg:p-8">
-                <Card className="max-w-4xl mx-auto bg-black text-primary-foreground">
+                <Card className="max-w-4xl mx-auto bg-background">
                      <CardHeader>
                         <CardTitle className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                         <span>Order ID: {orderId}</span>

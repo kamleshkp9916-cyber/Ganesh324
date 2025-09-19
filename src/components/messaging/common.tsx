@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu, FileText, ImageIcon, Trash2, Edit, Flag, Link as Link2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu, FileText, ImageIcon, Trash2, Edit, Flag, Link as Link2, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -20,6 +20,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { ScrollArea } from '../ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { allOrderData, getStatusFromTimeline, Order } from '@/lib/order-data';
 
 
 export type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
@@ -58,7 +60,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
                 </Avatar>
             )}
             <div className={`max-w-[70%] rounded-lg px-3 py-2 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                {msg.text && <p className="text-sm">{msg.text}</p>}
+                {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.image && (
                     <Image src={msg.image} alt="Sent image" width={200} height={200} className="rounded-md mt-2" />
                 )}
@@ -212,6 +214,16 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     const [inputValue, setInputValue] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isOrderSelectOpen, setIsOrderSelectOpen] = useState(false);
+    const [userOrders, setUserOrders] = useState<Order[]>([]);
+
+    useEffect(() => {
+        // In a real app, you'd fetch this. For demo, we use mock data.
+        if(userData) {
+            const orders = Object.values(allOrderData as any).filter((o: any) => o.userId === userData.uid || !o.userId);
+            setUserOrders(orders as Order[]);
+        }
+    }, [userData]);
     
      useEffect(() => {
         const fetchMessages = () => {
@@ -277,7 +289,17 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         setMessages(prev => prev.filter(m => m.id !== id));
     };
 
+    const handleSendOrderStatus = (order: Order) => {
+        const statusMessage = `I have a question about my order:
+- **Order ID:** ${order.orderId}
+- **Product:** ${order.products[0].name}
+- **Status:** ${getStatusFromTimeline(order.timeline)}`;
+        handleSendMessage(undefined, { text: statusMessage });
+        setIsOrderSelectOpen(false);
+    };
+
     return (
+        <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
             <header className="p-4 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
@@ -314,20 +336,21 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0">
-                                <Paperclip className="h-5 w-5" />
+                            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0 rounded-full">
+                                <PlusCircle className="h-5 w-5" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-48 p-2">
                             <div className="grid gap-1">
-                                <Button
-                                    variant="ghost"
-                                    className="w-full justify-start"
-                                    onClick={() => handleSendMessage(undefined, {text: "Hi, I'd like to check my order status."})}
-                                >
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Order Status
-                                </Button>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                    >
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Order Status
+                                    </Button>
+                                </DialogTrigger>
                                 <Button
                                     variant="ghost"
                                     className="w-full justify-start"
@@ -350,7 +373,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                         />
                          <Popover>
                             <PopoverTrigger asChild>
-                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground rounded-full">
                                     <Smile className="h-5 w-5"/>
                                 </Button>
                             </PopoverTrigger>
@@ -374,5 +397,27 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                 </form>
             </footer>
         </div>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Share Order Status</DialogTitle>
+                    <DialogDescription>Select an order to share its details in the chat.</DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-80 my-4">
+                    <div className="space-y-2 pr-4">
+                    {userOrders.map(order => (
+                        <div key={order.orderId} className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted">
+                        <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={40} height={40} className="rounded-md" />
+                        <div className="flex-grow">
+                            <p className="font-semibold text-sm">{order.products[0].name}</p>
+                            <p className="text-xs text-muted-foreground">{order.orderId}</p>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleSendOrderStatus(order)}>Share</Button>
+                        </div>
+                    ))}
+                    {userOrders.length === 0 && <p className="text-center text-muted-foreground py-8">No recent orders found.</p>}
+                    </div>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
     )
 };
