@@ -15,7 +15,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 
 type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
@@ -228,7 +228,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                            {isMobile && (
+                            {isMobile && !isIntegrated && (
                                 <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
                                     <ArrowLeft className="h-6 w-6" />
                                 </Button>
@@ -288,10 +288,10 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
 
     return (
         <div className="flex h-full">
-            <div className={cn("w-full h-full lg:w-1/2 xl:w-1/3 border-r", isMobile && selectedConversation && 'hidden')}>
+            <div className={cn("w-full h-full lg:w-1/2 xl:w-1/3 border-r", isMobile && selectedConversation && 'hidden', isIntegrated && 'w-full lg:w-1/3')}>
                 {conversationListContent}
             </div>
-            <div className={cn("hidden h-full lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full')}>
+            <div className={cn("hidden h-full flex-col lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full', isIntegrated && 'lg:w-2/3')}>
                 {chatWindowContent}
             </div>
         </div>
@@ -318,3 +318,5 @@ export default function MessagePage() {
         </div>
     );
 }
+
+    
