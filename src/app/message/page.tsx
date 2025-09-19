@@ -105,10 +105,9 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isChatLoading, setIsChatLoading] = useState(false);
-    const [newMessage, setNewMessage] = useState("");
+    const [inputValue, setInputValue] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [inputValue, setInputValue] = useState("");
     
     useEffect(() => {
         const fetchConversations = async () => {
@@ -188,7 +187,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     }, [messages]);
     
     const conversationListContent = (
-         <div className="w-full h-full flex-col flex bg-background">
+         <div className="w-full h-full flex flex-col bg-background">
             <header className={cn("p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0", isIntegrated && "hidden")}>
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -223,7 +222,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     );
 
     const chatWindowContent = (
-        <>
+        <div className="flex flex-col h-full w-full">
             {selectedConversation ? (
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
@@ -257,7 +256,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                             messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} />)
                         )}
                     </div>
-                    <footer className="p-4 border-t shrink-0">
+                    <footer className="p-4 border-t shrink-0 bg-background">
                         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                              <Input 
                                 placeholder="Type a message" 
@@ -279,7 +278,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                     </div>
                  )
             )}
-        </>
+        </div>
     );
 
     if(isMobile && !isIntegrated) {
@@ -288,10 +287,10 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
 
     return (
         <div className="flex h-full">
-            <div className={cn("w-full h-full lg:w-1/2 xl:w-1/3 border-r", isMobile && selectedConversation && 'hidden', isIntegrated && 'w-full lg:w-1/3')}>
+            <div className={cn("h-full lg:w-1/3 border-r", isMobile && selectedConversation ? 'hidden' : 'w-full', isIntegrated && 'w-full lg:w-1/3')}>
                 {conversationListContent}
             </div>
-            <div className={cn("h-full flex-col lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full', isIntegrated && 'lg:w-2/3', !selectedConversation ? 'hidden' : 'flex' )}>
+            <div className={cn("h-full lg:w-2/3 hidden lg:flex", isMobile && selectedConversation ? 'flex w-full' : '', isIntegrated && 'lg:w-2/3' )}>
                 {chatWindowContent}
             </div>
         </div>
@@ -318,4 +317,3 @@ export default function MessagePage() {
         </div>
     );
 }
-
