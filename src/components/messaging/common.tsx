@@ -154,9 +154,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0">
-                                 <SheetHeader className='p-6'>
-                                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-                                    <SheetDescription className='sr-only'>Navigation links for the feed</SheetDescription>
+                                 <SheetHeader className='sr-only'>
+                                    <SheetTitle>Sidebar Menu</SheetTitle>
+                                    <SheetDescription>Navigation links for the feed</SheetDescription>
                                 </SheetHeader>
                                 <MainSidebar userData={userData} userPosts={userPosts} />
                             </SheetContent>
@@ -406,9 +406,11 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                     <div className="space-y-2 pr-4">
                     {userOrders.map(order => (
                         <div key={order.orderId} className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted">
-                        <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={40} height={40} className="rounded-md" />
+                        {order.products && order.products.length > 0 && (
+                            <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={40} height={40} className="rounded-md" />
+                        )}
                         <div className="flex-grow">
-                            <p className="font-semibold text-sm">{order.products[0].name}</p>
+                            <p className="font-semibold text-sm">{order.products && order.products.length > 0 ? order.products[0].name : 'Order Item'}</p>
                             <p className="text-xs text-muted-foreground">{order.orderId}</p>
                         </div>
                         <Button size="sm" variant="outline" onClick={() => handleSendOrderStatus(order)}>Share</Button>

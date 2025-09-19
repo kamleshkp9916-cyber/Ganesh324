@@ -6,10 +6,12 @@ import { getFirestoreDb } from './firebase';
 // This file now primarily serves as a definition for the Order type and for fallback mock data.
 // The real data will be fetched from Firestore.
 
-export const allOrderData: Record<string, Order> = {
+export const allOrderData: Record<string, Omit<Order, 'orderId'>> = {
     "#STREAM5896": {
-        // @ts-ignore
-        product: { productId: "prod_1", name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" },
+        userId: "mockUser",
+        products: [{ productId: "prod_1", name: "Vintage Camera", imageUrl: "https://placehold.co/150x150.png", hint: "vintage camera", price: "₹12,500.00" }],
+        address: {}, // Add mock address
+        total: 12500,
         orderDate: "Jul 27, 2024",
         isReturnable: true,
         timeline: [
@@ -58,6 +60,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
         return { ...orderDoc.data(), orderId: orderDoc.id } as Order;
     } else {
         // Fallback to mock data for demo purposes if not in Firestore
-        return allOrderData[orderId] ? { ...allOrderData[orderId], orderId } : null;
+        const mockOrder = allOrderData[orderId as OrderId];
+        return mockOrder ? { ...mockOrder, orderId } : null;
     }
 }
