@@ -79,7 +79,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-    const [areRepliesVisible, setAreRepliesVisible] = useState(false);
+    const [areRepliesVisible, setAreRepliesVisible] = useState(true);
     const hasLiked = user ? comment.likes.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
@@ -150,22 +150,24 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
                     {isReplying && (
-                         <div className="pt-2 flex items-start gap-3">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={user?.photoURL || undefined} />
-                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="w-full space-y-2">
-                                <Textarea 
-                                    placeholder={`Replying to @${comment.authorName}...`} 
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    autoFocus
-                                    rows={2}
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                                    <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                        <div className="pt-2">
+                            <div className="flex w-full items-start gap-2">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={user?.photoURL || undefined} />
+                                    <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="w-full space-y-2">
+                                    <Textarea 
+                                        placeholder={`Replying to @${comment.authorName}...`} 
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        autoFocus
+                                        rows={2}
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                                        <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -411,3 +413,5 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
+
+    
