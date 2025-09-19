@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -58,12 +59,6 @@ import {
   List,
   Sparkles,
   Edit,
-  Download,
-  Loader2,
-  FileEdit,
-  ArrowLeft,
-  BookText,
-  Smile,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -783,7 +778,7 @@ function FeedPageContent() {
           
           <div className="flex-1 min-w-0">
                 {activeView === 'messages' ? (
-                    <div className="h-screen border-r">
+                    <div className="h-screen flex flex-col border-r">
                         <ConversationList 
                             conversations={conversations} 
                             selectedConversation={selectedConversation} 
@@ -987,10 +982,6 @@ function FeedPageContent() {
              {isMobile && selectedPostForComments && (
                 <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                     <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
-                        <SheetHeader className='p-6'>
-                            <SheetTitle className='sr-only'>Comments</SheetTitle>
-                            <SheetDescription className='sr-only'>Comments on the post</SheetDescription>
-                        </SheetHeader>
                          <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
