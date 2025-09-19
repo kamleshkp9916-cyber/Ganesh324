@@ -901,15 +901,10 @@ function FeedPageContent() {
                                     </header>
                                     <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                         <section>
-                                            <div className="divide-y divide-border/20">
-                                                {isLoadingFeed ? (
-                                                    <>
-                                                        <FeedPostSkeleton />
-                                                        <FeedPostSkeleton />
-                                                    </>
-                                                ) : (
-                                                    filteredFeed.map(post => (
-                                                        <div key={post.id}>
+                                             {activeView === 'saves' ? (
+                                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                                    {filteredFeed.map(post => (
+                                                        <div key={post.id} className="w-full">
                                                             <FeedPost 
                                                                 post={post}
                                                                 currentUser={user}
@@ -924,19 +919,46 @@ function FeedPageContent() {
                                                                 onCommentClick={(post) => setSelectedPostForComments(post)}
                                                             />
                                                         </div>
-                                                    ))
-                                                )}
-                                                {filteredFeed.length === 0 && !isLoadingFeed && (
-                                                    <div className="text-center py-16 text-muted-foreground">
-                                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    ))}
+                                                </div>
+                                             ) : (
+                                                <div className="divide-y divide-border/20">
+                                                    {isLoadingFeed ? (
+                                                        <>
+                                                            <FeedPostSkeleton />
+                                                            <FeedPostSkeleton />
+                                                        </>
+                                                    ) : (
+                                                        filteredFeed.map(post => (
+                                                            <div key={post.id}>
+                                                                <FeedPost 
+                                                                    post={post}
+                                                                    currentUser={user}
+                                                                    onDelete={handleDeletePost}
+                                                                    onEdit={handleEditPost}
+                                                                    onShare={handleShare}
+                                                                    onReport={() => setIsReportDialogOpen(true)}
+                                                                    onSaveToggle={handleSaveToggle}
+                                                                    isSaved={isPostSaved(post.id)}
+                                                                    highlightTerm={debouncedSearchTerm}
+                                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                                />
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                             )}
+                                            {filteredFeed.length === 0 && !isLoadingFeed && (
+                                                <div className="text-center py-16 text-muted-foreground">
+                                                    <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                                    <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                                </div>
+                                            )}
                                         </section>
                                     </div>
                                 </main>
-                                 <aside className="hidden lg:flex flex-col h-screen">
+                                <aside className="hidden lg:flex flex-col h-screen">
                                     {selectedPostForComments ? (
                                         <CommentColumn 
                                             post={selectedPostForComments} 
@@ -1029,4 +1051,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
