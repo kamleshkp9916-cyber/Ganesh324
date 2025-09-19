@@ -841,78 +841,89 @@ export default function FeedPage() {
             <div className="flex-1 min-w-0">
                 {/* Main Content */}
                 <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
-                   <div className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="lg:hidden">
-                                    <Menu className="h-6 w-6" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="p-0">
-                                <SheetHeader className="sr-only">
-                                    <SheetTitle>Sidebar Menu</SheetTitle>
-                                </SheetHeader>
-                                <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
-                            </SheetContent>
-                        </Sheet>
-                        <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
-                            <PopoverAnchor asChild>
-                                <div className="relative w-full">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search for users, posts, #tags"
-                                        className="bg-transparent rounded-full pl-10"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
-                            </PopoverAnchor>
-                             <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
-                                <div className="space-y-4">
-                                    {searchSuggestions.users.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
-                                            {searchSuggestions.users.map(u => (
-                                                 <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.displayName)}>
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                        <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                   <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
+                        <div className="flex items-center gap-2">
+                           <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="lg:hidden">
+                                        <Menu className="h-6 w-6" />
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="left" className="p-0">
+                                    <SheetHeader className="sr-only">
+                                        <SheetTitle>Sidebar Menu</SheetTitle>
+                                    </SheetHeader>
+                                    <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
+                                </SheetContent>
+                            </Sheet>
+                            <div className="flex items-center gap-2">
+                                <Logo className="h-7 w-7" />
+                                <h1 className="font-bold text-xl hidden sm:inline">Feed</h1>
+                            </div>
+                        </div>
+
+                         {activeView !== 'messages' && (
+                             <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
+                                <PopoverAnchor asChild>
+                                    <div className="relative w-full max-w-sm">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search for users, posts, #tags"
+                                            className="bg-transparent rounded-full pl-10"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                </PopoverAnchor>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                    <div className="space-y-4">
+                                        {searchSuggestions.users.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                                {searchSuggestions.users.map(u => (
+                                                    <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.displayName)}>
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                            <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchSuggestions.hashtags.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                                {searchSuggestions.hashtags.map(h => (
+                                                    <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                        <div className="flex items-center gap-2 font-semibold">
+                                                            <Hash className="h-4 w-4 text-muted-foreground" />
+                                                            <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchSuggestions.posts.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                                {searchSuggestions.posts.map(p => (
+                                                    <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                        <BookText className="h-4 w-4 inline-block mr-2" />
+                                                        <Highlight text={p.content} highlight={debouncedSearchTerm} />
                                                     </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {searchSuggestions.hashtags.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
-                                             {searchSuggestions.hashtags.map(h => (
-                                                <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
-                                                    <div className="flex items-center gap-2 font-semibold">
-                                                        <Hash className="h-4 w-4 text-muted-foreground" />
-                                                        <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
-                                                    </div>
-                                                </button>
-                                             ))}
-                                        </div>
-                                     )}
-                                     {searchSuggestions.posts.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
-                                            {searchSuggestions.posts.map(p => (
-                                                 <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
-                                                    <BookText className="h-4 w-4 inline-block mr-2" />
-                                                    <Highlight text={p.content} highlight={debouncedSearchTerm} />
-                                                </div>
-                                            ))}
-                                        </div>
-                                     )}
-                                     {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
-                                         <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
-                                     )}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
+                                            <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                        )}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                         )}
+
+                         <div className="w-10 h-10" />
+                    </header>
                     <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                         <section>
                             <div className="divide-y divide-border/20">
@@ -952,7 +963,7 @@ export default function FeedPage() {
                 </main>
             </div>
           {/* Right Column */}
-            <aside className="hidden lg:block h-screen overflow-y-auto no-scrollbar">
+            <aside className="hidden lg:flex flex-col h-screen">
                {selectedPostForComments ? (
                     isMobile ? null : (
                          <CommentColumn 
@@ -961,9 +972,9 @@ export default function FeedPage() {
                         />
                     )
                 ) : rightColumnView === 'messages' ? (
-                   <MessagesView userData={userData}/>
+                   <MessagesView userData={userData} isIntegrated={true}/>
                 ): (
-                <div className="p-6 space-y-6 h-full">
+                <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg">Trending</CardTitle>

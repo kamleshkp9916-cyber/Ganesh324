@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -187,17 +188,15 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     }, [messages]);
     
     const conversationListContent = (
-         <div className="w-full h-full border-r flex-col flex bg-background">
-            {!isIntegrated && (
-                <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                        <h1 className="text-xl font-bold">Chats</h1>
-                    </div>
-                </header>
-            )}
+         <div className="w-full h-full flex-col flex bg-background">
+            <header className={cn("p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0", isIntegrated && "hidden")}>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    <h1 className="text-xl font-bold">Chats</h1>
+                </div>
+            </header>
             <div className="p-4 border-b">
                  <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -229,7 +228,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                            {isMobile && !isIntegrated && (
+                            {isMobile && (
                                 <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
                                     <ArrowLeft className="h-6 w-6" />
                                 </Button>
@@ -273,41 +272,30 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
                     </footer>
                 </>
             ) : (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                    <p>Choose a conversation to start messaging.</p>
-                </div>
+                 !isMobile && (
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
+                    </div>
+                 )
             )}
         </div>
     );
 
-    if(isMobile) {
+    if(isMobile && !isIntegrated) {
         return selectedConversation ? chatWindowContent : conversationListContent;
     }
 
-    if (isIntegrated) {
-        return (
-            <div className="flex h-full">
-                <div className="w-full lg:w-1/2 xl:w-1/3 border-r">
-                    {conversationListContent}
-                </div>
-                <div className="hidden lg:flex lg:w-1/2 xl:w-2/3">
-                    {chatWindowContent}
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="flex h-screen">
-            <aside className="w-full md:w-1/3 lg:w-1/4">
+        <div className="flex h-full">
+            <div className={cn("w-full h-full lg:w-1/2 xl:w-1/3 border-r", isMobile && selectedConversation && 'hidden')}>
                 {conversationListContent}
-            </aside>
-             <main className="w-full md:w-2/3 lg:w-3/4 flex-col hidden md:flex">
+            </div>
+            <div className={cn("hidden h-full lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full')}>
                 {chatWindowContent}
-            </main>
+            </div>
         </div>
-    )
+    );
 }
 
 export default function MessagePage() {
