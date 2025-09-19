@@ -421,7 +421,7 @@ function FeedPageContent() {
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
-  const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
+  const [searchSuggestions, setSearchSuggestions] =<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -803,7 +803,7 @@ function FeedPageContent() {
             ) : (
                 <SidebarProvider>
                      <div className="grid min-h-screen lg:grid-cols-[1fr_2.5fr_1.25fr]">
-                        <Sidebar variant="sidebar" collapsible="offcanvas" className="border-r hidden lg:block">
+                        <Sidebar variant="sidebar" collapsible="offcanvas">
                            <SidebarContent>
                                <MainSidebar userData={userData!} userPosts={userPosts} />
                            </SidebarContent>
@@ -904,8 +904,33 @@ function FeedPageContent() {
                                              {activeView === 'saves' ? (
                                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                                     {filteredFeed.map(post => (
-                                                        <div key={post.id} className="w-full">
+                                                        <FeedPost 
+                                                            key={post.id}
+                                                            post={post}
+                                                            currentUser={user}
+                                                            onDelete={handleDeletePost}
+                                                            onEdit={handleEditPost}
+                                                            onShare={handleShare}
+                                                            onReport={() => setIsReportDialogOpen(true)}
+                                                            onSaveToggle={handleSaveToggle}
+                                                            isSaved={isPostSaved(post.id)}
+                                                            highlightTerm={debouncedSearchTerm}
+                                                            onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                            onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                             ) : (
+                                                <div className="divide-y divide-border/20">
+                                                    {isLoadingFeed ? (
+                                                        <>
+                                                            <FeedPostSkeleton />
+                                                            <FeedPostSkeleton />
+                                                        </>
+                                                    ) : (
+                                                        filteredFeed.map(post => (
                                                             <FeedPost 
+                                                                key={post.id}
                                                                 post={post}
                                                                 currentUser={user}
                                                                 onDelete={handleDeletePost}
@@ -918,33 +943,6 @@ function FeedPageContent() {
                                                                 onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                                                                 onCommentClick={(post) => setSelectedPostForComments(post)}
                                                             />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                             ) : (
-                                                <div className="divide-y divide-border/20">
-                                                    {isLoadingFeed ? (
-                                                        <>
-                                                            <FeedPostSkeleton />
-                                                            <FeedPostSkeleton />
-                                                        </>
-                                                    ) : (
-                                                        filteredFeed.map(post => (
-                                                            <div key={post.id}>
-                                                                <FeedPost 
-                                                                    post={post}
-                                                                    currentUser={user}
-                                                                    onDelete={handleDeletePost}
-                                                                    onEdit={handleEditPost}
-                                                                    onShare={handleShare}
-                                                                    onReport={() => setIsReportDialogOpen(true)}
-                                                                    onSaveToggle={handleSaveToggle}
-                                                                    isSaved={isPostSaved(post.id)}
-                                                                    highlightTerm={debouncedSearchTerm}
-                                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                                />
-                                                            </div>
                                                         ))
                                                     )}
                                                 </div>
@@ -1051,3 +1049,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    

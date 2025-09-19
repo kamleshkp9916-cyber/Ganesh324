@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -147,6 +146,14 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
          <div className="w-full h-full flex flex-col bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
+                     <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0"><Menu className="h-5 w-5" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0">
+                           <MainSidebar userData={userData} userPosts={userPosts} />
+                        </SheetContent>
+                    </Sheet>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -329,9 +336,11 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
             </div>
             <footer className="p-4 border-t shrink-0 bg-background">
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                    <Popover>
+                     <Popover>
                         <PopoverTrigger asChild>
-                           
+                            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0 rounded-full">
+                                <PlusCircle className="h-5 w-5" />
+                            </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-48 p-2">
                             <div className="grid gap-1">
@@ -414,3 +423,5 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
+
+    
