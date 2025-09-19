@@ -812,7 +812,7 @@ function FeedPageContent() {
                              <MainSidebar userData={userData!} userPosts={userPosts} />
                         </div>
                         {activeView === 'messages' ? (
-                             <>
+                            <>
                                 <div className="h-screen flex flex-col border-r">
                                     <ConversationList 
                                         conversations={conversations} 
@@ -822,7 +822,7 @@ function FeedPageContent() {
                                         userPosts={userPosts}
                                     />
                                 </div>
-                                 <div className="h-screen flex-col hidden lg:flex">
+                                <div className="h-screen flex-col hidden lg:flex">
                                     {selectedConversation ? (
                                         <ChatWindow 
                                             conversation={selectedConversation} 
@@ -842,7 +842,6 @@ function FeedPageContent() {
                                 <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                         <SidebarTrigger className="lg:hidden" />
-
                                         <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                             <PopoverAnchor asChild>
                                                 <div className="relative w-full max-w-sm">
@@ -1032,3 +1031,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
