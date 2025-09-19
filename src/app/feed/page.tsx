@@ -790,7 +790,7 @@ function FeedPageContent() {
         </AlertDialogContent>
       </AlertDialog>
       
-    <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
+      <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             {isMobile && activeView === 'messages' ? (
                 renderMobileMessages()
             ) : (
@@ -816,11 +816,15 @@ function FeedPageContent() {
                                     <div className="lg:hidden">
                                         <Sheet>
                                             <SheetTrigger asChild>
-                                                <Button variant="ghost" size="icon">
+                                                <Button variant="ghost" size="icon" className="lg:hidden">
                                                     <Menu className="h-6 w-6" />
                                                 </Button>
                                             </SheetTrigger>
                                             <SheetContent side="left" className="p-0">
+                                                 <SheetHeader className='sr-only'>
+                                                    <SheetTitle>Sidebar Menu</SheetTitle>
+                                                    <SheetDescription>Navigation links for the feed</SheetDescription>
+                                                </SheetHeader>
                                                 <MainSidebar userData={userData} userPosts={userPosts} />
                                             </SheetContent>
                                         </Sheet>
@@ -999,9 +1003,9 @@ function FeedPageContent() {
                     </aside>
 
                     {isMobile && selectedPostForComments && (
-                        <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
+                         <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                             <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
-                                <SheetHeader className="p-4 border-b flex flex-row items-center justify-between">
+                                 <SheetHeader className="p-4 border-b flex flex-row items-center justify-between">
                                   <SheetTitle>Comments</SheetTitle>
                                 </SheetHeader>
                                 <CommentColumn 
@@ -1042,6 +1046,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
-
