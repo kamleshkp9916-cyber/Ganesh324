@@ -816,7 +816,7 @@ function FeedPageContent() {
                                     <div className="lg:hidden">
                                         <Sheet>
                                             <SheetTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="lg:hidden">
+                                                <Button variant="ghost" size="icon">
                                                     <Menu className="h-6 w-6" />
                                                 </Button>
                                             </SheetTrigger>
@@ -1005,7 +1005,7 @@ function FeedPageContent() {
                     {isMobile && selectedPostForComments && (
                          <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                             <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
-                                 <SheetHeader className="p-4 border-b flex flex-row items-center justify-between">
+                                 <SheetHeader className="p-4 border-b">
                                   <SheetTitle>Comments</SheetTitle>
                                 </SheetHeader>
                                 <CommentColumn 
