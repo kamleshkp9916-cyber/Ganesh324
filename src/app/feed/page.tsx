@@ -660,11 +660,11 @@ function FeedPageContent() {
     }
   };
   
-  if (!isMounted || authLoading) {
+  if (!isMounted || authLoading || !userData) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
   }
   
-  if (!user || !userData) {
+  if (!user) {
     router.push('/');
     return null;
   }
