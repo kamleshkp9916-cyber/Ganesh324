@@ -383,9 +383,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center">
                 <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                    <X />
-                </Button>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
