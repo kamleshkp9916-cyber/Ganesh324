@@ -149,7 +149,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </button>
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
-                     {isReplying && (
+                    {isReplying && (
                         <div className="pt-2">
                             <div className="flex items-start gap-3">
                                 <Avatar className="h-8 w-8">
@@ -227,7 +227,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
-        console.log("Replying:", { postId: post.id, parentId: parentId, parentType: typeof parentId });
         if (!text.trim() || !user || !userData) return;
         if (isSubmitting) return;
 
