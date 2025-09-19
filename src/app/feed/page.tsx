@@ -810,10 +810,6 @@ function FeedPageContent() {
                                         <MainSidebar userData={userData} userPosts={userPosts} />
                                     </SheetContent>
                                 </Sheet>
-                                <div className="flex items-center gap-2">
-                                    <Logo className="h-7 w-7" />
-                                    <h1 className="font-bold text-xl hidden sm:inline">Feed</h1>
-                                </div>
                             </div>
 
                             <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -1032,3 +1028,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    

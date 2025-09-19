@@ -80,7 +80,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed')}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', null, 'global') || isActive('/feed', null, 'following') || isActive('/feed')}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
@@ -100,14 +100,8 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                  </Button>
             </nav>
-            <div className="mt-auto">
-                 <Link href="/setting" className={cn(
-                     "flex items-center w-full p-2 rounded-md hover:bg-muted justify-start gap-3 text-base",
-                     "text-foreground hover:bg-accent hover:text-accent-foreground" 
-                 )}>
-                    <Settings /> Settings
-                </Link>
-            </div>
         </div>
     );
 };
+
+    
