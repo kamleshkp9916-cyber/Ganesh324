@@ -205,6 +205,27 @@ export default function AdminMessagePage() {
         <main className="w-full md:w-2/3 lg:w-3/4 h-full flex flex-col">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-2">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="left">
+                             <SheetHeader>
+                                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+                            </SheetHeader>
+                             <nav className="grid gap-6 text-lg font-medium">
+                                <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
+                                <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
+                                <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
+                                <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
+                                <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
+                                <Link href="/admin/messages" className="hover:text-foreground">Messages</Link>
+                                <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
+                                <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
+                                 <Link href="/admin/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
                     {selectedConversation ? (
                          <Link href={`/admin/users/${selectedConversation.userId}`} className="cursor-pointer group">
                             <div className="flex items-center gap-3">
