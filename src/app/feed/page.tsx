@@ -59,6 +59,8 @@ import {
   List,
   Sparkles,
   Edit,
+  Download,
+  BookText,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -497,6 +499,11 @@ function FeedPageContent() {
     }
   }, [loadFollowData, loadSavedPosts, loadConversations]);
 
+  const userPosts = useMemo(() => {
+    if (!user) return [];
+    return feed.filter(post => post.sellerId === user.uid);
+  }, [feed, user]);
+  
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
     if (activeView === 'feed') {
@@ -524,11 +531,6 @@ function FeedPageContent() {
     );
   }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
-  const userPosts = useMemo(() => {
-    if (!user) return [];
-    return feed.filter(post => post.sellerId === user.uid);
-  }, [feed, user]);
-  
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
@@ -1021,3 +1023,4 @@ export default function FeedPage() {
 }
 
     
+
