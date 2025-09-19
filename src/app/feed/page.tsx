@@ -812,26 +812,28 @@ function FeedPageContent() {
                         ) : (
                             <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                                    <div className="lg:hidden">
-                                        <Sheet>
-                                            <SheetTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="lg:hidden">
-                                                    <Menu className="h-6 w-6" />
-                                                </Button>
-                                            </SheetTrigger>
-                                            <SheetContent side="left" className="p-0">
-                                                 <SheetHeader>
-                                                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-                                                    <SheetDescription>Navigation links for the feed</SheetDescription>
-                                                </SheetHeader>
-                                                <MainSidebar userData={userData} userPosts={userPosts} />
-                                            </SheetContent>
-                                        </Sheet>
-                                    </div>
-                                    <div className="hidden lg:flex items-center gap-2">
-                                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
-                                            <ArrowLeft />
-                                        </Button>
+                                    <div className="flex items-center gap-2">
+                                        <div className="lg:hidden">
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Menu className="h-6 w-6" />
+                                                    </Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="left" className="p-0">
+                                                    <SheetHeader>
+                                                        <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+                                                        <SheetDescription>Navigation links for the feed</SheetDescription>
+                                                    </SheetHeader>
+                                                    <MainSidebar userData={userData} userPosts={userPosts} />
+                                                </SheetContent>
+                                            </Sheet>
+                                        </div>
+                                         <div className="hidden lg:flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
+                                                <ArrowLeft />
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -891,8 +893,7 @@ function FeedPageContent() {
                                             </div>
                                         </PopoverContent>
                                     </Popover>
-
-                                    <div className="w-10 h-10" />
+                                    <div/>
                                 </header>
                                 <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                     <section>
