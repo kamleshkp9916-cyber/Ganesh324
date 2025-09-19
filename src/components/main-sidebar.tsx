@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Save, MessageSquare, Settings, Globe, Users, ArrowLeft } from 'lucide-react';
+import { Home, Save, MessageSquare, Globe, Users, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -27,24 +27,23 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const isActive = (path: string, tab?: string | null, filter?: string | null) => {
         const isPathMatch = pathname === path;
         
-        // For /feed?tab=...
         if (tab) {
             return isPathMatch && activeTab === tab;
         }
 
-        // For /feed?filter=...
         if (filter) {
-            return isPathMatch && (feedFilter === filter || (filter === 'global' && !feedFilter));
+            return isPathMatch && feedFilter === filter;
         }
-
-        // For top-level /feed link (no specific tab or filter)
+        
         if (path === '/feed') {
-            return isPathMatch && !activeTab;
+            return isPathMatch && !activeTab; // Only true for the main feed page, not tabs
         }
 
         return isPathMatch;
     }
     
+    const isFeedActive = isActive('/feed', null, 'global') || isActive('/feed', null, 'following') || (pathname === '/feed' && !activeTab && !feedFilter);
+
     return (
         <div className="p-6 flex flex-col h-full">
              <div className="flex items-center gap-2 mb-8">
@@ -78,14 +77,14 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                 <Separator className="my-4" />
             </div>
             <nav className="space-y-1 flex-grow">
-                <Collapsible defaultOpen>
+                <Collapsible defaultOpen={isFeedActive}>
                     <CollapsibleTrigger asChild>
-                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', null, 'global') || isActive('/feed', null, 'following') || isActive('/feed')}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isFeedActive}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'global')}>
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed') && !feedFilter}>
                             <Link href="/feed"><Globe className="w-4 h-4" /> Global</Link>
                         </Button>
                         <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'following')}>
@@ -103,5 +102,3 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
         </div>
     );
 };
-
-    
