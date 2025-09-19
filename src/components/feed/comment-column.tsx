@@ -64,9 +64,8 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
-    children?: React.ReactNode,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
@@ -94,16 +93,16 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
     };
 
     return (
-        <div className={cn("flex items-start gap-3", comment.parentId && "w-4/5 mx-auto")}>
+        <div className={cn("flex items-start gap-3 w-full", comment.parentId && "w-4/5 mx-auto")}>
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-grow space-y-1">
-                 <div className="relative pr-8">
+                <div className="relative">
                     <div className="flex flex-col">
                         <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                        <p className="text-xs text-muted-foreground flex-shrink-0">
+                         <p className="text-xs text-muted-foreground flex-shrink-0">
                             <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
                         </p>
                     </div>
@@ -173,9 +172,6 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                         </div>
                     </div>
                 )}
-                 <div className="space-y-4 pt-4">
-                  {children}
-                </div>
             </div>
         </div>
     );
@@ -360,20 +356,24 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             }
         });
         
-        const renderTree = (comment: CommentType): React.ReactNode => {
-            const childrenIds = childMap.get(comment.id) || [];
-            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => renderTree(c!));
-            
-            return (
-                 <Comment key={comment.id} comment={comment} {...handlers}>
-                    {childComponents}
-                </Comment>
-            )
-        };
-        
+        const finalRenderList: React.ReactNode[] = [];
         const topLevelComments = comments.filter(c => !c.parentId);
+
+        const traverse = (commentId: string) => {
+            const comment = commentMap.get(commentId);
+            if (!comment) return;
+
+            finalRenderList.push(<Comment key={comment.id} comment={comment} {...handlers} />);
+            
+            const children = childMap.get(commentId);
+            if (children) {
+                children.forEach(traverse);
+            }
+        };
+
+        topLevelComments.forEach(c => traverse(c.id));
         
-        return topLevelComments.map(renderTree);
+        return finalRenderList;
 
     }, [comments, handlers]);
 
