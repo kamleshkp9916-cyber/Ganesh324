@@ -331,9 +331,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" type="button" aria-haspopup="dialog" aria-expanded={false} aria-controls="radix-«r20»" data-state="closed">
-                                <PlusCircle className="h-5 w-5" />
-                            </Button>
+                           
                         </PopoverTrigger>
                         <PopoverContent className="w-48 p-2">
                             <div className="grid gap-1">
@@ -416,5 +414,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
