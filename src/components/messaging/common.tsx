@@ -405,16 +405,16 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                 <ScrollArea className="h-80 my-4">
                     <div className="space-y-2 pr-4">
                     {userOrders.map(order => (
-                        <div key={order.orderId} className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted">
-                        {order.products && order.products.length > 0 && (
-                            <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={40} height={40} className="rounded-md" />
-                        )}
-                        <div className="flex-grow">
-                            <p className="font-semibold text-sm">{order.products && order.products.length > 0 ? order.products[0].name : 'Order Item'}</p>
-                            <p className="text-xs text-muted-foreground">{order.orderId}</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleSendOrderStatus(order)}>Share</Button>
-                        </div>
+                        (order.products && order.products.length > 0) && (
+                            <div key={order.orderId} className="flex items-center gap-3 p-2 border rounded-lg hover:bg-muted">
+                                <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={40} height={40} className="rounded-md" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold text-sm">{order.products[0].name}</p>
+                                    <p className="text-xs text-muted-foreground">{order.orderId}</p>
+                                </div>
+                                <Button size="sm" variant="outline" onClick={() => handleSendOrderStatus(order)}>Share</Button>
+                            </div>
+                        )
                     ))}
                     {userOrders.length === 0 && <p className="text-center text-muted-foreground py-8">No recent orders found.</p>}
                     </div>
@@ -423,3 +423,5 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
+
+    
