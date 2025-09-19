@@ -107,6 +107,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0">
+                                 <SheetHeader className="sr-only">
+                                    <SheetTitle>Sidebar Menu</SheetTitle>
+                                </SheetHeader>
                                 <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={() => {}} activeView={activeView} setActiveView={(view) => router.push(view === 'feed' ? '/feed' : `/${view}`)} />
                             </SheetContent>
                         </Sheet>
