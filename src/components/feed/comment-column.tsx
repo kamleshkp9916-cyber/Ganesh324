@@ -99,15 +99,20 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow space-y-1">
-                <div className="flex items-center gap-2 text-sm flex-wrap">
-                    <p className="font-semibold break-all">{comment.authorName}</p>
-                    <p className="text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
+            <div className="flex-grow space-y-1 relative pr-8">
+                 <div className="flex flex-col">
+                    <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                    <p className="text-xs text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
+                </div>
+
+                <div className="absolute top-0 right-0">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="ml-auto"><MoreHorizontal className="w-4 h-4" /></button>
+                            <button className="text-muted-foreground hover:text-foreground">
+                                <MoreHorizontal className="w-4 h-4" />
+                            </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
+                        <DropdownMenuContent align="end">
                             {user?.uid === comment.userId ? (
                                 <>
                                     <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
@@ -127,7 +132,7 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                     </DropdownMenu>
                 </div>
                 {isEditing ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 pt-1">
                         <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
                         <div className="flex gap-2">
                             <Button size="sm" onClick={handleEditSubmit}>Save</Button>
@@ -135,12 +140,12 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm whitespace-pre-wrap break-words">
+                    <p className="text-sm whitespace-pre-wrap break-words pt-1">
                         {comment.replyingTo && <span className="text-primary font-medium mr-1">@{comment.replyingTo}</span>}
                         {comment.text}
                     </p>
                 )}
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
                     <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
                         <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
                         <span>{comment.likes.length > 0 ? comment.likes.length : ''}</span>
@@ -163,6 +168,9 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                         </div>
                     </div>
                 )}
+                <div className="space-y-4 pt-4">
+                  {children}
+                </div>
             </div>
         </div>
     );
@@ -336,23 +344,43 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         if (comments.length === 0) return [];
         
         const commentMap = new Map<string, CommentType>();
-        comments.forEach(c => commentMap.set(c.id, c));
+        const childMap = new Map<string, string[]>();
+
+        comments.forEach(c => {
+            commentMap.set(c.id, c);
+            if (c.parentId) {
+                const children = childMap.get(c.parentId) || [];
+                children.push(c.id);
+                childMap.set(c.parentId, children);
+            }
+        });
         
         const topLevelComments = comments.filter(c => !c.parentId);
         
-        const result: { comment: CommentType, depth: number }[] = [];
+        const result: React.ReactNode[] = [];
 
-        const traverse = (comment: CommentType, depth: number) => {
-            result.push({ comment, depth });
-            const replies = comments.filter(c => c.parentId === comment.id);
-            replies.forEach(reply => traverse(reply, depth + 1));
+        const traverse = (comment: CommentType) => {
+            const childrenIds = childMap.get(comment.id) || [];
+            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => traverse(c!));
+
+            result.push(
+                <Comment key={comment.id} comment={comment} {...handlers}>
+                    {childComponents}
+                </Comment>
+            );
         };
-
-        topLevelComments.forEach(comment => traverse(comment, 0));
         
-        return result.map(({ comment }) => (
-            <Comment key={comment.id} comment={comment} {...handlers} />
-        ));
+        topLevelComments.forEach(c => traverse(c));
+        return topLevelComments.map(comment => {
+            const childrenIds = childMap.get(comment.id) || [];
+            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => <Comment key={c.id} comment={c} {...handlers} />);
+            return (
+                <Comment key={comment.id} comment={comment} {...handlers}>
+                   {childComponents}
+                </Comment>
+            )
+        });
+
     }, [comments, handlers]);
 
 
@@ -404,3 +432,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
+
+
+    
