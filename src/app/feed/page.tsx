@@ -106,7 +106,7 @@ import { useTheme } from 'next-themes';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
@@ -788,6 +788,8 @@ function FeedPageContent() {
                             conversations={conversations} 
                             selectedConversation={selectedConversation} 
                             onSelectConversation={setSelectedConversation}
+                            userData={userData}
+                            userPosts={userPosts}
                         />
                     </div>
                 ) : (
@@ -801,6 +803,10 @@ function FeedPageContent() {
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent side="left" className="p-0">
+                                         <SheetHeader className='p-6'>
+                                            <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+                                            <SheetDescription className='sr-only'>Navigation links for the feed</SheetDescription>
+                                        </SheetHeader>
                                         <MainSidebar userData={userData} userPosts={userPosts} />
                                     </SheetContent>
                                 </Sheet>
@@ -985,6 +991,10 @@ function FeedPageContent() {
              {isMobile && selectedPostForComments && (
                 <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                     <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
+                        <SheetHeader className='p-6'>
+                            <SheetTitle className='sr-only'>Comments</SheetTitle>
+                            <SheetDescription className='sr-only'>Comments on the post</SheetDescription>
+                        </SheetHeader>
                          <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 

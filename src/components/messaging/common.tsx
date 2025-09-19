@@ -13,9 +13,9 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, type UserData } from '@/hooks/use-auth';
 
 export type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
 export type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
@@ -85,9 +85,8 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, userData, userPosts }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
     const router = useRouter();
-    const { user, userData, userPosts = [] } = useAuth() as any;
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConversations = useMemo(() => {
@@ -107,8 +106,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0">
-                                 <SheetHeader>
+                                 <SheetHeader className='p-6'>
                                     <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
+                                    <SheetDescription className='sr-only'>Navigation links for the feed</SheetDescription>
                                 </SheetHeader>
                                 <MainSidebar userData={userData} userPosts={userPosts} />
                             </SheetContent>
