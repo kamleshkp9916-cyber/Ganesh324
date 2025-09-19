@@ -64,22 +64,20 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, children }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
-    onDelete: (id: string) => void,
-    children: React.ReactNode
+    onDelete: (id: string) => void
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-    const [areRepliesVisible, setAreRepliesVisible] = useState(true);
     const hasLiked = user ? comment.likes.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
@@ -95,92 +93,76 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
 
     return (
-        <div className="flex flex-col gap-2">
-            <div className="flex items-start gap-3">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={comment.authorAvatar} />
-                    <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-grow space-y-1">
-                    <div className="flex items-center gap-2 text-sm flex-wrap">
-                        <p className="font-semibold break-all">{comment.authorName}</p>
-                        <p className="text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="ml-auto"><MoreHorizontal className="w-4 h-4" /></button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                                {user?.uid === comment.userId ? (
-                                    <>
-                                        <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                        <DropdownMenuSeparator />
-                                    </>
-                                ) : null}
-                                <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    {isEditing ? (
-                        <div className="space-y-2">
-                            <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
-                            <div className="flex gap-2">
-                                <Button size="sm" onClick={handleEditSubmit}>Save</Button>
-                                <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                            </div>
-                        </div>
-                    ) : (
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                            {comment.replyingTo && <span className="text-primary font-medium mr-1">@{comment.replyingTo}</span>}
-                            {comment.text}
-                        </p>
-                    )}
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
-                            <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
-                            <span>{comment.likes.length > 0 ? comment.likes.length : ''}</span>
-                        </button>
-                        <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
-                    </div>
-                    {isReplying && (
-                         <div className="flex w-full items-start gap-2 pt-2">
-                            <Textarea 
-                                placeholder={`Replying to @${comment.authorName}...`} 
-                                value={replyText}
-                                onChange={(e) => setReplyText(e.target.value)}
-                                autoFocus
-                                rows={2}
-                                className="h-auto"
-                            />
-                            <div className="flex flex-col gap-2">
-                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                            </div>
-                        </div>
-                    )}
+        <div className="flex items-start gap-3">
+            <Avatar className="h-10 w-10">
+                <AvatarImage src={comment.authorAvatar} />
+                <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-grow space-y-1">
+                <div className="flex items-center gap-2 text-sm flex-wrap">
+                    <p className="font-semibold break-all">{comment.authorName}</p>
+                    <p className="text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="ml-auto"><MoreHorizontal className="w-4 h-4" /></button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            {user?.uid === comment.userId ? (
+                                <>
+                                    <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                            <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    <DropdownMenuSeparator />
+                                </>
+                            ) : null}
+                            <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-            </div>
-            
-            {comment.replyCount > 0 && (
-                 <div className="ml-[52px]">
-                     <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
-                         <div className="w-6 h-px bg-border" />
-                         {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
+                {isEditing ? (
+                    <div className="space-y-2">
+                        <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
+                        <div className="flex gap-2">
+                            <Button size="sm" onClick={handleEditSubmit}>Save</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                        {comment.replyingTo && <span className="text-primary font-medium mr-1">@{comment.replyingTo}</span>}
+                        {comment.text}
+                    </p>
+                )}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
+                        <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
+                        <span>{comment.likes.length > 0 ? comment.likes.length : ''}</span>
                     </button>
+                    <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                 </div>
-            )}
-             {areRepliesVisible && (
-              <div className="w-full pl-[52px]">
-                {children}
-              </div>
-            )}
+                {isReplying && (
+                     <div className="flex w-full items-start gap-2 pt-2">
+                        <Textarea 
+                            placeholder={`Replying to @${comment.authorName}...`} 
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            autoFocus
+                            rows={2}
+                            className="h-auto"
+                        />
+                        <div className="flex flex-col gap-2">
+                            <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -220,7 +202,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
-        console.log("Replying:", { postId: post.id, parentId, parentType: typeof parentId });
         if (!text.trim() || !user || !userData) return;
         if (isSubmitting) return;
 
@@ -350,14 +331,41 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const renderComments = (parentId: string | null): JSX.Element[] => {
-        return comments
-            .filter(comment => comment.parentId === parentId)
-            .map(comment => (
-                <Comment key={comment.id} comment={comment} {...handlers}>
-                    {renderComments(comment.id)}
-                </Comment>
-            ));
+    const getRenderableComments = (): CommentType[] => {
+        const commentMap = new Map<string, CommentType>(comments.map(c => [c.id, c]));
+        const childrenMap = new Map<string, string[]>();
+
+        comments.forEach(c => {
+            if (c.parentId) {
+                if (!childrenMap.has(c.parentId)) {
+                    childrenMap.set(c.parentId, []);
+                }
+                childrenMap.get(c.parentId)!.push(c.id);
+            }
+        });
+
+        const result: CommentType[] = [];
+        const topLevelComments = comments.filter(c => !c.parentId);
+
+        const addChildren = (commentId: string) => {
+            const children = childrenMap.get(commentId);
+            if (children) {
+                children.forEach(childId => {
+                    const child = commentMap.get(childId);
+                    if (child) {
+                        result.push(child);
+                        addChildren(childId);
+                    }
+                });
+            }
+        };
+
+        topLevelComments.forEach(comment => {
+            result.push(comment);
+            addChildren(comment.id);
+        });
+
+        return result;
     };
 
     return (
@@ -375,8 +383,10 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : comments.length > 0 ? (
-                        renderComments(null)
+                    ) : getRenderableComments().length > 0 ? (
+                        getRenderableComments().map(comment => (
+                            <Comment key={comment.id} comment={comment} {...handlers} />
+                        ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
