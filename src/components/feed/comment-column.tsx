@@ -177,10 +177,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </button>
                 </div>
             )}
-             {areRepliesVisible && (
-                <div className="pl-14 space-y-4">
-                    {children}
-                </div>
+            {areRepliesVisible && (
+              <div className="w-11/12 self-end space-y-4">
+                  {children}
+              </div>
             )}
         </div>
     );
@@ -411,3 +411,4 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 }
 
     
+
