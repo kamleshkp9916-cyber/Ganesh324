@@ -64,6 +64,7 @@ import {
   FileEdit,
   ArrowLeft,
   BookText,
+  Smile,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -126,6 +127,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
+import { MessagesView } from '@/app/message/page';
 
 
 const liveSellers = [
@@ -188,7 +190,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: 'feed' | 'saves', setActiveView: (view: 'feed' | 'saves') => void }) => {
+const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: { userData: UserData, userPosts: any[], feedFilter: 'global' | 'following', setFeedFilter: (filter: 'global' | 'following') => void, activeView: 'feed' | 'saves' | 'messages', setActiveView: (view: 'feed' | 'saves' | 'messages') => void }) => {
     const router = useRouter();
     return (
         <div className="p-6 flex flex-col h-full">
@@ -241,9 +243,9 @@ const SidebarContent = ({ userData, userPosts, feedFilter, setFeedFilter, active
                  <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
                     <Save /> Saves
                  </Button>
-                 <Link href="/message" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
+                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
                     <MessageSquare /> Messages
-                 </Link>
+                 </Button>
                  <Link href="/setting" className={cn(buttonVariants({ variant: 'ghost' }), "w-full justify-start gap-3 text-base")}>
                     <Settings /> Settings
                 </Link>
@@ -453,7 +455,7 @@ const FeedPost = ({
 }
 
 export default function FeedPage() {
-  type ActiveView = 'feed' | 'saves';
+  type ActiveView = 'feed' | 'saves' | 'messages';
   const router = useRouter();
   const { user, userData, loading: authLoading } = useAuth();
   const isMobile = useIsMobile();
@@ -474,6 +476,8 @@ export default function FeedPage() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
+  const [rightColumnView, setRightColumnView] = useState<'trending' | 'messages'>('trending');
+
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
@@ -545,6 +549,14 @@ export default function FeedPage() {
         window.removeEventListener('storage', handleStorageChange);
     }
   }, [loadFollowData, loadSavedPosts]);
+  
+  useEffect(() => {
+    if (activeView === 'messages') {
+      setRightColumnView('messages');
+    } else {
+      setRightColumnView('trending');
+    }
+  }, [activeView]);
 
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
@@ -823,7 +835,7 @@ export default function FeedPage() {
         <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
           {/* Sidebar */}
           <aside className="border-r hidden lg:block">
-             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
+             <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
           </aside>
           
             <div className="flex-1 min-w-0">
@@ -840,7 +852,7 @@ export default function FeedPage() {
                                 <SheetHeader className="sr-only">
                                     <SheetTitle>Sidebar Menu</SheetTitle>
                                 </SheetHeader>
-                                <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
+                                <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
                             </SheetContent>
                         </Sheet>
                         <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -948,7 +960,9 @@ export default function FeedPage() {
                             onClose={() => setSelectedPostForComments(null)} 
                         />
                     )
-                ) : (
+                ) : rightColumnView === 'messages' ? (
+                   <MessagesView userData={userData}/>
+                ): (
                 <div className="p-6 space-y-6 h-full">
                     <Card>
                         <CardHeader>
@@ -1005,10 +1019,6 @@ export default function FeedPage() {
              {isMobile && selectedPostForComments && (
                 <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                     <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
-                        <SheetHeader className="sr-only">
-                            <SheetTitle>Comments</SheetTitle>
-                            <DialogDescription>View and add comments to this post.</DialogDescription>
-                        </SheetHeader>
                          <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 

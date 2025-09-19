@@ -1,25 +1,21 @@
 
 "use client";
 
-import Link from 'next/link';
-import {
-  MessageSquare,
-  ArrowLeft,
-  Search,
-  Send
-} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+import { ArrowLeft, Send, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/hooks/use-auth';
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
+
 
 type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
 type Conversation = { userId: string, userName: string, avatarUrl: string, lastMessage: string, lastMessageTimestamp: string, unreadCount: number, isExecutive?: boolean };
@@ -100,7 +96,7 @@ function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation,
     );
 }
 
-const MessagesView = ({ userData }: { userData: any }) => {
+export const MessagesView = ({ userData, isIntegrated = false }: { userData: any, isIntegrated?: boolean }) => {
     const router = useRouter();
     const isMobile = useIsMobile();
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -194,9 +190,11 @@ const MessagesView = ({ userData }: { userData: any }) => {
          <aside className="w-full h-full border-r flex-col flex bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
+                    {!isIntegrated && (
+                        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                    )}
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -231,7 +229,7 @@ const MessagesView = ({ userData }: { userData: any }) => {
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                            {isMobile && (
+                            {isMobile && !isIntegrated && (
                                 <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
                                     <ArrowLeft className="h-6 w-6" />
                                 </Button>
@@ -276,7 +274,6 @@ const MessagesView = ({ userData }: { userData: any }) => {
                 </>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <MessageSquare className="h-16 w-16 mb-4"/>
                     <h2 className="text-xl font-semibold">Select a chat</h2>
                     <p>Choose a conversation to start messaging.</p>
                 </div>
@@ -290,10 +287,10 @@ const MessagesView = ({ userData }: { userData: any }) => {
 
     return (
         <div className="flex h-full">
-            <div className="w-1/3 lg:w-1/4">
+            <div className="w-full lg:w-1/3 border-r">
                 {conversationListContent}
             </div>
-            <div className="w-2/3 lg:w-3/4">
+            <div className="hidden lg:flex lg:w-2/3">
                 {chatWindowContent}
             </div>
         </div>
@@ -303,20 +300,20 @@ const MessagesView = ({ userData }: { userData: any }) => {
 export default function MessagePage() {
     const router = useRouter();
     const { user, userData, loading } = useAuth();
+    
+    useEffect(() => {
+      // This page is now integrated into the feed, so we redirect.
+      router.replace('/feed');
+    }, [router]);
 
-    if (loading) {
+    if (loading || !user || !userData) {
         return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
     }
-
-    if (!user || !userData) {
-        router.push('/');
-        return null;
-    }
     
+    // Render a loader while redirecting
     return (
-        <div className="h-screen w-full">
-            <MessagesView userData={userData} />
+        <div className="h-screen w-full flex items-center justify-center">
+             <LoadingSpinner />
         </div>
     )
-
-    
+}

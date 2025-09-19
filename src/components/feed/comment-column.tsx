@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -21,7 +22,7 @@ import {
   getDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2 } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -150,23 +151,18 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                     </div>
                     {isReplying && (
-                        <div className="flex w-full items-start gap-2 pt-2">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={user?.photoURL || undefined} />
-                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="w-full space-y-2">
-                                <Textarea 
-                                    placeholder={`Replying to @${comment.authorName}...`} 
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    autoFocus
-                                    rows={2}
-                                />
-                                <div className="flex justify-end gap-2">
-                                    <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
-                                    <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
-                                </div>
+                         <div className="flex w-full items-start gap-2 pt-2">
+                            <Textarea 
+                                placeholder={`Replying to @${comment.authorName}...`} 
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                autoFocus
+                                rows={2}
+                                className="h-auto"
+                            />
+                            <div className="flex flex-col gap-2">
+                                <Button size="sm" onClick={handleReplySubmit} disabled={!replyText.trim()}>Reply</Button>
+                                <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
                             </div>
                         </div>
                     )}
@@ -174,7 +170,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {comment.replyCount > 0 && (
-                <div className="pl-14">
+                 <div className="pl-14">
                      <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
                          {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
@@ -182,7 +178,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             )}
              {areRepliesVisible && (
-                 <div className="pl-14 space-y-4">
+                 <div className="space-y-4">
                     {children}
                  </div>
             )}
@@ -225,6 +221,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     }, [post?.id]);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
+        console.log("Replying:", { postId: post.id, parentId, parentType: typeof parentId });
         if (!text.trim() || !user || !userData) return;
         if (isSubmitting) return;
 
@@ -391,18 +388,19 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex-shrink-0 bg-background">
-                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText); }} className="flex items-start gap-2">
-                    <Avatar>
-                        <AvatarImage src={user?.photoURL || undefined} />
-                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <Textarea 
-                        placeholder="Add a comment..."
-                        value={newCommentText}
-                        onChange={(e) => setNewCommentText(e.target.value)}
-                        rows={1}
-                        className="flex-grow resize-none"
-                    />
+                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText); }} className="flex items-center gap-2">
+                    <div className="relative flex-grow">
+                        <Textarea 
+                            placeholder="Add a comment..."
+                            value={newCommentText}
+                            onChange={(e) => setNewCommentText(e.target.value)}
+                            rows={1}
+                            className="flex-grow resize-none pr-10 min-h-[40px]"
+                        />
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                            <Smile />
+                        </Button>
+                    </div>
                     <Button type="submit" disabled={!newCommentText.trim() || isSubmitting}>
                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </Button>
@@ -413,3 +411,4 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 }
 
     
+
