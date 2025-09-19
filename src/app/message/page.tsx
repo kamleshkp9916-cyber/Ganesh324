@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -181,8 +180,9 @@ export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBac
     )
 }
 
-export function MessagesView({ userData, isIntegrated = false }: { userData: any, isIntegrated?: boolean }) {
+export default function MessagePage() {
     const router = useRouter();
+    const { user, userData, loading } = useAuth();
     const isMobile = useIsMobile();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -190,6 +190,7 @@ export function MessagesView({ userData, isIntegrated = false }: { userData: any
     
     useEffect(() => {
         const fetchConversations = async () => {
+            if (!userData) return;
             try {
                 let execMessages = mockChatDatabase['StreamCart'] || [];
                 let executiveConversation: Conversation | null = null;
@@ -224,7 +225,17 @@ export function MessagesView({ userData, isIntegrated = false }: { userData: any
         fetchConversations();
     }, [userData, isMobile]);
     
-    if(isMobile && !isIntegrated) {
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/?showLogin=true');
+        }
+    }, [user, loading, router]);
+    
+    if (loading || isLoading || !user || !userData) {
+        return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
+    }
+    
+    if(isMobile) {
         return selectedConversation ? (
              <ChatWindow 
                 conversation={selectedConversation}
@@ -248,7 +259,7 @@ export function MessagesView({ userData, isIntegrated = false }: { userData: any
                     conversations={conversations}
                     selectedConversation={selectedConversation}
                     onSelectConversation={setSelectedConversation}
-                    isIntegrated={isIntegrated}
+                    isIntegrated={true}
                 />
             </div>
             <div className="h-full w-2/3 flex-col hidden md:flex">
@@ -256,7 +267,7 @@ export function MessagesView({ userData, isIntegrated = false }: { userData: any
                      <ChatWindow 
                         conversation={selectedConversation}
                         userData={userData}
-                        isIntegrated={isIntegrated}
+                        isIntegrated={true}
                         onBack={() => {}}
                     />
                 ) : (
@@ -267,27 +278,6 @@ export function MessagesView({ userData, isIntegrated = false }: { userData: any
                     </div>
                  )}
             </div>
-        </div>
-    );
-}
-
-export default function MessagePage() {
-    const router = useRouter();
-    const { user, userData, loading } = useAuth();
-    
-    useEffect(() => {
-        if (!loading && !user) {
-            router.replace('/?showLogin=true');
-        }
-    }, [user, loading, router]);
-    
-    if (loading || !user || !userData) {
-        return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
-    }
-    
-    return (
-        <div className="h-screen w-full">
-            <MessagesView userData={userData} />
         </div>
     );
 }
