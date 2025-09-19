@@ -303,18 +303,18 @@ export default function MessagePage() {
     const { user, userData, loading } = useAuth();
     
     useEffect(() => {
-      // This page is now integrated into the feed, so we redirect.
-      router.replace('/feed');
-    }, [router]);
-
+        if (!loading && !user) {
+            router.replace('/?showLogin=true');
+        }
+    }, [user, loading, router]);
+    
     if (loading || !user || !userData) {
         return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
     }
     
-    // Render a loader while redirecting
     return (
-        <div className="h-screen w-full flex items-center justify-center">
-             <LoadingSpinner />
+        <div className="h-screen w-full">
+            <MessagesView userData={userData} />
         </div>
-    )
+    );
 }
