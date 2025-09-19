@@ -1001,9 +1001,8 @@ function FeedPageContent() {
                     {isMobile && selectedPostForComments && (
                         <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                             <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
-                                <SheetHeader className="sr-only">
+                                <SheetHeader className="p-4 border-b flex flex-row items-center justify-between">
                                   <SheetTitle>Comments</SheetTitle>
-                                  <SheetDescription>View and post comments.</SheetDescription>
                                 </SheetHeader>
                                 <CommentColumn 
                                     post={selectedPostForComments} 
@@ -1045,3 +1044,4 @@ export default function FeedPage() {
 }
 
     
+
