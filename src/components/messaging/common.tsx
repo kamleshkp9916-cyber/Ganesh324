@@ -87,6 +87,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 
 export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, isIntegrated = false }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, isIntegrated?: boolean }) => {
     const router = useRouter();
+    const { userData, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConversations = useMemo(() => {
@@ -98,9 +99,18 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
          <div className="w-full h-full flex flex-col bg-background">
             <header className={cn("p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0", isIntegrated && "hidden")}>
                 <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
+                    {userData && (
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="p-0">
+                                <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={() => {}} activeView={activeView} setActiveView={(view) => router.push(view === 'feed' ? '/feed' : `/${view}`)} />
+                            </SheetContent>
+                        </Sheet>
+                    )}
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -147,8 +157,9 @@ const mockChatDatabase: Record<string, Message[]> = {
 };
 
 export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBack }: { conversation: Conversation, userData: any, isIntegrated?: boolean, onBack: () => void }) => {
-    const { user } = useAuth();
+    const { user, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
     const isMobile = useIsMobile();
+    const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [inputValue, setInputValue] = useState("");
@@ -225,7 +236,7 @@ export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBac
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0">
-                            <MainSidebar userData={userData} userPosts={[]} feedFilter="global" setFeedFilter={()=>{}} activeView="messages" setActiveView={()=>{}} />
+                            <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={() => {}} activeView={activeView} setActiveView={(view) => router.push(view === 'feed' ? '/feed' : `/${view}`)} />
                         </SheetContent>
                     </Sheet>
                 )}
