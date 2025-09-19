@@ -93,7 +93,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
 
     return (
-        <div className="flex items-start gap-3">
+        <div className={cn(
+            "flex items-start gap-3",
+            comment.parentId && "w-4/5 self-end" // Applied here: 80% width and aligned to the end (right)
+        )}>
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -331,42 +334,38 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const getRenderableComments = (): CommentType[] => {
-        const commentMap = new Map<string, CommentType>(comments.map(c => [c.id, c]));
-        const childrenMap = new Map<string, string[]>();
+    const getRenderableComments = useCallback((): CommentType[] => {
+        if (comments.length === 0) return [];
+        
+        const commentMap = new Map<string, CommentType>();
+        comments.forEach(c => commentMap.set(c.id, c));
+
+        const adj = new Map<string, string[]>();
+        const topLevelComments: string[] = [];
 
         comments.forEach(c => {
             if (c.parentId) {
-                if (!childrenMap.has(c.parentId)) {
-                    childrenMap.set(c.parentId, []);
-                }
-                childrenMap.get(c.parentId)!.push(c.id);
+                if (!adj.has(c.parentId)) adj.set(c.parentId, []);
+                adj.get(c.parentId)!.push(c.id);
+            } else {
+                topLevelComments.push(c.id);
             }
         });
 
         const result: CommentType[] = [];
-        const topLevelComments = comments.filter(c => !c.parentId);
-
-        const addChildren = (commentId: string) => {
-            const children = childrenMap.get(commentId);
-            if (children) {
-                children.forEach(childId => {
-                    const child = commentMap.get(childId);
-                    if (child) {
-                        result.push(child);
-                        addChildren(childId);
-                    }
-                });
+        const dfs = (commentId: string) => {
+            const comment = commentMap.get(commentId);
+            if (comment) {
+                result.push(comment);
+                const children = adj.get(commentId) || [];
+                children.forEach(dfs);
             }
         };
 
-        topLevelComments.forEach(comment => {
-            result.push(comment);
-            addChildren(comment.id);
-        });
-
+        topLevelComments.forEach(dfs);
         return result;
-    };
+    }, [comments]);
+
 
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
@@ -377,9 +376,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </Button>
             </div>
             <ScrollArea className="flex-grow">
-                <div className="p-4 space-y-6">
+                <div className="p-4 flex flex-col items-start gap-y-6">
                     {isLoading ? (
-                        <div className="space-y-4">
+                        <div className="w-full space-y-4">
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
@@ -388,7 +387,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Comment key={comment.id} comment={comment} {...handlers} />
                         ))
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-4 min-h-48">
+                        <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
                             <h4 className="font-semibold">No comments yet</h4>
                             <p className="text-sm">Be the first one to comment.</p>
