@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -178,8 +177,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             )}
             {areRepliesVisible && (
-              <div className="space-y-4 ml-[52px]">
+              <div className="w-full flex justify-end">
+                <div className="w-11/12 space-y-4">
                   {children}
+                </div>
               </div>
             )}
         </div>
@@ -409,7 +410,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
-
-    
-
-
