@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Send, Search, MoreVertical, Smile, Paperclip, MessageSquare, Share2, MessageCircle, LifeBuoy, Download, ShieldCheck, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { getMessages, sendMessage, getConversations, Message, Conversation } from '@/ai/flows/chat-flow';
-import { getExecutiveMessages, sendExecutiveMessage } from '@/ai/flows/executive-chat-flow';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -17,67 +14,28 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toPng } from 'html-to-image';
-import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
+import { ChatMessage, ConversationItem, Message, Conversation } from '@/components/messaging/common';
 
-function ChatMessage({ msg, currentUserName }: { msg: Message, currentUserName: string | null }) {
-    const isMe = msg.sender === 'StreamCart';
-    return (
-        <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-            {!isMe && (
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://placehold.co/40x40.png`} />
-                    <AvatarFallback>{'C'}</AvatarFallback>
-                </Avatar>
-            )}
-            <div className={`max-w-[70%] rounded-lg px-3 py-2 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                {msg.text && <p className="text-sm">{msg.text}</p>}
-                {msg.image && (
-                    <Image src={msg.image} alt="Sent image" width={200} height={200} className="rounded-md mt-2" />
-                )}
-                <p className={`text-xs mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'} text-right`}>
-                    {msg.timestamp}
-                </p>
-            </div>
-        </div>
-    );
-}
+// Mock data until flows are restored
+const mockChatDatabase: Record<string, Message[]> = {
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
+  ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
+  ]
+};
 
-function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
-    return (
-        <div 
-            className={cn(
-                "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted",
-                isSelected && "bg-muted"
-            )}
-            onClick={onClick}
-        >
-            <Avatar className="h-12 w-12">
-                <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
-                <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-grow overflow-hidden">
-                <div className="flex justify-between items-center">
-                    <h4 className="font-semibold truncate">{convo.userName}</h4>
-                    <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
-                </div>
-                <div className="flex justify-between items-start">
-                    <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
-                    {convo.unreadCount > 0 && (
-                        <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs ml-2 flex-shrink-0">
-                            {convo.unreadCount}
-                        </Badge>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
+const mockConversations: Conversation[] = [
+    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+];
 
 export default function AdminMessagePage() {
   const router = useRouter();
@@ -99,7 +57,6 @@ export default function AdminMessagePage() {
     return conversations.filter(convo => convo.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
   }, [conversations, debouncedSearchTerm]);
 
-  // This param comes from the inquiries page or the help chat
   const preselectUserId = searchParams.get('userId');
   const preselectUserName = searchParams.get('userName');
 
@@ -107,10 +64,7 @@ export default function AdminMessagePage() {
     if (user && userData?.role === 'admin') {
         const fetchConversations = async () => {
             try {
-                // In a real app, you would fetch all conversations an executive is a part of.
-                // For this mock, we will just use the general conversations list.
-                const convos = await getConversations();
-                let allConvos = [...convos];
+                let allConvos = [...mockConversations];
                 let convoToSelect: Conversation | null = null;
 
                 if (preselectUserId) {
@@ -148,7 +102,6 @@ export default function AdminMessagePage() {
         };
         fetchConversations();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, userData, preselectUserId, preselectUserName]);
   
   useEffect(() => {
@@ -160,7 +113,7 @@ export default function AdminMessagePage() {
     setIsChatLoading(true);
     setMessages([]);
     try {
-        let chatHistory = await getExecutiveMessages(convo.userId);
+        let chatHistory = mockChatDatabase[convo.userId] || [];
         setMessages(chatHistory);
     } catch (error) {
         console.error("Failed to fetch messages for", convo.userId, error);
@@ -182,16 +135,7 @@ export default function AdminMessagePage() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setMessages(prev => [...prev, optimisticMessage]);
-    const currentMessage = newMessage;
     setNewMessage("");
-
-    try {
-        const updatedMessages = await sendExecutiveMessage(selectedConversation.userId, { text: currentMessage }, from);
-        setMessages(updatedMessages);
-    } catch (error) {
-        console.error("Failed to send message", error);
-         setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
-    }
   };
   
   if (loading || isLoading) {
@@ -243,6 +187,9 @@ export default function AdminMessagePage() {
                             <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
                         </SheetTrigger>
                         <SheetContent side="left">
+                             <SheetHeader>
+                                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+                            </SheetHeader>
                              <nav className="grid gap-6 text-lg font-medium">
                                 <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
                                 <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>

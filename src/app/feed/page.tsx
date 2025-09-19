@@ -1082,5 +1082,3 @@ export default function FeedPage() {
     </>
   );
 }
-
-    
