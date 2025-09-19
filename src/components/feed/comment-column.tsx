@@ -99,38 +99,43 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow space-y-1 relative pr-8">
-                 <div className="flex flex-col">
-                    <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                    <p className="text-xs text-muted-foreground flex-shrink-0"><RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} /></p>
+            <div className="flex-grow space-y-1">
+                 <div className="relative pr-8">
+                    <div className="flex flex-col">
+                        <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                        <p className="text-xs text-muted-foreground flex-shrink-0">
+                            <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
+                        </p>
+                    </div>
+
+                    <div className="absolute top-0 right-0">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="text-muted-foreground hover:text-foreground">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {user?.uid === comment.userId ? (
+                                    <>
+                                        <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                        <DropdownMenuSeparator />
+                                    </>
+                                ) : null}
+                                <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
-                <div className="absolute top-0 right-0">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="text-muted-foreground hover:text-foreground">
-                                <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {user?.uid === comment.userId ? (
-                                <>
-                                    <DropdownMenuItem onSelect={() => { setIsEditing(true); setEditedText(comment.text); }}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                            <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                    <DropdownMenuSeparator />
-                                </>
-                            ) : null}
-                            <DropdownMenuItem onSelect={() => onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy link</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
                 {isEditing ? (
                     <div className="space-y-2 pt-1">
                         <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} autoFocus rows={2} />
@@ -168,7 +173,7 @@ const Comment = ({ comment, children, onReply, onLike, onReport, onCopyLink, onE
                         </div>
                     </div>
                 )}
-                <div className="space-y-4 pt-4">
+                 <div className="space-y-4 pt-4">
                   {children}
                 </div>
             </div>
@@ -355,31 +360,20 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             }
         });
         
-        const topLevelComments = comments.filter(c => !c.parentId);
-        
-        const result: React.ReactNode[] = [];
-
-        const traverse = (comment: CommentType) => {
+        const renderTree = (comment: CommentType): React.ReactNode => {
             const childrenIds = childMap.get(comment.id) || [];
-            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => traverse(c!));
-
-            result.push(
-                <Comment key={comment.id} comment={comment} {...handlers}>
+            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => renderTree(c!));
+            
+            return (
+                 <Comment key={comment.id} comment={comment} {...handlers}>
                     {childComponents}
                 </Comment>
-            );
+            )
         };
         
-        topLevelComments.forEach(c => traverse(c));
-        return topLevelComments.map(comment => {
-            const childrenIds = childMap.get(comment.id) || [];
-            const childComponents = childrenIds.map(id => commentMap.get(id)).filter(Boolean).map(c => <Comment key={c.id} comment={c} {...handlers} />);
-            return (
-                <Comment key={comment.id} comment={comment} {...handlers}>
-                   {childComponents}
-                </Comment>
-            )
-        });
+        const topLevelComments = comments.filter(c => !c.parentId);
+        
+        return topLevelComments.map(renderTree);
 
     }, [comments, handlers]);
 
@@ -432,6 +426,3 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         </div>
     );
 }
-
-
-    
