@@ -829,6 +829,11 @@ function FeedPageContent() {
                                             </SheetContent>
                                         </Sheet>
                                     </div>
+                                    <div className="hidden lg:flex items-center gap-2">
+                                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
+                                            <ArrowLeft />
+                                        </Button>
+                                    </div>
 
                                     <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                         <PopoverAnchor asChild>
@@ -1047,5 +1052,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
