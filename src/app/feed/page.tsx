@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -60,6 +61,7 @@ import {
   Edit,
   Download,
   BookText,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -811,16 +813,18 @@ function FeedPageContent() {
                         ) : (
                             <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                                    <Sheet>
-                                        <SheetTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="lg:hidden">
-                                                <Menu className="h-6 w-6" />
-                                            </Button>
-                                        </SheetTrigger>
-                                        <SheetContent side="left" className="p-0">
-                                            <MainSidebar userData={userData} userPosts={userPosts} />
-                                        </SheetContent>
-                                    </Sheet>
+                                    <div className="lg:hidden">
+                                        <Sheet>
+                                            <SheetTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <Menu className="h-6 w-6" />
+                                                </Button>
+                                            </SheetTrigger>
+                                            <SheetContent side="left" className="p-0">
+                                                <MainSidebar userData={userData} userPosts={userPosts} />
+                                            </SheetContent>
+                                        </Sheet>
+                                    </div>
 
                                     <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                         <PopoverAnchor asChild>
