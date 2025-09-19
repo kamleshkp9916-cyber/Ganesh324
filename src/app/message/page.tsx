@@ -222,7 +222,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     );
 
     const chatWindowContent = (
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-full w-full bg-background">
             {selectedConversation ? (
                 <>
                     <header className="p-4 border-b flex items-center justify-between shrink-0">
@@ -282,15 +282,15 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
     );
 
     if(isMobile && !isIntegrated) {
-        return selectedConversation ? <div className="h-full flex flex-col">{chatWindowContent}</div> : conversationListContent;
+        return selectedConversation ? chatWindowContent : conversationListContent;
     }
 
     return (
         <div className="flex h-full">
-            <div className={cn("h-full lg:w-1/3 border-r", isMobile && selectedConversation ? 'hidden' : 'w-full', isIntegrated && 'w-full lg:w-1/3')}>
+            <div className={cn("h-full md:w-1/3 md:flex flex-col border-r", (isMobile || selectedConversation) && "hidden")}>
                 {conversationListContent}
             </div>
-            <div className={cn("h-full lg:w-2/3 hidden lg:flex", isMobile && selectedConversation ? 'flex w-full' : '', isIntegrated && 'lg:w-2/3' )}>
+            <div className={cn("h-full md:w-2/3 flex-col", !selectedConversation && "hidden md:flex")}>
                 {chatWindowContent}
             </div>
         </div>
