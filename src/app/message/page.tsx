@@ -15,7 +15,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 type Message = { id: number | string, text?: string, sender: string, timestamp: string, image?: string };
@@ -291,7 +291,7 @@ export const MessagesView = ({ userData, isIntegrated = false }: { userData: any
             <div className={cn("w-full h-full lg:w-1/2 xl:w-1/3 border-r", isMobile && selectedConversation && 'hidden', isIntegrated && 'w-full lg:w-1/3')}>
                 {conversationListContent}
             </div>
-            <div className={cn("hidden h-full flex-col lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full', isIntegrated && 'lg:w-2/3')}>
+            <div className={cn("h-full flex-col lg:flex lg:w-1/2 xl:w-2/3", !isMobile && 'flex', isMobile && selectedConversation && 'flex w-full', isIntegrated && 'lg:w-2/3', !selectedConversation ? 'hidden' : 'flex' )}>
                 {chatWindowContent}
             </div>
         </div>
