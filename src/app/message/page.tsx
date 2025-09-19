@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { MessageSquare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Conversation, ConversationList, ChatWindow, Message } from '@/components/messaging/common';
+import { cn } from '@/lib/utils';
 
 // Mock data to replace AI flows
 const mockChatDatabase: Record<string, Message[]> = {
@@ -33,7 +34,6 @@ const mockConversations: Conversation[] = [
 export default function MessagePage() {
     const router = useRouter();
     const { user, userData, loading } = useAuth();
-    const isMobile = useIsMobile();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +63,8 @@ export default function MessagePage() {
                 }
 
                 setConversations(allConvos);
-                if (allConvos.length > 0 && !isMobile) {
+                // On desktop, pre-select the first conversation
+                if (allConvos.length > 0 && window.innerWidth >= 768) {
                     setSelectedConversation(allConvos[0]);
                 }
             } catch (error) {
@@ -73,7 +74,7 @@ export default function MessagePage() {
             }
         };
         fetchConversations();
-    }, [userData, isMobile]);
+    }, [userData]);
     
     useEffect(() => {
         if (!loading && !user) {
@@ -84,44 +85,36 @@ export default function MessagePage() {
     if (loading || isLoading || !user || !userData) {
         return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
     }
-    
-    if(isMobile) {
-        return selectedConversation ? (
-             <ChatWindow 
-                conversation={selectedConversation}
-                userData={userData}
-                isIntegrated={false}
-                onBack={() => setSelectedConversation(null)}
-            />
-        ) : (
-            <ConversationList
-                conversations={conversations}
-                selectedConversation={selectedConversation}
-                onSelectConversation={setSelectedConversation}
-            />
-        );
-    }
 
     return (
-        <div className="flex h-full">
-            <div className="h-full w-1/3 flex-col border-r hidden md:flex">
+        <div className="h-screen w-full flex overflow-hidden">
+            {/* Conversation List - Always rendered, visibility controlled by CSS */}
+            <div className={cn(
+                "h-full w-full flex-col border-r md:flex md:w-1/3",
+                selectedConversation && "hidden" // Hide on mobile when a chat is open
+            )}>
                  <ConversationList
                     conversations={conversations}
                     selectedConversation={selectedConversation}
                     onSelectConversation={setSelectedConversation}
-                    isIntegrated={true}
                 />
             </div>
-            <div className="h-full w-2/3 flex-col hidden md:flex">
+            
+            {/* Chat Window */}
+            <div className={cn(
+                "h-full w-full flex-col md:flex md:w-2/3",
+                !selectedConversation && "hidden" // Hide on mobile when NO chat is open
+            )}>
                 {selectedConversation ? (
                      <ChatWindow 
+                        key={selectedConversation.userId} // Add key to force re-mount
                         conversation={selectedConversation}
                         userData={userData}
                         isIntegrated={true}
-                        onBack={() => {}}
+                        onBack={() => setSelectedConversation(null)} // onBack to show the list again on mobile
                     />
                 ) : (
-                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                     <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
                         <MessageSquare className="h-16 w-16 mb-4"/>
                         <h2 className="text-xl font-semibold">Select a chat</h2>
                         <p>Choose a conversation to start messaging.</p>

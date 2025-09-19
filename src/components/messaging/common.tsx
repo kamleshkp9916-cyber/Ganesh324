@@ -85,9 +85,9 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, isIntegrated = false }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, isIntegrated?: boolean }) => {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
     const router = useRouter();
-    const { userData, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
+    const { user, userData, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConversations = useMemo(() => {
@@ -97,12 +97,12 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
     
     return (
          <div className="w-full h-full flex flex-col bg-background">
-            <header className={cn("p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0", isIntegrated && "hidden")}>
+            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
                     {userData && (
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="md:hidden">
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
@@ -157,9 +157,7 @@ const mockChatDatabase: Record<string, Message[]> = {
 };
 
 export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBack }: { conversation: Conversation, userData: any, isIntegrated?: boolean, onBack: () => void }) => {
-    const { user, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
     const isMobile = useIsMobile();
-    const router = useRouter();
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [inputValue, setInputValue] = useState("");
@@ -210,7 +208,7 @@ export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBac
          <div className="flex flex-col h-full w-full bg-background">
             <header className="p-4 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                    {(isMobile && !isIntegrated) && (
+                    {isMobile && (
                         <Button variant="ghost" size="icon" onClick={onBack}>
                             <ArrowLeft className="h-6 w-6" />
                         </Button>
@@ -228,18 +226,6 @@ export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBac
                         </div>
                     </Link>
                 </div>
-                 {(isMobile && user && userData) && (
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <Menu className="h-6 w-6" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="p-0">
-                            <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={() => {}} activeView={activeView} setActiveView={(view) => router.push(view === 'feed' ? '/feed' : `/${view}`)} />
-                        </SheetContent>
-                    </Sheet>
-                )}
             </header>
             <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
                 {isLoading ? (
