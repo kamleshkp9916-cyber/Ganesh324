@@ -147,22 +147,6 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
          <div className="w-full h-full flex flex-col bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                    {userData && (
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <Menu className="h-6 w-6" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="p-0">
-                                 <SheetHeader className='sr-only'>
-                                    <SheetTitle>Sidebar Menu</SheetTitle>
-                                    <SheetDescription>Navigation links for the feed</SheetDescription>
-                                </SheetHeader>
-                                <MainSidebar userData={userData} userPosts={userPosts} />
-                            </SheetContent>
-                        </Sheet>
-                    )}
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -347,7 +331,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button type="button" variant="ghost" size="icon" className="flex-shrink-0 rounded-full">
+                            <Button variant="ghost" size="icon" type="button" aria-haspopup="dialog" aria-expanded={false} aria-controls="radix-«r20»" data-state="closed">
                                 <PlusCircle className="h-5 w-5" />
                             </Button>
                         </PopoverTrigger>
