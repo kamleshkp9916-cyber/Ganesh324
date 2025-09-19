@@ -169,7 +169,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </div>
             
             {comment.replyCount > 0 && (
-                 <div className="pl-14">
+                 <div className="ml-[52px]">
                      <button className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-2" onClick={() => setAreRepliesVisible(prev => !prev)}>
                          <div className="w-6 h-px bg-border" />
                          {areRepliesVisible ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount > 1 ? 'replies' : 'reply'}`}
@@ -177,10 +177,8 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             )}
              {areRepliesVisible && (
-              <div className="w-full pl-14">
-                <div className="space-y-4">
-                  {children}
-                </div>
+              <div className="w-full pl-[52px]">
+                {children}
               </div>
             )}
         </div>
