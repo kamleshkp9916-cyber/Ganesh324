@@ -741,12 +741,18 @@ function FeedPageContent() {
     loadSavedPosts();
   };
   
+  const handleMobileConversationSelect = (convo: Conversation) => {
+    if (isMobile) {
+        setSelectedConversation(convo);
+    }
+  }
+
   const renderMobileMessages = () => {
       if (isMobile && activeView === 'messages') {
           if (selectedConversation) {
               return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
           } else {
-              return <ConversationList conversations={conversations} selectedConversation={null} onSelectConversation={setSelectedConversation} userData={userData!} userPosts={userPosts} />;
+              return <ConversationList conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts} />;
           }
       }
       return null;
@@ -799,7 +805,7 @@ function FeedPageContent() {
                                 conversations={conversations} 
                                 selectedConversation={selectedConversation} 
                                 onSelectConversation={setSelectedConversation}
-                                userData={userData!}
+                                userData={userData}
                                 userPosts={userPosts}
                             />
                         </div>
@@ -814,11 +820,7 @@ function FeedPageContent() {
                                             </Button>
                                         </SheetTrigger>
                                         <SheetContent side="left" className="p-0">
-                                            <SheetHeader>
-                                                <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-                                                <SheetDescription className='sr-only'>Navigation links for the feed</SheetDescription>
-                                            </SheetHeader>
-                                            <MainSidebar userData={userData!} userPosts={userPosts} />
+                                            <MainSidebar userData={userData} userPosts={userPosts} />
                                         </SheetContent>
                                     </Sheet>
                                 </div>
@@ -998,6 +1000,10 @@ function FeedPageContent() {
                 {isMobile && selectedPostForComments && (
                     <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                         <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
+                             <SheetHeader className="sr-only">
+                                <SheetTitle>Comments</SheetTitle>
+                                <SheetDescription>Comments on the post</SheetDescription>
+                            </SheetHeader>
                             <CommentColumn 
                                 post={selectedPostForComments} 
                                 onClose={() => setSelectedPostForComments(null)} 
