@@ -176,9 +176,9 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </button>
                 </div>
             )}
-            {areRepliesVisible && (
-              <div className="w-full flex justify-end">
-                <div className="w-11/12 space-y-4">
+             {areRepliesVisible && (
+              <div className="w-full pl-14">
+                <div className="space-y-4">
                   {children}
                 </div>
               </div>
