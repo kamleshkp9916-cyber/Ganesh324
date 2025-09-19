@@ -101,7 +101,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
@@ -263,6 +263,7 @@ const FeedPost = ({
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                     <DialogHeader className="sr-only">
                         <DialogTitle>Post Image</DialogTitle>
+                        <DialogDescription>Viewing post image</DialogDescription>
                     </DialogHeader>
                     <div className="relative">
                         {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
@@ -394,9 +395,12 @@ const FeedPost = ({
     )
 }
 
-export default function FeedPage() {
-  type ActiveView = 'feed' | 'saves' | 'messages';
+function FeedPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTabParam = searchParams.get('tab');
+  const feedFilterParam = searchParams.get('filter');
+
   const { user, userData, loading: authLoading } = useAuth();
   const isMobile = useIsMobile();
   const [feed, setFeed] = useState<any[]>([]);
@@ -408,11 +412,9 @@ export default function FeedPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
-  const [feedFilter, setFeedFilter] = useState<'global' | 'following'>('global');
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>('feed');
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
@@ -420,13 +422,16 @@ export default function FeedPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
+  const activeView = (activeTabParam === 'saves' || activeTabParam === 'messages') ? activeTabParam : 'feed';
+  const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
+
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
-        setSearchTerm(value); // Show the name in search bar
+        setSearchTerm(value);
     } else {
-        setSearchTerm(`#${value}`); // Show the hashtag in search bar
+        setSearchTerm(`#${value}`);
     }
-    setSearchSuggestions({users: [], hashtags: [], posts: []}); // Close popover
+    setSearchSuggestions({users: [], hashtags: [], posts: []});
   }
 
   useEffect(() => {
@@ -438,7 +443,6 @@ export default function FeedPage() {
 
         const lowercasedTerm = debouncedSearchTerm.toLowerCase();
         
-        // Users
         const db = getFirestoreDb();
         const usersRef = collection(db, "users");
         const userQuery = query(usersRef, 
@@ -449,7 +453,6 @@ export default function FeedPage() {
         const userSnapshot = await getDocs(userQuery);
         const users = userSnapshot.docs.map(doc => doc.data() as UserData);
 
-        // Posts and Hashtags
         const posts = feed.filter(post => 
             post.content.toLowerCase().includes(lowercasedTerm)
         ).slice(0, 5);
@@ -475,7 +478,6 @@ export default function FeedPage() {
   }, []);
 
   const loadConversations = useCallback(() => {
-    // Using mock data for now. In a real app, this would be a fetch call.
     setConversations(mockConversations);
     if (mockConversations.length > 0) {
         setSelectedConversation(mockConversations[0]);
@@ -594,7 +596,7 @@ export default function FeedPage() {
     setIsFormSubmitting(true);
     
     try {
-        if (postToEdit) { // This is an edit
+        if (postToEdit) {
             const db = getFirestoreDb();
             const postRef = doc(db, 'posts', postToEdit.id);
             
@@ -608,7 +610,7 @@ export default function FeedPage() {
             await updateDoc(postRef, dataToUpdate);
             toast({ title: "Post Updated!", description: "Your changes have been saved." });
             
-        } else { // This is a new post
+        } else {
             const db = getFirestoreDb();
             const dataToSave: any = {
                 content: postData.content,
@@ -654,7 +656,7 @@ export default function FeedPage() {
             description: `A database error occurred: ${error.message}. This could be due to Firestore security rules.`
         });
     } finally {
-        onFinishEditing(); // This will clear the form state
+        onFinishEditing();
     }
   };
   
@@ -692,7 +694,7 @@ export default function FeedPage() {
   
   const onFinishEditing = () => {
       setPostToEdit(null);
-      setIsFormSubmitting(false); // Make sure to reset submission state
+      setIsFormSubmitting(false);
   };
 
   const handleDeletePost = async (post: any) => {
@@ -739,7 +741,7 @@ export default function FeedPage() {
   
   const handleSaveToggle = (post: any) => {
     toggleSavePost(post);
-    loadSavedPosts(); // Re-load saved posts to update the state
+    loadSavedPosts();
   };
   
   return (
@@ -775,12 +777,10 @@ export default function FeedPage() {
       
     <div className="min-h-screen bg-background text-foreground">
         <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[18rem_22rem_1fr]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
-          {/* Sidebar */}
           <aside className="border-r hidden lg:block">
-             <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
+             <MainSidebar userData={userData} userPosts={userPosts} />
           </aside>
           
-          {/* Main Content / Conversation List */}
           <div className="flex-1 min-w-0">
                 {activeView === 'messages' ? (
                     <div className="h-screen border-r">
@@ -802,10 +802,7 @@ export default function FeedPage() {
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent side="left" className="p-0">
-                                        <SheetHeader className="sr-only">
-                                            <SheetTitle>Sidebar Menu</SheetTitle>
-                                        </SheetHeader>
-                                        <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView} setActiveView={setActiveView} />
+                                        <MainSidebar userData={userData} userPosts={userPosts} />
                                     </SheetContent>
                                 </Sheet>
                                 <div className="flex items-center gap-2">
@@ -913,8 +910,7 @@ export default function FeedPage() {
                     </main>
                 )}
             </div>
-          {/* Right Column / Chat Window */}
-            <aside className="hidden lg:flex flex-col h-screen">
+          <aside className="hidden lg:flex flex-col h-screen">
                {activeView === 'messages' ? (
                    selectedConversation ? (
                         <ChatWindow 
@@ -1018,4 +1014,13 @@ export default function FeedPage() {
     </div>
     </>
   );
+}
+
+
+export default function FeedPage() {
+    return (
+        <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>}>
+            <FeedPageContent />
+        </React.Suspense>
+    )
 }

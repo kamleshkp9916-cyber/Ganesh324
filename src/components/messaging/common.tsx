@@ -87,7 +87,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 
 export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
     const router = useRouter();
-    const { user, userData, userPosts = [], feedFilter = 'global', activeView = 'messages' } = useAuth() as any;
+    const { user, userData, userPosts = [] } = useAuth() as any;
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConversations = useMemo(() => {
@@ -109,8 +109,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                             <SheetContent side="left" className="p-0">
                                  <SheetHeader className="sr-only">
                                     <SheetTitle>Sidebar Menu</SheetTitle>
+                                    <p>Navigation menu for the application.</p>
                                 </SheetHeader>
-                                <MainSidebar userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={() => {}} activeView={activeView} setActiveView={(view) => router.push(view === 'feed' ? '/feed' : `/${view}`)} />
+                                <MainSidebar userData={userData} userPosts={userPosts} />
                             </SheetContent>
                         </Sheet>
                     )}

@@ -8,19 +8,33 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { UserData } from '@/lib/follow-data';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface MainSidebarProps {
     userData: UserData;
     userPosts: any[];
-    feedFilter: 'global' | 'following';
-    setFeedFilter: (filter: 'global' | 'following') => void;
-    activeView: 'feed' | 'saves' | 'messages';
-    setActiveView: (view: 'feed' | 'saves' | 'messages') => void;
 }
 
-export function MainSidebar({ userData, userPosts, feedFilter, setFeedFilter, activeView, setActiveView }: MainSidebarProps) {
+export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    const isActive = (path: string, filter?: 'global' | 'following') => {
+        if (pathname !== path) return false;
+        if (filter) {
+            return searchParams.get('filter') === filter || (!searchParams.get('filter') && filter === 'global');
+        }
+        return true;
+    }
+
+    const createQueryString = (name: string, value: string) => {
+        const params = new URLSearchParams(searchParams.toString())
+        params.set(name, value)
+        return params.toString()
+    }
+    
     return (
         <div className="p-6 flex flex-col h-full">
              <div className="flex items-center gap-2 mb-8">
@@ -56,26 +70,29 @@ export function MainSidebar({ userData, userPosts, feedFilter, setFeedFilter, ac
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'feed'} onClick={() => router.push('/feed')}>
-                            <Home /> Feed
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed')}>
+                            <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'global' && activeView === 'feed'} onClick={() => { setFeedFilter('global'); setActiveView('feed'); }}>
-                            <Globe className="w-4 h-4" /> Global
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'global')}>
+                            <Link href="/feed?filter=global"><Globe className="w-4 h-4" /> Global</Link>
                         </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={feedFilter === 'following' && activeView === 'feed'} onClick={() => { setFeedFilter('following'); setActiveView('feed'); }}>
-                            <Users className="w-4 h-4" /> Following
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'following')}>
+                           <Link href={{ pathname: '/feed', query: { filter: 'following' } }}><Users className="w-4 h-4" /> Following</Link>
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'saves'} onClick={() => setActiveView('saves')}>
-                    <Save /> Saves
+                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'saves')}>
+                    <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
                  </Button>
-                 <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={activeView === 'messages'} onClick={() => setActiveView('messages')}>
-                    <MessageSquare /> Messages
+                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/message')}>
+                    <Link href="/message"><MessageSquare /> Messages</Link>
                  </Button>
-                 <Link href="/setting" className="flex items-center w-full p-2 rounded-md hover:bg-muted justify-start gap-3 text-base">
+                 <Link href="/setting" className={cn(
+                     "flex items-center w-full p-2 rounded-md hover:bg-muted justify-start gap-3 text-base",
+                     "text-foreground hover:bg-accent hover:text-accent-foreground" // Re-using Button styles in a Link
+                 )}>
                     <Settings /> Settings
                 </Link>
             </nav>

@@ -63,8 +63,7 @@ export default function MessagePage() {
                 }
 
                 setConversations(allConvos);
-                // On desktop, pre-select the first conversation
-                if (allConvos.length > 0 && window.innerWidth >= 768) {
+                if (allConvos.length > 0) {
                     setSelectedConversation(allConvos[0]);
                 }
             } catch (error) {
@@ -88,10 +87,9 @@ export default function MessagePage() {
 
     return (
         <div className="h-screen w-full flex overflow-hidden">
-            {/* Conversation List - Always rendered, visibility controlled by CSS */}
             <div className={cn(
                 "h-full w-full flex-col border-r md:flex md:w-1/3",
-                selectedConversation && "hidden" // Hide on mobile when a chat is open
+                selectedConversation && "hidden"
             )}>
                  <ConversationList
                     conversations={conversations}
@@ -100,18 +98,17 @@ export default function MessagePage() {
                 />
             </div>
             
-            {/* Chat Window */}
             <div className={cn(
                 "h-full w-full flex-col md:flex md:w-2/3",
-                !selectedConversation && "hidden" // Hide on mobile when NO chat is open
+                !selectedConversation && "hidden"
             )}>
                 {selectedConversation ? (
                      <ChatWindow 
-                        key={selectedConversation.userId} // Add key to force re-mount
+                        key={selectedConversation.userId}
                         conversation={selectedConversation}
                         userData={userData}
                         isIntegrated={true}
-                        onBack={() => setSelectedConversation(null)} // onBack to show the list again on mobile
+                        onBack={() => setSelectedConversation(null)}
                     />
                 ) : (
                      <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
