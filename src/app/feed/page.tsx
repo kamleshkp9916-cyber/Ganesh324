@@ -808,10 +808,13 @@ function FeedPageContent() {
                            <MainSidebar userData={userData!} userPosts={userPosts} />
                        </SidebarContent>
                     </Sidebar>
-                    <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[22rem_1fr]" : "lg:grid-cols-[1fr_22rem]")}>
+                    <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[18rem_24rem_1fr]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
+                        <div className="hidden lg:block border-r">
+                             <MainSidebar userData={userData!} userPosts={userPosts} />
+                        </div>
                         <div className="flex-1 min-w-0">
                             {activeView === 'messages' ? (
-                                <div className="h-screen flex flex-col border-r">
+                                <div className="h-screen flex flex-col">
                                     <ConversationList 
                                         conversations={conversations} 
                                         selectedConversation={selectedConversation} 
@@ -1029,3 +1032,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
