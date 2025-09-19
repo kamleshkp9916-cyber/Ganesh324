@@ -21,18 +21,25 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const isActive = (path: string, filter?: 'global' | 'following') => {
-        if (pathname !== path) return false;
-        if (filter) {
-            return searchParams.get('filter') === filter || (!searchParams.get('filter') && filter === 'global');
-        }
-        return true;
-    }
+    const activeTab = searchParams.get('tab');
+    const feedFilter = searchParams.get('filter');
 
-    const createQueryString = (name: string, value: string) => {
-        const params = new URLSearchParams(searchParams.toString())
-        params.set(name, value)
-        return params.toString()
+    const isActive = (path: string, tab?: string | null, filter?: string | null) => {
+        if (pathname !== path) return false;
+
+        const currentTab = searchParams.get('tab');
+        const currentFilter = searchParams.get('filter');
+
+        const isTabMatch = (tab || null) === (currentTab || null);
+        
+        if (tab === 'feed') {
+             const isFeedPage = pathname === '/feed';
+             const noTab = !searchParams.has('tab') || searchParams.get('tab') === 'feed';
+             if (!filter) return isFeedPage && noTab;
+             return isFeedPage && noTab && (filter === (currentFilter || 'global'));
+        }
+        
+        return isTabMatch;
     }
     
     return (
@@ -70,15 +77,15 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen>
                     <CollapsibleTrigger asChild>
-                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed')}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'feed')}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'global')}>
-                            <Link href="/feed?filter=global"><Globe className="w-4 h-4" /> Global</Link>
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'feed', 'global')}>
+                            <Link href="/feed"><Globe className="w-4 h-4" /> Global</Link>
                         </Button>
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'following')}>
+                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', 'feed', 'following')}>
                            <Link href={{ pathname: '/feed', query: { filter: 'following' } }}><Users className="w-4 h-4" /> Following</Link>
                         </Button>
                     </CollapsibleContent>
@@ -86,12 +93,12 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                  <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'saves')}>
                     <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
                  </Button>
-                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/message')}>
-                    <Link href="/message"><MessageSquare /> Messages</Link>
+                 <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isActive('/feed', 'messages')}>
+                    <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                  </Button>
                  <Link href="/setting" className={cn(
                      "flex items-center w-full p-2 rounded-md hover:bg-muted justify-start gap-3 text-base",
-                     "text-foreground hover:bg-accent hover:text-accent-foreground" // Re-using Button styles in a Link
+                     "text-foreground hover:bg-accent hover:text-accent-foreground" 
                  )}>
                     <Settings /> Settings
                 </Link>

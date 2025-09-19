@@ -160,7 +160,7 @@ const mockChatDatabase: Record<string, Message[]> = {
   ]
 };
 
-export const ChatWindow = ({ conversation, userData, isIntegrated = false, onBack }: { conversation: Conversation, userData: any, isIntegrated?: boolean, onBack: () => void }) => {
+export const ChatWindow = ({ conversation, userData, onBack }: { conversation: Conversation, userData: any, onBack: () => void }) => {
     const isMobile = useIsMobile();
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);

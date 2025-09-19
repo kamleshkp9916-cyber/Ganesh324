@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -37,6 +37,7 @@ export default function MessagePage() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const isMobile = useIsMobile();
     
     useEffect(() => {
         const fetchConversations = async () => {
@@ -63,7 +64,7 @@ export default function MessagePage() {
                 }
 
                 setConversations(allConvos);
-                if (allConvos.length > 0) {
+                if (allConvos.length > 0 && !isMobile) {
                     setSelectedConversation(allConvos[0]);
                 }
             } catch (error) {
@@ -73,7 +74,7 @@ export default function MessagePage() {
             }
         };
         fetchConversations();
-    }, [userData]);
+    }, [userData, isMobile]);
     
     useEffect(() => {
         if (!loading && !user) {
@@ -89,7 +90,7 @@ export default function MessagePage() {
         <div className="h-screen w-full flex overflow-hidden">
             <div className={cn(
                 "h-full w-full flex-col border-r md:flex md:w-1/3",
-                selectedConversation && "hidden"
+                isMobile && selectedConversation && "hidden"
             )}>
                  <ConversationList
                     conversations={conversations}
@@ -100,14 +101,13 @@ export default function MessagePage() {
             
             <div className={cn(
                 "h-full w-full flex-col md:flex md:w-2/3",
-                !selectedConversation && "hidden"
+                isMobile && !selectedConversation && "hidden"
             )}>
                 {selectedConversation ? (
                      <ChatWindow 
                         key={selectedConversation.userId}
                         conversation={selectedConversation}
                         userData={userData}
-                        isIntegrated={true}
                         onBack={() => setSelectedConversation(null)}
                     />
                 ) : (

@@ -788,7 +788,6 @@ function FeedPageContent() {
                             conversations={conversations} 
                             selectedConversation={selectedConversation} 
                             onSelectConversation={setSelectedConversation}
-                            isIntegrated={true}
                         />
                     </div>
                 ) : (
@@ -916,7 +915,6 @@ function FeedPageContent() {
                         <ChatWindow 
                             conversation={selectedConversation} 
                             userData={userData}
-                            isIntegrated={true}
                             onBack={() => {}}
                         />
                    ) : (
