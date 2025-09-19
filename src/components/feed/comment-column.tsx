@@ -182,7 +182,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 </div>
             )}
              {areRepliesVisible && (
-                 <div className="pl-14">
+                 <div className="pl-14 space-y-4">
                     {children}
                  </div>
             )}
