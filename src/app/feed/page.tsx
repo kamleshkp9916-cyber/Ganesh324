@@ -106,7 +106,7 @@ import { useTheme } from 'next-themes';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
@@ -803,7 +803,7 @@ function FeedPageContent() {
                                         </Button>
                                     </SheetTrigger>
                                     <SheetContent side="left" className="p-0">
-                                         <SheetHeader className='p-6'>
+                                         <SheetHeader>
                                             <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
                                             <SheetDescription className='sr-only'>Navigation links for the feed</SheetDescription>
                                         </SheetHeader>
