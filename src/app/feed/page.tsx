@@ -127,7 +127,8 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
-import { MessagesView } from '@/app/message/page';
+import { ConversationList, ChatWindow } from '@/app/message/page';
+import type { Conversation, Message } from '@/components/messaging/common';
 
 
 const liveSellers = [
@@ -454,6 +455,27 @@ const FeedPost = ({
     )
 }
 
+// Mock data to replace AI flows
+const mockChatDatabase: Record<string, Message[]> = {
+    "FashionFinds": [
+      { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
+      { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
+      { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
+    ],
+    "GadgetGuru": [
+        { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
+        { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
+    ],
+    "StreamCart": [
+        { id: 1, text: "Welcome to StreamCart support!", sender: 'StreamCart', timestamp: 'Yesterday' },
+    ]
+  };
+  
+  const mockConversations: Conversation[] = [
+      { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+      { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+  ];
+
 export default function FeedPage() {
   type ActiveView = 'feed' | 'saves' | 'messages';
   const router = useRouter();
@@ -476,8 +498,10 @@ export default function FeedPage() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
-  const [rightColumnView, setRightColumnView] = useState<'trending' | 'messages'>('trending');
-
+  
+  // New state for messaging UI
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
     if (type === 'user') {
@@ -550,13 +574,41 @@ export default function FeedPage() {
     }
   }, [loadFollowData, loadSavedPosts]);
   
-  useEffect(() => {
-    if (activeView === 'messages') {
-      setRightColumnView('messages');
-    } else {
-      setRightColumnView('trending');
-    }
-  }, [activeView]);
+   useEffect(() => {
+        const fetchConversations = async () => {
+            if (!userData) return;
+            try {
+                let execMessages = mockChatDatabase['StreamCart'] || [];
+                let executiveConversation: Conversation | null = null;
+                if (execMessages.length > 0) {
+                    const lastMessage = execMessages[execMessages.length - 1];
+                    executiveConversation = {
+                        userId: userData.uid,
+                        userName: 'StreamCart',
+                        avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                        lastMessage: lastMessage.text || 'Image Sent',
+                        lastMessageTimestamp: lastMessage.timestamp,
+                        unreadCount: 0,
+                        isExecutive: true,
+                    };
+                }
+
+                let allConvos = [...mockConversations];
+                if (executiveConversation) {
+                    allConvos = [executiveConversation, ...allConvos];
+                }
+
+                setConversations(allConvos);
+                if (allConvos.length > 0) {
+                    setSelectedConversation(allConvos[0]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch conversations:", error);
+            }
+        };
+        fetchConversations();
+    }, [userData]);
+
 
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
@@ -832,11 +884,22 @@ export default function FeedPage() {
       </AlertDialog>
       
     <div className="min-h-screen bg-background text-foreground">
-        <div className="grid lg:grid-cols-[18rem_1fr_22rem] min-h-screen">
+        <div className={cn("grid min-h-screen", activeView === 'messages' ? "lg:grid-cols-[18rem_20rem_1fr_22rem]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
           {/* Sidebar */}
           <aside className="border-r hidden lg:block">
              <SidebarContent userData={userData} userPosts={userPosts} feedFilter={feedFilter} setFeedFilter={setFeedFilter} activeView={activeView as any} setActiveView={setActiveView as any} />
           </aside>
+
+          {activeView === 'messages' && (
+              <aside className="border-r hidden lg:block h-screen overflow-y-hidden">
+                <ConversationList
+                  conversations={conversations}
+                  selectedConversation={selectedConversation}
+                  onSelectConversation={setSelectedConversation}
+                  isIntegrated={true}
+                />
+              </aside>
+          )}
           
             <div className="flex-1 min-w-0">
                 {/* Main Content */}
@@ -971,8 +1034,13 @@ export default function FeedPage() {
                             onClose={() => setSelectedPostForComments(null)} 
                         />
                     )
-                ) : rightColumnView === 'messages' && userData ? (
-                   <MessagesView userData={userData} isIntegrated={true}/>
+                ) : activeView === 'messages' && userData && selectedConversation ? (
+                   <ChatWindow 
+                    conversation={selectedConversation}
+                    userData={userData}
+                    isIntegrated={true}
+                    onBack={() => {}}
+                   />
                 ): (
                 <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
                     <Card>
@@ -1040,7 +1108,7 @@ export default function FeedPage() {
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-                <div className="lg:grid lg:grid-cols-[18rem_1fr_22rem]">
+                 <div className={cn("grid", activeView === 'messages' ? "lg:grid-cols-[18rem_20rem_1fr_22rem]" : "lg:grid-cols-[18rem_1fr_22rem]")}>
                     <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
