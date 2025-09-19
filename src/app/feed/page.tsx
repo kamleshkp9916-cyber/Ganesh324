@@ -790,7 +790,7 @@ function FeedPageContent() {
         </AlertDialogContent>
       </AlertDialog>
       
-      <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
+    <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             {isMobile && activeView === 'messages' ? (
                 renderMobileMessages()
             ) : (
@@ -821,8 +821,8 @@ function FeedPageContent() {
                                                 </Button>
                                             </SheetTrigger>
                                             <SheetContent side="left" className="p-0">
-                                                 <SheetHeader className='sr-only'>
-                                                    <SheetTitle>Sidebar Menu</SheetTitle>
+                                                 <SheetHeader>
+                                                    <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
                                                     <SheetDescription>Navigation links for the feed</SheetDescription>
                                                 </SheetHeader>
                                                 <MainSidebar userData={userData} userPosts={userPosts} />
@@ -1007,6 +1007,7 @@ function FeedPageContent() {
                             <SheetContent side="bottom" className="h-[90vh] p-0 flex flex-col">
                                  <SheetHeader className="p-4 border-b">
                                   <SheetTitle>Comments</SheetTitle>
+                                  <SheetDescription className='sr-only'>Comments for the selected post.</SheetDescription>
                                 </SheetHeader>
                                 <CommentColumn 
                                     post={selectedPostForComments} 
