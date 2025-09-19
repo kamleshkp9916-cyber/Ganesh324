@@ -410,7 +410,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             value={newCommentText}
                             onChange={(e) => setNewCommentText(e.target.value)}
                             rows={1}
-                            className="flex-grow resize-none pr-10 min-h-[40px]"
+                            className="flex-grow resize-none pr-10 min-h-[40px] rounded-md"
                         />
                         <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
                             <Smile />
