@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -808,16 +807,17 @@ function FeedPageContent() {
       </AlertDialog>
       <SidebarProvider>
         <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
-            <div className="grid md:grid-cols-[256px_1fr] lg:grid-cols-[256px_1fr_350px]">
+            <div className="grid md:grid-cols-[var(--sidebar-width)_1fr] lg:grid-cols-[var(--sidebar-width)_1fr_350px]">
                 <div className="hidden md:block">
                      <MainSidebar userData={userData!} userPosts={userPosts} />
                 </div>
                 
                 <main className="flex-1 min-w-0 h-screen flex flex-col">
-                    {isMobile && activeView === 'messages' ? (
-                        renderMobileMessages()
-                    ) : (
-                        <div className="flex flex-col h-full w-full">
+                   <div className={cn(
+                       "flex flex-col h-full w-full mx-auto",
+                        activeView === 'messages' ? 'md:grid md:grid-cols-2' : 'max-w-3xl'
+                    )}>
+                        <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "border-r")}>
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                 <SidebarTrigger />
                                 <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
@@ -880,9 +880,9 @@ function FeedPageContent() {
                                 <div/>
                             </header>
                             
-                             <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32")}>
-                                {activeView === 'messages' && !isMobile ? (
-                                    <div className="h-full flex flex-col">
+                            <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32 w-full", activeView !== 'messages' && "mx-auto")}>
+                                {isMobile && activeView === 'messages' ? renderMobileMessages() :
+                                activeView === 'messages' ? (
                                         <ConversationList 
                                             conversations={conversations} 
                                             selectedConversation={selectedConversation} 
@@ -890,8 +890,7 @@ function FeedPageContent() {
                                             userData={userData}
                                             userPosts={userPosts}
                                         />
-                                    </div>
-                                ) : (
+                                    ) : (
                                     <section>
                                         {activeView === 'saves' ? (
                                             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
@@ -949,19 +948,24 @@ function FeedPageContent() {
                                 )}
                             </div>
                         </div>
-                    )}
+                        {activeView === 'messages' && !isMobile && (
+                            <div className="flex-col h-full hidden md:flex">
+                            {selectedConversation ? (
+                                <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />
+                            ) : (
+                                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                                        <p>Select a conversation</p>
+                                    </div>
+                            )}
+                            </div>
+                        )}
+                    </div>
                 </main>
                 <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
                     {selectedPostForComments ? (
                         <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
-                        />
-                    ) : activeView === 'messages' && selectedConversation ? (
-                         <ChatWindow 
-                            conversation={selectedConversation} 
-                            userData={userData!}
-                            onBack={() => setSelectedConversation(null)}
                         />
                     ) : (
                         <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
@@ -1018,9 +1022,9 @@ function FeedPageContent() {
                 </aside>
             </div>
              {activeView === 'feed' && (
-                <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:pl-[256px]">
+                <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:pl-[var(--sidebar-width)]">
                     <div className="grid lg:grid-cols-[1fr_350px]">
-                        <div className="w-full lg:w-[80%] mx-auto pointer-events-auto">
+                        <div className="w-full max-w-3xl mx-auto pointer-events-auto">
                             <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                                 <CreatePostForm
                                     onPost={handlePostSubmit}
@@ -1047,3 +1051,6 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+
+    
