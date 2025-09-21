@@ -115,47 +115,20 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
                 <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
                 <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow flex items-center min-w-0">
-                <div className="flex-grow min-w-0">
+            <div className="flex-grow min-w-0">
+                <div className="flex justify-between items-start">
                     <h4 className="font-semibold truncate">{convo.userName}</h4>
-                    <div className="flex items-start">
-                        <p className="text-sm text-muted-foreground truncate flex-grow">{convo.lastMessage}</p>
-                         {convo.unreadCount > 0 && (
-                            <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs ml-2 flex-shrink-0">
-                                {convo.unreadCount}
-                            </Badge>
-                        )}
-                    </div>
+                    <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
                 </div>
-                 <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
+                <div className="flex items-start justify-between">
+                    <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
+                    {convo.unreadCount > 0 && (
+                        <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
+                            {convo.unreadCount}
+                        </Badge>
+                    )}
+                </div>
             </div>
-            <AlertDialog>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-                        <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
-                        <AlertDialogDescription>This will permanently delete the chat history with {convo.userName}.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => console.log('Deleting', convo.userId)}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 }
@@ -455,5 +428,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
