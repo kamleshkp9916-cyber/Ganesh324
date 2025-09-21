@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -803,229 +804,229 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
-      <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
-        <SidebarProvider>
-          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
-              <Sidebar>
-                <MainSidebar userData={userData!} userPosts={userPosts} />
-              </Sidebar>
+      <SidebarProvider>
+        <div className={cn("min-h-screen bg-background text-foreground w-full", isMobile && activeView === 'messages' && "h-screen")}>
+          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px]">
+              <div className="hidden md:block">
+                   <MainSidebar userData={userData!} userPosts={userPosts} />
+              </div>
+              
+              <main className={cn("flex-1 min-w-0 h-screen flex flex-col", activeView === 'messages' && "md:grid md:grid-cols-2")}>
+                  {isMobile && activeView === 'messages' ? (
+                      renderMobileMessages()
+                  ) : (
+                    <>
+                        <div className={cn("flex flex-col h-full", activeView === 'messages' && "hidden md:flex")}>
+                            <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
+                                <SidebarTrigger className="md:hidden" />
+                                <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
+                                    <PopoverAnchor asChild>
+                                        <div className="relative w-full max-w-sm">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search for users, posts, #tags"
+                                                className="bg-transparent rounded-full pl-10"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                    </PopoverAnchor>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                        <div className="space-y-4">
+                                            {searchSuggestions.users.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                                    {searchSuggestions.users.map(u => (
+                                                        <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {searchSuggestions.hashtags.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                                    {searchSuggestions.hashtags.map(h => (
+                                                        <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                            <div className="flex items-center gap-2 font-semibold">
+                                                                <Hash className="h-4 w-4 text-muted-foreground" />
+                                                                <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {searchSuggestions.posts.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                                    {searchSuggestions.posts.map(p => (
+                                                        <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                            <BookText className="h-4 w-4 inline-block mr-2" />
+                                                            <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
+                                                <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                            )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                <div/>
+                            </header>
+                            <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
+                                {activeView === 'messages' && !isMobile ? (
+                                    <ConversationList 
+                                        conversations={conversations} 
+                                        selectedConversation={selectedConversation} 
+                                        onSelectConversation={setSelectedConversation}
+                                        userData={userData}
+                                        userPosts={userPosts}
+                                    />
+                                ) : (
+                                    <section>
+                                        {activeView === 'saves' ? (
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                            {filteredFeed.map(post => (
+                                                <FeedPost 
+                                                    key={post.id}
+                                                    post={post}
+                                                    currentUser={user}
+                                                    onDelete={handleDeletePost}
+                                                    onEdit={handleEditPost}
+                                                    onShare={handleShare}
+                                                    onReport={() => setIsReportDialogOpen(true)}
+                                                    onSaveToggle={handleSaveToggle}
+                                                    isSaved={isPostSaved(post.id)}
+                                                    highlightTerm={debouncedSearchTerm}
+                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                />
+                                            ))}
+                                        </div>
+                                        ) : (
+                                        <div className="divide-y divide-border/20">
+                                            {isLoadingFeed ? (
+                                                <>
+                                                    <FeedPostSkeleton />
+                                                    <FeedPostSkeleton />
+                                                </>
+                                            ) : (
+                                                filteredFeed.map(post => (
+                                                    <FeedPost 
+                                                        key={post.id}
+                                                        post={post}
+                                                        currentUser={user}
+                                                        onDelete={handleDeletePost}
+                                                        onEdit={handleEditPost}
+                                                        onShare={handleShare}
+                                                        onReport={() => setIsReportDialogOpen(true)}
+                                                        onSaveToggle={handleSaveToggle}
+                                                        isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                    />
+                                                ))
+                                            )}
+                                        </div>
+                                        )}
+                                        {filteredFeed.length === 0 && !isLoadingFeed && (
+                                            <div className="text-center py-16 text-muted-foreground">
+                                                <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                                <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                            </div>
+                                        )}
+                                    </section>
+                                )}
+                            </div>
+                        </div>
 
-              {isMobile && activeView === 'messages' ? (
-                  renderMobileMessages()
-              ) : (
-                  <>
-                      <main className="flex-1 min-w-0 h-screen overflow-y-hidden flex flex-col">
-                          <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                            <SidebarTrigger className="md:hidden" />
-                            <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
-                                <PopoverAnchor asChild>
-                                    <div className="relative w-full max-w-sm">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search for users, posts, #tags"
-                                            className="bg-transparent rounded-full pl-10"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
+                         {activeView === 'messages' && !isMobile && (
+                            <div className="h-screen hidden md:flex flex-col border-l">
+                                {selectedConversation ? (
+                                    <ChatWindow 
+                                        conversation={selectedConversation} 
+                                        userData={userData!}
+                                        onBack={() => {}}
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
+                                        <MessageSquare className="h-16 w-16 mb-4"/>
+                                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                                        <p>Choose a conversation to start messaging.</p>
                                     </div>
-                                </PopoverAnchor>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
-                                    <div className="space-y-4">
-                                        {searchSuggestions.users.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
-                                                {searchSuggestions.users.map(u => (
-                                                    <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                            <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.hashtags.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
-                                                {searchSuggestions.hashtags.map(h => (
-                                                    <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
-                                                        <div className="flex items-center gap-2 font-semibold">
-                                                            <Hash className="h-4 w-4 text-muted-foreground" />
-                                                            <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.posts.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
-                                                {searchSuggestions.posts.map(p => (
-                                                    <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
-                                                        <BookText className="h-4 w-4 inline-block mr-2" />
-                                                        <Highlight text={p.content} highlight={debouncedSearchTerm} />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
-                                            <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
-                                        )}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                              <div/>
-                          </header>
-                          <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
-                              <section>
-                                   {activeView === 'saves' ? (
-                                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-                                          {filteredFeed.map(post => (
-                                              <FeedPost 
-                                                  key={post.id}
-                                                  post={post}
-                                                  currentUser={user}
-                                                  onDelete={handleDeletePost}
-                                                  onEdit={handleEditPost}
-                                                  onShare={handleShare}
-                                                  onReport={() => setIsReportDialogOpen(true)}
-                                                  onSaveToggle={handleSaveToggle}
-                                                  isSaved={isPostSaved(post.id)}
-                                                  highlightTerm={debouncedSearchTerm}
-                                                  onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                  onCommentClick={(post) => setSelectedPostForComments(post)}
-                                              />
-                                          ))}
+                                )}
+                            </div>
+                        )}
+                    </>
+                  )}
+              </main>
+               <aside className="hidden md:flex flex-col h-screen border-l">
+                  {selectedPostForComments ? (
+                      <CommentColumn 
+                          post={selectedPostForComments} 
+                          onClose={() => setSelectedPostForComments(null)} 
+                      />
+                  ) : (
+                  <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
+                      <Card>
+                          <CardHeader>
+                              <CardTitle className="text-lg">Trending</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              <div className="space-y-4">
+                                  {trendingTopics.map((topic, index) => (
+                                      <div key={index}>
+                                          <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
+                                          <p className="text-xs text-muted-foreground">{topic.posts}</p>
                                       </div>
-                                   ) : (
-                                      <div className="divide-y divide-border/20">
-                                          {isLoadingFeed ? (
-                                              <>
-                                                  <FeedPostSkeleton />
-                                                  <FeedPostSkeleton />
-                                              </>
-                                          ) : (
-                                              filteredFeed.map(post => (
-                                                  <FeedPost 
-                                                      key={post.id}
-                                                      post={post}
-                                                      currentUser={user}
-                                                      onDelete={handleDeletePost}
-                                                      onEdit={handleEditPost}
-                                                      onShare={handleShare}
-                                                      onReport={() => setIsReportDialogOpen(true)}
-                                                      onSaveToggle={handleSaveToggle}
-                                                      isSaved={isPostSaved(post.id)}
-                                                      highlightTerm={debouncedSearchTerm}
-                                                      onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                      onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                  />
-                                              ))
-                                          )}
-                                      </div>
-                                   )}
-                                  {filteredFeed.length === 0 && !isLoadingFeed && (
-                                      <div className="text-center py-16 text-muted-foreground">
-                                          <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                          <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                      </div>
-                                  )}
-                              </section>
-                          </div>
-                      </main>
-                      {activeView === 'messages' ? (
-                          <>
-                              <div className="h-screen hidden md:flex flex-col border-l">
-                                  <ConversationList 
-                                      conversations={conversations} 
-                                      selectedConversation={selectedConversation} 
-                                      onSelectConversation={setSelectedConversation}
-                                      userData={userData}
-                                      userPosts={userPosts}
-                                  />
+                                  ))}
                               </div>
-                              <div className="h-screen hidden md:flex flex-col border-l">
-                                  {selectedConversation ? (
-                                      <ChatWindow 
-                                          conversation={selectedConversation} 
-                                          userData={userData!}
-                                          onBack={() => {}}
-                                      />
-                                  ) : (
-                                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                                          <MessageSquare className="h-16 w-16 mb-4"/>
-                                          <h2 className="text-xl font-semibold">Select a chat</h2>
-                                          <p>Choose a conversation to start messaging.</p>
-                                      </div>
-                                  )}
-                              </div>
-                          </>
-                      ) : (
-                          <aside className="hidden md:flex flex-col h-screen border-l">
-                              {selectedPostForComments ? (
-                                  <CommentColumn 
-                                      post={selectedPostForComments} 
-                                      onClose={() => setSelectedPostForComments(null)} 
-                                  />
-                              ) : (
-                              <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
-                                  <Card>
-                                      <CardHeader>
-                                          <CardTitle className="text-lg">Trending</CardTitle>
-                                      </CardHeader>
-                                      <CardContent>
-                                          <div className="space-y-4">
-                                              {trendingTopics.map((topic, index) => (
-                                                  <div key={index}>
-                                                      <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                                      <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                          </CardContent>
+                      </Card>
+
+                      <Card>
+                          <CardHeader>
+                              <CardTitle className="text-lg">Trending Streams</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              <div className="space-y-4">
+                                  {trendingStreams.map((stream) => (
+                                      <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                          <div className="flex items-center gap-3">
+                                              <div className="relative">
+                                                  <Avatar className="h-10 w-10">
+                                                      <AvatarImage src={stream.avatarUrl}/>
+                                                      <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                  </Avatar>
+                                                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                  <RadioTower className="h-2 w-2 text-white"/>
                                                   </div>
-                                              ))}
+                                              </div>
+                                              <div>
+                                                  <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                  <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                              </div>
                                           </div>
-                                      </CardContent>
-                                  </Card>
-
-                                  <Card>
-                                      <CardHeader>
-                                          <CardTitle className="text-lg">Trending Streams</CardTitle>
-                                      </CardHeader>
-                                      <CardContent>
-                                          <div className="space-y-4">
-                                              {trendingStreams.map((stream) => (
-                                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                                      <div className="flex items-center gap-3">
-                                                          <div className="relative">
-                                                              <Avatar className="h-10 w-10">
-                                                                  <AvatarImage src={stream.avatarUrl}/>
-                                                                  <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                              </Avatar>
-                                                              <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                              <RadioTower className="h-2 w-2 text-white"/>
-                                                              </div>
-                                                          </div>
-                                                          <div>
-                                                              <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                              <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                                          </div>
-                                                      </div>
-                                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                          <Users className="h-3 w-3"/>
-                                                          {stream.viewers}
-                                                      </div>
-                                                  </Link>
-                                              ))}
+                                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                              <Users className="h-3 w-3"/>
+                                              {stream.viewers}
                                           </div>
-                                      </CardContent>
-                                  </Card>
+                                      </Link>
+                                  ))}
                               </div>
-                              )}
-                          </aside>
-                      )}
-                  </>
-              )}
+                          </CardContent>
+                      </Card>
+                  </div>
+                  )}
+              </aside>
           </div>
-        </SidebarProvider>
+        </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:pl-[var(--sidebar-width)]">
                  <div className="grid md:grid-cols-[1fr_350px]">
@@ -1042,7 +1043,7 @@ function FeedPageContent() {
                 </div>
             </div>
         )}
-      </div>
+      </SidebarProvider>
     </>
   )
 }
