@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -428,6 +427,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
-

@@ -108,11 +108,11 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                                 </Button>
                             </CollapsibleContent>
                         </Collapsible>
+                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'messages' } })}>
+                            <MessageSquare /> Messages
+                        </Button>
                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'saves')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'saves' } })}>
                             <Save /> Saves
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'messages' } })}>
-                            <MessageSquare /> Messages
                         </Button>
                     </nav>
                 </div>
