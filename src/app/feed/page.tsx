@@ -757,6 +757,9 @@ function FeedPageContent() {
       <div className="h-screen w-full">
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent side="left" className="p-0 w-80 md:hidden">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Main Menu</SheetTitle>
+            </SheetHeader>
             <MainSidebar userData={userData!} userPosts={userPosts} />
           </SheetContent>
           <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(0,1fr)_minmax(0,2fr)]">
@@ -764,7 +767,7 @@ function FeedPageContent() {
               <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
             
-            <div className={cn("flex flex-col h-screen", isMobile && selectedConversation ? "hidden" : "flex")}>
+            <div className={cn("h-full w-full flex-col md:flex", isMobile && selectedConversation ? 'hidden' : 'flex')}>
                 <ConversationList
                     onSidebarToggle={() => setIsSidebarOpen(true)}
                     conversations={conversations}
@@ -773,7 +776,7 @@ function FeedPageContent() {
                 />
             </div>
             
-            <div className={cn("flex-col h-screen", 
+             <div className={cn("h-full w-full flex-col", 
                 isMobile 
                 ? (selectedConversation ? "flex" : "hidden") 
                 : "flex"
@@ -970,8 +973,8 @@ function FeedPageContent() {
             </aside>
              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
-                     <SheetHeader>
-                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                     <SheetHeader className="sr-only">
+                        <SheetTitle>Main Menu</SheetTitle>
                     </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>

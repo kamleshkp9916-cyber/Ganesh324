@@ -14,7 +14,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -108,12 +108,12 @@ export default function ListedProductsPage() {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="right" className="w-full max-w-sm p-0 flex flex-col">
-                                <div className="flex justify-between items-center p-4 border-b">
+                                <SheetHeader className="flex justify-between items-center p-4 border-b">
                                     <Link href="/live-selling" className="flex items-center gap-2">
                                         <Logo className="h-7 w-7" />
-                                        <span className="font-bold text-lg">StreamCart</span>
+                                        <SheetTitle className="font-bold text-lg">StreamCart</SheetTitle>
                                     </Link>
-                                </div>
+                                </SheetHeader>
                                 <ScrollArea className="flex-grow">
                                     <div className="p-4">
                                         <Accordion type="multiple" className="w-full">
@@ -258,5 +258,3 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
-    
