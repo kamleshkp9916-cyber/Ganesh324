@@ -768,7 +768,8 @@ function FeedPageContent() {
     }
     // Desktop view
     return (
-        <div className="grid grid-cols-1 h-full border-t">
+        <div className="grid grid-cols-[minmax(250px,_30%)_1fr] h-full border-t">
+            <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
             <div className="h-full">
                 {selectedConversation ? (
                     <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
@@ -812,9 +813,9 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        <div className={cn(
+      <div className={cn(
             "grid h-screen w-full md:grid-cols-[200px_1fr]",
-            activeView === 'messages' ? 'lg:grid-cols-[260px_minmax(250px,40%)_1fr]' : 'lg:grid-cols-[260px_1fr_400px]'
+            activeView === 'messages' ? 'lg:grid-cols-[260px_1fr]' : 'lg:grid-cols-[260px_1fr_400px]'
         )}>
             <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -886,15 +887,12 @@ function FeedPageContent() {
 
                 <div className="flex-1 overflow-y-auto no-scrollbar">
                      <div className="h-full flex flex-col">
-                        <div className={cn(
-                            "flex-grow",
-                            activeView === 'messages' ? 'h-full' : 'max-w-3xl w-full mx-auto'
-                        )}>
-                            {activeView === 'messages' ? (
-                                <div className="hidden lg:block h-full">
-                                    {renderMessages()}
-                                </div>
-                            ) : (
+                        {activeView === 'messages' ? (
+                            <div className="flex-grow">
+                                {renderMessages()}
+                            </div>
+                        ) : (
+                            <div className="w-full max-w-3xl mx-auto flex-grow">
                                 <section>
                                     {activeView === 'saves' ? (
                                         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
@@ -949,8 +947,8 @@ function FeedPageContent() {
                                         </div>
                                     )}
                                 </section>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
