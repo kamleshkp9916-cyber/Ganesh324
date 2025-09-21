@@ -146,14 +146,6 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
          <div className="w-full h-full flex flex-col bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
-                     <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="icon" className="shrink-0"><Menu className="h-5 w-5" /></Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="p-0">
-                           <MainSidebar userData={userData} userPosts={userPosts} />
-                        </SheetContent>
-                    </Sheet>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
