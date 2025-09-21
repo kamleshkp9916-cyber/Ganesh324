@@ -748,17 +748,12 @@ function FeedPageContent() {
                                 <Menu className="h-5 w-5" />
                                 <span className="sr-only">Toggle navigation menu</span>
                             </Button>
-                            {activeView !== 'messages' && (
-                                <Button variant="ghost" size="icon">
-                                    <Search className="h-5 w-5"/>
-                                </Button>
-                            )}
                         </div>
                     </header>
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
                             {(activeView === 'feed' || activeView === 'saves') && (
-                                <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
+                                <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
                                     <Popover open={showSuggestions}>
                                         <PopoverAnchor asChild>
                                             <div className="relative">
@@ -972,3 +967,4 @@ export default function FeedPage() {
 
 
     
+

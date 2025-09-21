@@ -9,11 +9,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, MoreVertical, Search, Send, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMessages, sendMessage, getConversations } from "@/ai/flows/chat-flow";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSidebar } from "../ui/sidebar";
 
 export interface Message {
   id: number | string;
@@ -88,6 +89,8 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
     onSelectConversation: (convo: Conversation) => void;
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
+    const { setOpen } = useSidebar();
+
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;
         return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -97,6 +100,10 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
         <>
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
                 <div className="flex items-center gap-2">
+                     <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
+                        <Menu className="h-5 w-5" />
+                        <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
