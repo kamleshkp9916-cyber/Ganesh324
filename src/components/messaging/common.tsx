@@ -290,37 +290,6 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     return (
         <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
-            <header className="p-4 border-b flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
-                    {isMobile && (
-                        <Button variant="ghost" size="icon" onClick={onBack}>
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                    )}
-                    <Link href={conversation.isExecutive ? `#` : `/seller/profile?userId=${conversation.userId}`} className="cursor-pointer group">
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src={conversation.avatarUrl} />
-                                <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h2 className="font-semibold group-hover:underline">{conversation.userName}</h2>
-                                <p className="text-xs text-muted-foreground">Online</p>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon"><MoreVertical /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" /> Report
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </header>
             <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
                 {isLoading ? (
                     <div className="space-y-4">
