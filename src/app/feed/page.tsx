@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -808,9 +809,9 @@ function FeedPageContent() {
       <SidebarProvider>
         <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             <div className="grid md:grid-cols-[256px_1fr] lg:grid-cols-[256px_1fr_350px]">
-                <Sidebar className="hidden md:block h-screen sticky top-0 border-r">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </Sidebar>
+                <div className="hidden md:block">
+                     <MainSidebar userData={userData!} userPosts={userPosts} />
+                </div>
                 
                 <main className="flex-1 min-w-0 h-screen flex flex-col">
                     {isMobile && activeView === 'messages' ? (
@@ -879,34 +880,17 @@ function FeedPageContent() {
                                 <div/>
                             </header>
                             
-                             <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32", activeView === 'messages' && "md:grid md:grid-cols-2 md:overflow-hidden")}>
+                             <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32")}>
                                 {activeView === 'messages' && !isMobile ? (
-                                    <>
-                                        <div className="h-full flex flex-col">
-                                            <ConversationList 
-                                                conversations={conversations} 
-                                                selectedConversation={selectedConversation} 
-                                                onSelectConversation={setSelectedConversation}
-                                                userData={userData}
-                                                userPosts={userPosts}
-                                            />
-                                        </div>
-                                        <div className="hidden md:flex flex-col border-l h-full">
-                                            {selectedConversation ? (
-                                                <ChatWindow 
-                                                    conversation={selectedConversation} 
-                                                    userData={userData!}
-                                                    onBack={() => setSelectedConversation(null)}
-                                                />
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                                                    <MessageSquare className="h-16 w-16 mb-4"/>
-                                                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                                                    <p>Choose a conversation to start messaging.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
+                                    <div className="h-full flex flex-col">
+                                        <ConversationList 
+                                            conversations={conversations} 
+                                            selectedConversation={selectedConversation} 
+                                            onSelectConversation={setSelectedConversation}
+                                            userData={userData}
+                                            userPosts={userPosts}
+                                        />
+                                    </div>
                                 ) : (
                                     <section>
                                         {activeView === 'saves' ? (
