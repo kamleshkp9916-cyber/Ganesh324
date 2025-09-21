@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -757,7 +758,7 @@ function FeedPageContent() {
     }
   }
 
-  const renderMessagesView = () => {
+  const renderMessagesView = (isSidebarOpen: boolean, setIsSidebarOpen: (open: boolean) => void) => {
     if (isMobile) {
         if (selectedConversation) {
             return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
@@ -796,7 +797,7 @@ function FeedPageContent() {
                     </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>
-                {renderMessagesView()}
+                {renderMessagesView(isSidebarOpen, setIsSidebarOpen)}
             </Sheet>
         </div>
     );
@@ -989,3 +990,4 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+

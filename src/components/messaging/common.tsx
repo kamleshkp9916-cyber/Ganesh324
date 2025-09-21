@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -134,9 +135,10 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ onSidebarToggle, conversations, selectedConversation, onSelectConversation }: { onSidebarToggle: () => void, conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
+export const ConversationList = ({ onSidebarToggle, conversations, selectedConversation, onSelectConversation }: { onSidebarToggle?: () => void, conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const { user } = useAuth();
+    const router = useRouter();
     
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;
@@ -146,7 +148,15 @@ export const ConversationList = ({ onSidebarToggle, conversations, selectedConve
     return (
          <div className="w-full h-full flex flex-col bg-background border-r">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
-                 <h1 className="text-xl font-bold">Chats</h1>
+                 <div className="flex items-center gap-2">
+                     {onSidebarToggle && (
+                         <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
+                            <Menu className="h-5 w-5" />
+                            <span className="sr-only">Toggle navigation menu</span>
+                        </Button>
+                     )}
+                     <h1 className="text-xl font-bold">Chats</h1>
+                 </div>
             </header>
             <div className="p-4 border-b">
                  <div className="relative">
