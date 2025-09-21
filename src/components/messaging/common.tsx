@@ -36,12 +36,12 @@ export interface Conversation {
 export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conversation, isSelected: boolean, onClick: () => void }) => (
     <button
         className={cn(
-            "w-full text-left p-3 flex items-center gap-3 rounded-lg",
+            "w-full text-left p-2 flex items-center gap-3 rounded-lg",
             isSelected ? "bg-secondary" : "hover:bg-secondary/50"
         )}
         onClick={onClick}
     >
-        <Avatar className="h-12 w-12">
+        <Avatar className="h-10 w-10">
             <AvatarImage src={convo.avatarUrl} />
             <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
         </Avatar>
@@ -50,10 +50,10 @@ export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conver
                 <p className="font-semibold text-sm truncate">{convo.userName}</p>
                 <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
             </div>
-            <div className="flex justify-between items-start mt-1">
-                <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
+            <div className="flex justify-between items-start mt-0.5">
+                <p className="text-xs text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
                 {convo.unreadCount > 0 && (
-                    <div className="w-5 h-5 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
+                    <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
                         {convo.unreadCount}
                     </div>
                 )}
