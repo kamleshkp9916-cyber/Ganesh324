@@ -762,7 +762,7 @@ function FeedPageContent() {
             </SheetHeader>
             <MainSidebar userData={userData!} userPosts={userPosts} />
           </SheetContent>
-          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(350px,1fr)_2fr]">
+          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,2fr)_3fr]">
             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
               <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
