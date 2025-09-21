@@ -41,7 +41,7 @@ const emojis = [
 ];
 
 
-export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, currentUserName: string | null, onDelete: (id: string | number) => void }) {
+export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, currentUserName: string | null, onDelete?: (id: string | number) => void }) {
     const { user } = useAuth();
     const isMe = msg.sender === 'customer' || msg.sender === user?.displayName;
 
@@ -57,7 +57,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
         <div className={`group flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
              {!isMe && (
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://placehold.co/40x40.png`} />
+                    <AvatarImage src={undefined} />
                     <AvatarFallback>{avatarInitial}</AvatarFallback>
                 </Avatar>
             )}
@@ -70,7 +70,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
                     {msg.timestamp}
                 </p>
             </div>
-             {isMe && (
+             {isMe && onDelete && (
                 <AlertDialog>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
