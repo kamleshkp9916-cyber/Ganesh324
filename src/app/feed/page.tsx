@@ -744,13 +744,15 @@ function FeedPageContent() {
                  <div className="flex flex-col h-screen">
                     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
                         <div className="flex items-center gap-2">
-                           <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                            <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
                                 <Menu className="h-5 w-5" />
                                 <span className="sr-only">Toggle navigation menu</span>
                             </Button>
-                            <Button variant="ghost" size="icon">
-                                <Search className="h-5 w-5"/>
-                            </Button>
+                            {activeView !== 'messages' && (
+                                <Button variant="ghost" size="icon">
+                                    <Search className="h-5 w-5"/>
+                                </Button>
+                            )}
                         </div>
                     </header>
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
