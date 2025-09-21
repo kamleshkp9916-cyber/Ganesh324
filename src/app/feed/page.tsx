@@ -432,10 +432,12 @@ function FeedPageContent() {
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
-    if (type === 'user') {
-        setSearchTerm(value);
-    } else {
+    if (type === 'hashtag') {
         setSearchTerm(`#${value}`);
+    } else {
+        // This case is now for navigation, handled in the JSX.
+        // We just clear the search term and suggestions.
+        setSearchTerm('');
     }
     setSearchSuggestions({users: [], hashtags: [], posts: []});
   }
@@ -485,11 +487,11 @@ function FeedPageContent() {
 
   const loadConversations = useCallback(() => {
     setConversations(mockConversations);
-    if (mockConversations.length > 0 && !isMobile && !selectedConversation) {
+    if (mockConversations.length > 0 && !isMobile) {
       // Don't auto-select a conversation to allow the user to see the list first.
       // setSelectedConversation(mockConversations[0]);
     }
-  }, [isMobile, selectedConversation]);
+  }, [isMobile]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -609,7 +611,6 @@ function FeedPageContent() {
             
             const dataToUpdate: any = {
                 content: postData.content,
-                location: postData.location,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
             };
@@ -621,7 +622,6 @@ function FeedPageContent() {
             const db = getFirestoreDb();
             const dataToSave: any = {
                 content: postData.content,
-                location: postData.location,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 taggedProduct: postData.taggedProduct ? {
                     id: postData.taggedProduct.id,
@@ -860,7 +860,7 @@ function FeedPageContent() {
                                                         <div>
                                                             <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
                                                             {searchSuggestions.users.map(u => (
-                                                                <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.displayName)}>
+                                                                <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => router.push(u.role === 'seller' ? `/seller/profile?userId=${u.uid}` : `/profile?userId=${u.uid}`)}>
                                                                     <div className="flex items-center gap-2">
                                                                         <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
                                                                         <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
