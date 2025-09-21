@@ -127,14 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { ConversationList, ChatWindow, Conversation } from '@/components/messaging/common';
 import { MainSidebar } from '@/components/main-sidebar';
-import {
-  Sidebar,
-  SidebarTrigger,
-  SidebarProvider,
-  SidebarContent,
-  SidebarHeader,
-  SidebarInset,
-} from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -813,80 +806,84 @@ function FeedPageContent() {
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
-                <main className={cn("min-w-0", activeView === 'messages' && "md:grid md:grid-cols-2")}>
-                    <div className={cn("w-full h-full flex flex-col", activeView === 'messages' ? 'md:border-r' : '')}>
+                <main className="min-w-0">
+                    <div className="w-full h-full flex flex-col">
                         <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                             <SidebarTrigger />
-                            <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
-                                <PopoverAnchor asChild>
-                                    <div className="relative w-full max-w-sm">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search for users, posts, #tags"
-                                            className="bg-transparent rounded-full pl-10"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                </PopoverAnchor>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
-                                    <div className="space-y-4">
-                                        {searchSuggestions.users.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
-                                                {searchSuggestions.users.map(u => (
-                                                    <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                            <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                            {activeView !== 'messages' && (
+                                <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
+                                    <PopoverAnchor asChild>
+                                        <div className="relative w-full max-w-sm">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search for users, posts, #tags"
+                                                className="bg-transparent rounded-full pl-10"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </div>
+                                    </PopoverAnchor>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                        <div className="space-y-4">
+                                            {searchSuggestions.users.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                                    {searchSuggestions.users.map(u => (
+                                                        <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {searchSuggestions.hashtags.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                                    {searchSuggestions.hashtags.map(h => (
+                                                        <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                            <div className="flex items-center gap-2 font-semibold">
+                                                                <Hash className="h-4 w-4 text-muted-foreground" />
+                                                                <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {searchSuggestions.posts.length > 0 && (
+                                                <div>
+                                                    <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                                    {searchSuggestions.posts.map(p => (
+                                                        <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                            <BookText className="h-4 w-4 inline-block mr-2" />
+                                                            <Highlight text={p.content} highlight={debouncedSearchTerm} />
                                                         </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.hashtags.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
-                                                {searchSuggestions.hashtags.map(h => (
-                                                    <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
-                                                        <div className="flex items-center gap-2 font-semibold">
-                                                            <Hash className="h-4 w-4 text-muted-foreground" />
-                                                            <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.posts.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
-                                                {searchSuggestions.posts.map(p => (
-                                                    <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
-                                                        <BookText className="h-4 w-4 inline-block mr-2" />
-                                                        <Highlight text={p.content} highlight={debouncedSearchTerm} />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
-                                            <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
-                                        )}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
+                                                <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                            )}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
                             <div/>
                         </header>
                         
-                        <div className="flex-grow overflow-y-auto no-scrollbar pb-32 w-full max-w-3xl mx-auto">
+                        <div className="flex-grow overflow-y-auto no-scrollbar pb-32 max-w-3xl w-full mx-auto">
                             {isMobile && activeView === 'messages' ? renderMobileMessages() :
                             activeView === 'messages' ? (
-                                    <ConversationList 
-                                        conversations={conversations} 
-                                        selectedConversation={selectedConversation} 
-                                        onSelectConversation={setSelectedConversation}
-                                        userData={userData}
-                                        userPosts={userPosts}
-                                    />
+                                    <div className="md:hidden">
+                                        <ConversationList 
+                                            conversations={conversations} 
+                                            selectedConversation={selectedConversation} 
+                                            onSelectConversation={setSelectedConversation}
+                                            userData={userData}
+                                            userPosts={userPosts}
+                                        />
+                                    </div>
                                 ) : (
                                 <section>
                                     {activeView === 'saves' ? (
@@ -945,21 +942,18 @@ function FeedPageContent() {
                             )}
                         </div>
                     </div>
-                     {activeView === 'messages' && !isMobile && (
-                        <div className="w-full h-full flex flex-col">
-                            {selectedConversation ? (
-                                <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => setSelectedConversation(null)} />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                    <MessageSquare className="h-10 w-10 mb-4" />
-                                    <span>Select a conversation</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </main>
                 <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
-                    {selectedPostForComments ? (
+                    {activeView === 'messages' ? (
+                        selectedConversation ? (
+                            <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => setSelectedConversation(null)} />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                                <MessageSquare className="h-10 w-10 mb-4" />
+                                <span>Select a conversation</span>
+                            </div>
+                        )
+                    ) : selectedPostForComments ? (
                         <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
@@ -1047,4 +1041,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
