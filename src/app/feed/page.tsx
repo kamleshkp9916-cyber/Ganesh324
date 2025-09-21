@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -395,6 +394,64 @@ const FeedPost = ({
     )
 }
 
+function MessagesView() {
+    const { userData } = useAuth();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const { open, setOpen } = useSidebar();
+    const isMobile = useIsMobile();
+
+    const loadConversations = useCallback(() => {
+        let allConvos = [...mockConversations];
+        setConversations(allConvos);
+        const userIdFromParams = searchParams.get('userId');
+        if (userIdFromParams) {
+            const preselected = allConvos.find(c => c.userId === userIdFromParams);
+            if (preselected) {
+                setSelectedConversation(preselected);
+            }
+        } else if (allConvos.length > 0 && !isMobile) {
+            setSelectedConversation(allConvos[0]);
+        }
+    }, [searchParams, isMobile]);
+
+    useEffect(() => {
+        loadConversations();
+    }, [loadConversations]);
+
+    if (!userData) return null;
+
+    return (
+        <div className="h-full w-full lg:grid lg:grid-cols-[minmax(320px,1fr)_2fr]">
+            <div className={cn("h-full flex-col border-r", "flex", isMobile && selectedConversation ? "hidden" : "flex")}>
+                <ConversationList
+                    onSidebarToggle={() => setOpen(true)}
+                    conversations={conversations}
+                    selectedConversation={selectedConversation}
+                    onSelectConversation={setSelectedConversation}
+                />
+            </div>
+            <div className={cn("h-full flex-col", "flex", isMobile && !selectedConversation ? "hidden" : "flex")}>
+                {selectedConversation ? (
+                    <ChatWindow
+                        conversation={selectedConversation}
+                        userData={userData}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                        <MessageSquare className="h-16 w-16 mb-4" />
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function FeedPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -418,9 +475,6 @@ function FeedPageContent() {
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
   
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const isMobile = useIsMobile();
   const { open, setOpen } = useSidebar();
 
 
@@ -481,28 +535,10 @@ function FeedPageContent() {
     setSavedPosts(getSavedPosts());
   }, []);
 
-  const loadConversations = useCallback(() => {
-    let allConvos = [...mockConversations];
-    setConversations(allConvos);
-    const userIdFromParams = searchParams.get('userId');
-    if (userIdFromParams) {
-        const preselected = allConvos.find(c => c.userId === userIdFromParams);
-        if (preselected) {
-          setSelectedConversation(preselected);
-          if (isMobile) {
-            router.push('/feed?tab=messages');
-          }
-        }
-    } else if (allConvos.length > 0 && !isMobile) {
-        setSelectedConversation(allConvos[0]);
-    }
-  }, [searchParams, isMobile, router]);
-
   useEffect(() => {
     setIsMounted(true);
     loadFollowData();
     loadSavedPosts();
-    loadConversations();
     
     const handleStorageChange = (e: StorageEvent) => {
         if (e.key === 'streamcart_saved_posts') {
@@ -514,7 +550,7 @@ function FeedPageContent() {
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     }
-  }, [loadFollowData, loadSavedPosts, loadConversations]);
+  }, [loadFollowData, loadSavedPosts]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -755,253 +791,165 @@ function FeedPageContent() {
     toggleSavePost(post);
     loadSavedPosts();
   };
-  
-  const handleMobileConversationSelect = (convo: Conversation) => {
-    setSelectedConversation(convo);
-  }
-
-  const renderMessagesView = () => {
-    return (
-        <div className="h-screen w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr] lg:grid-cols-[260px_minmax(320px,1fr)_2fr]">
-            {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-                <MainSidebar userData={userData!} userPosts={userPosts} />
-            </aside>
-
-            {/* Conversation List */}
-             <div className={cn(
-                "h-full flex-col border-r",
-                "md:flex",
-                selectedConversation ? "hidden" : "flex"
-             )}>
-                <ConversationList
-                    onSidebarToggle={() => setOpen(true)}
-                    conversations={conversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={handleMobileConversationSelect}
-                />
-            </div>
-            
-            {/* Chat Window */}
-             <div className={cn(
-                "h-full flex-col",
-                "md:flex",
-                selectedConversation ? "flex" : "hidden"
-            )}>
-                {selectedConversation ? (
-                    <ChatWindow
-                        conversation={selectedConversation}
-                        userData={userData!}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                        <MessageSquare className="h-16 w-16 mb-4" />
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-  if (activeView === 'messages') {
-    return (
-      <SidebarProvider>
-        <div className="h-screen w-full">
-            {renderMessagesView()}
-             <Sheet open={open} onOpenChange={setOpen}>
-                <SheetContent side="left" className="p-0 w-80 lg:hidden">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </SheetContent>
-            </Sheet>
-        </div>
-      </SidebarProvider>
-    )
-  }
 
   return (
-    <SidebarProvider>
-      <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-            <AlertDialogTitle>Report Post</AlertDialogTitle>
-            <AlertDialogDescription>
-                Please select a reason for reporting this post. Your feedback is important to us.
-            </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="grid gap-2">
-                {reportReasons.map(reason => (
-                    <Button
-                        key={reason.id}
-                        variant={selectedReportReason === reason.id ? "secondary" : "ghost"}
-                        onClick={() => setSelectedReportReason(reason.id)}
-                        className="justify-start"
-                    >
-                        {reason.label}
-                    </Button>
-                ))}
-            </div>
-            <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedReportReason("")}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={submitReport} disabled={!selectedReportReason}>
-                Submit Report
-            </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-        <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-                <MainSidebar userData={userData!} userPosts={userPosts} />
-            </aside>
+    <div className="h-screen w-full">
+        {activeView === 'messages' ? (
+            <MessagesView />
+        ) : (
+            <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
+                 <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </aside>
 
-            <div className="flex flex-col h-screen">
-                 <header className="p-4 border-b shrink-0 flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                        <Menu className="h-5 w-5" />
-                        <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search feed..." 
-                            className="pl-9 rounded-full"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                <div className="flex flex-col h-screen">
+                     <header className="p-4 border-b shrink-0 flex items-center gap-4">
+                        <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
+                            <Menu className="h-5 w-5" />
+                            <span className="sr-only">Toggle navigation menu</span>
+                        </Button>
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search feed..." 
+                                className="pl-9 rounded-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </header>
+                    <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="h-full flex flex-col">
+                            <div className="w-full flex-grow">
+                                <section>
+                                    {(activeView === 'feed' || activeView === 'saves') && (
+                                        <div className="divide-y divide-border/20">
+                                            {isLoadingFeed ? (
+                                                <>
+                                                    <FeedPostSkeleton />
+                                                    <FeedPostSkeleton />
+                                                </>
+                                            ) : (
+                                                filteredFeed.map(post => (
+                                                    <FeedPost 
+                                                        key={post.id}
+                                                        post={post}
+                                                        currentUser={user}
+                                                        onDelete={handleDeletePost}
+                                                        onEdit={handleEditPost}
+                                                        onShare={handleShare}
+                                                        onReport={() => setIsReportDialogOpen(true)}
+                                                        onSaveToggle={handleSaveToggle}
+                                                        isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                    />
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                    {filteredFeed.length === 0 && !isLoadingFeed && (
+                                        <div className="text-center py-16 text-muted-foreground">
+                                            <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                            <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                        </div>
+                                    )}
+                                </section>
+                            </div>
+                        </div>
                     </div>
-                </header>
-                <div className="flex-1 overflow-y-auto no-scrollbar">
-                    <div className="h-full flex flex-col">
-                        <div className="w-full flex-grow">
-                            <section>
-                                {(activeView === 'feed' || activeView === 'saves') && (
-                                    <div className="divide-y divide-border/20">
-                                        {isLoadingFeed ? (
-                                            <>
-                                                <FeedPostSkeleton />
-                                                <FeedPostSkeleton />
-                                            </>
-                                        ) : (
-                                            filteredFeed.map(post => (
-                                                <FeedPost 
-                                                    key={post.id}
-                                                    post={post}
-                                                    currentUser={user}
-                                                    onDelete={handleDeletePost}
-                                                    onEdit={handleEditPost}
-                                                    onShare={handleShare}
-                                                    onReport={() => setIsReportDialogOpen(true)}
-                                                    onSaveToggle={handleSaveToggle}
-                                                    isSaved={isPostSaved(post.id)}
-                                                    highlightTerm={debouncedSearchTerm}
-                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                />
-                                            ))
-                                        )}
-                                    </div>
-                                )}
-                                {filteredFeed.length === 0 && !isLoadingFeed && (
-                                    <div className="text-center py-16 text-muted-foreground">
-                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                    </div>
-                                )}
-                            </section>
+
+                    <div className="w-full pointer-events-auto mt-auto">
+                        <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
+                            <CreatePostForm
+                                onPost={handlePostSubmit}
+                                postToEdit={postToEdit}
+                                onFinishEditing={onFinishEditing}
+                                isSubmitting={isFormSubmitting}
+                            />
                         </div>
                     </div>
                 </div>
 
-                <div className="w-full pointer-events-auto mt-auto">
-                    <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
-                        <CreatePostForm
-                            onPost={handlePostSubmit}
-                            postToEdit={postToEdit}
-                            onFinishEditing={onFinishEditing}
-                            isSubmitting={isFormSubmitting}
-                        />
-                    </div>
-                </div>
-            </div>
+                <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
+                    <ScrollArea className="flex-1">
+                        {selectedPostForComments ? (
+                            <CommentColumn 
+                                post={selectedPostForComments} 
+                                onClose={() => setSelectedPostForComments(null)} 
+                            />
+                        ) : (
+                            <div className="p-6 space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">Trending</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-4">
+                                            {trendingTopics.map((topic, index) => (
+                                                <div key={index}>
+                                                    <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
+                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
 
-            <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
-                <ScrollArea className="flex-1">
-                    {selectedPostForComments ? (
-                        <CommentColumn 
-                            post={selectedPostForComments} 
-                            onClose={() => setSelectedPostForComments(null)} 
-                        />
-                    ) : (
-                        <div className="p-6 space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Trending</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        {trendingTopics.map((topic, index) => (
-                                            <div key={index}>
-                                                <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                                <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Trending Streams</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        {trendingStreams.map((stream) => (
-                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative">
-                                                        <Avatar className="h-10 w-10">
-                                                            <AvatarImage src={stream.avatarUrl}/>
-                                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                        <RadioTower className="h-2 w-2 text-white"/>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">Trending Streams</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-4">
+                                            {trendingStreams.map((stream) => (
+                                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={stream.avatarUrl}/>
+                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                            <RadioTower className="h-2 w-2 text-white"/>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                        <Users className="h-3 w-3"/>
+                                                        {stream.viewers}
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                    <Users className="h-3 w-3"/>
-                                                    {stream.viewers}
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-                </ScrollArea>
-            </aside>
-             <Sheet open={open} onOpenChange={setOpen}>
-                <SheetContent side="left" className="p-0 w-80 lg:hidden">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </SheetContent>
-            </Sheet>
-        </div>
-    </SidebarProvider>
-  )
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </ScrollArea>
+                </aside>
+            </div>
+        )}
+        <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent side="left" className="p-0 w-80 lg:hidden">
+                <MainSidebar userData={userData!} userPosts={userPosts} />
+            </SheetContent>
+        </Sheet>
+    </div>
+  );
 }
-
 
 export default function FeedPage() {
     return (
         <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>}>
-            <FeedPageContent />
+            <SidebarProvider>
+                <FeedPageContent />
+            </SidebarProvider>
         </React.Suspense>
     )
 }
