@@ -11,6 +11,8 @@ import type { UserData } from '@/lib/follow-data';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './ui/sidebar';
+import { format } from 'url';
+
 
 interface MainSidebarProps {
     userData: UserData;
@@ -45,7 +47,11 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     }
     
     const handleNavigation = (href: string | { pathname: string, query?: any }) => {
-        router.push(href);
+        if (typeof href === 'string') {
+            router.push(href);
+        } else {
+            router.push(format(href));
+        }
         setOpen(false); // Close sidebar on navigation
     };
     
@@ -86,7 +92,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
             <nav className="space-y-1 flex-grow">
                 <Collapsible defaultOpen={isFeedActive}>
                     <CollapsibleTrigger asChild>
-                        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isFeedActive}>
+                         <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isFeedActive}>
                             <Link href="/feed"><Home /> Feed</Link>
                         </Button>
                     </CollapsibleTrigger>
