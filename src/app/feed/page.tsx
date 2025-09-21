@@ -815,6 +815,42 @@ function FeedPageContent() {
                      ) : (
                         <div className="flex-1 overflow-y-auto no-scrollbar">
                            <div className="h-full flex flex-col">
+                                <div className="sticky top-0 lg:top-16 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
+                                    <Popover open={showSuggestions}>
+                                        <PopoverAnchor asChild>
+                                            <div className="relative">
+                                                <Input
+                                                    placeholder="Search feed..."
+                                                    className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                />
+                                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                        </PopoverAnchor>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-2" onOpenAutoFocus={(e) => e.preventDefault()}>
+                                            <ScrollArea className="max-h-80">
+                                                {searchSuggestions.users.length > 0 && <DropdownMenuLabel>Users</DropdownMenuLabel>}
+                                                {searchSuggestions.users.map(u => (
+                                                    <DropdownMenuItem key={u.uid} onSelect={() => handleSearchFilter('user', u.uid)}>
+                                                        <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                        {u.displayName}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                                {searchSuggestions.hashtags.length > 0 && <DropdownMenuLabel>Hashtags</DropdownMenuLabel>}
+                                                {searchSuggestions.hashtags.map(h => (
+                                                    <DropdownMenuItem key={h} onSelect={() => handleSearchFilter('hashtag', h)}>#{h}</DropdownMenuItem>
+                                                ))}
+                                                 {searchSuggestions.posts.length > 0 && <DropdownMenuLabel>Posts</DropdownMenuLabel>}
+                                                  {searchSuggestions.posts.map(p => (
+                                                    <DropdownMenuItem key={p.id} onSelect={() => setSearchTerm(p.content.substring(0,20))}>
+                                                        <span className="truncate">{p.content}</span>
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </ScrollArea>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
                                <div className="w-full flex-grow">
                                   <section>
                                        <div className="divide-y divide-border/20">
@@ -864,15 +900,6 @@ function FeedPageContent() {
                 <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
                    <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                         <div className="flex-shrink-0">
-                            <div className="relative">
-                                <Input
-                                    placeholder="Search..."
-                                    className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            </div>
                         </div>
 
                          <ScrollArea className="-mx-4 mt-4">
