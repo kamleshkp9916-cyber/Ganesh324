@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
 import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { getMessages, sendMessage, getConversations } from "@/ai/flows/chat-flow";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "../ui/sidebar";
@@ -141,41 +140,19 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 };
 
 
-export const ChatWindow = ({ conversation, userData, onBack }: {
+export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMessage }: {
     conversation: Conversation;
     userData: UserData;
     onBack: () => void;
+    messages: Message[];
+    onSendMessage: (text: string) => void;
 }) => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [isChatLoading, setIsChatLoading] = useState(true);
+    const [isChatLoading, setIsChatLoading] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
     const { user } = useAuth();
-
-    useEffect(() => {
-        if (!conversation?.conversationId) return;
-
-        setIsChatLoading(true);
-        const db = getFirestoreDb();
-        const messagesRef = collection(db, `conversations/${conversation.conversationId}/messages`);
-        const q = query(messagesRef, orderBy("timestamp", "asc"));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const fetchedMessages: Message[] = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            } as Message));
-            setMessages(fetchedMessages);
-            setIsChatLoading(false);
-        }, (error) => {
-            console.error("Error fetching messages in real-time:", error);
-            setIsChatLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [conversation.conversationId]);
-
+    
     useEffect(() => {
         chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
     }, [messages]);
@@ -186,8 +163,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
         
         const currentMessage = newMessage;
         setNewMessage("");
-
-        await sendMessage(conversation.conversationId, user.uid, { text: currentMessage });
+        onSendMessage(currentMessage);
     };
     
     if (!user) return null;

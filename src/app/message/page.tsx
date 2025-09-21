@@ -7,9 +7,34 @@ import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { MessageSquare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ConversationList, ChatWindow, Conversation } from '@/components/messaging/common';
+import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { cn } from '@/lib/utils';
 import { getConversations } from '@/ai/flows/chat-flow';
+
+
+const mockConversations: Conversation[] = [
+    { conversationId: '1', userId: "support", userName: "StreamCart Support", avatarUrl: "https://placehold.co/40x40/000000/FFFFFF?text=SC", lastMessage: "Yes, we can help with that!", lastMessageTimestamp: "10:30 AM", unreadCount: 1, isExecutive: true },
+    { conversationId: '2', userId: "seller1", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
+    { conversationId: '3', userId: "seller2", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+];
+
+const mockMessages: Record<string, Message[]> = {
+  "support": [
+    { id: 1, senderId: 'customer', text: 'I have an issue with my recent order.', timestamp: '10:28 AM' },
+    { id: 2, senderId: 'support', text: 'Hello! I can certainly help you with that. Can you please provide me with the order ID?', timestamp: '10:29 AM' },
+    { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM' },
+    { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
+  ],
+  "seller1": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM' },
+  ],
+  "seller2": [
+      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
+  ]
+};
 
 
 export default function MessagePage() {
@@ -17,50 +42,29 @@ export default function MessagePage() {
     const { user, userData, loading } = useAuth();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const isMobile = useIsMobile();
     
-    const fetchConversations = useCallback(async () => {
-        if (!user) return;
-        setIsLoading(true);
-        try {
-            const convos = await getConversations(user.uid);
-            
-            // Add StreamCart support conversation if not present
-            let supportConvo = convos.find(c => c.userId === 'StreamCart');
-            if (!supportConvo) {
-                supportConvo = {
-                    conversationId: [user.uid, 'StreamCart'].sort().join('_'),
-                    userId: 'StreamCart',
-                    userName: 'StreamCart Support',
-                    avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
-                    lastMessage: 'Welcome to StreamCart support!',
-                    lastMessageTimestamp: 'Yesterday',
-                    unreadCount: 0,
-                    isExecutive: true,
-                };
-                convos.unshift(supportConvo);
-            }
-            
-            setConversations(convos);
-
-            if (convos.length > 0 && !selectedConversation && !isMobile) {
-                setSelectedConversation(convos[0]);
-            }
-        } catch (error) {
-            console.error("Failed to fetch conversations:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [user, isMobile, selectedConversation]);
-
     useEffect(() => {
         if (!loading && user) {
-            fetchConversations();
+            setIsLoading(true);
+            setConversations(mockConversations);
+            if (mockConversations.length > 0) {
+              const convoToSelect = mockConversations[0];
+              setSelectedConversation(convoToSelect);
+              setMessages(mockMessages[convoToSelect.userId] || []);
+            }
+            setIsLoading(false);
         } else if (!loading && !user) {
             router.replace('/?showLogin=true');
         }
-    }, [user, loading, router, fetchConversations]);
+    }, [user, loading, router]);
+    
+    const handleSelectConversation = (convo: Conversation) => {
+        setSelectedConversation(convo);
+        setMessages(mockMessages[convo.userId] || []);
+    };
     
     if (loading || isLoading || !user || !userData) {
         return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -75,7 +79,7 @@ export default function MessagePage() {
                  <ConversationList
                     conversations={conversations}
                     selectedConversation={selectedConversation}
-                    onSelectConversation={setSelectedConversation}
+                    onSelectConversation={handleSelectConversation}
                 />
             </div>
             
@@ -88,6 +92,16 @@ export default function MessagePage() {
                         key={selectedConversation.userId}
                         conversation={selectedConversation}
                         userData={userData}
+                        messages={messages}
+                        onSendMessage={(text) => {
+                            const newMessage: Message = {
+                                id: Date.now(),
+                                senderId: user.uid,
+                                text,
+                                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            };
+                            setMessages(prev => [...prev, newMessage]);
+                        }}
                         onBack={() => setSelectedConversation(null)}
                     />
                 ) : (
