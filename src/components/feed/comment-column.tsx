@@ -201,7 +201,7 @@ const Comment = ({ comment, post, handlers, allComments }: {
                 )}
 
                 {showReplies && (
-                    <div className="pt-4 space-y-6 ml-6 pl-6 border-l">
+                    <div className="pt-4 space-y-6">
                         {isRepliesLoading ? (
                             <CommentSkeleton />
                         ) : (
@@ -296,11 +296,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
     
     if (!post) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-        );
+      return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      );
     }
 
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
