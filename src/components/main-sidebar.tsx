@@ -61,7 +61,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     return (
         <div className="p-6 flex flex-col h-full">
             <div className="flex items-center gap-2 mb-8">
-                <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
+                <Button variant="ghost" size="icon" className="hidden lg:inline-flex -ml-2" onClick={() => router.push('/live-selling')}>
                     <ArrowLeft />
                 </Button>
                 <div className="flex-grow" />
