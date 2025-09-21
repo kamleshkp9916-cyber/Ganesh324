@@ -135,10 +135,8 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
-    const router = useRouter();
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, userData, userPosts }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const { userData, userPosts } = useAuth();
 
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;

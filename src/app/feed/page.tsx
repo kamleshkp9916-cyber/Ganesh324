@@ -763,22 +763,13 @@ function FeedPageContent() {
         if (selectedConversation) {
             return <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => setSelectedConversation(null)} />;
         } else {
-            return <ConversationList conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} />;
+            return <ConversationList conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts} />;
         }
     }
     // Desktop view
     return (
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(250px,_30%)_1fr] h-full border-t">
-            <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
-            <div className="h-full">
-                {selectedConversation ? (
-                    <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
-                ) : (
-                    <div className="hidden md:flex items-center justify-center h-full text-muted-foreground">
-                        Select a conversation to start messaging.
-                    </div>
-                )}
-            </div>
+        <div className="h-full border-t">
+            <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts} />
         </div>
     );
   }
@@ -815,7 +806,7 @@ function FeedPageContent() {
       </AlertDialog>
       <div className={cn(
             "grid h-screen w-full md:grid-cols-[200px_1fr]",
-            activeView === 'messages' ? 'lg:grid-cols-[260px_1fr]' : 'lg:grid-cols-[260px_1fr_400px]'
+            activeView === 'messages' ? 'lg:grid-cols-[260px_1fr]' : 'lg:grid-cols-[260px_minmax(0,_1fr)_400px]'
         )}>
             <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -832,7 +823,7 @@ function FeedPageContent() {
                                 <div className="w-full max-w-3xl mx-auto flex-grow">
                                     <section>
                                         {activeView === 'saves' ? (
-                                            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                            <div className="divide-y divide-border/20">
                                                 {filteredFeed.map(post => (
                                                     <FeedPost 
                                                         key={post.id}
