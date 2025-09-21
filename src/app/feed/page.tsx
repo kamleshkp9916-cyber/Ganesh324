@@ -405,6 +405,10 @@ function MessagesView() {
     const loadConversations = useCallback(() => {
         let allConvos = [...mockConversations];
         setConversations(allConvos);
+        // This line is removed to prevent auto-selection on desktop
+        // if (allConvos.length > 0) {
+        //     setSelectedConversation(allConvos[0]);
+        // }
     }, []);
 
     useEffect(() => {
@@ -415,7 +419,7 @@ function MessagesView() {
     
     return (
         <div className="h-full w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr]">
-            <div className={cn("h-full flex-col", (isMobile && selectedConversation) && "hidden", "md:flex")}>
+            <div className={cn("h-full flex-col md:flex", isMobile && selectedConversation && "hidden")}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
                     conversations={conversations}
@@ -423,7 +427,7 @@ function MessagesView() {
                     onSelectConversation={setSelectedConversation}
                 />
             </div>
-            <div className={cn("h-full flex-col", (isMobile && !selectedConversation) && "hidden", "md:flex")}>
+            <div className={cn("h-full flex-col md:flex", isMobile && !selectedConversation && "hidden")}>
                 {selectedConversation ? (
                     <ChatWindow
                         conversation={selectedConversation}
@@ -788,7 +792,7 @@ function FeedPageContent() {
             <MessagesView />
         ) : (
             <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                 <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                 <aside className="hidden h-screen flex-col border-r sticky top-0 lg:flex">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
