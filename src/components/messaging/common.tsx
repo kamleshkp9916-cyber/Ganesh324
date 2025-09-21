@@ -42,7 +42,8 @@ const emojis = [
 
 
 export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, currentUserName: string | null, onDelete: (id: string | number) => void }) {
-    const isMe = msg.sender === 'customer' || msg.sender === currentUserName || (currentUserName === 'StreamCart' && msg.sender === 'StreamCart');
+    const { user } = useAuth();
+    const isMe = msg.sender === 'customer' || msg.sender === user?.displayName;
 
     let avatarInitial = 'S'; // Seller/System default
     if (msg.sender === 'customer') {
@@ -134,9 +135,10 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, userData, userPosts }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
+    const { userData, userPosts } = useAuth();
 
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;
@@ -152,7 +154,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                              <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-80">
-                            <MainSidebar userData={userData} userPosts={userPosts} />
+                            {userData && <MainSidebar userData={userData} userPosts={userPosts} />}
                         </SheetContent>
                     </Sheet>
                     <h1 className="text-xl font-bold">Chats</h1>
@@ -195,7 +197,7 @@ const mockChatDatabase: Record<string, Message[]> = {
       { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
       { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
   ],
-  "StreamCart": [
+  "StreamCart Support": [
       { id: 1, text: "Welcome to StreamCart support!", sender: 'StreamCart', timestamp: 'Yesterday' },
   ]
 };
@@ -211,7 +213,6 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     const [userOrders, setUserOrders] = useState<Order[]>([]);
 
     useEffect(() => {
-        // In a real app, you'd fetch this. For demo, we use mock data.
         if(userData) {
             const orders = Object.values(allOrderData as any).filter((o: any) => o.userId === userData.uid || !o.userId);
             setUserOrders(orders as Order[]);
@@ -224,12 +225,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
             setMessages([]);
             setTimeout(() => {
                 try {
-                    let chatHistory;
-                    if (conversation.isExecutive) {
-                        chatHistory = mockChatDatabase['StreamCart'] || [];
-                    } else {
-                        chatHistory = mockChatDatabase[conversation.userId] || [];
-                    }
+                    let chatHistory = mockChatDatabase[conversation.userName] || [];
                     setMessages(chatHistory);
                 } catch (error) {
                     console.error("Failed to fetch messages for", conversation.userId, error);
@@ -257,7 +253,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         const optimisticMessage: Message = {
             id: Math.random(),
             ...messageContent,
-            sender: 'customer',
+            sender: userData.displayName,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages(prev => [...prev, optimisticMessage]);
@@ -424,5 +420,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
