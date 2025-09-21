@@ -16,7 +16,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface Message {
   id: number | string;
-  text: string;
+  text?: string;
+  imageUrl?: string;
   sender: 'customer' | 'seller' | 'StreamCart';
   timestamp: string;
 }
@@ -66,7 +67,8 @@ export const ChatMessage = ({ msg, currentUserName }: { msg: Message, currentUse
     return (
         <div key={msg.id} className={cn("flex items-end gap-2", isMyMessage ? "justify-end" : "justify-start")}>
             <div className={cn("max-w-[75%] rounded-lg px-3 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
+                {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <p className={cn("text-xs mt-1", isMyMessage ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-right")}>
                     {msg.timestamp}
                 </p>
@@ -160,7 +162,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
         const optimisticMessage: Message = {
             id: Math.random(),
             text: newMessage,
-            sender: from,
+            sender: from as 'customer' | 'seller' | 'StreamCart',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages(prev => [...prev, optimisticMessage]);
@@ -168,7 +170,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
         setNewMessage("");
 
         try {
-            const updatedMessages = await sendMessage(conversation.userId, { text: currentMessage }, from);
+            const updatedMessages = await sendMessage(conversation.userId, { text: currentMessage }, from as 'customer' | 'seller' | 'StreamCart');
             setMessages(updatedMessages);
         } catch (error) {
             console.error("Failed to send message", error);
