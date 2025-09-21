@@ -107,14 +107,13 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         onReply(replyText, comment.id, comment.authorName);
         setReplyText('');
         setIsReplying(false);
-        // Optimistically open replies if not already open
         if (!isRepliesOpen) {
             handleFetchReplies();
         }
     };
     
     const handleFetchReplies = async () => {
-        if (replies.length > 0) { // Don't refetch if already loaded
+        if (replies.length > 0) {
             setIsRepliesOpen(prev => !prev);
             return;
         }
@@ -225,9 +224,11 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 )}
                 
                 {isRepliesOpen && (
-                     <div className="pt-4 pl-4 border-l-2 border-border/50 space-y-4">
+                     <div className="pt-4 pl-6 space-y-4 border-l-2 border-border/50">
                         {isRepliesLoading ? (
-                             Array.from({ length: Math.min(comment.replyCount, 3) }).map((_, i) => <CommentSkeleton key={i} />)
+                            <div className="w-4/5 space-y-4">
+                                {Array.from({ length: Math.min(comment.replyCount, 3) }).map((_, i) => <CommentSkeleton key={i} />)}
+                            </div>
                         ) : (
                              replies.map(reply => (
                                 <Comment
@@ -425,6 +426,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
                 <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
+                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
+                    <X className="h-5 w-5" />
+                </Button>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
