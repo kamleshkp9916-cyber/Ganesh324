@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -378,6 +377,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
     }, [comments, handlers]);
 
+
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
 
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
