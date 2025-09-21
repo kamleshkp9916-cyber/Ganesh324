@@ -129,7 +129,7 @@ const Comment = ({ comment, post, handlers, allComments }: {
             <div className="flex-grow space-y-1">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                        <p className="font-semibold text-xs break-all">{comment.authorName}</p>
                         <p className="text-xs text-muted-foreground flex-shrink-0">
                             <RealtimeTimestamp date={comment.timestamp} />
                         </p>
@@ -206,7 +206,7 @@ const Comment = ({ comment, post, handlers, allComments }: {
                             <CommentSkeleton />
                         ) : (
                             replies.map(reply => (
-                                <div key={reply.id} className="ml-6 border-l pl-4">
+                                <div key={reply.id} className="border-l-2 border-border/50 pl-4">
                                     <Comment comment={reply} post={post} handlers={handlers} allComments={allComments} />
                                 </div>
                             ))
@@ -310,6 +310,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         <div className="h-full flex flex-col bg-background">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
                 <h3 className="font-bold text-lg">Comments ({allComments.length})</h3>
+                 <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+                    <X className="h-5 w-5" />
+                </Button>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start divide-y">
