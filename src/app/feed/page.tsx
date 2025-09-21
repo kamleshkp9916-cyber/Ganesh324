@@ -803,7 +803,7 @@ function FeedPageContent() {
                 renderMobileMessages()
             ) : (
                 <SidebarProvider>
-                     <div className={cn("grid min-h-screen", activeView === 'messages' ? 'lg:grid-cols-[1fr_2.5fr_1.25fr]' : 'lg:grid-cols-[1fr_2.5fr_1.25fr]')}>
+                     <div className={cn("grid min-h-screen", activeView === 'messages' ? 'md:grid-cols-[1fr_2fr_1fr]' : 'md:grid-cols-[1fr_2.5fr_1.25fr]')}>
                         <Sidebar variant="sidebar" collapsible="offcanvas">
                            <SidebarContent>
                                <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -812,7 +812,7 @@ function FeedPageContent() {
                         
                         {activeView === 'messages' ? (
                             <>
-                                <div className="h-screen flex-col border-r hidden lg:flex">
+                                <div className="h-screen flex-col border-r hidden md:flex">
                                     <ConversationList 
                                         conversations={conversations} 
                                         selectedConversation={selectedConversation} 
@@ -821,7 +821,7 @@ function FeedPageContent() {
                                         userPosts={userPosts}
                                     />
                                 </div>
-                                <div className="h-screen flex-col hidden lg:flex">
+                                <div className="h-screen flex-col hidden md:flex">
                                     {selectedConversation ? (
                                         <ChatWindow 
                                             conversation={selectedConversation} 
@@ -840,7 +840,7 @@ function FeedPageContent() {
                             <>
                                 <main className="flex-1 min-w-0 border-r h-screen overflow-y-hidden flex flex-col">
                                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                                        <SidebarTrigger className="lg:hidden" />
+                                        <SidebarTrigger className="md:hidden" />
                                         <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                             <PopoverAnchor asChild>
                                                 <div className="relative w-full max-w-sm">
@@ -957,7 +957,7 @@ function FeedPageContent() {
                                         </section>
                                     </div>
                                 </main>
-                                <aside className="hidden lg:flex flex-col h-screen">
+                                <aside className="hidden md:flex flex-col h-screen">
                                     {selectedPostForComments ? (
                                         <CommentColumn 
                                             post={selectedPostForComments} 
@@ -1024,8 +1024,8 @@ function FeedPageContent() {
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-                 <div className="grid lg:grid-cols-[1fr_2.5fr_1.25fr]">
-                    <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
+                 <div className="grid md:grid-cols-[1fr_2.5fr_1.25fr]">
+                    <div className="md:col-start-2 w-full md:w-[80%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
                                 onPost={handlePostSubmit}
