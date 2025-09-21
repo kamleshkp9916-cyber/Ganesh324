@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -417,13 +418,13 @@ function MessagesView() {
         }
     }, [userData, isMobile]);
 
-    if (!user || !userData) return <LoadingSpinner />;
-    if (isLoading) return <LoadingSpinner />;
+    if (!user || !userData) return <div className="h-full flex items-center justify-center"><LoadingSpinner /></div>;
+    if (isLoading) return <div className="h-full flex items-center justify-center"><LoadingSpinner /></div>;
 
     return (
         <div className="grid h-full w-full grid-cols-1 md:grid-cols-[minmax(280px,350px)_1fr]">
             <div className={cn(
-                "h-full flex-col border-r md:flex",
+                "h-full flex-col border-r border-border md:flex",
                 isMobile && selectedConversation ? "hidden" : "flex"
             )}>
                 <ConversationList
@@ -433,7 +434,7 @@ function MessagesView() {
                 />
             </div>
              <div className={cn(
-                "h-full flex-col md:flex",
+                "h-full flex-col bg-background md:flex",
                 isMobile && !selectedConversation ? "hidden" : "flex"
             )}>
                 {selectedConversation ? (
@@ -797,74 +798,52 @@ function FeedPageContent() {
 
   return (
     <div className="h-screen w-full">
-         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                <aside className={cn("h-screen flex-col border-r sticky top-0 hidden lg:flex")}>
+         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr]">
+                <aside className={cn("h-screen flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
                 <div className="flex flex-col h-screen">
-                     <header className="p-4 border-b shrink-0 flex items-center justify-between gap-4">
-                        <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                            <Menu className="h-5 w-5" />
-                            <span className="sr-only">Toggle navigation menu</span>
-                        </Button>
-                        <div className="relative flex-grow">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search feed..." 
-                                className="pl-9 rounded-full"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <Button asChild variant="ghost" size="icon" className="lg:hidden">
-                            <Link href="/live-selling"><Home className="h-5 w-5" /></Link>
-                        </Button>
-                    </header>
-                    <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="h-full flex flex-col">
-                            <div className="w-full flex-grow">
-                                {activeView === 'messages' ? <MessagesView /> : (
-                                    <section>
-                                        <div className="divide-y divide-border/20">
-                                            {isLoadingFeed ? (
-                                                <>
-                                                    <FeedPostSkeleton />
-                                                    <FeedPostSkeleton />
-                                                </>
-                                            ) : (
-                                                filteredFeed.map(post => (
-                                                    <FeedPost 
-                                                        key={post.id}
-                                                        post={post}
-                                                        currentUser={user}
-                                                        onDelete={handleDeletePost}
-                                                        onEdit={handleEditPost}
-                                                        onShare={handleShare}
-                                                        onReport={() => setIsReportDialogOpen(true)}
-                                                        onSaveToggle={handleSaveToggle}
-                                                        isSaved={isPostSaved(post.id)}
-                                                        highlightTerm={debouncedSearchTerm}
-                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                    />
-                                                ))
-                                            )}
-                                        </div>
-                                    </section>
-                                )}
-                                {activeView !== 'messages' && filteredFeed.length === 0 && !isLoadingFeed && (
-                                    <div className="text-center py-16 text-muted-foreground">
-                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                     {activeView === 'messages' ? (
+                        <MessagesView />
+                     ) : (
+                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                           <div className="h-full flex flex-col">
+                               <div className="w-full flex-grow">
+                                  <section>
+                                       <div className="divide-y divide-border/20">
+                                           {isLoadingFeed ? (
+                                               <>
+                                                   <FeedPostSkeleton />
+                                                   <FeedPostSkeleton />
+                                               </>
+                                           ) : (
+                                               filteredFeed.map(post => (
+                                                   <FeedPost 
+                                                       key={post.id}
+                                                       post={post}
+                                                       currentUser={user}
+                                                       onDelete={handleDeletePost}
+                                                       onEdit={handleEditPost}
+                                                       onShare={handleShare}
+                                                       onReport={() => setIsReportDialogOpen(true)}
+                                                       onSaveToggle={handleSaveToggle}
+                                                       isSaved={isPostSaved(post.id)}
+                                                       highlightTerm={debouncedSearchTerm}
+                                                       onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                       onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                   />
+                                               ))
+                                           )}
+                                       </div>
+                                   </section>
+                               </div>
+                           </div>
+                       </div>
+                     )}
                     {activeView === 'feed' && (
                         <div className="w-full pointer-events-auto mt-auto">
-                            <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
+                            <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                 <CreatePostForm
                                     onPost={handlePostSubmit}
                                     postToEdit={postToEdit}
@@ -876,67 +855,7 @@ function FeedPageContent() {
                     )}
                 </div>
 
-                <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
-                    <ScrollArea className="flex-1">
-                        {selectedPostForComments ? (
-                            <CommentColumn 
-                                post={selectedPostForComments} 
-                                onClose={() => setSelectedPostForComments(null)} 
-                            />
-                        ) : (
-                            <div className="p-6 space-y-6">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Trending</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            {trendingTopics.map((topic, index) => (
-                                                <div key={index}>
-                                                    <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Trending Streams</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            {trendingStreams.map((stream) => (
-                                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="relative">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={stream.avatarUrl}/>
-                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                            <RadioTower className="h-2 w-2 text-white"/>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Users className="h-3 w-3"/>
-                                                        {stream.viewers}
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        )}
-                    </ScrollArea>
-                </aside>
+                {/* Right sidebar is removed in this layout */}
             </div>
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="left" className="p-0 w-80 lg:hidden">

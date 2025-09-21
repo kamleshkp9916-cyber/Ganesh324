@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Search, Send, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, MoreVertical, Search, Send, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMessages, sendMessage, getConversations } from "@/ai/flows/chat-flow";
 import { Skeleton } from "../ui/skeleton";
@@ -35,12 +35,12 @@ export interface Conversation {
 export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conversation, isSelected: boolean, onClick: () => void }) => (
     <button
         className={cn(
-            "w-full text-left p-2 flex items-center gap-3 rounded-lg",
-            isSelected ? "bg-primary/10" : "hover:bg-muted"
+            "w-full text-left p-3 flex items-center gap-3 rounded-lg",
+            isSelected ? "bg-secondary" : "hover:bg-secondary/50"
         )}
         onClick={onClick}
     >
-        <Avatar>
+        <Avatar className="h-12 w-12">
             <AvatarImage src={convo.avatarUrl} />
             <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
         </Avatar>
@@ -49,10 +49,10 @@ export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conver
                 <p className="font-semibold text-sm truncate">{convo.userName}</p>
                 <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
             </div>
-            <div className="flex justify-between items-start">
-                <p className="text-xs text-muted-foreground truncate">{convo.lastMessage}</p>
+            <div className="flex justify-between items-start mt-1">
+                <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
                 {convo.unreadCount > 0 && (
-                    <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
+                    <div className="w-5 h-5 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
                         {convo.unreadCount}
                     </div>
                 )}
@@ -66,7 +66,7 @@ export const ChatMessage = ({ msg, currentUserName }: { msg: Message, currentUse
     const isMyMessage = msg.sender === currentUserName;
     return (
         <div key={msg.id} className={cn("flex items-end gap-2", isMyMessage ? "justify-end" : "justify-start")}>
-            <div className={cn("max-w-[75%] rounded-lg px-3 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
+            <div className={cn("max-w-[75%] rounded-2xl px-4 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <p className={cn("text-xs mt-1", isMyMessage ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-right")}>
@@ -97,11 +97,11 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
             </header>
             <div className="p-4 border-b">
                 <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
                         placeholder="Search conversations..."
-                        className="pl-8 w-full"
+                        className="pl-9 w-full rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -180,8 +180,8 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
     
     return (
         <>
-            <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
-                <div className="flex items-center gap-2">
+            <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
+                <div className="flex items-center gap-3">
                     {isMobile && (
                         <Button variant="ghost" size="icon" onClick={onBack}>
                             <ArrowLeft className="h-6 w-6" />
@@ -198,8 +198,11 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
                         </div>
                     </div>
                 </div>
+                <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                </Button>
             </header>
-            <ScrollArea className="flex-grow bg-muted/20" ref={chatContainerRef}>
+            <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
                         <div className="space-y-4">
@@ -215,15 +218,19 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
                 </div>
             </ScrollArea>
             <footer className="p-4 border-t shrink-0">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" type="button"><Smile className="h-5 w-5" /></Button>
-                    <Input 
-                        placeholder="Type a message" 
-                        className="flex-grow" 
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                    />
-                    <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                     <div className="relative flex-grow">
+                        <Input 
+                            placeholder="Type a message" 
+                            className="flex-grow rounded-full bg-muted border-transparent focus:bg-background focus:border-border pr-10" 
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground rounded-full">
+                            <Smile className="h-5 w-5"/>
+                        </Button>
+                    </div>
+                    <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0">
                         <Send className="h-5 w-5"/>
                     </Button>
                 </form>

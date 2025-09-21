@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from './ui/sidebar';
 import { format } from 'url';
 import { ScrollArea } from './ui/scroll-area';
+import { Logo } from './logo';
 
 
 interface MainSidebarProps {
@@ -58,19 +59,20 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     };
     
     const isFeedActive = isActive('/feed', null, 'global') || isActive('/feed', null, 'following') || (pathname === '/feed' && !activeTab && !feedFilter);
+    const isMessagesActive = isActive('/feed', 'messages');
 
     return (
-        <div className="p-6 flex flex-col h-full">
-            <div className="flex items-center gap-2 mb-8">
-                <Button variant="ghost" size="icon" className="lg:inline-flex -ml-2" onClick={() => router.push('/live-selling')}>
-                    <ArrowLeft />
-                </Button>
-                <div className="flex-grow" />
+        <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
+            <div className="flex items-center gap-2 mb-8 flex-shrink-0">
+                <Link href="/live-selling" className="flex items-center gap-2">
+                    <Logo className="h-8 w-8 text-foreground" />
+                    <span className="font-bold text-xl">StreamCart</span>
+                </Link>
             </div>
-             <ScrollArea className="flex-grow -mx-6">
-                <div className="px-6">
-                    <div className="flex flex-col items-center text-center mb-8">
-                        <Avatar className="h-20 w-20 mb-3">
+             <ScrollArea className="flex-grow -mx-4">
+                <div className="px-4">
+                    <div className="flex flex-col items-center text-center mb-6">
+                        <Avatar className="h-20 w-20 mb-3 border-2 border-primary">
                             <AvatarImage src={userData.photoURL || undefined} alt={userData.displayName} />
                             <AvatarFallback>{userData.displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -91,33 +93,29 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                                 <p className="text-xs text-muted-foreground">Following</p>
                             </div>
                         </div>
-                        <Separator className="my-4" />
                     </div>
+                     <Separator className="my-4 bg-border/50" />
                     <nav className="space-y-1">
-                        <Collapsible defaultOpen={isFeedActive}>
-                            <CollapsibleTrigger asChild>
-                                <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base" data-active={isFeedActive}>
-                                    <Link href="/feed"><Home /> Feed</Link>
-                                </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed') && !feedFilter} onClick={() => handleNavigation('/feed')}>
-                                    <Globe className="w-4 h-4" /> Global
-                                </Button>
-                                <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'following')} onClick={() => handleNavigation({ pathname: '/feed', query: { filter: 'following' } })}>
-                                    <Users className="w-4 h-4" /> Following
-                                </Button>
-                            </CollapsibleContent>
-                        </Collapsible>
-                         <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'messages' } })}>
-                            <MessageSquare /> Messages
+                        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base h-11" data-active={isFeedActive}>
+                           <Link href="/feed"><Home /> Feed</Link>
                         </Button>
-                        <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'saves')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'saves' } })}>
-                            <Save /> Saves
+                        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base h-11" data-active={isActive('/feed', 'saves')}>
+                             <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
+                        </Button>
+                        <Button asChild variant={isMessagesActive ? "default" : "ghost"} className="w-full justify-start gap-3 text-base h-11" data-active={isMessagesActive}>
+                           <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                         </Button>
                     </nav>
                 </div>
             </ScrollArea>
+             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarFallback>M</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-sm">Messageo</span>
+                </div>
+            </div>
         </div>
     );
 };
