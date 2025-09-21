@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -10,7 +11,7 @@ import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare,
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
@@ -146,6 +147,14 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
          <div className="w-full h-full flex flex-col bg-background">
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
                 <div className="flex items-center gap-2">
+                     <Sheet>
+                        <SheetTrigger asChild>
+                             <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-80">
+                            <MainSidebar userData={userData} userPosts={userPosts} />
+                        </SheetContent>
+                    </Sheet>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>

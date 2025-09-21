@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -802,7 +803,7 @@ function FeedPageContent() {
                 renderMobileMessages()
             ) : (
                 <SidebarProvider>
-                     <div className="grid min-h-screen lg:grid-cols-3">
+                     <div className={cn("grid min-h-screen", activeView === 'messages' ? 'lg:grid-cols-[1fr_2.5fr_1.25fr]' : 'lg:grid-cols-[1fr_2.5fr_1.25fr]')}>
                         <Sidebar variant="sidebar" collapsible="offcanvas">
                            <SidebarContent>
                                <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -811,7 +812,7 @@ function FeedPageContent() {
                         
                         {activeView === 'messages' ? (
                             <>
-                                <div className="h-screen flex flex-col border-r">
+                                <div className="h-screen flex-col border-r hidden lg:flex">
                                     <ConversationList 
                                         conversations={conversations} 
                                         selectedConversation={selectedConversation} 
@@ -1023,7 +1024,7 @@ function FeedPageContent() {
         </div>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-                 <div className="grid lg:grid-cols-3">
+                 <div className="grid lg:grid-cols-[1fr_2.5fr_1.25fr]">
                     <div className="lg:col-start-2 w-full lg:w-[80%] mx-auto pointer-events-auto">
                         <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
                             <CreatePostForm
