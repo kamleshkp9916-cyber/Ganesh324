@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,21 +9,25 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
 import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { getMessages, sendMessage, getConversations } from "@/ai/flows/chat-flow";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "../ui/sidebar";
+import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp } from 'firebase/firestore';
+import { getFirestoreDb } from "@/lib/firebase";
+import { format } from "date-fns";
 
 export interface Message {
   id: number | string;
   text?: string;
   imageUrl?: string;
-  sender: 'customer' | 'seller' | 'StreamCart';
-  timestamp: string;
+  senderId: string; 
+  timestamp: string | Timestamp;
 }
 
 export interface Conversation {
+  conversationId: string;
   userId: string;
   userName: string;
   avatarUrl: string;
@@ -68,15 +71,17 @@ export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conver
 };
 
 
-export const ChatMessage = ({ msg, currentUserName }: { msg: Message, currentUserName: string }) => {
-    const isMyMessage = msg.sender === currentUserName;
+export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserId: string }) => {
+    const isMyMessage = msg.senderId === currentUserId;
+    const timestamp = msg.timestamp instanceof Timestamp ? format(msg.timestamp.toDate(), 'p') : msg.timestamp;
+
     return (
         <div key={msg.id} className={cn("flex items-end gap-2", isMyMessage ? "justify-end" : "justify-start")}>
             <div className={cn("max-w-[75%] rounded-2xl px-4 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <p className={cn("text-xs mt-1", isMyMessage ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-right")}>
-                    {msg.timestamp}
+                    {timestamp}
                 </p>
             </div>
         </div>
@@ -146,50 +151,47 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
     const [newMessage, setNewMessage] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
+    const { user } = useAuth();
 
     useEffect(() => {
-        const fetchMessages = async () => {
-            setIsChatLoading(true);
-            try {
-                const chatHistory = await getMessages(conversation.userId);
-                setMessages(chatHistory);
-            } catch (error) {
-                console.error("Failed to fetch messages for", conversation.userId, error);
-            } finally {
-                setIsChatLoading(false);
-            }
-        };
-        fetchMessages();
-    }, [conversation.userId]);
+        if (!conversation?.conversationId) return;
+
+        setIsChatLoading(true);
+        const db = getFirestoreDb();
+        const messagesRef = collection(db, `conversations/${conversation.conversationId}/messages`);
+        const q = query(messagesRef, orderBy("timestamp", "asc"));
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedMessages: Message[] = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            } as Message));
+            setMessages(fetchedMessages);
+            setIsChatLoading(false);
+        }, (error) => {
+            console.error("Error fetching messages in real-time:", error);
+            setIsChatLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [conversation.conversationId]);
 
     useEffect(() => {
-        chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
+        chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
     }, [messages]);
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !conversation || !userData) return;
+        if (!newMessage.trim() || !conversation || !user) return;
         
-        const from = userData.role || 'customer';
-        const optimisticMessage: Message = {
-            id: Math.random(),
-            text: newMessage,
-            sender: from as 'customer' | 'seller' | 'StreamCart',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages(prev => [...prev, optimisticMessage]);
         const currentMessage = newMessage;
         setNewMessage("");
 
-        try {
-            const updatedMessages = await sendMessage(conversation.userId, { text: currentMessage }, from as 'customer' | 'seller' | 'StreamCart');
-            setMessages(updatedMessages);
-        } catch (error) {
-            console.error("Failed to send message", error);
-            setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
-        }
+        await sendMessage(conversation.conversationId, user.uid, { text: currentMessage });
     };
     
+    if (!user) return null;
+
     return (
         <>
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
@@ -223,7 +225,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: {
                             <Skeleton className="h-16 w-3/4" />
                         </div>
                     ) : messages.length > 0 ? (
-                        messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData.role || 'customer'} />)
+                        messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserId={user.uid} />)
                     ) : (
                         <div className="text-center text-muted-foreground py-8">Start the conversation!</div>
                     )}

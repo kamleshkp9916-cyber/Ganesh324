@@ -6,72 +6,124 @@
  * - getConversations: Fetches a list of conversations for the current user.
  * - getMessages: Fetches messages for a specific conversation.
  * - sendMessage: Sends a new message in a conversation.
+ * - getOrCreateConversation: Gets an existing conversation or creates a new one.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
-import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, Filter } from 'firebase-admin/firestore';
 import { UserData } from '@/lib/follow-data';
-
-// Mock data to stand in for real database interactions
-const mockChatDatabase: Record<string, any[]> = {
-  "FashionFinds": [
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", sender: 'customer', timestamp: '10:00 AM' },
-    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", sender: 'seller', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", sender: 'customer', timestamp: '10:01 AM' },
-  ],
-  "GadgetGuru": [
-      { id: 1, text: "I have a question about the X-1 Drone.", sender: 'customer', timestamp: 'Yesterday' },
-      { id: 2, text: "Sure, what would you like to know?", sender: 'seller', timestamp: 'Yesterday' },
-  ],
-  "StreamCart": [
-      { id: 1, text: "Welcome to StreamCart support!", sender: 'StreamCart', timestamp: 'Yesterday' },
-  ]
-};
-
-const mockConversations: any[] = [
-    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
-    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
-];
+import { Message, Conversation } from '@/components/messaging/common';
 
 
-export async function getConversations(): Promise<any[]> {
-    // In a real implementation, you would use the current user's ID to fetch
-    // conversations where they are a participant from Firestore.
-    return Promise.resolve(mockConversations);
+function getConversationId(userId1: string, userId2: string): string {
+    return [userId1, userId2].sort().join('_');
 }
 
-export async function getMessages(otherUserId: string): Promise<any[]> {
-    // In a real implementation, this would query the 'messages' subcollection
-    // of a conversation document shared between the current user and otherUserId.
-    return Promise.resolve(mockChatDatabase[otherUserId] || []);
+export async function getOrCreateConversation(currentUserId: string, otherUserId: string, currentUserData: UserData, otherUserData: UserData): Promise<string> {
+    const db = getFirestore(getFirebaseAdminApp());
+    const conversationId = getConversationId(currentUserId, otherUserId);
+    const conversationRef = db.collection('conversations').doc(conversationId);
+    const conversationDoc = await conversationRef.get();
+
+    if (!conversationDoc.exists) {
+        await conversationRef.set({
+            participants: [currentUserId, otherUserId],
+            participantData: {
+                [currentUserId]: {
+                    displayName: currentUserData.displayName,
+                    photoURL: currentUserData.photoURL
+                },
+                [otherUserId]: {
+                    displayName: otherUserData.displayName,
+                    photoURL: otherUserData.photoURL
+                }
+            },
+            lastMessage: "Conversation started.",
+            lastMessageTimestamp: FieldValue.serverTimestamp(),
+            unreadCount: { [currentUserId]: 0, [otherUserId]: 0 }
+        });
+    }
+
+    return conversationId;
 }
 
+
+export async function getConversations(currentUserId: string): Promise<Conversation[]> {
+    const db = getFirestore(getFirebaseAdminApp());
+    const conversationsRef = db.collection('conversations');
+    const q = query(conversationsRef, where('participants', 'array-contains', currentUserId));
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return [];
+    }
+    
+    const conversations: Conversation[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const otherParticipantId = data.participants.find((p: string) => p !== currentUserId);
+        const otherParticipantData = data.participantData[otherParticipantId] || {};
+        
+        return {
+            conversationId: doc.id,
+            userId: otherParticipantId,
+            userName: otherParticipantData.displayName || 'Unknown User',
+            avatarUrl: otherParticipantData.photoURL || 'https://placehold.co/40x40.png',
+            lastMessage: data.lastMessage || '',
+            lastMessageTimestamp: data.lastMessageTimestamp ? format(data.lastMessageTimestamp.toDate(), 'p') : '',
+            unreadCount: data.unreadCount ? data.unreadCount[currentUserId] || 0 : 0,
+        };
+    });
+
+    return conversations.sort((a, b) => b.lastMessageTimestamp.localeCompare(a.lastMessageTimestamp));
+}
+
+export async function getMessages(conversationId: string): Promise<Message[]> {
+    const db = getFirestore(getFirebaseAdminApp());
+    const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+    const q = query(messagesRef, orderBy("timestamp", "asc"));
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return [];
+    }
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp ? format(data.timestamp.toDate(), 'p') : 'sending...'
+        } as Message;
+    });
+}
 
 export async function sendMessage(
-  otherUserId: string,
+  conversationId: string,
+  senderId: string,
   message: { text?: string; imageUrl?: string },
-  fromRole: 'customer' | 'seller' | 'StreamCart'
-): Promise<any[]> {
+): Promise<void> {
+    const db = getFirestore(getFirebaseAdminApp());
+    const conversationRef = doc(db, 'conversations', conversationId);
+    const messagesRef = collection(conversationRef, 'messages');
+
     const newMessage = {
-        id: Date.now(),
         ...message,
-        sender: fromRole,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        senderId: senderId,
+        timestamp: FieldValue.serverTimestamp(),
     };
 
-    if (!mockChatDatabase[otherUserId]) {
-        mockChatDatabase[otherUserId] = [];
-    }
-    mockChatDatabase[otherUserId].push(newMessage);
+    await addDoc(messagesRef, newMessage);
 
-    // Also update the last message in the mock conversation
-    const convoIndex = mockConversations.findIndex(c => c.userId === otherUserId);
-    if (convoIndex > -1) {
-        mockConversations[convoIndex].lastMessage = message.text || 'Image Sent';
-        mockConversations[convoIndex].lastMessageTimestamp = newMessage.timestamp;
+    const conversationDoc = await conversationRef.get();
+    const conversationData = conversationDoc.data();
+    if (conversationData) {
+        const otherParticipantId = conversationData.participants.find((p: string) => p !== senderId);
+        
+        await updateDoc(conversationRef, {
+            lastMessage: message.text || 'Image Sent',
+            lastMessageTimestamp: FieldValue.serverTimestamp(),
+            [`unreadCount.${otherParticipantId}`]: increment(1)
+        });
     }
-
-    return Promise.resolve(mockChatDatabase[otherUserId]);
 }
