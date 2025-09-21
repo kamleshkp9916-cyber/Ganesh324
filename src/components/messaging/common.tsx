@@ -14,7 +14,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
 import { useAuth, type UserData } from '@/hooks/use-auth';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -135,32 +135,25 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, userData, userPosts }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
+export const ConversationList = ({ onSidebarToggle, conversations, selectedConversation, onSelectConversation, userData, userPosts }: { onSidebarToggle: () => void, conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const { user } = useAuth();
-    const isMobile = useIsMobile();
     
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;
         return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [conversations, searchTerm]);
     
-    const renderSidebar = () => {
-        if (!userData) return null;
-        return <MainSidebar userData={userData} userPosts={userPosts} />
-    }
-
     return (
          <div className="w-full h-full flex flex-col bg-background border-r">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-2">
-                    {isMobile && (
-                         <Sheet>
-                             <SheetContent side="left" className="p-0 w-80">
-                                {renderSidebar()}
-                            </SheetContent>
-                        </Sheet>
-                    )}
+                    <SheetTrigger asChild>
+                         <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
+                            <Menu className="h-5 w-5" />
+                            <span className="sr-only">Toggle navigation menu</span>
+                        </Button>
+                    </SheetTrigger>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
