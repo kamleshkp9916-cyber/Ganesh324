@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -763,13 +762,13 @@ function FeedPageContent() {
       if (selectedConversation) {
         return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
       } else {
-        return <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts} />;
+        return <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts}/>;
       }
     }
 
     return (
-      <div className="grid grid-cols-[260px_1fr] h-full">
-        <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts} />
+      <div className="grid grid-cols-[minmax(250px,30%)_1fr] h-full">
+        <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts}/>
         {selectedConversation ? (
           <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => {}} />
         ) : (
@@ -782,6 +781,20 @@ function FeedPageContent() {
       </div>
     );
   };
+
+  if (activeView === 'messages') {
+    return (
+        <div className="h-screen w-full">
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                <SheetContent side="left" className="p-0 w-80 md:hidden">
+                    <SheetHeader className="sr-only"><SheetTitle>Main Menu</SheetTitle></SheetHeader>
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </SheetContent>
+                {renderMessagesView()}
+            </Sheet>
+        </div>
+    );
+  }
 
   return (
     <>
@@ -813,28 +826,20 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-        {activeView === 'messages' ? (
-          <div className="h-screen w-full">
-            {renderMessagesView()}
-          </div>
-        ) : (
-          <div
-            className={cn(
-                "grid h-screen w-full",
-                "lg:grid-cols-[260px_minmax(250px,40%)_1fr]"
-            )}
-          >
+        <div
+            className="grid h-screen w-full lg:grid-cols-[260px_minmax(250px,40%)_1fr]"
+        >
             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
 
-            <SheetContent side="left" className="p-0 w-80 md:hidden">
-              <SheetHeader className="sr-only">
-                  <SheetTitle>Main Menu</SheetTitle>
-              </SheetHeader>
-              <MainSidebar userData={userData!} userPosts={userPosts} />
-            </SheetContent>
+             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                <SheetContent side="left" className="p-0 w-80 md:hidden">
+                    <SheetHeader className="sr-only"><SheetTitle>Main Menu</SheetTitle></SheetHeader>
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </SheetContent>
+            </Sheet>
+
 
             <div className="flex flex-col h-screen">
                 <header className="p-4 border-b shrink-0 flex items-center gap-4">
@@ -967,9 +972,7 @@ function FeedPageContent() {
                     )}
                 </ScrollArea>
             </aside>
-          </div>
-        )}
-      </Sheet>
+        </div>
     </>
   )
 }
