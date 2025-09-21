@@ -117,18 +117,18 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
           <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-grow min-w-0">
-          <div className="flex justify-between items-center">
-            <h4 className="font-semibold truncate">{convo.userName}</h4>
-            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
-            {convo.unreadCount > 0 && (
-              <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
-                {convo.unreadCount}
-              </Badge>
-            )}
-          </div>
+            <div className="flex justify-between items-center">
+                <h4 className="font-semibold truncate">{convo.userName}</h4>
+                <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
+            </div>
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
+                {convo.unreadCount > 0 && (
+                <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
+                    {convo.unreadCount}
+                </Badge>
+                )}
+            </div>
         </div>
       </button>
     );
