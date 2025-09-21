@@ -18,10 +18,10 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
-  getDocs,
   where,
+  getDocs,
 } from 'firebase/firestore';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -73,7 +73,7 @@ const CommentSkeleton = () => (
     </div>
 );
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, postId }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, postId, onFetchReplies }: {
     comment: CommentType,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
@@ -82,15 +82,13 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
     postId: string;
+    onFetchReplies: (comment: CommentType) => void;
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-    const [replies, setReplies] = useState<CommentType[]>([]);
-    const [isRepliesLoading, setIsRepliesLoading] = useState(false);
-    const [isRepliesOpen, setIsRepliesOpen] = useState(false);
     const hasLiked = user && comment.likes ? comment.likes.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
@@ -103,34 +101,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         onReply(replyText, comment.id, comment.authorName);
         setReplyText('');
         setIsReplying(false);
-        if (!isRepliesOpen) {
-            handleFetchReplies();
-        }
     };
-    
-    const handleFetchReplies = useCallback(async () => {
-        if (isRepliesOpen) {
-            setIsRepliesOpen(false);
-            return;
-        }
-
-        setIsRepliesOpen(true);
-        setIsRepliesLoading(true);
-        try {
-            const db = getFirestoreDb();
-            const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
-            const snapshot = await getDocs(repliesQuery);
-            const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
-            setReplies(fetchedReplies);
-        } catch (error) {
-            console.error("Error fetching replies:", error);
-        } finally {
-            setIsRepliesLoading(false);
-        }
-    }, [isRepliesOpen, postId, comment.id]);
 
     return (
-        <div className="flex items-start gap-3 w-full">
+        <div className="flex items-start gap-3 w-full group">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -213,34 +187,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 )}
                 
                  {(comment.replyCount || 0) > 0 && !comment.parentId && (
-                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={handleFetchReplies}>
-                        <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", isRepliesOpen && "rotate-180")} />
-                        {isRepliesOpen ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
+                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={() => onFetchReplies(comment)}>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        View {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
                     </Button>
-                )}
-                
-                {isRepliesOpen && (
-                     <div className="pt-4 pl-6 space-y-4 border-l-2 border-border/50">
-                        {isRepliesLoading ? (
-                            <div className="w-full space-y-4">
-                                {Array.from({ length: Math.min(comment.replyCount || 0, 3) }).map((_, i) => <CommentSkeleton key={i} />)}
-                            </div>
-                        ) : (
-                             replies.map(reply => (
-                                <Comment
-                                    key={reply.id}
-                                    comment={reply}
-                                    onReply={onReply}
-                                    onLike={onLike}
-                                    onReport={onReport}
-                                    onCopyLink={onCopyLink}
-                                    onEdit={onEdit}
-                                    onDelete={onDelete}
-                                    postId={postId}
-                                />
-                            ))
-                        )}
-                    </div>
                 )}
             </div>
         </div>
@@ -254,42 +204,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    if (!post) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-    
-    const topLevelComments = useMemo(() => comments.filter(c => !c.parentId).sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds), [comments]);
-    
-    useEffect(() => {
-        if (!post?.id) {
-            setComments([]);
-            setIsLoading(false);
-            return;
-        };
-
-        setIsLoading(true);
-        const db = getFirestoreDb();
-        const commentsQuery = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "desc"));
-        
-        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            } as CommentType));
-            setComments(commentsData);
-            setIsLoading(false);
-        }, (error) => {
-             console.error("Firestore snapshot error:", error);
-            setIsLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [post?.id]);
+    const [activeThread, setActiveThread] = useState<CommentType | null>(null);
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -339,7 +254,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             setIsSubmitting(false);
         }
     };
-    
+
     const handleEdit = async (commentId: string, newText: string) => {
         try {
             const db = getFirestoreDb();
@@ -414,43 +329,93 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         navigator.clipboard.writeText(`${window.location.href}#comment-${commentId}`);
         toast({ title: "Link Copied!" });
     };
-    
-    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
 
+    useEffect(() => {
+        if (!post?.id) {
+            setComments([]);
+            setIsLoading(false);
+            return;
+        };
+
+        setIsLoading(true);
+        const db = getFirestoreDb();
+        const parentId = activeThread ? activeThread.id : null;
+        
+        const q = query(collection(db, `posts/${post.id}/comments`), where("parentId", "==", parentId), orderBy("timestamp", "asc"));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            } as CommentType));
+            setComments(commentsData);
+            setIsLoading(false);
+        }, (error) => {
+             console.error("Firestore snapshot error:", error);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [post?.id, activeThread]);
+
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post?.id || '', onFetchReplies: setActiveThread };
+
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+    
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
-                <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
+                <div className="flex items-center gap-2">
+                    {activeThread && (
+                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setActiveThread(null)}>
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                    )}
+                    <h3 className="font-bold text-lg">
+                        {activeThread ? `Replies to @${activeThread.authorName}` : `Comments (${post.replies || 0})`}
+                    </h3>
+                </div>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
-                    {isLoading ? (
-                        <div className="w-full space-y-4">
+                    {activeThread && (
+                        <Comment key={activeThread.id} {...handlers} comment={activeThread} />
+                    )}
+                    {(isLoading && (!activeThread || comments.length === 0)) ? (
+                        <div className="w-full space-y-4 pt-4">
                             <CommentSkeleton />
                             <CommentSkeleton />
                         </div>
-                    ) : topLevelComments.length > 0 ? (
-                        topLevelComments.map(comment => (
-                            <Comment 
-                                key={comment.id}
-                                comment={comment}
-                                {...handlers}
-                            />
-                        ))
-                    ) : (
+                    ) : (comments.length > 0) ? (
+                        <div className={cn("w-full space-y-6", activeThread && "pl-6 border-l-2 ml-5")}>
+                            {comments.map(comment => (
+                                <Comment 
+                                    key={comment.id}
+                                    {...handlers}
+                                    comment={comment}
+                                />
+                            ))}
+                        </div>
+                    ) : (!activeThread) ? (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
                             <h4 className="font-semibold">No comments yet</h4>
                             <p className="text-sm">Be the first one to comment.</p>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex-shrink-0 bg-background">
-                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText, null); }} className="flex items-center gap-2">
+                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText, activeThread?.id || null, activeThread?.authorName); }} className="flex items-center gap-2">
                     <div className="relative flex-grow">
                         <Textarea 
-                            placeholder="Add a comment..."
+                            placeholder={activeThread ? `Replying to @${activeThread.authorName}...` : "Add a comment..."}
                             value={newCommentText}
                             onChange={(e) => setNewCommentText(e.target.value)}
                             rows={1}
