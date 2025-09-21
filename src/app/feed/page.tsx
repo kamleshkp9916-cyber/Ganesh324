@@ -760,16 +760,20 @@ function FeedPageContent() {
     setSelectedConversation(convo);
   }
 
- const renderMessagesView = () => {
+  const renderMessagesView = () => {
     return (
-        <div className="h-screen w-full lg:grid lg:grid-cols-[260px_1fr_2fr]">
+        <div className="h-screen w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr] lg:grid-cols-[260px_minmax(320px,1fr)_2fr]">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
 
             {/* Conversation List */}
-            <div className={cn("h-full flex-col border-r", selectedConversation && isMobile ? "hidden" : "flex")}>
+             <div className={cn(
+                "h-full flex-col border-r",
+                "md:flex",
+                selectedConversation ? "hidden" : "flex"
+             )}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
                     conversations={conversations}
@@ -779,7 +783,11 @@ function FeedPageContent() {
             </div>
             
             {/* Chat Window */}
-            <div className={cn("h-full flex-col", !selectedConversation && isMobile ? "hidden" : "flex")}>
+             <div className={cn(
+                "h-full flex-col",
+                "md:flex",
+                selectedConversation ? "flex" : "hidden"
+            )}>
                 {selectedConversation ? (
                     <ChatWindow
                         conversation={selectedConversation}
@@ -799,7 +807,18 @@ function FeedPageContent() {
 };
 
   if (activeView === 'messages') {
-    return renderMessagesView();
+    return (
+      <SidebarProvider>
+        <div className="h-screen w-full">
+            {renderMessagesView()}
+             <Sheet open={open} onOpenChange={setOpen}>
+                <SheetContent side="left" className="p-0 w-80 lg:hidden">
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </SheetContent>
+            </Sheet>
+        </div>
+      </SidebarProvider>
+    )
   }
 
   return (
