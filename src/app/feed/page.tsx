@@ -402,7 +402,6 @@ function FeedPageContent() {
   const feedFilterParam = searchParams.get('filter');
 
   const { user, userData, loading: authLoading } = useAuth();
-  const isMobile = useIsMobile();
   const [feed, setFeed] = useState<any[]>([]);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -486,10 +485,10 @@ function FeedPageContent() {
     if (searchParams.get('userId')) {
         const preselected = allConvos.find(c => c.userId === searchParams.get('userId'));
         if (preselected) setSelectedConversation(preselected);
-    } else if (allConvos.length > 0 && !isMobile) {
+    } else if (allConvos.length > 0) {
         setSelectedConversation(allConvos[0]);
     }
-  }, [searchParams, isMobile]);
+  }, [searchParams]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -765,12 +764,16 @@ function FeedPageContent() {
                         <MainSidebar userData={userData!} userPosts={userPosts} />
                     </SheetContent>
                     
-                    <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(350px,1fr)_2fr]">
+                    <div className="grid h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
                         <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                           <MainSidebar userData={userData!} userPosts={userPosts} />
                         </aside>
                         
-                        <div className={cn("border-r", "flex-col", isMobile && selectedConversation ? "hidden" : "flex", !isMobile && "flex")}>
+                        <div className={cn(
+                            "border-r flex-col",
+                            "hidden md:flex",
+                            selectedConversation && "md:hidden lg:flex"
+                        )}>
                           <ConversationList
                             onSidebarToggle={() => setOpen(true)}
                             conversations={conversations}
@@ -779,7 +782,11 @@ function FeedPageContent() {
                           />
                         </div>
                         
-                        <div className={cn("flex-col", isMobile && !selectedConversation ? "hidden" : "flex", !isMobile && "flex")}>
+                        <div className={cn(
+                            "flex-col",
+                            "hidden md:flex",
+                            !selectedConversation && "md:hidden lg:flex"
+                        )}>
                           {selectedConversation ? (
                             <ChatWindow
                               conversation={selectedConversation}
@@ -996,6 +1003,7 @@ export default function FeedPage() {
   
 
     
+
 
 
 

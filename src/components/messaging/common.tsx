@@ -11,7 +11,6 @@ import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare,
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '../ui/sheet';
@@ -52,7 +51,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
         avatarInitial = msg.sender.charAt(0).toUpperCase();
     }
 
-    return <>
+    return (
         <div className={cn("group flex items-end gap-2", isMe ? 'justify-end' : 'justify-start')}>
              {!isMe && (
                 <Avatar className="h-8 w-8">
@@ -99,7 +98,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
                 </AlertDialog>
              )}
         </div>
-    </>;
+    );
 }
 
 export function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
