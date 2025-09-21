@@ -852,10 +852,13 @@ function FeedPageContent() {
                                                     avatarUrl: 'https://placehold.co/40x40.png',
                                                     lastMessage: '',
                                                     lastMessageTimestamp: '',
-                                                    unreadCount: 0
+                                                    unreadCount: 0,
+                                                    conversationId: ''
                                                 }}
                                                 userData={userData}
                                                 onBack={() => {}}
+                                                messages={[]}
+                                                onSendMessage={() => {}}
                                             />
                                         </div>
                                     </div>
@@ -968,6 +971,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
