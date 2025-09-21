@@ -127,8 +127,8 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 import { getConversations } from '@/ai/flows/chat-flow';
+import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -798,7 +798,7 @@ function FeedPageContent() {
 
   return (
     <div className="h-screen w-full">
-         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr]">
+         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_320px]">
                 <aside className={cn("h-screen flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
@@ -861,7 +861,73 @@ function FeedPageContent() {
                     )}
                 </div>
 
-                {/* Right sidebar is removed in this layout */}
+                <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
+                   <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
+                        <div className="flex-shrink-0">
+                            <div className="relative">
+                                <Input
+                                    placeholder="Search..."
+                                    className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            </div>
+                        </div>
+
+                         <ScrollArea className="-mx-4 mt-4">
+                             <div className="px-4">
+                                <Card className="bg-muted/30">
+                                    <CardHeader>
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <TrendingUp className="h-5 w-5 text-primary" />
+                                            Trending Topics
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <ul className="space-y-3">
+                                            {trendingTopics.map(topic => (
+                                                <li key={topic.topic}>
+                                                    <button onClick={() => setSearchTerm(`#${topic.topic}`)} className="font-semibold hover:underline text-left w-full">
+                                                        #{topic.topic}
+                                                    </button>
+                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="bg-muted/30 mt-6">
+                                    <CardHeader>
+                                        <CardTitle className="text-base flex items-center gap-2">
+                                            <RadioTower className="h-5 w-5 text-destructive animate-pulse" />
+                                            Trending Streams
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {trendingStreams.map(stream => (
+                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center gap-3 group">
+                                                 <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={stream.avatarUrl} alt={stream.name} />
+                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                </div>
+                                                <div className="flex items-center text-xs text-muted-foreground gap-1">
+                                                    <Users className="h-3 w-3" />
+                                                    {stream.viewers}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </aside>
             </div>
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="left" className="p-0 w-80 lg:hidden">
