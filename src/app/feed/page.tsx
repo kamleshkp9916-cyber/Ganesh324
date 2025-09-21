@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -765,15 +764,16 @@ function FeedPageContent() {
                         <MainSidebar userData={userData!} userPosts={userPosts} />
                     </SheetContent>
                     
-                    <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,2fr)_3fr]">
-                        <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                    <div className="grid h-screen w-full md:grid-cols-[260px_1fr] lg:grid-cols-[260px_minmax(350px,1fr)_2fr]">
+                        <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                           <MainSidebar userData={userData!} userPosts={userPosts} />
                         </aside>
                         
-                         <div className={cn(
-                            "flex-col border-r md:flex",
-                            isMobile && selectedConversation && 'hidden'
-                         )}>
+                        <div className={cn(
+                          "border-r",
+                          "md:flex flex-col", // Always visible on md and up
+                          selectedConversation ? "hidden" : "flex" // On mobile, hide if a chat is open
+                        )}>
                           <ConversationList
                             onSidebarToggle={() => setOpen(true)}
                             conversations={conversations}
@@ -783,8 +783,8 @@ function FeedPageContent() {
                         </div>
                         
                         <div className={cn(
-                            "flex-col md:flex",
-                            isMobile && !selectedConversation && 'hidden'
+                            "md:flex flex-col", // Always visible on md and up
+                            selectedConversation ? "flex" : "hidden" // On mobile, show only if a chat is open
                         )}>
                           {selectedConversation ? (
                             <ChatWindow
@@ -1002,3 +1002,5 @@ export default function FeedPage() {
   
 
     
+
+

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -52,21 +51,20 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
         avatarInitial = msg.sender.charAt(0).toUpperCase();
     }
 
-
     return (
-        <div className={`group flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+        <div className={cn("group flex items-end gap-2", isMe ? 'justify-end' : 'justify-start')}>
              {!isMe && (
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={undefined} />
                     <AvatarFallback>{avatarInitial}</AvatarFallback>
                 </Avatar>
             )}
-            <div className={`max-w-[70%] rounded-lg px-3 py-2 ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            <div className={cn("max-w-[70%] rounded-lg px-3 py-2", isMe ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.image && (
                     <Image src={msg.image} alt="Sent image" width={200} height={200} className="rounded-md mt-2" />
                 )}
-                <p className={`text-xs mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'} text-right`}>
+                <p className={cn("text-xs mt-1 text-right", isMe ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     {msg.timestamp}
                 </p>
             </div>
@@ -429,5 +427,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-  
