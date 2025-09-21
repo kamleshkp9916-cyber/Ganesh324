@@ -805,25 +805,19 @@ function FeedPageContent() {
       </AlertDialog>
       
       <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
-        <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
-            <div className="hidden md:block">
-                 <MainSidebar userData={userData!} userPosts={userPosts} />
-            </div>
+        <SidebarProvider>
+          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
+              <Sidebar>
+                <MainSidebar userData={userData!} userPosts={userPosts} />
+              </Sidebar>
 
-            {isMobile && activeView === 'messages' ? (
-                renderMobileMessages()
-            ) : (
-                <>
-                    <main className="flex-1 min-w-0 h-screen overflow-y-hidden flex flex-col">
-                        <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                            <SidebarProvider>
-                                <Sidebar>
-                                    <SidebarTrigger className="md:hidden" />
-                                    <SidebarContent>
-                                        <MainSidebar userData={userData!} userPosts={userPosts} />
-                                    </SidebarContent>
-                                </Sidebar>
-                            </SidebarProvider>
+              {isMobile && activeView === 'messages' ? (
+                  renderMobileMessages()
+              ) : (
+                  <>
+                      <main className="flex-1 min-w-0 h-screen overflow-y-hidden flex flex-col">
+                          <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
+                            <SidebarTrigger className="md:hidden" />
                             <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
                                 <PopoverAnchor asChild>
                                     <div className="relative w-full max-w-sm">
@@ -881,156 +875,157 @@ function FeedPageContent() {
                                     </div>
                                 </PopoverContent>
                             </Popover>
-                            <div/>
-                        </header>
-                        <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
-                            <section>
-                                 {activeView === 'saves' ? (
-                                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-                                        {filteredFeed.map(post => (
-                                            <FeedPost 
-                                                key={post.id}
-                                                post={post}
-                                                currentUser={user}
-                                                onDelete={handleDeletePost}
-                                                onEdit={handleEditPost}
-                                                onShare={handleShare}
-                                                onReport={() => setIsReportDialogOpen(true)}
-                                                onSaveToggle={handleSaveToggle}
-                                                isSaved={isPostSaved(post.id)}
-                                                highlightTerm={debouncedSearchTerm}
-                                                onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                onCommentClick={(post) => setSelectedPostForComments(post)}
-                                            />
-                                        ))}
-                                    </div>
-                                 ) : (
-                                    <div className="divide-y divide-border/20">
-                                        {isLoadingFeed ? (
-                                            <>
-                                                <FeedPostSkeleton />
-                                                <FeedPostSkeleton />
-                                            </>
-                                        ) : (
-                                            filteredFeed.map(post => (
-                                                <FeedPost 
-                                                    key={post.id}
-                                                    post={post}
-                                                    currentUser={user}
-                                                    onDelete={handleDeletePost}
-                                                    onEdit={handleEditPost}
-                                                    onShare={handleShare}
-                                                    onReport={() => setIsReportDialogOpen(true)}
-                                                    onSaveToggle={handleSaveToggle}
-                                                    isSaved={isPostSaved(post.id)}
-                                                    highlightTerm={debouncedSearchTerm}
-                                                    onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                    onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                />
-                                            ))
-                                        )}
-                                    </div>
-                                 )}
-                                {filteredFeed.length === 0 && !isLoadingFeed && (
-                                    <div className="text-center py-16 text-muted-foreground">
-                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                    </div>
-                                )}
-                            </section>
-                        </div>
-                    </main>
-                    {activeView === 'messages' ? (
-                        <>
-                            <div className="h-screen hidden md:flex flex-col border-l">
-                                <ConversationList 
-                                    conversations={conversations} 
-                                    selectedConversation={selectedConversation} 
-                                    onSelectConversation={setSelectedConversation}
-                                    userData={userData}
-                                    userPosts={userPosts}
-                                />
-                            </div>
-                            <div className="h-screen hidden md:flex flex-col border-l">
-                                {selectedConversation ? (
-                                    <ChatWindow 
-                                        conversation={selectedConversation} 
-                                        userData={userData!}
-                                        onBack={() => {}}
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                                        <MessageSquare className="h-16 w-16 mb-4"/>
-                                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                                        <p>Choose a conversation to start messaging.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <aside className="hidden md:flex flex-col h-screen border-l">
-                            {selectedPostForComments ? (
-                                <CommentColumn 
-                                    post={selectedPostForComments} 
-                                    onClose={() => setSelectedPostForComments(null)} 
-                                />
-                            ) : (
-                            <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Trending</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            {trendingTopics.map((topic, index) => (
-                                                <div key={index}>
-                                                    <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
-                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                              <div/>
+                          </header>
+                          <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
+                              <section>
+                                   {activeView === 'saves' ? (
+                                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                          {filteredFeed.map(post => (
+                                              <FeedPost 
+                                                  key={post.id}
+                                                  post={post}
+                                                  currentUser={user}
+                                                  onDelete={handleDeletePost}
+                                                  onEdit={handleEditPost}
+                                                  onShare={handleShare}
+                                                  onReport={() => setIsReportDialogOpen(true)}
+                                                  onSaveToggle={handleSaveToggle}
+                                                  isSaved={isPostSaved(post.id)}
+                                                  highlightTerm={debouncedSearchTerm}
+                                                  onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                  onCommentClick={(post) => setSelectedPostForComments(post)}
+                                              />
+                                          ))}
+                                      </div>
+                                   ) : (
+                                      <div className="divide-y divide-border/20">
+                                          {isLoadingFeed ? (
+                                              <>
+                                                  <FeedPostSkeleton />
+                                                  <FeedPostSkeleton />
+                                              </>
+                                          ) : (
+                                              filteredFeed.map(post => (
+                                                  <FeedPost 
+                                                      key={post.id}
+                                                      post={post}
+                                                      currentUser={user}
+                                                      onDelete={handleDeletePost}
+                                                      onEdit={handleEditPost}
+                                                      onShare={handleShare}
+                                                      onReport={() => setIsReportDialogOpen(true)}
+                                                      onSaveToggle={handleSaveToggle}
+                                                      isSaved={isPostSaved(post.id)}
+                                                      highlightTerm={debouncedSearchTerm}
+                                                      onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                      onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                  />
+                                              ))
+                                          )}
+                                      </div>
+                                   )}
+                                  {filteredFeed.length === 0 && !isLoadingFeed && (
+                                      <div className="text-center py-16 text-muted-foreground">
+                                          <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                          <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                      </div>
+                                  )}
+                              </section>
+                          </div>
+                      </main>
+                      {activeView === 'messages' ? (
+                          <>
+                              <div className="h-screen hidden md:flex flex-col border-l">
+                                  <ConversationList 
+                                      conversations={conversations} 
+                                      selectedConversation={selectedConversation} 
+                                      onSelectConversation={setSelectedConversation}
+                                      userData={userData}
+                                      userPosts={userPosts}
+                                  />
+                              </div>
+                              <div className="h-screen hidden md:flex flex-col border-l">
+                                  {selectedConversation ? (
+                                      <ChatWindow 
+                                          conversation={selectedConversation} 
+                                          userData={userData!}
+                                          onBack={() => {}}
+                                      />
+                                  ) : (
+                                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
+                                          <MessageSquare className="h-16 w-16 mb-4"/>
+                                          <h2 className="text-xl font-semibold">Select a chat</h2>
+                                          <p>Choose a conversation to start messaging.</p>
+                                      </div>
+                                  )}
+                              </div>
+                          </>
+                      ) : (
+                          <aside className="hidden md:flex flex-col h-screen border-l">
+                              {selectedPostForComments ? (
+                                  <CommentColumn 
+                                      post={selectedPostForComments} 
+                                      onClose={() => setSelectedPostForComments(null)} 
+                                  />
+                              ) : (
+                              <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
+                                  <Card>
+                                      <CardHeader>
+                                          <CardTitle className="text-lg">Trending</CardTitle>
+                                      </CardHeader>
+                                      <CardContent>
+                                          <div className="space-y-4">
+                                              {trendingTopics.map((topic, index) => (
+                                                  <div key={index}>
+                                                      <Link href="#" className="font-semibold hover:underline" onClick={() => setSearchTerm(`#${topic.topic}`)}>#{topic.topic}</Link>
+                                                      <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      </CardContent>
+                                  </Card>
 
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Trending Streams</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            {trendingStreams.map((stream) => (
-                                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="relative">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={stream.avatarUrl}/>
-                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
-                                                            <RadioTower className="h-2 w-2 text-white"/>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Users className="h-3 w-3"/>
-                                                        {stream.viewers}
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                            )}
-                        </aside>
-                    )}
-                </>
-            )}
-        </div>
+                                  <Card>
+                                      <CardHeader>
+                                          <CardTitle className="text-lg">Trending Streams</CardTitle>
+                                      </CardHeader>
+                                      <CardContent>
+                                          <div className="space-y-4">
+                                              {trendingStreams.map((stream) => (
+                                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center justify-between group">
+                                                      <div className="flex items-center gap-3">
+                                                          <div className="relative">
+                                                              <Avatar className="h-10 w-10">
+                                                                  <AvatarImage src={stream.avatarUrl}/>
+                                                                  <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                              </Avatar>
+                                                              <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5 animate-pulse">
+                                                              <RadioTower className="h-2 w-2 text-white"/>
+                                                              </div>
+                                                          </div>
+                                                          <div>
+                                                              <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                              <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                          </div>
+                                                      </div>
+                                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                          <Users className="h-3 w-3"/>
+                                                          {stream.viewers}
+                                                      </div>
+                                                  </Link>
+                                              ))}
+                                          </div>
+                                      </CardContent>
+                                  </Card>
+                              </div>
+                              )}
+                          </aside>
+                      )}
+                  </>
+              )}
+          </div>
+        </SidebarProvider>
         {activeView === 'feed' && (
             <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:pl-[var(--sidebar-width)]">
                  <div className="grid md:grid-cols-[1fr_350px]">
