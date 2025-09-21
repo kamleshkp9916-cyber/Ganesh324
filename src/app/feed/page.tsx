@@ -787,7 +787,9 @@ function FeedPageContent() {
         <div className="h-screen w-full">
              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
-                    <SheetHeader className="sr-only"><SheetTitle>Main Menu</SheetTitle></SheetHeader>
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>
                 {renderMessagesView()}
@@ -832,7 +834,9 @@ function FeedPageContent() {
             </aside>
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
-                    <SheetHeader className="sr-only"><SheetTitle>Main Menu</SheetTitle></SheetHeader>
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>
             </Sheet>
