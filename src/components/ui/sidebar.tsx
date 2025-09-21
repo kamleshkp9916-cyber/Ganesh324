@@ -23,7 +23,7 @@ import {
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "14rem"
+const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "16rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
@@ -143,7 +143,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper flex min-h-svh has-[[data-variant=inset]]:bg-sidebar",
               className
             )}
             ref={ref}
@@ -220,7 +220,7 @@ const Sidebar = React.forwardRef<
     return (
       <div
         ref={ref}
-        className={cn("hidden md:block text-sidebar-foreground", className)}
+        className={cn("peer hidden shrink-0 md:block text-sidebar-foreground", className)}
         data-state={state}
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
