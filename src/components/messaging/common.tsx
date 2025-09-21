@@ -290,6 +290,32 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     return (
         <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
+             <header className="p-4 border-b flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                    {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft/></Button>}
+                    <Link href={`/profile?userId=${conversation.userId}`} className="flex items-center gap-3 group">
+                        <Avatar>
+                            <AvatarImage src={conversation.avatarUrl} />
+                            <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h2 className="font-semibold group-hover:underline">{conversation.userName}</h2>
+                            <p className="text-xs text-muted-foreground">Online</p>
+                        </div>
+                    </Link>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem><Link2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                            <DropdownMenuItem><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
             <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
                 {isLoading ? (
                     <div className="space-y-4">
