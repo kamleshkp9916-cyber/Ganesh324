@@ -390,18 +390,43 @@ const FeedPost = ({
 }
 
 function MessagesView() {
-    const { userData } = useAuth();
     const isMobile = useIsMobile();
-    
-    if (!userData) return null;
-    
-    return (
-        <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-muted/20">
-            <div className="text-center">
-                <MessageSquare className="h-16 w-16 mb-4 mx-auto" />
-                <h2 className="text-xl font-semibold">Select a chat</h2>
-                <p>Choose a conversation to start messaging.</p>
+    const [selectedConversation, setSelectedConversation] = useState<any | null>(null);
+
+    const handleSelectConversation = (conversation: any) => {
+        setSelectedConversation(conversation);
+    };
+
+    if (isMobile && selectedConversation) {
+        return (
+            <div className="h-full flex flex-col">
+                {/* Mobile Chat Window */}
+                <div className="p-4 border-b flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
+                        <ArrowLeft />
+                    </Button>
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={selectedConversation.avatarUrl} />
+                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <h2 className="font-semibold">{selectedConversation.userName}</h2>
+                </div>
+                <div className="flex-1 p-4 overflow-y-auto">
+                    {/* Chat messages would go here */}
+                    <p className="text-center text-muted-foreground">Chat history for {selectedConversation.userName}</p>
+                </div>
+                 <div className="p-4 border-t">
+                    <Input placeholder="Type a message..." />
+                </div>
             </div>
+        );
+    }
+
+    return (
+        <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+            <MessageSquare className="h-16 w-16 mb-4"/>
+            <h2 className="text-xl font-semibold">Select a chat</h2>
+            <p>Choose a conversation to start messaging.</p>
         </div>
     );
 }
@@ -910,4 +935,6 @@ export default function FeedPage() {
 }
 
     
+
+
 
