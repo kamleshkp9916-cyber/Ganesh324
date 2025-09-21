@@ -820,34 +820,32 @@ function FeedPageContent() {
              <div
                 className={cn(
                     "grid h-screen w-full",
-                    activeView === 'messages' ? 
-                      'md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr]' :
-                      'md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr_400px]'
+                    activeView === 'messages' ? 'lg:grid-cols-[260px_1fr]' : 'lg:grid-cols-[260px_minmax(250px,40%)_1fr]'
                 )}
             >
-                <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
+                <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
                 
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
+                    <SheetHeader className="sr-only">
+                        <SheetTitle>Main Menu</SheetTitle>
+                    </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>
 
-
-                 <div className={cn("flex flex-col h-screen", activeView === 'messages' && "md:hidden")}>
-                    {activeView === 'messages' ? (
+                <div className="flex flex-col h-screen">
+                     {activeView === 'messages' ? (
                         <div className="flex-1 overflow-y-auto no-scrollbar">
                             {renderMessagesView()}
                         </div>
-                    ) : (
+                     ) : (
                         <>
-                             <div className="p-4 border-b shrink-0 flex items-center gap-4">
-                               <SheetTrigger asChild>
-                                 <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-                                     <Menu className="h-5 w-5" />
-                                     <span className="sr-only">Toggle navigation menu</span>
-                                 </Button>
-                                </SheetTrigger>
+                            <header className="p-4 border-b shrink-0 flex items-center gap-4">
+                                <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setIsSidebarOpen(true)}>
+                                    <Menu className="h-5 w-5" />
+                                    <span className="sr-only">Toggle navigation menu</span>
+                                </Button>
                                 <div className="relative flex-grow">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input 
@@ -857,7 +855,7 @@ function FeedPageContent() {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                            </div>
+                            </header>
                              <div className="flex-1 overflow-y-auto no-scrollbar">
                                  <div className="h-full flex flex-col">
                                     <div className="w-full max-w-3xl mx-auto flex-grow">
@@ -911,13 +909,11 @@ function FeedPageContent() {
                                 </div>
                             </div>
                         </>
-                    )}
+                     )}
                 </div>
 
                 {activeView !== 'messages' && (
-                     <aside className={cn(
-                        "hidden lg:flex flex-col h-screen border-l sticky top-0"
-                    )}>
+                     <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
                         <ScrollArea className="flex-1">
                             {selectedPostForComments ? (
                                 <CommentColumn 
