@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
@@ -65,9 +65,8 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
-    replies: CommentType[],
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
@@ -89,13 +88,14 @@ const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEd
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(replyText, comment.id, comment.authorName);
+        const parentId = comment.parentId || comment.id; // Always reply to the top-level comment in a flat structure
+        onReply(replyText, parentId, comment.authorName);
         setReplyText('');
         setIsReplying(false);
     };
 
     return (
-        <div className={cn("flex items-start gap-3 w-full", comment.parentId && "ml-6")}>
+        <div className="flex items-start gap-3 w-full">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -174,35 +174,6 @@ const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEd
                         </div>
                     </div>
                 )}
-                
-                {replies.length === 1 && (
-                    <div className="pt-4">
-                        <Comment
-                            key={replies[0].id}
-                            comment={replies[0]}
-                            replies={[]}
-                            {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete }}
-                        />
-                    </div>
-                )}
-
-                {replies.length > 1 && (
-                    <Collapsible>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-primary -ml-2">
-                                <ChevronDown className="w-4 h-4 mr-1" />
-                                View {replies.length} replies
-                            </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <div className="space-y-4 pt-4">
-                                {replies.map(reply => (
-                                    <Comment key={reply.id} comment={reply} replies={[]} {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete }} />
-                                ))}
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
-                )}
             </div>
         </div>
     );
@@ -259,10 +230,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
 
                 if (parentId) {
                     const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
-                    const parentDoc = await transaction.get(parentRef);
-                    if (!parentDoc.exists()) {
-                        throw new Error("Parent comment does not exist!");
-                    }
                     transaction.update(parentRef, { replyCount: increment(1) });
                 }
                 
@@ -372,16 +339,18 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const topLevelComments = useMemo(() => {
-        const commentMap = new Map<string, CommentType[]>();
+    const rootComments = useMemo(() => comments.filter(comment => !comment.parentId), [comments]);
+    const repliesByParent = useMemo(() => {
+        const map = new Map<string, CommentType[]>();
         comments.forEach(comment => {
-            const parentKey = comment.parentId || 'root';
-            if (!commentMap.has(parentKey)) {
-                commentMap.set(parentKey, []);
+            if (comment.parentId) {
+                if (!map.has(comment.parentId)) {
+                    map.set(comment.parentId, []);
+                }
+                map.get(comment.parentId)!.push(comment);
             }
-            commentMap.get(parentKey)!.push(comment);
         });
-        return commentMap;
+        return map;
     }, [comments]);
 
 
@@ -405,14 +374,31 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : topLevelComments.has('root') ? (
-                        topLevelComments.get('root')!.map(comment => (
-                            <Comment 
-                                key={comment.id}
-                                comment={comment}
-                                replies={topLevelComments.get(comment.id) || []}
-                                {...handlers}
-                            />
+                    ) : rootComments.length > 0 ? (
+                        rootComments.map(comment => (
+                            <div key={comment.id} className="w-full">
+                                <Comment 
+                                    comment={comment}
+                                    {...handlers}
+                                />
+                                 {comment.replyCount > 0 && (
+                                     <Collapsible className="pl-6">
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs">
+                                                <ChevronDown className="w-4 h-4 mr-1" />
+                                                View {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <div className="space-y-4 pt-4">
+                                                {(repliesByParent.get(comment.id) || []).map(reply => (
+                                                    <Comment key={reply.id} {...handlers} comment={reply} />
+                                                ))}
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                )}
+                            </div>
                         ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
@@ -433,7 +419,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             rows={1}
                             className="flex-grow resize-none pr-10 min-h-[40px] rounded-md"
                         />
-                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
                             <Smile />
                         </Button>
                     </div>
