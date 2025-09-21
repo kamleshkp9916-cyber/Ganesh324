@@ -11,9 +11,10 @@
 
 import { z } from 'genkit';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
-import { getFirestore, Timestamp, FieldValue, Filter } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs, orderBy, addDoc, updateDoc, increment } from 'firebase-admin/firestore';
 import { UserData } from '@/lib/follow-data';
 import { Message, Conversation } from '@/components/messaging/common';
+import { format } from 'date-fns';
 
 
 function getConversationId(userId1: string, userId2: string): string {
@@ -126,4 +127,26 @@ export async function sendMessage(
             [`unreadCount.${otherParticipantId}`]: increment(1)
         });
     }
+}
+
+export async function updateOrderStatus(orderId: string, newStatus: string): Promise<void> {
+  console.log(`Updating order ${orderId} to status: ${newStatus}`);
+  // In a real app, you would update the order in Firestore here.
+  // For example:
+  // const db = getFirestore(getFirebaseAdminApp());
+  // const orderRef = doc(db, 'orders', orderId);
+  // await updateDoc(orderRef, {
+  //     timeline: FieldValue.arrayUnion({
+  //         status: newStatus,
+  //         date: format(new Date(), 'MMM dd, yyyy'),
+  //         time: format(new Date(), 'p'),
+  //         completed: true,
+  //     })
+  // });
+  return Promise.resolve();
+}
+
+export async function getOrderStatus(orderId: string): Promise<string> {
+    console.log(`Getting status for order ${orderId}`);
+    return "Not Implemented";
 }
