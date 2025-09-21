@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -126,7 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { getConversations } from '@/ai/flows/chat-flow';
+import { getConversations, sendMessage, getMessages } from '@/ai/flows/chat-flow';
 import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 
 const liveSellers = [
@@ -829,22 +830,22 @@ function FeedPageContent() {
                                         </PopoverAnchor>
                                         <PopoverContent className="w-[--radix-popover-trigger-width] p-2" onOpenAutoFocus={(e) => e.preventDefault()}>
                                             <ScrollArea className="max-h-80">
-                                                {searchSuggestions.users.length > 0 && <DropdownMenuLabel>Users</DropdownMenuLabel>}
+                                                {searchSuggestions.users.length > 0 && <div className="px-2 py-1.5 text-sm font-semibold">Users</div>}
                                                 {searchSuggestions.users.map(u => (
-                                                    <DropdownMenuItem key={u.uid} onSelect={() => handleSearchFilter('user', u.uid)}>
+                                                    <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
                                                         <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
                                                         {u.displayName}
-                                                    </DropdownMenuItem>
+                                                    </button>
                                                 ))}
-                                                {searchSuggestions.hashtags.length > 0 && <DropdownMenuLabel>Hashtags</DropdownMenuLabel>}
+                                                {searchSuggestions.hashtags.length > 0 && <div className="px-2 py-1.5 text-sm font-semibold">Hashtags</div>}
                                                 {searchSuggestions.hashtags.map(h => (
-                                                    <DropdownMenuItem key={h} onSelect={() => handleSearchFilter('hashtag', h)}>#{h}</DropdownMenuItem>
+                                                    <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
                                                 ))}
-                                                 {searchSuggestions.posts.length > 0 && <DropdownMenuLabel>Posts</DropdownMenuLabel>}
+                                                 {searchSuggestions.posts.length > 0 && <div className="px-2 py-1.5 text-sm font-semibold">Posts</div>}
                                                   {searchSuggestions.posts.map(p => (
-                                                    <DropdownMenuItem key={p.id} onSelect={() => setSearchTerm(p.content.substring(0,20))}>
+                                                    <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
                                                         <span className="truncate">{p.content}</span>
-                                                    </DropdownMenuItem>
+                                                    </button>
                                                 ))}
                                             </ScrollArea>
                                         </PopoverContent>
