@@ -769,10 +769,10 @@ function FeedPageContent() {
     // Desktop view
     return (
         <div className="flex h-full border-t">
-            <div className="w-1/3 border-r h-full">
+            <div className="w-full md:w-1/3 border-r h-full overflow-y-auto">
                  <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
             </div>
-            <div className="w-2/3 h-full">
+            <div className="hidden md:flex w-2/3 h-full">
                 {selectedConversation ? (
                     <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
                 ) : (
@@ -818,11 +818,11 @@ function FeedPageContent() {
         <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[250px_1fr_350px]">
                 
-                 <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
+                <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
-                <main className={cn("min-w-0 h-screen flex flex-col", activeView === 'messages' && "h-[calc(100vh)]")}>
+                <main className={cn("min-w-0 h-screen flex flex-col", activeView === 'messages' && "h-full")}>
                     <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                         <SidebarTrigger />
                         {activeView !== 'messages' && (
@@ -887,7 +887,7 @@ function FeedPageContent() {
                         <div/>
                     </header>
                     
-                    <div className="flex-grow overflow-y-auto no-scrollbar pb-32 max-w-3xl w-full mx-auto">
+                    <div className="flex-grow overflow-y-auto no-scrollbar max-w-3xl w-full mx-auto">
                         {activeView === 'messages' ? renderMessages() :
                         (
                             <section>
@@ -960,16 +960,7 @@ function FeedPageContent() {
                     )}
                 </main>
                 <aside className="hidden lg:flex flex-col h-screen border-l sticky top-0">
-                    {activeView === 'messages' ? (
-                        selectedConversation ? (
-                            <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => setSelectedConversation(null)} />
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">
-                                <MessageSquare className="h-10 w-10 mb-4" />
-                                <span>Select a conversation</span>
-                            </div>
-                        )
-                    ) : selectedPostForComments ? (
+                    {selectedPostForComments ? (
                         <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
