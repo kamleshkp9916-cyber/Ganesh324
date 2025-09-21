@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
 import { Input } from '../ui/input';
+import { Separator } from '../ui/separator';
 
 
 interface CommentType {
@@ -59,7 +60,7 @@ const mockCommentsData: CommentType[] = [
 
 
 const CommentSkeleton = () => (
-    <div className="flex items-start gap-3 w-full p-4 border rounded-lg">
+    <div className="flex items-start gap-3 w-full p-4">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="flex-grow space-y-2">
             <Skeleton className="h-4 w-1/4" />
@@ -200,7 +201,7 @@ const Comment = ({ comment, post, handlers, allComments }: {
                 )}
 
                 {showReplies && (
-                    <div className="pt-4 space-y-6 ml-4 pl-4 border-l-2">
+                    <div className="pt-4 space-y-6 ml-6 pl-6 border-l">
                         {isRepliesLoading ? (
                             <CommentSkeleton />
                         ) : (
@@ -223,7 +224,10 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     useEffect(() => {
-      if (!post) return;
+      if (!post) {
+        setIsLoading(false);
+        return;
+      };
       setIsLoading(true);
       setTimeout(() => {
           setAllComments(mockCommentsData);
@@ -310,7 +314,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </Button>
             </div>
             <ScrollArea className="flex-grow">
-                <div className="p-4 flex flex-col items-start gap-y-4">
+                <div className="p-4 flex flex-col items-start divide-y">
                     {isLoading ? (
                         <div className="w-full space-y-4 pt-4">
                             <CommentSkeleton />
@@ -318,7 +322,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         </div>
                     ) : topLevelComments.length > 0 ? (
                         topLevelComments.map(comment => (
-                            <div key={comment.id} className="w-full p-4 border rounded-lg">
+                            <div key={comment.id} className="w-full py-4">
                                 <Comment 
                                     comment={comment}
                                     post={post}
