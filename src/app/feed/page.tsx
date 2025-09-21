@@ -806,17 +806,17 @@ function FeedPageContent() {
       </AlertDialog>
       <SidebarProvider>
         <div className={cn("min-h-screen bg-background text-foreground w-full", isMobile && activeView === 'messages' && "h-screen")}>
-          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px]">
+          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
               <div className="hidden md:block">
                    <MainSidebar userData={userData!} userPosts={userPosts} />
               </div>
               
-              <main className={cn("flex-1 min-w-0 h-screen flex flex-col", activeView === 'messages' && "md:grid md:grid-cols-2")}>
+              <main className={cn("flex-1 min-w-0 h-screen flex", activeView === 'messages' ? 'md:grid md:grid-cols-2' : 'flex-col' )}>
                   {isMobile && activeView === 'messages' ? (
                       renderMobileMessages()
                   ) : (
                     <>
-                        <div className={cn("flex flex-col h-full", activeView === 'messages' && "hidden md:flex")}>
+                        <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "hidden md:flex")}>
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                 <SidebarTrigger className="md:hidden" />
                                 <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -879,15 +879,7 @@ function FeedPageContent() {
                                 <div/>
                             </header>
                             <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
-                                {activeView === 'messages' && !isMobile ? (
-                                    <ConversationList 
-                                        conversations={conversations} 
-                                        selectedConversation={selectedConversation} 
-                                        onSelectConversation={setSelectedConversation}
-                                        userData={userData}
-                                        userPosts={userPosts}
-                                    />
-                                ) : (
+                                {activeView !== 'messages' && (
                                     <section>
                                         {activeView === 'saves' ? (
                                         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
@@ -942,6 +934,15 @@ function FeedPageContent() {
                                             </div>
                                         )}
                                     </section>
+                                )}
+                                {activeView === 'messages' && !isMobile && (
+                                    <ConversationList 
+                                        conversations={conversations} 
+                                        selectedConversation={selectedConversation} 
+                                        onSelectConversation={setSelectedConversation}
+                                        userData={userData}
+                                        userPosts={userPosts}
+                                    />
                                 )}
                             </div>
                         </div>
