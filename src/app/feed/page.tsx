@@ -105,7 +105,7 @@ import { useTheme } from 'next-themes';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
@@ -487,11 +487,7 @@ function FeedPageContent() {
 
   const loadConversations = useCallback(() => {
     setConversations(mockConversations);
-    if (mockConversations.length > 0 && !isMobile) {
-      // Don't auto-select a conversation to allow the user to see the list first.
-      // setSelectedConversation(mockConversations[0]);
-    }
-  }, [isMobile]);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -904,7 +900,7 @@ function FeedPageContent() {
                                     <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                         <section>
                                              {activeView === 'saves' ? (
-                                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                                     {filteredFeed.map(post => (
                                                         <FeedPost 
                                                             key={post.id}
