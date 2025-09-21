@@ -69,7 +69,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     <span className="font-bold text-xl">StreamCart</span>
                 </Link>
             </div>
-             <ScrollArea className="flex-grow -mx-4">
+             <ScrollArea className="-mx-4">
                 <div className="px-4">
                     <div className="flex flex-col items-center text-center mb-6">
                         <Avatar className="h-20 w-20 mb-3 border-2 border-primary">
