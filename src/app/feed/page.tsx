@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -808,7 +807,7 @@ function FeedPageContent() {
       </AlertDialog>
       <SidebarProvider>
         <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
-          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr] lg:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
+          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr] lg:grid-cols-[var(--sidebar-width)_1fr_350px]">
               <div className="hidden md:block">
                    <MainSidebar userData={userData!} userPosts={userPosts} />
               </div>
@@ -817,10 +816,10 @@ function FeedPageContent() {
                   {isMobile && activeView === 'messages' ? (
                       renderMobileMessages()
                   ) : (
-                    <div className="flex flex-col h-full w-full">
+                    <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "md:grid md:grid-cols-2 lg:grid-cols-1")}>
                         <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                             <SidebarTrigger className="md:hidden" />
-                            <Popover open={showSuggestions}>
+                            <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
                                 <PopoverAnchor asChild>
                                     <div className="relative w-full max-w-sm">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -832,56 +831,54 @@ function FeedPageContent() {
                                         />
                                     </div>
                                 </PopoverAnchor>
-                                {showSuggestions && (
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
-                                        <div className="space-y-4">
-                                            {searchSuggestions.users.length > 0 && (
-                                                <div>
-                                                    <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
-                                                    {searchSuggestions.users.map(u => (
-                                                        <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                                <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {searchSuggestions.hashtags.length > 0 && (
-                                                <div>
-                                                    <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
-                                                    {searchSuggestions.hashtags.map(h => (
-                                                        <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
-                                                            <div className="flex items-center gap-2 font-semibold">
-                                                                <Hash className="h-4 w-4 text-muted-foreground" />
-                                                                <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {searchSuggestions.posts.length > 0 && (
-                                                <div>
-                                                    <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
-                                                    {searchSuggestions.posts.map(p => (
-                                                        <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
-                                                            <BookText className="h-4 w-4 inline-block mr-2" />
-                                                            <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                                <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                    <div className="space-y-4">
+                                        {searchSuggestions.users.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                                {searchSuggestions.users.map(u => (
+                                                    <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                            <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
-                                                <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
-                                            )}
-                                        </div>
-                                    </PopoverContent>
-                                )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchSuggestions.hashtags.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                                {searchSuggestions.hashtags.map(h => (
+                                                    <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                        <div className="flex items-center gap-2 font-semibold">
+                                                            <Hash className="h-4 w-4 text-muted-foreground" />
+                                                            <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchSuggestions.posts.length > 0 && (
+                                            <div>
+                                                <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                                {searchSuggestions.posts.map(p => (
+                                                    <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                        <BookText className="h-4 w-4 inline-block mr-2" />
+                                                        <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
+                                            <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                        )}
+                                    </div>
+                                </PopoverContent>
                             </Popover>
                             <div/>
                         </header>
-                        <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
+                        <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32", activeView === 'messages' && "md:grid md:grid-cols-2 md:overflow-hidden")}>
                             {activeView !== 'messages' ? (
                                 <section>
                                     {activeView === 'saves' ? (
@@ -938,20 +935,39 @@ function FeedPageContent() {
                                     )}
                                 </section>
                             ) : (
-                                !isMobile && <ConversationList 
-                                    conversations={conversations} 
-                                    selectedConversation={selectedConversation} 
-                                    onSelectConversation={setSelectedConversation}
-                                    userData={userData}
-                                    userPosts={userPosts}
-                                />
+                                !isMobile && (
+                                    <>
+                                        <ConversationList 
+                                            conversations={conversations} 
+                                            selectedConversation={selectedConversation} 
+                                            onSelectConversation={setSelectedConversation}
+                                            userData={userData}
+                                            userPosts={userPosts}
+                                        />
+                                        <div className='hidden md:flex lg:hidden'>
+                                            {selectedConversation ? (
+                                                <ChatWindow 
+                                                    conversation={selectedConversation} 
+                                                    userData={userData!}
+                                                    onBack={() => setSelectedConversation(null)}
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
+                                                    <MessageSquare className="h-16 w-16 mb-4"/>
+                                                    <h2 className="text-xl font-semibold">Select a chat</h2>
+                                                    <p>Choose a conversation to start messaging.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )
                             )}
                         </div>
                     </div>
                   )}
               </main>
                <aside className="hidden lg:flex flex-col h-screen border-l">
-                  {activeView === 'messages' && !isMobile ? (
+                  {activeView === 'messages' ? (
                       selectedConversation ? (
                         <ChatWindow 
                             conversation={selectedConversation} 
