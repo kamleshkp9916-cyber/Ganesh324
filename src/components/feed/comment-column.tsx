@@ -33,7 +33,6 @@ import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 
-
 interface CommentType {
   id: string;
   userId: string;
@@ -57,7 +56,6 @@ const mockCommentsData: CommentType[] = [
     { id: '5', userId: 'userD', authorName: 'Brianna West', authorAvatar: 'https://placehold.co/40x40.png?text=BW', text: 'Are there any other colors available?', timestamp: new Date(Date.now() - 15 * 60 * 1000), parentId: null, likes: 2, likedBy: [], replyCount: 1 },
     { id: '6', userId: 'userB', authorName: 'Alex Morgan', authorAvatar: 'https://placehold.co/40x40.png?text=AM', text: 'Hi Brianna! We have it in blue and green as well. They will be in stock next week.', timestamp: new Date(Date.now() - 14 * 60 * 1000), parentId: '5', likes: 4, likedBy: [], replyingTo: 'Brianna West' },
 ];
-
 
 const CommentSkeleton = () => (
     <div className="flex items-start gap-3 w-full p-4">
@@ -129,12 +127,34 @@ const Comment = ({ comment, post, handlers, allComments }: {
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-grow space-y-1">
-                <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                    <p className="text-xs text-muted-foreground flex-shrink-0">
-                        <RealtimeTimestamp date={comment.timestamp} />
-                    </p>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                        <p className="text-xs text-muted-foreground flex-shrink-0">
+                            <RealtimeTimestamp date={comment.timestamp} />
+                        </p>
+                    </div>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                            {user?.uid === comment.userId ? (
+                                <>
+                                    <DropdownMenuItem onSelect={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handlers.onDelete(comment.id)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                </>
+                            ) : (
+                                <DropdownMenuItem onSelect={() => handlers.onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => handlers.onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy Link to Comment</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
+
 
                 {!isEditing ? (
                     <p className="text-sm whitespace-pre-wrap break-words">
@@ -160,26 +180,6 @@ const Comment = ({ comment, post, handlers, allComments }: {
                         <ThumbsDown className="w-4 h-4" />
                     </button>
                     <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary font-semibold">Reply</button>
-                    
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
-                                <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
-                            {user?.uid === comment.userId ? (
-                                <>
-                                    <DropdownMenuItem onSelect={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => handlers.onDelete(comment.id)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
-                                </>
-                            ) : (
-                                <DropdownMenuItem onSelect={() => handlers.onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => handlers.onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy Link to Comment</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
                 
                  {isReplying && (
@@ -205,7 +205,11 @@ const Comment = ({ comment, post, handlers, allComments }: {
                         {isRepliesLoading ? (
                             <CommentSkeleton />
                         ) : (
-                            replies.map(reply => <Comment key={reply.id} comment={reply} post={post} handlers={handlers} allComments={allComments} />)
+                            replies.map(reply => (
+                                <div key={reply.id} className="ml-6 border-l pl-4">
+                                    <Comment comment={reply} post={post} handlers={handlers} allComments={allComments} />
+                                </div>
+                            ))
                         )}
                     </div>
                 )}
@@ -224,10 +228,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     useEffect(() => {
-      if (!post) {
-        setIsLoading(false);
-        return;
-      };
+      if (!post) return;
       setIsLoading(true);
       setTimeout(() => {
           setAllComments(mockCommentsData);
@@ -309,9 +310,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         <div className="h-full flex flex-col bg-background">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
                 <h3 className="font-bold text-lg">Comments ({allComments.length})</h3>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                    <X className="w-5 h-5"/>
-                </Button>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start divide-y">
