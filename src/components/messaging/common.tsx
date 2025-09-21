@@ -52,7 +52,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
         avatarInitial = msg.sender.charAt(0).toUpperCase();
     }
 
-    return (
+    return <>
         <div className={cn("group flex items-end gap-2", isMe ? 'justify-end' : 'justify-start')}>
              {!isMe && (
                 <Avatar className="h-8 w-8">
@@ -99,7 +99,7 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
                 </AlertDialog>
              )}
         </div>
-    );
+    </>;
 }
 
 export function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {

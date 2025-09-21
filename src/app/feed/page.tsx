@@ -754,7 +754,7 @@ function FeedPageContent() {
   }
 
  const renderMessagesView = () => {
-      return (
+    return (
         <div className="h-screen w-full">
             <SidebarProvider>
                 <Sheet open={open} onOpenChange={setOpen}>
@@ -765,17 +765,12 @@ function FeedPageContent() {
                         <MainSidebar userData={userData!} userPosts={userPosts} />
                     </SheetContent>
                     
-                    <div className="grid h-screen w-full lg:grid-cols-[260px_1fr] xl:grid-cols-[260px_minmax(384px,1fr)_2fr]">
+                    <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_2fr]">
                         <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                           <MainSidebar userData={userData!} userPosts={userPosts} />
                         </aside>
                         
-                        <div className={cn(
-                          "border-r",
-                          "hidden flex-col",
-                           selectedConversation && !isMobile ? "md:flex" : "hidden",
-                           !selectedConversation && isMobile ? "flex" : "hidden md:flex"
-                        )}>
+                        <div className={cn("border-r", "flex-col", isMobile && selectedConversation ? "hidden" : "flex", !isMobile && "flex")}>
                           <ConversationList
                             onSidebarToggle={() => setOpen(true)}
                             conversations={conversations}
@@ -784,11 +779,7 @@ function FeedPageContent() {
                           />
                         </div>
                         
-                        <div className={cn(
-                            "hidden flex-col",
-                            selectedConversation && isMobile ? "flex" : "hidden",
-                            selectedConversation && !isMobile ? "md:flex" : "hidden"
-                        )}>
+                        <div className={cn("flex-col", isMobile && !selectedConversation ? "hidden" : "flex", !isMobile && "flex")}>
                           {selectedConversation ? (
                             <ChatWindow
                               conversation={selectedConversation}
@@ -796,7 +787,7 @@ function FeedPageContent() {
                               onBack={() => setSelectedConversation(null)}
                             />
                           ) : (
-                            <div className="hidden xl:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                            <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
                               <MessageSquare className="h-16 w-16 mb-4" />
                               <h2 className="text-xl font-semibold">Select a chat</h2>
                               <p>Choose a conversation to start messaging.</p>
@@ -807,7 +798,7 @@ function FeedPageContent() {
                 </Sheet>
             </SidebarProvider>
         </div>
-      );
+    );
 };
 
   if (activeView === 'messages') {
@@ -1005,6 +996,7 @@ export default function FeedPage() {
   
 
     
+
 
 
 
