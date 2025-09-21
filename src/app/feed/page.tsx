@@ -801,11 +801,13 @@ function FeedPageContent() {
             ) : (
                 <SidebarProvider>
                      <div className={cn("grid min-h-screen w-full", activeView === 'messages' ? 'md:grid-cols-[1fr_2fr_1fr]' : 'md:grid-cols-[1fr_2.5fr_1.25fr]')}>
-                        <Sidebar variant="sidebar" collapsible="offcanvas">
-                           <SidebarContent>
-                               <MainSidebar userData={userData!} userPosts={userPosts} />
-                           </SidebarContent>
-                        </Sidebar>
+                        <div className="hidden md:block w-[--sidebar-width] flex-shrink-0">
+                            <Sidebar variant="sidebar">
+                               <SidebarContent>
+                                   <MainSidebar userData={userData!} userPosts={userPosts} />
+                               </SidebarContent>
+                            </Sidebar>
+                        </div>
                         
                         {activeView === 'messages' ? (
                             <>
@@ -856,7 +858,10 @@ function FeedPageContent() {
                                                         <div>
                                                             <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
                                                             {searchSuggestions.users.map(u => (
-                                                                <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => router.push(u.role === 'seller' ? `/seller/profile?userId=${u.uid}` : `/profile?userId=${u.uid}`)}>
+                                                                <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => {
+                                                                    router.push(u.role === 'seller' ? `/seller/profile?userId=${u.uid}` : `/profile?userId=${u.uid}`);
+                                                                    setSearchTerm('');
+                                                                }}>
                                                                     <div className="flex items-center gap-2">
                                                                         <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
                                                                         <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
