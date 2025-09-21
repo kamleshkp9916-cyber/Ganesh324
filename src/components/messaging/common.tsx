@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -7,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu, FileText, ImageIcon, Trash2, Edit, Flag, Link as Link2, PlusCircle } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Search, Send, Smile, Paperclip, MessageSquare, Menu, FileText, ImageIcon, Trash2, Edit, Flag, Link as Link2, PlusCircle, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -147,15 +146,18 @@ export const ConversationList = ({ onSidebarToggle, conversations, selectedConve
     return (
          <div className="w-full h-full flex flex-col bg-background border-r">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
-                <div className="flex items-center gap-2">
+                 <nav className="flex items-center gap-2">
                     <SheetTrigger asChild>
-                         <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
+                        <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
                             <Menu className="h-5 w-5" />
-                            <span className="sr-only">Toggle navigation menu</span>
                         </Button>
                     </SheetTrigger>
-                    <h1 className="text-xl font-bold">Chats</h1>
-                </div>
+                     <div className="hidden md:flex items-center gap-4 text-sm font-medium">
+                        <Link href="/feed" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Feed</span></Link>
+                        <Link href="/feed?tab=messages" className="text-primary font-semibold">Messages</Link>
+                    </div>
+                </nav>
+                <h1 className="text-xl font-bold md:hidden">Chats</h1>
             </header>
             <div className="p-4 border-b">
                  <div className="relative">
