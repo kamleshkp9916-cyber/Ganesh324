@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -10,7 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { UserData } from '@/lib/follow-data';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Sidebar, SidebarContent } from './ui/sidebar';
+import { useSidebar } from './ui/sidebar';
 
 interface MainSidebarProps {
     userData: UserData;
@@ -21,6 +22,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { setOpen } = useSidebar();
 
     const activeTab = searchParams.get('tab');
     const feedFilter = searchParams.get('filter');
@@ -43,12 +45,17 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
         return isPathMatch;
     }
     
+    const handleNavigation = (href: string | object) => {
+        router.push(typeof href === 'string' ? href : { pathname: href.pathname, query: href.query });
+        setOpen(false); // Close sidebar on navigation
+    };
+    
     const isFeedActive = isActive('/feed', null, 'global') || isActive('/feed', null, 'following') || (pathname === '/feed' && !activeTab && !feedFilter);
 
     return (
         <div className="p-6 flex flex-col h-full">
             <div className="flex items-center gap-2 mb-8">
-                <Button variant="ghost" size="icon" className="-ml-2 hidden md:inline-flex" onClick={() => router.push('/live-selling')}>
+                <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/live-selling')}>
                     <ArrowLeft />
                 </Button>
                 <div className="flex-grow" />
@@ -85,19 +92,19 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pl-8 space-y-1 mt-1">
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed') && !feedFilter}>
-                            <Link href="/feed"><Globe className="w-4 h-4" /> Global</Link>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed') && !feedFilter} onClick={() => handleNavigation('/feed')}>
+                            <Globe className="w-4 h-4" /> Global
                         </Button>
-                        <Button asChild variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'following')}>
-                        <Link href={{ pathname: '/feed', query: { filter: 'following' } }}><Users className="w-4 h-4" /> Following</Link>
+                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground data-[active=true]:text-primary data-[active=true]:bg-primary/10" data-active={isActive('/feed', null, 'following')} onClick={() => handleNavigation({ pathname: '/feed', query: { filter: 'following' } })}>
+                            <Users className="w-4 h-4" /> Following
                         </Button>
                     </CollapsibleContent>
                 </Collapsible>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'saves')}>
-                    <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
+                <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'saves')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'saves' } })}>
+                    <Save /> Saves
                 </Button>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')}>
-                    <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
+                <Button variant="ghost" className="w-full justify-start gap-3 text-base data-[active=true]:bg-primary/10 data-[active=true]:text-primary" data-active={isActive('/feed', 'messages')} onClick={() => handleNavigation({ pathname: '/feed', query: { tab: 'messages' } })}>
+                    <MessageSquare /> Messages
                 </Button>
             </nav>
         </div>

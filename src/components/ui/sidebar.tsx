@@ -38,27 +38,6 @@ export function useSidebar() {
   return context
 }
 
-export const Sidebar = ({ children, className }: { children: React.ReactNode, className?: string }) => {
-    const { open, setOpen } = useSidebar();
-    const isMobile = useIsMobile();
-    
-    if (isMobile) {
-        return (
-            <Sheet open={open} onOpenChange={setOpen}>
-                <SheetContent side="left" className={className}>
-                    {children}
-                </SheetContent>
-            </Sheet>
-        )
-    }
-
-    return (
-        <aside className={className}>
-            {children}
-        </aside>
-    );
-};
-
 export const SidebarTrigger = () => {
     const { setOpen } = useSidebar();
     return (
@@ -69,8 +48,8 @@ export const SidebarTrigger = () => {
     )
 }
 
-export const SidebarContent = ({ children }: { children: React.ReactNode }) => {
-    return <>{children}</>;
-}
-
-
+// These are no longer needed as wrappers but are kept for compatibility
+export const Sidebar = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarHeader = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarInset = ({ children }: { children: React.ReactNode }) => <>{children}</>
