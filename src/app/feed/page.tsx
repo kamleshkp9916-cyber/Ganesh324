@@ -771,7 +771,7 @@ function FeedPageContent() {
     // On desktop, always show both
     return (
         <div className="grid grid-cols-[minmax(250px,35%)_1fr] h-full">
-            <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts} />
+            <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts}/>
             {selectedConversation ? (
                  <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
             ) : (
@@ -817,9 +817,9 @@ function FeedPageContent() {
       </AlertDialog>
         <div className={cn(
             "grid h-screen w-full",
-            activeView === 'messages' 
-                ? 'md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr]'
-                : 'md:grid-cols-[200px_minmax(0,_1fr)] lg:grid-cols-[260px_minmax(0,_1fr)_400px]'
+            activeView === 'messages' ? 
+              'md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr]' :
+              'md:grid-cols-[200px_minmax(0,_1fr)] lg:grid-cols-[260px_minmax(0,_1fr)_400px]'
         )}>
             <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -832,8 +832,9 @@ function FeedPageContent() {
                     </div>
                 ) : (
                     <>
-                        <header className="p-4 border-b shrink-0">
-                            <div className="relative">
+                        <header className="p-4 border-b shrink-0 flex items-center gap-4">
+                           <SidebarTrigger />
+                            <div className="relative flex-grow">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input 
                                     placeholder="Search feed..." 
