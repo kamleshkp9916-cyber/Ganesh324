@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -45,8 +44,8 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
         return isPathMatch;
     }
     
-    const handleNavigation = (href: string | object) => {
-        router.push(typeof href === 'string' ? href : { pathname: href.pathname, query: href.query });
+    const handleNavigation = (href: string | { pathname: string, query?: any }) => {
+        router.push(href);
         setOpen(false); // Close sidebar on navigation
     };
     
