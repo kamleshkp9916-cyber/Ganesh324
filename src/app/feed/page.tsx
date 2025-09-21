@@ -127,7 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { ConversationList, ChatWindow } from '@/components/messaging/common';
+import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -167,6 +167,30 @@ const liveSellersData = [
     { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
+
+const mockConversations: Conversation[] = [
+    { conversationId: '1', userId: "support", userName: "StreamCart Support", avatarUrl: "https://placehold.co/40x40/000000/FFFFFF?text=SC", lastMessage: "Yes, we can help with that!", lastMessageTimestamp: "10:30 AM", unreadCount: 1, isExecutive: true },
+    { conversationId: '2', userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
+    { conversationId: '3', userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+];
+
+const mockMessages: Record<string, Message[]> = {
+  "support": [
+    { id: 1, senderId: 'customer', text: 'I have an issue with my recent order.', timestamp: '10:28 AM' },
+    { id: 2, senderId: 'support', text: 'Hello! I can certainly help you with that. Can you please provide me with the order ID?', timestamp: '10:29 AM' },
+    { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM' },
+    { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
+  ],
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM' },
+    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM' },
+  ],
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday' },
+      { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
+  ]
+};
 
 function FeedPostSkeleton() {
     return (
@@ -412,6 +436,9 @@ function FeedPageContent() {
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   
   const { open, setOpen } = useSidebar();
 
@@ -419,6 +446,22 @@ function FeedPageContent() {
   const activeView = (activeTabParam === 'saves' || activeTabParam === 'messages') ? activeTabParam : 'feed';
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
+
+  const handleSelectConversation = (convo: Conversation) => {
+    setSelectedConversation(convo);
+    setMessages(mockMessages[convo.userId] || []);
+  };
+
+  const handleSendMessage = (text: string) => {
+    if (!selectedConversation || !user) return;
+    const newMessage: Message = {
+      id: Date.now(),
+      senderId: user.uid,
+      text: text,
+      timestamp: format(new Date(), 'p')
+    };
+    setMessages(prev => [...prev, newMessage]);
+  }
 
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
@@ -833,33 +876,34 @@ function FeedPageContent() {
                                      <div className="h-full flex overflow-hidden">
                                         <div className={cn(
                                             "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
-                                            isMobile && selectedPostForComments && "hidden"
+                                            isMobile && selectedConversation && "hidden"
                                         )}>
                                             <ConversationList
-                                                conversations={[]}
-                                                selectedConversation={null}
-                                                onSelectConversation={() => {}}
+                                                conversations={conversations}
+                                                selectedConversation={selectedConversation}
+                                                onSelectConversation={handleSelectConversation}
                                             />
                                         </div>
                                         <div className={cn(
-                                            "h-full w-full flex-col hidden md:flex md:w-full lg:w-3/5",
-                                            isMobile && !selectedPostForComments && "hidden"
+                                            "h-full w-full flex-col md:flex md:w-full lg:w-3/5",
+                                            isMobile && !selectedConversation && "hidden"
                                         )}>
-                                            <ChatWindow 
-                                                conversation={{
-                                                    userId: 'FashionFinds',
-                                                    userName: 'FashionFinds',
-                                                    avatarUrl: 'https://placehold.co/40x40.png',
-                                                    lastMessage: '',
-                                                    lastMessageTimestamp: '',
-                                                    unreadCount: 0,
-                                                    conversationId: ''
-                                                }}
-                                                userData={userData}
-                                                onBack={() => {}}
-                                                messages={[]}
-                                                onSendMessage={() => {}}
-                                            />
+                                           {selectedConversation ? (
+                                                <ChatWindow 
+                                                    key={selectedConversation.userId}
+                                                    conversation={selectedConversation}
+                                                    userData={userData}
+                                                    messages={messages}
+                                                    onSendMessage={handleSendMessage}
+                                                    onBack={() => setSelectedConversation(null)}
+                                                />
+                                            ) : (
+                                                <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
+                                                    <MessageSquare className="h-16 w-16 mb-4"/>
+                                                    <h2 className="text-xl font-semibold">Select a chat</h2>
+                                                    <p>Choose a conversation to start messaging.</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -971,6 +1015,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
