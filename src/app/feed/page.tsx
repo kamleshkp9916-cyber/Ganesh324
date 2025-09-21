@@ -736,65 +736,69 @@ function FeedPageContent() {
 
   return (
     <div className="h-screen w-full">
-         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_320px]">
+         <div className={cn("grid h-screen w-full", activeView === 'messages' ? "lg:grid-cols-[260px_1fr]" : "lg:grid-cols-[260px_1fr_320px]")}>
                 <aside className={cn("h-screen flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
                  <div className="flex flex-col h-screen">
                     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
-                        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
-                            <Menu className="h-5 w-5" />
-                            <span className="sr-only">Toggle navigation menu</span>
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                            <Search className="h-5 w-5"/>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                           <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                                <Menu className="h-5 w-5" />
+                                <span className="sr-only">Toggle navigation menu</span>
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                                <Search className="h-5 w-5"/>
+                            </Button>
+                        </div>
                     </header>
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
-                            <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
-                                <Popover open={showSuggestions}>
-                                    <PopoverAnchor asChild>
-                                        <div className="relative">
-                                            <Input
-                                                placeholder="Search feed..."
-                                                className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
-                                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                    </PopoverAnchor>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-                                        <ScrollArea className="max-h-80">
-                                            {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
-                                            (
-                                                <>
-                                                    {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
-                                                    {searchSuggestions.users.map(u => (
-                                                        <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                            <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                            {u.displayName}
-                                                        </button>
-                                                    ))}
-                                                    {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
-                                                    {searchSuggestions.hashtags.map(h => (
-                                                        <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
-                                                    ))}
-                                                    {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
-                                                    {searchSuggestions.posts.map(p => (
-                                                        <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                            <span className="truncate">{p.content}</span>
-                                                        </button>
-                                                    ))}
-                                                    {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
-                                                </>
-                                            )}
-                                        </ScrollArea>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                            {(activeView === 'feed' || activeView === 'saves') && (
+                                <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
+                                    <Popover open={showSuggestions}>
+                                        <PopoverAnchor asChild>
+                                            <div className="relative">
+                                                <Input
+                                                    placeholder="Search feed..."
+                                                    className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                />
+                                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                        </PopoverAnchor>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                                            <ScrollArea className="max-h-80">
+                                                {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
+                                                (
+                                                    <>
+                                                        {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
+                                                        {searchSuggestions.users.map(u => (
+                                                            <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                {u.displayName}
+                                                            </button>
+                                                        ))}
+                                                        {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
+                                                        {searchSuggestions.hashtags.map(h => (
+                                                            <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
+                                                        ))}
+                                                        {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
+                                                        {searchSuggestions.posts.map(p => (
+                                                            <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                <span className="truncate">{p.content}</span>
+                                                            </button>
+                                                        ))}
+                                                        {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                                    </>
+                                                )}
+                                            </ScrollArea>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            )}
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
                                 {activeView === 'feed' || activeView === 'saves' ? (
                                     <section>
@@ -880,64 +884,66 @@ function FeedPageContent() {
                     )}
                 </div>
 
-                <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
-                   <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
-                        <div className="flex-shrink-0">
-                        </div>
-
-                         <ScrollArea className="-mx-4 mt-4">
-                             <div className="px-4">
-                                <Card className="bg-muted/30">
-                                    <CardHeader>
-                                        <CardTitle className="text-base flex items-center gap-2">
-                                            <TrendingUp className="h-5 w-5 text-primary" />
-                                            Trending Topics
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <ul className="space-y-3">
-                                            {trendingTopics.map(topic => (
-                                                <li key={topic.topic}>
-                                                    <button onClick={() => setSearchTerm(`#${topic.topic}`)} className="font-semibold hover:underline text-left w-full">
-                                                        #{topic.topic}
-                                                    </button>
-                                                    <p className="text-xs text-muted-foreground">{topic.posts}</p>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="bg-muted/30 mt-6">
-                                    <CardHeader>
-                                        <CardTitle className="text-base flex items-center gap-2">
-                                            <RadioTower className="h-5 w-5 text-destructive animate-pulse" />
-                                            Trending Streams
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {trendingStreams.map(stream => (
-                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center gap-3 group">
-                                                 <Avatar className="h-9 w-9">
-                                                    <AvatarImage src={stream.avatarUrl} alt={stream.name} />
-                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                                </div>
-                                                <div className="flex items-center text-xs text-muted-foreground gap-1">
-                                                    <Users className="h-3 w-3" />
-                                                    {stream.viewers}
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </CardContent>
-                                </Card>
+                {(activeView === 'feed' || activeView === 'saves') && (
+                    <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
+                    <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
+                            <div className="flex-shrink-0">
                             </div>
-                        </ScrollArea>
-                    </div>
-                </aside>
+
+                            <ScrollArea className="-mx-4 mt-4">
+                                <div className="px-4">
+                                    <Card className="bg-muted/30">
+                                        <CardHeader>
+                                            <CardTitle className="text-base flex items-center gap-2">
+                                                <TrendingUp className="h-5 w-5 text-primary" />
+                                                Trending Topics
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <ul className="space-y-3">
+                                                {trendingTopics.map(topic => (
+                                                    <li key={topic.topic}>
+                                                        <button onClick={() => setSearchTerm(`#${topic.topic}`)} className="font-semibold hover:underline text-left w-full">
+                                                            #{topic.topic}
+                                                        </button>
+                                                        <p className="text-xs text-muted-foreground">{topic.posts}</p>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="bg-muted/30 mt-6">
+                                        <CardHeader>
+                                            <CardTitle className="text-base flex items-center gap-2">
+                                                <RadioTower className="h-5 w-5 text-destructive animate-pulse" />
+                                                Trending Streams
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {trendingStreams.map(stream => (
+                                                <Link href={`/stream/${stream.id}`} key={stream.id} className="flex items-center gap-3 group">
+                                                    <Avatar className="h-9 w-9">
+                                                        <AvatarImage src={stream.avatarUrl} alt={stream.name} />
+                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-sm group-hover:underline">{stream.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                                    </div>
+                                                    <div className="flex items-center text-xs text-muted-foreground gap-1">
+                                                        <Users className="h-3 w-3" />
+                                                        {stream.viewers}
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </aside>
+                )}
             </div>
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="left" className="p-0 w-80 lg:hidden">
@@ -961,3 +967,6 @@ export default function FeedPage() {
     
 
 
+
+
+    
