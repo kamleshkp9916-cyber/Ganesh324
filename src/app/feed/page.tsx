@@ -127,7 +127,6 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -391,58 +390,13 @@ const FeedPost = ({
 }
 
 function MessagesView() {
-    const isMobile = useIsMobile();
-    const [selectedConversation, setSelectedConversation] = useState<any | null>(null);
-
-    const handleSelectConversation = (conversation: any) => {
-        setSelectedConversation(conversation);
-    };
-    
-    // In a real app, this would be a real data fetch
-    const mockConversations: Conversation[] = [
-        { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
-        { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
-    ];
-    
     const { user, userData } = useAuth();
     if (!user || !userData) return <LoadingSpinner />;
-
-    if (isMobile && selectedConversation) {
-        return (
-            <ChatWindow 
-                key={selectedConversation.userId}
-                conversation={selectedConversation}
-                userData={userData}
-                onBack={() => setSelectedConversation(null)}
-            />
-        );
-    }
-
     return (
-        <div className="h-full flex">
-            <div className={cn("h-full w-full md:w-1/3 md:max-w-sm border-r border-gray-800 flex flex-col", isMobile && selectedConversation && "hidden")}>
-                <ConversationList
-                    conversations={mockConversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={handleSelectConversation}
-                />
-            </div>
-             <div className="h-full flex-1 hidden md:flex">
-                {selectedConversation ? (
-                    <ChatWindow 
-                        key={selectedConversation.userId}
-                        conversation={selectedConversation}
-                        userData={userData}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground">
-                        <MessageSquare className="h-16 w-16 mb-4" />
-                        <h2 className="text-xl font-semibold">Your Messages</h2>
-                        <p>Select a conversation to start chatting.</p>
-                    </div>
-                )}
-            </div>
+        <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+            <MessageSquare className="h-16 w-16 mb-4" />
+            <h2 className="text-xl font-semibold">Your Messages</h2>
+            <p>Select a conversation to start chatting.</p>
         </div>
     );
 }
