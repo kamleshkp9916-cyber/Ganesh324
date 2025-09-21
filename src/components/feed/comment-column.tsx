@@ -30,6 +30,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
+import { Input } from '../ui/input';
 
 
 interface CommentType {
@@ -71,11 +72,11 @@ const CommentSkeleton = () => (
     </div>
 );
 
-const Comment = ({ comment, allComments, post, handlers }: {
+const Comment = ({ comment, post, handlers, allComments }: {
     comment: CommentType,
-    allComments: CommentType[],
     post: any,
-    handlers: any
+    handlers: any,
+    allComments: CommentType[]
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -83,18 +84,37 @@ const Comment = ({ comment, allComments, post, handlers }: {
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
     const [showReplies, setShowReplies] = useState(false);
-    
-    const replies = useMemo(() => {
-        return allComments.filter(c => c.parentId === comment.id).sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
-    }, [allComments, comment.id]);
+    const [isRepliesLoading, setIsRepliesLoading] = useState(false);
+    const [replies, setReplies] = useState<CommentType[]>([]);
 
     const hasLiked = user && comment.likedBy ? comment.likedBy.includes(user.uid) : false;
 
+    const handleFetchReplies = useCallback(async () => {
+        setIsRepliesLoading(true);
+        // Simulate fetching replies
+        setTimeout(() => {
+            const fetchedReplies = allComments.filter(c => c.parentId === comment.id).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            setReplies(fetchedReplies);
+            setIsRepliesLoading(false);
+        }, 500);
+    }, [allComments, comment.id]);
+
+    const handleToggleReplies = () => {
+        const newShowState = !showReplies;
+        setShowReplies(newShowState);
+        if (newShowState && replies.length === 0) {
+            handleFetchReplies();
+        }
+    };
+    
     const handleReplySubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handlers.onReply({ text: replyText, parentId: comment.id, replyingTo: comment.authorName });
         setReplyText('');
         setIsReplying(false);
+        if (!showReplies) {
+            handleToggleReplies();
+        }
     };
 
     const handleEditSubmit = () => {
@@ -173,17 +193,23 @@ const Comment = ({ comment, allComments, post, handlers }: {
                     </form>
                 )}
 
-                {replies.length > 0 && (
-                    <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs h-auto py-1" onClick={() => setShowReplies(prev => !prev)}>
+                {comment.replyCount && comment.replyCount > 0 && (
+                    <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs h-auto py-1" onClick={handleToggleReplies}>
                         <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", showReplies && "-rotate-180")} />
-                        {showReplies ? 'Hide' : 'View'} {replies.length} {replies.length > 1 ? 'replies' : 'reply'}
+                        {showReplies ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
                     </Button>
                 )}
 
                 {showReplies && (
-                    <div className="pt-4 space-y-6 border-l-2 ml-5 pl-6">
-                        {replies.map(reply => <Comment key={reply.id} comment={reply} allComments={allComments} post={post} handlers={handlers} />)}
-                    </div>
+                    isRepliesLoading ? (
+                         <div className="pt-4 space-y-4 border-l-2 ml-4 pl-4">
+                            <CommentSkeleton />
+                        </div>
+                    ) : (
+                        <div className="pt-4 space-y-6 border-l-2 ml-4 pl-4">
+                            {replies.map(reply => <Comment key={reply.id} comment={reply} post={post} handlers={handlers} allComments={allComments} />)}
+                        </div>
+                    )
                 )}
             </div>
         </div>
@@ -200,13 +226,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     useEffect(() => {
-        setIsLoading(true);
-        // Simulate fetching mock data
-        setTimeout(() => {
-            setAllComments(mockCommentsData);
-            setIsLoading(false);
-        }, 500);
-    }, [post?.id]);
+      if (!post) return;
+      setIsLoading(true);
+      // Simulate fetching mock data
+      setTimeout(() => {
+          setAllComments(mockCommentsData);
+          setIsLoading(false);
+      }, 500);
+    }, [post]);
 
     const topLevelComments = useMemo(() => {
         return allComments
@@ -214,6 +241,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     }, [allComments]);
 
+    if (!post) {
+      return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      );
+    }
+    
     const handleNewCommentSubmit = (data: { text: string, parentId?: string, replyingTo?: string }) => {
         if (!user || !userData) {
             toast({ variant: 'destructive', title: "Login Required", description: "You must be logged in to comment." });
@@ -236,7 +271,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         setAllComments(prev => [...prev, newComment]);
 
         if (data.parentId) {
-            // Also update replyCount on parent
             setAllComments(prev => prev.map(c => 
                 c.id === data.parentId ? {...c, replyCount: (c.replyCount || 0) + 1} : c
             ));
@@ -265,20 +299,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Comment Updated" });
     };
     const handleDelete = (commentId: string) => {
-        // This is complex with nested replies, for mock we'll just remove the comment itself
         setAllComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
         toast({ title: "Comment Deleted" });
     };
     
-    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
-    
-    if (!post) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
 
     return (
         <div className="h-full flex flex-col bg-background">
@@ -300,9 +325,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Comment 
                                 key={comment.id}
                                 comment={comment}
-                                allComments={allComments}
                                 post={post}
                                 handlers={handlers}
+                                allComments={allComments}
                             />
                         ))
                     ) : (
