@@ -175,7 +175,18 @@ const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEd
                     </div>
                 )}
                 
-                {replies.length > 0 && (
+                {replies.length === 1 && (
+                    <div className="pt-4">
+                        <Comment
+                            key={replies[0].id}
+                            comment={replies[0]}
+                            replies={[]}
+                            {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete }}
+                        />
+                    </div>
+                )}
+
+                {replies.length > 1 && (
                     <Collapsible>
                         <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="text-primary -ml-2">
