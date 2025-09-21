@@ -127,7 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { MainSidebar } from '@/components/main-sidebar';
-import { useSidebar } from '@/components/ui/sidebar';
+import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -770,7 +770,10 @@ function FeedPageContent() {
                           <MainSidebar userData={userData!} userPosts={userPosts} />
                         </aside>
                         
-                        <div className={cn("border-r flex-col", isMobile && selectedConversation ? 'hidden' : 'flex', !isMobile && 'flex' )}>
+                         <div className={cn(
+                            "flex-col border-r md:flex",
+                            isMobile && selectedConversation && 'hidden'
+                         )}>
                           <ConversationList
                             onSidebarToggle={() => setOpen(true)}
                             conversations={conversations}
@@ -779,7 +782,10 @@ function FeedPageContent() {
                           />
                         </div>
                         
-                        <div className={cn("flex-col", isMobile && !selectedConversation ? 'hidden' : 'flex', !isMobile && 'flex')}>
+                        <div className={cn(
+                            "flex-col md:flex",
+                            isMobile && !selectedConversation && 'hidden'
+                        )}>
                           {selectedConversation ? (
                             <ChatWindow
                               conversation={selectedConversation}
