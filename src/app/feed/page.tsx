@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -124,7 +125,6 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
-import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 
@@ -165,11 +165,6 @@ const liveSellersData = [
     { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
-];
-
-const mockConversations: Conversation[] = [
-    { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
-    { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
 ];
 
 function FeedPostSkeleton() {
@@ -396,48 +391,16 @@ const FeedPost = ({
 
 function MessagesView() {
     const { userData } = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-    const { open, setOpen } = useSidebar();
     const isMobile = useIsMobile();
-
-    const loadConversations = useCallback(() => {
-        // In a real app, this would fetch data.
-        // For now, it will be an empty view as requested.
-        setConversations([]);
-        setSelectedConversation(null);
-    }, []);
-
-    useEffect(() => {
-        loadConversations();
-    }, [loadConversations]);
-
+    
     if (!userData) return null;
     
     return (
-        <div className="h-full w-full grid md:grid-cols-[minmax(320px,1fr)_2fr]">
-            <div className={cn("h-full flex-col md:flex", isMobile && selectedConversation && "hidden")}>
-                <ConversationList
-                    onSidebarToggle={() => setOpen(true)}
-                    conversations={conversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={setSelectedConversation}
-                />
-            </div>
-            <div className={cn("h-full flex-col md:flex", isMobile && !selectedConversation && "hidden")}>
-                {selectedConversation ? (
-                    <ChatWindow
-                        conversation={selectedConversation}
-                        userData={userData}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                        <MessageSquare className="h-16 w-16 mb-4" />
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
-                    </div>
-                )}
+        <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-muted/20">
+            <div className="text-center">
+                <MessageSquare className="h-16 w-16 mb-4 mx-auto" />
+                <h2 className="text-xl font-semibold">Select a chat</h2>
+                <p>Choose a conversation to start messaging.</p>
             </div>
         </div>
     );
@@ -785,11 +748,8 @@ function FeedPageContent() {
 
   return (
     <div className="h-screen w-full">
-        {activeView === 'messages' ? (
-            <MessagesView />
-        ) : (
-            <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                 <aside className="lg:flex h-screen flex-col border-r sticky top-0 hidden">
+         <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
+                 <aside className="hidden lg:flex h-screen flex-col border-r sticky top-0">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
@@ -816,7 +776,7 @@ function FeedPageContent() {
                         <div className="h-full flex flex-col">
                             <div className="w-full flex-grow">
                                 <section>
-                                    {(activeView === 'feed' || activeView === 'saves') && (
+                                    {activeView === 'messages' ? <MessagesView /> : (
                                         <div className="divide-y divide-border/20">
                                             {isLoadingFeed ? (
                                                 <>
@@ -930,7 +890,6 @@ function FeedPageContent() {
                     </ScrollArea>
                 </aside>
             </div>
-        )}
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="left" className="p-0 w-80 lg:hidden">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -951,3 +910,4 @@ export default function FeedPage() {
 }
 
     
+
