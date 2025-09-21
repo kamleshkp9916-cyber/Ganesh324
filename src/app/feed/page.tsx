@@ -812,11 +812,11 @@ function FeedPageContent() {
                    <MainSidebar userData={userData!} userPosts={userPosts} />
               </div>
               
-              <main className={cn("flex-1 min-w-0 h-screen flex flex-col", activeView === 'messages' && "md:grid md:grid-cols-2 lg:grid-cols-1")}>
+              <main className="flex-1 min-w-0 h-screen flex flex-col">
                   {isMobile && activeView === 'messages' ? (
                       renderMobileMessages()
                   ) : (
-                    <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "md:grid md:grid-cols-2 lg:grid-cols-1")}>
+                    <div className="flex flex-col h-full w-full">
                         <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                             <SidebarTrigger className="md:hidden" />
                             <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
@@ -878,37 +878,38 @@ function FeedPageContent() {
                             </Popover>
                             <div/>
                         </header>
+                        
                         <div className={cn("flex-grow overflow-y-auto no-scrollbar pb-32", activeView === 'messages' && "md:grid md:grid-cols-2 md:overflow-hidden")}>
-                            {activeView !== 'messages' ? (
+                            {activeView === 'messages' && !isMobile ? (
+                                <>
+                                    <ConversationList 
+                                        conversations={conversations} 
+                                        selectedConversation={selectedConversation} 
+                                        onSelectConversation={setSelectedConversation}
+                                        userData={userData}
+                                        userPosts={userPosts}
+                                    />
+                                    <div className="hidden md:flex flex-col border-l">
+                                         {selectedConversation ? (
+                                            <ChatWindow 
+                                                conversation={selectedConversation} 
+                                                userData={userData!}
+                                                onBack={() => setSelectedConversation(null)}
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
+                                                <MessageSquare className="h-16 w-16 mb-4"/>
+                                                <h2 className="text-xl font-semibold">Select a chat</h2>
+                                                <p>Choose a conversation to start messaging.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
                                 <section>
                                     {activeView === 'saves' ? (
-                                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-                                        {filteredFeed.map(post => (
-                                            <FeedPost 
-                                                key={post.id}
-                                                post={post}
-                                                currentUser={user}
-                                                onDelete={handleDeletePost}
-                                                onEdit={handleEditPost}
-                                                onShare={handleShare}
-                                                onReport={() => setIsReportDialogOpen(true)}
-                                                onSaveToggle={handleSaveToggle}
-                                                isSaved={isPostSaved(post.id)}
-                                                highlightTerm={debouncedSearchTerm}
-                                                onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                onCommentClick={(post) => setSelectedPostForComments(post)}
-                                            />
-                                        ))}
-                                    </div>
-                                    ) : (
-                                    <div className="divide-y divide-border/20">
-                                        {isLoadingFeed ? (
-                                            <>
-                                                <FeedPostSkeleton />
-                                                <FeedPostSkeleton />
-                                            </>
-                                        ) : (
-                                            filteredFeed.map(post => (
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                            {filteredFeed.map(post => (
                                                 <FeedPost 
                                                     key={post.id}
                                                     post={post}
@@ -923,9 +924,34 @@ function FeedPageContent() {
                                                     onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                                                     onCommentClick={(post) => setSelectedPostForComments(post)}
                                                 />
-                                            ))
-                                        )}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-border/20">
+                                            {isLoadingFeed ? (
+                                                <>
+                                                    <FeedPostSkeleton />
+                                                    <FeedPostSkeleton />
+                                                </>
+                                            ) : (
+                                                filteredFeed.map(post => (
+                                                    <FeedPost 
+                                                        key={post.id}
+                                                        post={post}
+                                                        currentUser={user}
+                                                        onDelete={handleDeletePost}
+                                                        onEdit={handleEditPost}
+                                                        onShare={handleShare}
+                                                        onReport={() => setIsReportDialogOpen(true)}
+                                                        onSaveToggle={handleSaveToggle}
+                                                        isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                    />
+                                                ))
+                                            )}
+                                        </div>
                                     )}
                                     {filteredFeed.length === 0 && !isLoadingFeed && (
                                         <div className="text-center py-16 text-muted-foreground">
@@ -934,54 +960,14 @@ function FeedPageContent() {
                                         </div>
                                     )}
                                 </section>
-                            ) : (
-                                !isMobile && (
-                                    <>
-                                        <ConversationList 
-                                            conversations={conversations} 
-                                            selectedConversation={selectedConversation} 
-                                            onSelectConversation={setSelectedConversation}
-                                            userData={userData}
-                                            userPosts={userPosts}
-                                        />
-                                        <div className='hidden md:flex lg:hidden'>
-                                            {selectedConversation ? (
-                                                <ChatWindow 
-                                                    conversation={selectedConversation} 
-                                                    userData={userData!}
-                                                    onBack={() => setSelectedConversation(null)}
-                                                />
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                                                    <MessageSquare className="h-16 w-16 mb-4"/>
-                                                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                                                    <p>Choose a conversation to start messaging.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
-                                )
                             )}
                         </div>
+
                     </div>
                   )}
               </main>
                <aside className="hidden lg:flex flex-col h-screen border-l">
-                  {activeView === 'messages' ? (
-                      selectedConversation ? (
-                        <ChatWindow 
-                            conversation={selectedConversation} 
-                            userData={userData!}
-                            onBack={() => {}}
-                        />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                            <MessageSquare className="h-16 w-16 mb-4"/>
-                            <h2 className="text-xl font-semibold">Select a chat</h2>
-                            <p>Choose a conversation to start messaging.</p>
-                        </div>
-                    )
-                  ) : selectedPostForComments ? (
+                  {selectedPostForComments ? (
                       <CommentColumn 
                           post={selectedPostForComments} 
                           onClose={() => setSelectedPostForComments(null)} 
@@ -1070,3 +1056,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
