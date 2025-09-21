@@ -21,7 +21,7 @@ import {
   getDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,7 +65,7 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, replies, onShowReplies }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, onShowReplies }: {
     comment: CommentType,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
@@ -73,7 +73,6 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
     onDelete: (id: string) => void,
-    replies: CommentType[],
     onShowReplies: (comment: CommentType) => void,
 }) => {
     const { user } = useAuth();
@@ -95,8 +94,6 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         setReplyText('');
         setIsReplying(false);
     };
-    
-    const singleReply = replies.length === 1 ? replies[0] : null;
 
     return (
         <div className="flex items-start gap-3 w-full">
@@ -181,16 +178,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 )}
                 
-                {singleReply ? (
-                    <div className="pl-6 pt-4">
-                        <Comment 
-                           key={singleReply.id}
-                           comment={singleReply}
-                           {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete, onShowReplies }}
-                           replies={[]}
-                        />
-                    </div>
-                ) : comment.replyCount > 0 && (
+                {comment.replyCount > 0 && !comment.parentId && (
                      <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={() => onShowReplies(comment)}>
                         <ChevronDown className="w-4 h-4 mr-1" />
                         View {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
@@ -369,21 +357,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Link Copied!" });
     };
     
-    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
-    
-    const repliesByParent = useMemo(() => {
-        const map = new Map<string, CommentType[]>();
-        comments.forEach(comment => {
-            if (comment.parentId) {
-                if (!map.has(comment.parentId)) {
-                    map.set(comment.parentId, []);
-                }
-                map.get(comment.parentId)!.push(comment);
-            }
-        });
-        return map;
-    }, [comments]);
-
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, onShowReplies: setViewingRepliesFor };
 
     if (!post) {
         return (
@@ -396,7 +370,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center">
-                <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
+                {viewingRepliesFor ? (
+                    <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setViewingRepliesFor(null)}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to all comments
+                    </Button>
+                ) : (
+                    <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
+                )}
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
@@ -410,8 +391,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Comment 
                                 key={comment.id}
                                 comment={comment}
-                                replies={repliesByParent.get(comment.id) || []}
-                                onShowReplies={setViewingRepliesFor}
                                 {...handlers}
                             />
                         ))
@@ -425,7 +404,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex-shrink-0 bg-background">
-                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText); }} className="flex items-center gap-2">
+                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText, viewingRepliesFor ? viewingRepliesFor.id : null); }} className="flex items-center gap-2">
                     <div className="relative flex-grow">
                         <Textarea 
                             placeholder="Add a comment..."
