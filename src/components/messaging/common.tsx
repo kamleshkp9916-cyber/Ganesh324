@@ -116,7 +116,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
                 <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
                 <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-grow overflow-hidden min-w-0">
+            <div className="flex-grow min-w-0">
                 <div className="flex justify-between items-center">
                     <h4 className="font-semibold truncate">{convo.userName}</h4>
                     <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
@@ -472,3 +472,5 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
+
+    
