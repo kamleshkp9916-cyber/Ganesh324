@@ -4,22 +4,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getFirestoreDb } from '@/lib/firebase';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  Timestamp,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-  increment,
-  runTransaction,
-  where,
-} from 'firebase/firestore';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -54,13 +38,24 @@ interface CommentType {
   authorName: string;
   authorAvatar?: string;
   text: string;
-  timestamp: Timestamp;
+  timestamp: Date;
   isEdited?: boolean;
   likes?: number;
   likedBy?: string[];
   parentId?: string | null;
   replyCount?: number;
+  replyingTo?: string;
 }
+
+const mockCommentsData: CommentType[] = [
+    { id: '1', userId: 'userA', authorName: 'Ganesh Prajapati', authorAvatar: 'https://placehold.co/40x40.png?text=GP', text: 'This looks amazing! What material is it made of? I\'m very interested.', timestamp: new Date(Date.now() - 5 * 60 * 1000), parentId: null, likes: 12, likedBy: [], replyCount: 2 },
+    { id: '2', userId: 'userB', authorName: 'Alex Morgan', authorAvatar: 'https://placehold.co/40x40.png?text=AM', text: 'Replying to Ganesh: It\'s made from 100% recycled materials and feels super premium!', timestamp: new Date(Date.now() - 4 * 60 * 1000), parentId: '1', likes: 3, likedBy: [], replyingTo: 'Ganesh Prajapati' },
+    { id: '3', userId: 'userA', authorName: 'Ganesh Prajapati', authorAvatar: 'https://placehold.co/40x40.png?text=GP', text: 'Wow, that\'s impressive. Thanks for the quick reply, Alex!', timestamp: new Date(Date.now() - 3 * 60 * 1000), parentId: '1', likes: 1, likedBy: [], replyingTo: 'Alex Morgan' },
+    { id: '4', userId: 'userC', authorName: 'Chris Wilson', authorAvatar: 'https://placehold.co/40x40.png?text=CW', text: 'I bought this last week and it has been fantastic. Highly recommended!', timestamp: new Date(Date.now() - 10 * 60 * 1000), parentId: null, likes: 8, likedBy: [], replyCount: 0 },
+    { id: '5', userId: 'userD', authorName: 'Brianna West', authorAvatar: 'https://placehold.co/40x40.png?text=BW', text: 'Are there any other colors available?', timestamp: new Date(Date.now() - 15 * 60 * 1000), parentId: null, likes: 2, likedBy: [], replyCount: 1 },
+    { id: '6', userId: 'userB', authorName: 'Alex Morgan', authorAvatar: 'https://placehold.co/40x40.png?text=AM', text: 'Hi Brianna! We have it in blue and green as well. They will be in stock next week.', timestamp: new Date(Date.now() - 14 * 60 * 1000), parentId: '5', likes: 4, likedBy: [], replyingTo: 'Brianna West' },
+];
+
 
 const CommentSkeleton = () => (
     <div className="flex items-start gap-3 w-full p-4">
@@ -76,9 +71,11 @@ const CommentSkeleton = () => (
     </div>
 );
 
-const Comment = ({ comment, postId }: {
+const Comment = ({ comment, allComments, post, handlers }: {
     comment: CommentType,
-    postId: string;
+    allComments: CommentType[],
+    post: any,
+    handlers: any
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -86,62 +83,24 @@ const Comment = ({ comment, postId }: {
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
     const [showReplies, setShowReplies] = useState(false);
-    const [replies, setReplies] = useState<CommentType[]>([]);
-    const [isRepliesLoading, setIsRepliesLoading] = useState(false);
-    const unsubscribeRepliesRef = useRef<() => void | null>(null);
+    
+    const replies = useMemo(() => {
+        return allComments.filter(c => c.parentId === comment.id).sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
+    }, [allComments, comment.id]);
 
     const hasLiked = user && comment.likedBy ? comment.likedBy.includes(user.uid) : false;
-    
-    const handleFetchReplies = useCallback(async () => {
-        if (unsubscribeRepliesRef.current) {
-            return;
-        }
 
-        setIsRepliesLoading(true);
-        const db = getFirestoreDb();
-        const repliesQuery = query(
-            collection(db, `posts/${postId}/comments`),
-            where("parentId", "==", comment.id),
-            orderBy("timestamp", "asc")
-        );
-        const unsubscribe = onSnapshot(repliesQuery, (snapshot) => {
-            const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
-            setReplies(fetchedReplies);
-            setIsRepliesLoading(false);
-        });
-        
-        unsubscribeRepliesRef.current = unsubscribe;
-    }, [comment.id, postId]);
-    
-    const onToggleReplies = () => {
-        const newShowState = !showReplies;
-        setShowReplies(newShowState);
-        if (newShowState) {
-            handleFetchReplies();
-        } else {
-            if (unsubscribeRepliesRef.current) {
-                unsubscribeRepliesRef.current();
-                unsubscribeRepliesRef.current = null;
-            }
-        }
-    }
-    
-    useEffect(() => {
-        // Cleanup listener on component unmount
-        return () => {
-            if (unsubscribeRepliesRef.current) {
-                unsubscribeRepliesRef.current();
-            }
-        };
-    }, []);
+    const handleReplySubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handlers.onReply({ text: replyText, parentId: comment.id, replyingTo: comment.authorName });
+        setReplyText('');
+        setIsReplying(false);
+    };
 
-    // Handlers would be passed down or use context for a real app
-    const onLike = () => console.log('like');
-    const onEdit = () => console.log('edit');
-    const onDelete = () => console.log('delete');
-    const onReport = () => console.log('report');
-    const onCopyLink = () => console.log('copy link');
-    const onReply = () => console.log('reply');
+    const handleEditSubmit = () => {
+        handlers.onEdit(comment.id, editedText);
+        setIsEditing(false);
+    };
 
     return (
         <div className="flex items-start gap-3 w-full group">
@@ -150,52 +109,80 @@ const Comment = ({ comment, postId }: {
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-grow space-y-1">
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                       <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                       <p className="text-xs text-muted-foreground flex-shrink-0">
-                            <RealtimeTimestamp date={comment.timestamp} />
-                       </p>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        {/* Dropdown Menu Content Here */}
-                    </DropdownMenu>
+                <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                    <p className="text-xs text-muted-foreground flex-shrink-0">
+                        <RealtimeTimestamp date={comment.timestamp} />
+                    </p>
                 </div>
-                
-                <p className="text-sm whitespace-pre-wrap break-words">{comment.text}</p>
+
+                {!isEditing ? (
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                        {comment.replyingTo && <span className="text-primary font-semibold mr-1">@{comment.replyingTo}</span>}
+                        {comment.text}
+                    </p>
+                ) : (
+                    <div className="flex flex-col gap-2">
+                        <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm" />
+                        <div className="flex gap-2">
+                            <Button size="sm" onClick={handleEditSubmit}>Save</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                        </div>
+                    </div>
+                )}
                 
                 <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
-                    <button onClick={() => onLike()} className="flex items-center gap-1.5 hover:text-primary">
+                    <button onClick={() => handlers.onLike(comment.id)} className="flex items-center gap-1.5 hover:text-primary">
                         <ThumbsUp className={cn("w-4 h-4", hasLiked && "text-primary fill-primary")} />
                         <span>{comment.likes || 0}</span>
                     </button>
-                     <button className="flex items-center gap-1.5 hover:text-primary">
+                    <button className="flex items-center gap-1.5 hover:text-primary">
                         <ThumbsDown className="w-4 h-4" />
                     </button>
                     <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary font-semibold">Reply</button>
+                    
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                            {user?.uid === comment.userId ? (
+                                <>
+                                    <DropdownMenuItem onSelect={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handlers.onDelete(comment.id)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                </>
+                            ) : (
+                                <DropdownMenuItem onSelect={() => handlers.onReport(comment.id)}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => handlers.onCopyLink(comment.id)}><Link2 className="mr-2 h-4 w-4" />Copy Link to Comment</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 
-                {(comment.replyCount || 0) > 0 && (
-                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs h-auto py-1" onClick={onToggleReplies}>
+                 {isReplying && (
+                    <form onSubmit={handleReplySubmit} className="flex items-center gap-2 pt-2">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={user?.photoURL || undefined} />
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <Input value={replyText} onChange={e => setReplyText(e.target.value)} placeholder={`Replying to @${comment.authorName}...`} className="h-9" />
+                        <Button type="submit" size="sm" disabled={!replyText.trim()}>Reply</Button>
+                    </form>
+                )}
+
+                {replies.length > 0 && (
+                    <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs h-auto py-1" onClick={() => setShowReplies(prev => !prev)}>
                         <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", showReplies && "-rotate-180")} />
-                        {showReplies ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
+                        {showReplies ? 'Hide' : 'View'} {replies.length} {replies.length > 1 ? 'replies' : 'reply'}
                     </Button>
                 )}
 
                 {showReplies && (
-                    <div className="pt-4 space-y-6">
-                         {isRepliesLoading ? <CommentSkeleton /> : (
-                            replies.map(reply => (
-                                <div key={reply.id} className="flex items-start gap-3 w-full pl-6 border-l-2 ml-5">
-                                    <Comment comment={reply} postId={postId} />
-                                </div>
-                            ))
-                         )}
+                    <div className="pt-4 space-y-6 border-l-2 ml-5 pl-6">
+                        {replies.map(reply => <Comment key={reply.id} comment={reply} allComments={allComments} post={post} handlers={handlers} />)}
                     </div>
                 )}
             </div>
@@ -212,7 +199,79 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // Check for post existence at the very top
+    useEffect(() => {
+        setIsLoading(true);
+        // Simulate fetching mock data
+        setTimeout(() => {
+            setAllComments(mockCommentsData);
+            setIsLoading(false);
+        }, 500);
+    }, [post?.id]);
+
+    const topLevelComments = useMemo(() => {
+        return allComments
+            .filter(comment => !comment.parentId)
+            .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    }, [allComments]);
+
+    const handleNewCommentSubmit = (data: { text: string, parentId?: string, replyingTo?: string }) => {
+        if (!user || !userData) {
+            toast({ variant: 'destructive', title: "Login Required", description: "You must be logged in to comment." });
+            return;
+        }
+
+        const newComment: CommentType = {
+            id: String(Date.now()),
+            userId: user.uid,
+            authorName: userData.displayName,
+            authorAvatar: userData.photoURL,
+            text: data.text,
+            timestamp: new Date(),
+            parentId: data.parentId || null,
+            likes: 0,
+            likedBy: [],
+            replyingTo: data.replyingTo,
+        };
+
+        setAllComments(prev => [...prev, newComment]);
+
+        if (data.parentId) {
+            // Also update replyCount on parent
+            setAllComments(prev => prev.map(c => 
+                c.id === data.parentId ? {...c, replyCount: (c.replyCount || 0) + 1} : c
+            ));
+        }
+
+        toast({ title: "Comment Posted!" });
+    };
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newCommentText.trim()) return;
+        handleNewCommentSubmit({ text: newCommentText });
+        setNewCommentText('');
+    };
+
+    const handleLike = (commentId: string) => console.log("Liking comment:", commentId);
+    const handleReport = (commentId: string) => toast({ title: "Comment Reported", description: "Our team will review it." });
+    const handleCopyLink = (commentId: string) => {
+        navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}?comment=${commentId}`);
+        toast({ title: "Link Copied!" });
+    };
+    const handleEdit = (commentId: string, newText: string) => {
+        setAllComments(prev => prev.map(c => 
+            c.id === commentId ? {...c, text: newText, isEdited: true} : c
+        ));
+        toast({ title: "Comment Updated" });
+    };
+    const handleDelete = (commentId: string) => {
+        // This is complex with nested replies, for mock we'll just remove the comment itself
+        setAllComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
+        toast({ title: "Comment Deleted" });
+    };
+    
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
+    
     if (!post) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -220,44 +279,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             </div>
         );
     }
-    
-    // Memoized computation of comment structure
-    const topLevelComments = useMemo(() => {
-        return allComments.filter(comment => !comment.parentId)
-    }, [allComments]);
-
-
-    useEffect(() => {
-        if (!post?.id) {
-            setIsLoading(false);
-            return;
-        }
-
-        setIsLoading(true);
-        const db = getFirestoreDb();
-        const q = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
-        
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            } as CommentType));
-            setAllComments(commentsData);
-            setIsLoading(false);
-        }, (error) => {
-            console.error("Firestore snapshot error:", error);
-            toast({ variant: 'destructive', title: "Error", description: "Could not load comments." });
-            setIsLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [post?.id, toast]);
-
 
     return (
         <div className="h-full flex flex-col bg-background">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
-                <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
+                <h3 className="font-bold text-lg">Comments ({allComments.length})</h3>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
                     <X className="w-5 h-5"/>
                 </Button>
@@ -274,7 +300,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Comment 
                                 key={comment.id}
                                 comment={comment}
-                                postId={post.id}
+                                allComments={allComments}
+                                post={post}
+                                handlers={handlers}
                             />
                         ))
                     ) : (
@@ -287,7 +315,11 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex-shrink-0 bg-background">
-                <form className="flex items-center gap-2">
+                <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={user?.photoURL || undefined} />
+                        <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <div className="relative flex-grow">
                         <Textarea 
                             placeholder="Add a comment..."
