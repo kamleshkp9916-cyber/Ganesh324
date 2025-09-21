@@ -759,26 +759,30 @@ function FeedPageContent() {
 
   const renderMessagesView = () => {
     if (isMobile) {
-      if (selectedConversation) {
-        return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
-      } else {
-        return <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts}/>;
-      }
+        if (selectedConversation) {
+            return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
+        } else {
+            return <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} />;
+        }
     }
-
+    
+    // Desktop layout for messages
     return (
-      <div className="grid grid-cols-[minmax(250px,30%)_1fr] h-full">
-        <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts}/>
-        {selectedConversation ? (
-          <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => {}} />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-            <MessageSquare className="h-16 w-16 mb-4" />
-            <h2 className="text-xl font-semibold">Select a chat</h2>
-            <p>Choose a conversation to start messaging.</p>
-          </div>
-        )}
-      </div>
+        <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(250px,30%)_1fr]">
+             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                <MainSidebar userData={userData!} userPosts={userPosts} />
+            </aside>
+            <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
+            {selectedConversation ? (
+              <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => {}} />
+            ) : (
+              <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                <MessageSquare className="h-16 w-16 mb-4" />
+                <h2 className="text-xl font-semibold">Select a chat</h2>
+                <p>Choose a conversation to start messaging.</p>
+              </div>
+            )}
+        </div>
     );
   };
 
@@ -787,7 +791,7 @@ function FeedPageContent() {
         <div className="h-screen w-full">
              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
-                    <SheetHeader>
+                     <SheetHeader>
                         <SheetTitle className="sr-only">Main Menu</SheetTitle>
                     </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />

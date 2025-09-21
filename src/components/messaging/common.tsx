@@ -134,7 +134,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 }
 
 
-export const ConversationList = ({ onSidebarToggle, conversations, selectedConversation, onSelectConversation, userData, userPosts }: { onSidebarToggle: () => void, conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
+export const ConversationList = ({ onSidebarToggle, conversations, selectedConversation, onSelectConversation }: { onSidebarToggle: () => void, conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const { user } = useAuth();
     
@@ -146,18 +146,7 @@ export const ConversationList = ({ onSidebarToggle, conversations, selectedConve
     return (
          <div className="w-full h-full flex flex-col bg-background border-r">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
-                 <nav className="flex items-center gap-2">
-                    <SheetTrigger asChild>
-                        <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                    </SheetTrigger>
-                     <div className="hidden md:flex items-center gap-4 text-sm font-medium">
-                        <Link href="/feed" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Feed</span></Link>
-                        <Link href="/feed?tab=messages" className="text-primary font-semibold">Messages</Link>
-                    </div>
-                </nav>
-                <h1 className="text-xl font-bold md:hidden">Chats</h1>
+                 <h1 className="text-xl font-bold">Chats</h1>
             </header>
             <div className="p-4 border-b">
                  <div className="relative">
