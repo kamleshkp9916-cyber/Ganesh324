@@ -485,10 +485,11 @@ function FeedPageContent() {
 
   const loadConversations = useCallback(() => {
     setConversations(mockConversations);
-    if (mockConversations.length > 0 && !isMobile) {
-        setSelectedConversation(mockConversations[0]);
+    if (mockConversations.length > 0 && !isMobile && !selectedConversation) {
+      // Don't auto-select a conversation to allow the user to see the list first.
+      // setSelectedConversation(mockConversations[0]);
     }
-  }, [isMobile]);
+  }, [isMobile, selectedConversation]);
 
   useEffect(() => {
     setIsMounted(true);
