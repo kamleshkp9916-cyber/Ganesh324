@@ -805,18 +805,18 @@ function FeedPageContent() {
         </AlertDialogContent>
       </AlertDialog>
       <SidebarProvider>
-        <div className={cn("min-h-screen bg-background text-foreground w-full", isMobile && activeView === 'messages' && "h-screen")}>
-          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px] w-full">
+        <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
+          <div className="grid md:grid-cols-[var(--sidebar-width)_1fr_350px]">
               <div className="hidden md:block">
                    <MainSidebar userData={userData!} userPosts={userPosts} />
               </div>
               
-              <main className={cn("flex-1 min-w-0 h-screen flex", activeView === 'messages' ? 'md:grid md:grid-cols-2' : 'flex-col' )}>
+              <main className="flex-1 min-w-0 h-screen flex flex-col">
                   {isMobile && activeView === 'messages' ? (
                       renderMobileMessages()
                   ) : (
                     <>
-                        <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "hidden md:flex")}>
+                        <div className="flex flex-col h-full w-full">
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                 <SidebarTrigger className="md:hidden" />
                                 <Popover open={debouncedSearchTerm.length > 0 && searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length > 0}>
@@ -879,7 +879,7 @@ function FeedPageContent() {
                                 <div/>
                             </header>
                             <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
-                                {activeView !== 'messages' && (
+                                {activeView !== 'messages' ? (
                                     <section>
                                         {activeView === 'saves' ? (
                                         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
@@ -934,9 +934,8 @@ function FeedPageContent() {
                                             </div>
                                         )}
                                     </section>
-                                )}
-                                {activeView === 'messages' && !isMobile && (
-                                    <ConversationList 
+                                ) : (
+                                    !isMobile && <ConversationList 
                                         conversations={conversations} 
                                         selectedConversation={selectedConversation} 
                                         onSelectConversation={setSelectedConversation}
@@ -946,29 +945,25 @@ function FeedPageContent() {
                                 )}
                             </div>
                         </div>
-
-                         {activeView === 'messages' && !isMobile && (
-                            <div className="h-screen hidden md:flex flex-col border-l">
-                                {selectedConversation ? (
-                                    <ChatWindow 
-                                        conversation={selectedConversation} 
-                                        userData={userData!}
-                                        onBack={() => {}}
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
-                                        <MessageSquare className="h-16 w-16 mb-4"/>
-                                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                                        <p>Choose a conversation to start messaging.</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </>
                   )}
               </main>
                <aside className="hidden md:flex flex-col h-screen border-l">
-                  {selectedPostForComments ? (
+                  {activeView === 'messages' && !isMobile ? (
+                      selectedConversation ? (
+                        <ChatWindow 
+                            conversation={selectedConversation} 
+                            userData={userData!}
+                            onBack={() => {}}
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-background">
+                            <MessageSquare className="h-16 w-16 mb-4"/>
+                            <h2 className="text-xl font-semibold">Select a chat</h2>
+                            <p>Choose a conversation to start messaging.</p>
+                        </div>
+                    )
+                  ) : selectedPostForComments ? (
                       <CommentColumn 
                           post={selectedPostForComments} 
                           onClose={() => setSelectedPostForComments(null)} 
