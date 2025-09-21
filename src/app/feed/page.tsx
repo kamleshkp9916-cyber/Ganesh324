@@ -127,6 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -396,37 +397,52 @@ function MessagesView() {
     const handleSelectConversation = (conversation: any) => {
         setSelectedConversation(conversation);
     };
+    
+    // In a real app, this would be a real data fetch
+    const mockConversations: Conversation[] = [
+        { userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 1 },
+        { userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+    ];
+    
+    const { user, userData } = useAuth();
+    if (!user || !userData) return <LoadingSpinner />;
 
     if (isMobile && selectedConversation) {
         return (
-            <div className="h-full flex flex-col">
-                {/* Mobile Chat Window */}
-                <div className="p-4 border-b flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
-                        <ArrowLeft />
-                    </Button>
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage src={selectedConversation.avatarUrl} />
-                        <AvatarFallback>{selectedConversation.userName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <h2 className="font-semibold">{selectedConversation.userName}</h2>
-                </div>
-                <div className="flex-1 p-4 overflow-y-auto">
-                    {/* Chat messages would go here */}
-                    <p className="text-center text-muted-foreground">Chat history for {selectedConversation.userName}</p>
-                </div>
-                 <div className="p-4 border-t">
-                    <Input placeholder="Type a message..." />
-                </div>
-            </div>
+            <ChatWindow 
+                key={selectedConversation.userId}
+                conversation={selectedConversation}
+                userData={userData}
+                onBack={() => setSelectedConversation(null)}
+            />
         );
     }
 
     return (
-        <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-            <MessageSquare className="h-16 w-16 mb-4"/>
-            <h2 className="text-xl font-semibold">Select a chat</h2>
-            <p>Choose a conversation to start messaging.</p>
+        <div className="h-full flex">
+            <div className={cn("h-full w-full md:w-1/3 md:max-w-sm border-r border-gray-800 flex flex-col", isMobile && selectedConversation && "hidden")}>
+                <ConversationList
+                    conversations={mockConversations}
+                    selectedConversation={selectedConversation}
+                    onSelectConversation={handleSelectConversation}
+                />
+            </div>
+             <div className="h-full flex-1 hidden md:flex">
+                {selectedConversation ? (
+                    <ChatWindow 
+                        key={selectedConversation.userId}
+                        conversation={selectedConversation}
+                        userData={userData}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground">
+                        <MessageSquare className="h-16 w-16 mb-4" />
+                        <h2 className="text-xl font-semibold">Your Messages</h2>
+                        <p>Select a conversation to start chatting.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -774,7 +790,7 @@ function FeedPageContent() {
   return (
     <div className="h-screen w-full">
          <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                 <aside className="hidden lg:flex h-screen flex-col border-r sticky top-0">
+                 <aside className={cn("lg:flex h-screen flex-col border-r sticky top-0 hidden")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
@@ -933,8 +949,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
-
-
-
