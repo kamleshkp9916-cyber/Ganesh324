@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
@@ -241,7 +242,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [pinnedCommentId, setPinnedCommentId] = useState<string | null>(null);
+    const [pinnedCommentIds, setPinnedCommentIds] = useState<string[]>([]);
 
     
     useEffect(() => {
@@ -258,19 +259,17 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         const topLevel = allComments
             .filter(comment => !comment.parentId)
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-        
-        const pinnedComment = pinnedCommentId ? topLevel.find(c => c.id === pinnedCommentId) : undefined;
-        
-        if (pinnedComment) {
-            return [
-                { ...pinnedComment, isPinned: true }, 
-                ...topLevel.filter(c => c.id !== pinnedCommentId)
-            ];
-        }
-        
-        return topLevel;
 
-    }, [allComments, pinnedCommentId]);
+        const pinnedComments = pinnedCommentIds
+            .map(id => topLevel.find(c => c.id === id))
+            .filter((c): c is CommentType => !!c)
+            .map(c => ({ ...c, isPinned: true }));
+
+        const unpinnedComments = topLevel.filter(c => !pinnedCommentIds.includes(c.id));
+        
+        return [...pinnedComments, ...unpinnedComments];
+
+    }, [allComments, pinnedCommentIds]);
     
     const handleNewCommentSubmit = (data: { text: string, parentId?: string, replyingTo?: string }) => {
         if (!user || !userData) {
@@ -310,9 +309,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
     
     const handleTogglePin = (commentId: string) => {
-        const currentlyPinned = pinnedCommentId === commentId;
-        setPinnedCommentId(currentlyPinned ? null : commentId);
-        toast({ title: currentlyPinned ? "Comment Unpinned" : "Comment Pinned" });
+        setPinnedCommentIds(prevIds => {
+            if (prevIds.includes(commentId)) {
+                toast({ title: "Comment Unpinned" });
+                return prevIds.filter(id => id !== commentId);
+            } else {
+                toast({ title: "Comment Pinned" });
+                return [...prevIds, commentId];
+            }
+        });
     };
     
     const handleLike = (commentId: string) => console.log("Liking comment:", commentId);
