@@ -48,6 +48,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 interface CommentType {
@@ -64,8 +65,9 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
     comment: CommentType,
+    replies: CommentType[],
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
@@ -93,7 +95,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
 
     return (
-        <div className={cn("flex items-start gap-3 w-full", comment.parentId && "w-4/5 mx-auto")}>
+        <div className={cn("flex items-start gap-3 w-full", comment.parentId && "ml-6")}>
             <Avatar className="h-10 w-10">
                 <AvatarImage src={comment.authorAvatar} />
                 <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
@@ -171,6 +173,24 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                             <Button size="sm" variant="ghost" onClick={() => setIsReplying(false)}>Cancel</Button>
                         </div>
                     </div>
+                )}
+                
+                {replies.length > 0 && (
+                    <Collapsible>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-primary -ml-2">
+                                <ChevronDown className="w-4 h-4 mr-1" />
+                                View {replies.length} replies
+                            </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <div className="space-y-4 pt-4">
+                                {replies.map(reply => (
+                                    <Comment key={reply.id} comment={reply} replies={[]} {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete }} />
+                                ))}
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
                 )}
             </div>
         </div>
@@ -341,41 +361,17 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const renderableComments = useCallback(() => {
-        if (comments.length === 0) return [];
-        
-        const commentMap = new Map<string, CommentType>();
-        const childMap = new Map<string, string[]>();
-
-        comments.forEach(c => {
-            commentMap.set(c.id, c);
-            if (c.parentId) {
-                const children = childMap.get(c.parentId) || [];
-                children.push(c.id);
-                childMap.set(c.parentId, children);
+    const topLevelComments = useMemo(() => {
+        const commentMap = new Map<string, CommentType[]>();
+        comments.forEach(comment => {
+            const parentKey = comment.parentId || 'root';
+            if (!commentMap.has(parentKey)) {
+                commentMap.set(parentKey, []);
             }
+            commentMap.get(parentKey)!.push(comment);
         });
-        
-        const finalRenderList: React.ReactNode[] = [];
-        const topLevelComments = comments.filter(c => !c.parentId);
-
-        const traverse = (commentId: string) => {
-            const comment = commentMap.get(commentId);
-            if (!comment) return;
-
-            finalRenderList.push(<Comment key={comment.id} comment={comment} {...handlers} />);
-            
-            const children = childMap.get(commentId);
-            if (children) {
-                children.forEach(traverse);
-            }
-        };
-
-        topLevelComments.forEach(c => traverse(c.id));
-        
-        return finalRenderList;
-
-    }, [comments, handlers]);
+        return commentMap;
+    }, [comments]);
 
 
     if (!post) {
@@ -398,8 +394,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : comments.length > 0 ? (
-                        renderableComments()
+                    ) : topLevelComments.has('root') ? (
+                        topLevelComments.get('root')!.map(comment => (
+                            <Comment 
+                                key={comment.id}
+                                comment={comment}
+                                replies={topLevelComments.get(comment.id) || []}
+                                {...handlers}
+                            />
+                        ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
@@ -419,7 +422,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             rows={1}
                             className="flex-grow resize-none pr-10 min-h-[40px] rounded-md"
                         />
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
                             <Smile />
                         </Button>
                     </div>
