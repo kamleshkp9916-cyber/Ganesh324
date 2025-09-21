@@ -127,6 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { ConversationList, ChatWindow } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -394,6 +395,7 @@ function FeedPageContent() {
   const searchParams = useSearchParams();
   const activeTabParam = searchParams.get('tab');
   const feedFilterParam = searchParams.get('filter');
+  const isMobile = useIsMobile();
 
   const { user, userData, loading: authLoading } = useAuth();
   const [feed, setFeed] = useState<any[]>([]);
@@ -739,20 +741,18 @@ function FeedPageContent() {
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
-                <div className="flex flex-col h-screen">
-                    <header className="sticky top-0 z-40 flex h-16 items-center justify-end gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
-                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle navigation menu</span>
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                                <Search className="h-5 w-5"/>
-                            </Button>
-                         </div>
+                 <div className="flex flex-col h-screen">
+                    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
+                        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                            <Menu className="h-5 w-5" />
+                            <span className="sr-only">Toggle navigation menu</span>
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <Search className="h-5 w-5"/>
+                        </Button>
                     </header>
-                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                       <div className="h-full flex flex-col">
+                    <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
+                        <div className="flex-1 flex flex-col h-full">
                             <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
                                 <Popover open={showSuggestions}>
                                     <PopoverAnchor asChild>
@@ -795,47 +795,87 @@ function FeedPageContent() {
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                           <div className="w-full flex-grow">
-                              <section>
-                                   <div className="divide-y divide-border/20">
-                                       {isLoadingFeed ? (
-                                           <>
-                                               <FeedPostSkeleton />
-                                               <FeedPostSkeleton />
-                                           </>
-                                       ) : (
-                                           filteredFeed.map(post => (
-                                               <FeedPost 
-                                                   key={post.id}
-                                                   post={post}
-                                                   currentUser={user}
-                                                   onDelete={handleDeletePost}
-                                                   onEdit={handleEditPost}
-                                                   onShare={handleShare}
-                                                   onReport={() => setIsReportDialogOpen(true)}
-                                                   onSaveToggle={handleSaveToggle}
-                                                   isSaved={isPostSaved(post.id)}
-                                                   highlightTerm={debouncedSearchTerm}
-                                                   onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                   onCommentClick={(post) => setSelectedPostForComments(post)}
-                                               />
-                                           ))
-                                       )}
-                                   </div>
-                               </section>
+                           <div className="w-full flex-grow overflow-y-auto no-scrollbar">
+                                {activeView === 'feed' || activeView === 'saves' ? (
+                                    <section>
+                                        <div className="divide-y divide-border/20">
+                                            {isLoadingFeed ? (
+                                                <>
+                                                    <FeedPostSkeleton />
+                                                    <FeedPostSkeleton />
+                                                </>
+                                            ) : (
+                                                filteredFeed.map(post => (
+                                                    <FeedPost 
+                                                        key={post.id}
+                                                        post={post}
+                                                        currentUser={user}
+                                                        onDelete={handleDeletePost}
+                                                        onEdit={handleEditPost}
+                                                        onShare={handleShare}
+                                                        onReport={() => setIsReportDialogOpen(true)}
+                                                        onSaveToggle={handleSaveToggle}
+                                                        isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                    />
+                                                ))
+                                            )}
+                                        </div>
+                                    </section>
+                                ) : activeView === 'messages' && (
+                                     <div className="h-full flex overflow-hidden">
+                                        <div className={cn(
+                                            "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
+                                            isMobile && selectedPostForComments && "hidden"
+                                        )}>
+                                            <ConversationList
+                                                conversations={[]}
+                                                selectedConversation={null}
+                                                onSelectConversation={() => {}}
+                                            />
+                                        </div>
+                                        <div className={cn(
+                                            "h-full w-full flex-col hidden md:flex md:w-full lg:w-3/5",
+                                            isMobile && !selectedPostForComments && "hidden"
+                                        )}>
+                                            <ChatWindow 
+                                                conversation={{
+                                                    userId: 'FashionFinds',
+                                                    userName: 'FashionFinds',
+                                                    avatarUrl: 'https://placehold.co/40x40.png',
+                                                    lastMessage: '',
+                                                    lastMessageTimestamp: '',
+                                                    unreadCount: 0
+                                                }}
+                                                userData={userData}
+                                                onBack={() => {}}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                            </div>
-                       </div>
-                   </div>
-                    {activeView === 'feed' && (
-                        <div className="w-full pointer-events-auto mt-auto">
-                            <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
-                                <CreatePostForm
-                                    onPost={handlePostSubmit}
-                                    postToEdit={postToEdit}
-                                    onFinishEditing={onFinishEditing}
-                                    isSubmitting={isFormSubmitting}
-                                />
-                            </div>
+                           {activeView === 'feed' && (
+                                <div className="w-full pointer-events-auto mt-auto">
+                                    <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
+                                        <CreatePostForm
+                                            onPost={handlePostSubmit}
+                                            postToEdit={postToEdit}
+                                            onFinishEditing={onFinishEditing}
+                                            isSubmitting={isFormSubmitting}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                     {selectedPostForComments && (
+                        <div className={cn(
+                            "h-full w-full md:w-full lg:w-3/5 flex-shrink-0 border-l",
+                            isMobile && !selectedPostForComments && "hidden"
+                        )}>
+                             <CommentColumn post={selectedPostForComments} onClose={() => setSelectedPostForComments(null)} />
                         </div>
                     )}
                 </div>
@@ -919,4 +959,5 @@ export default function FeedPage() {
 }
 
     
+
 
