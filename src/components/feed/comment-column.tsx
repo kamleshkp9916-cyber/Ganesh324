@@ -69,7 +69,6 @@ const CommentSkeleton = () => (
         <div className="flex-grow space-y-2">
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
         </div>
     </div>
 );
@@ -115,8 +114,8 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             return;
         }
 
-        setIsRepliesLoading(true);
         setIsRepliesOpen(true);
+        setIsRepliesLoading(true);
         try {
             const db = getFirestoreDb();
             const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
@@ -139,7 +138,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             <div className="flex-grow space-y-1">
                 <div className="relative">
                     <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2">
                            <p className="font-semibold text-sm break-all">{comment.authorName}</p>
                            <p className="text-xs text-muted-foreground flex-shrink-0">
                                 <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
@@ -257,6 +256,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const topLevelComments = useMemo(() => comments.filter(c => !c.parentId).sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds), [comments]);
+    
+    // Immediately return or show loader if post is not available
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
 
     useEffect(() => {
         if (!post?.id) {
@@ -409,14 +417,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
-
-    if (!post) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
 
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
