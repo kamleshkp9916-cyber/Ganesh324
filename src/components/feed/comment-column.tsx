@@ -18,6 +18,7 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
+  where,
 } from 'firebase/firestore';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ThumbsDown, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -87,12 +88,15 @@ const Comment = ({ comment, postId }: {
     const [showReplies, setShowReplies] = useState(false);
     const [replies, setReplies] = useState<CommentType[]>([]);
     const [isRepliesLoading, setIsRepliesLoading] = useState(false);
+    const unsubscribeRepliesRef = useRef<() => void | null>(null);
 
     const hasLiked = user && comment.likedBy ? comment.likedBy.includes(user.uid) : false;
     
     const handleFetchReplies = useCallback(async () => {
-        if (replies.length > 0) return; // Don't re-fetch
-        
+        if (unsubscribeRepliesRef.current) {
+            return;
+        }
+
         setIsRepliesLoading(true);
         const db = getFirestoreDb();
         const repliesQuery = query(
@@ -106,16 +110,30 @@ const Comment = ({ comment, postId }: {
             setIsRepliesLoading(false);
         });
         
-        return unsubscribe;
-    }, [comment.id, postId, replies.length]);
-
+        unsubscribeRepliesRef.current = unsubscribe;
+    }, [comment.id, postId]);
+    
     const onToggleReplies = () => {
         const newShowState = !showReplies;
         setShowReplies(newShowState);
-        if (newShowState && replies.length === 0) {
+        if (newShowState) {
             handleFetchReplies();
+        } else {
+            if (unsubscribeRepliesRef.current) {
+                unsubscribeRepliesRef.current();
+                unsubscribeRepliesRef.current = null;
+            }
         }
     }
+    
+    useEffect(() => {
+        // Cleanup listener on component unmount
+        return () => {
+            if (unsubscribeRepliesRef.current) {
+                unsubscribeRepliesRef.current();
+            }
+        };
+    }, []);
 
     // Handlers would be passed down or use context for a real app
     const onLike = () => console.log('like');
@@ -170,10 +188,12 @@ const Comment = ({ comment, postId }: {
                 )}
 
                 {showReplies && (
-                    <div className="pt-4 space-y-6 pl-6 border-l-2 ml-5">
+                    <div className="pt-4 space-y-6">
                          {isRepliesLoading ? <CommentSkeleton /> : (
                             replies.map(reply => (
-                                <Comment key={reply.id} comment={reply} postId={postId} />
+                                <div key={reply.id} className="flex items-start gap-3 w-full pl-6 border-l-2 ml-5">
+                                    <Comment comment={reply} postId={postId} />
+                                </div>
                             ))
                          )}
                     </div>
@@ -191,6 +211,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Check for post existence at the very top
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
     
     // Memoized computation of comment structure
     const topLevelComments = useMemo(() => {
@@ -224,13 +253,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         return () => unsubscribe();
     }, [post?.id, toast]);
 
-    if (!post) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
 
     return (
         <div className="h-full flex flex-col bg-background">
