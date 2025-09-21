@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -127,6 +126,8 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
+import { getConversations } from '@/ai/flows/chat-flow';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -391,12 +392,65 @@ const FeedPost = ({
 
 function MessagesView() {
     const { user, userData } = useAuth();
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const isMobile = useIsMobile();
+
+    useEffect(() => {
+        if (userData) {
+            const fetchConversations = async () => {
+                try {
+                    const convos = await getConversations();
+                    setConversations(convos);
+                    // Don't auto-select on mobile
+                    if (convos.length > 0 && !isMobile) {
+                        setSelectedConversation(convos[0]);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch conversations:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchConversations();
+        }
+    }, [userData, isMobile]);
+
     if (!user || !userData) return <LoadingSpinner />;
+    if (isLoading) return <LoadingSpinner />;
+
     return (
-        <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-            <MessageSquare className="h-16 w-16 mb-4" />
-            <h2 className="text-xl font-semibold">Your Messages</h2>
-            <p>Select a conversation to start chatting.</p>
+        <div className="grid h-full w-full grid-cols-1 md:grid-cols-[minmax(280px,350px)_1fr]">
+            <div className={cn(
+                "h-full flex-col border-r md:flex",
+                isMobile && selectedConversation ? "hidden" : "flex"
+            )}>
+                <ConversationList
+                    conversations={conversations}
+                    selectedConversation={selectedConversation}
+                    onSelectConversation={setSelectedConversation}
+                />
+            </div>
+             <div className={cn(
+                "h-full flex-col md:flex",
+                isMobile && !selectedConversation ? "hidden" : "flex"
+            )}>
+                {selectedConversation ? (
+                    <ChatWindow
+                        key={selectedConversation.userId}
+                        conversation={selectedConversation}
+                        userData={userData}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
+                        <MessageSquare className="h-16 w-16 mb-4" />
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -744,7 +798,7 @@ function FeedPageContent() {
   return (
     <div className="h-screen w-full">
          <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                <aside className={cn("lg:flex h-screen flex-col border-r sticky top-0", "hidden")}>
+                <aside className={cn("h-screen flex-col border-r sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
@@ -770,8 +824,8 @@ function FeedPageContent() {
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="h-full flex flex-col">
                             <div className="w-full flex-grow">
-                                <section>
-                                    {activeView === 'messages' ? <MessagesView /> : (
+                                {activeView === 'messages' ? <MessagesView /> : (
+                                    <section>
                                         <div className="divide-y divide-border/20">
                                             {isLoadingFeed ? (
                                                 <>
@@ -797,18 +851,17 @@ function FeedPageContent() {
                                                 ))
                                             )}
                                         </div>
-                                    )}
-                                    {filteredFeed.length === 0 && !isLoadingFeed && (
-                                        <div className="text-center py-16 text-muted-foreground">
-                                            <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                            <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                        </div>
-                                    )}
-                                </section>
+                                    </section>
+                                )}
+                                {activeView !== 'messages' && filteredFeed.length === 0 && !isLoadingFeed && (
+                                    <div className="text-center py-16 text-muted-foreground">
+                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
-
                     {activeView === 'feed' && (
                         <div className="w-full pointer-events-auto mt-auto">
                             <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
