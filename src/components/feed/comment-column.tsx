@@ -259,17 +259,16 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             .filter(comment => !comment.parentId)
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
         
-        if (pinnedCommentId) {
-            const pinned = topLevel.find(c => c.id === pinnedCommentId);
-            if (pinned) {
-                return [
-                    { ...pinned, isPinned: true }, 
-                    ...topLevel.filter(c => c.id !== pinnedCommentId)
-                ];
-            }
+        const pinnedComment = pinnedCommentId ? topLevel.find(c => c.id === pinnedCommentId) : undefined;
+        
+        if (pinnedComment) {
+            return [
+                { ...pinnedComment, isPinned: true }, 
+                ...topLevel.filter(c => c.id !== pinnedCommentId)
+            ];
         }
         
-        return topLevel.map(c => ({...c, isPinned: false}));
+        return topLevel;
 
     }, [allComments, pinnedCommentId]);
     
@@ -309,11 +308,13 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         handleNewCommentSubmit({ text: newCommentText });
         setNewCommentText('');
     };
-
+    
     const handleTogglePin = (commentId: string) => {
-        setPinnedCommentId(prevId => (prevId === commentId ? null : commentId));
-        toast({ title: pinnedCommentId === commentId ? "Comment Unpinned" : "Comment Pinned" });
+        const currentlyPinned = pinnedCommentId === commentId;
+        setPinnedCommentId(currentlyPinned ? null : commentId);
+        toast({ title: currentlyPinned ? "Comment Unpinned" : "Comment Pinned" });
     };
+    
     const handleLike = (commentId: string) => console.log("Liking comment:", commentId);
     const handleReport = (commentId: string) => toast({ title: "Comment Reported", description: "Our team will review it." });
     const handleCopyLink = (commentId: string) => {
@@ -355,7 +356,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         </div>
                     ) : orderedComments.length > 0 ? (
                         orderedComments.map(comment => (
-                            <div key={comment.id} className="w-full p-4">
+                            <div key={comment.id} className="w-full p-4 border-b">
                                 <Comment 
                                     comment={comment}
                                     post={post}
