@@ -107,7 +107,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
     return (
         <div 
             className={cn(
-                "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted",
+                "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted group",
                 isSelected && "bg-muted"
             )}
             onClick={onClick}
@@ -130,6 +130,33 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
                     )}
                 </div>
             </div>
+             <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+                        <AlertDialogDescription>This will permanently delete the chat history with {convo.userName}.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => console.log('Deleting', convo.userId)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -480,18 +480,12 @@ function FeedPageContent() {
   }, []);
 
   const loadConversations = useCallback(() => {
-    const preselectUserId = searchParams.get('userId');
-    const preselectUserName = searchParams.get('userName');
     let allConvos = [...mockConversations];
-
-    if (preselectUserId && isMobile) {
-        const existingConvo = allConvos.find(c => c.userId === preselectUserId);
-        if (existingConvo) {
-            setSelectedConversation(existingConvo);
-        }
-    }
     setConversations(allConvos);
-
+    if (isMobile && searchParams.get('userId')) {
+        const preselected = allConvos.find(c => c.userId === searchParams.get('userId'));
+        if (preselected) setSelectedConversation(preselected);
+    }
   }, [searchParams, isMobile]);
 
   useEffect(() => {
@@ -758,48 +752,62 @@ function FeedPageContent() {
     }
   }
 
-  const renderMessagesView = (isSidebarOpen: boolean, setIsSidebarOpen: (open: boolean) => void) => {
+ const renderMessagesView = () => {
+    const mainContent = (
+      <>
+        {isMobile && selectedConversation ? null : (
+          <ConversationList
+            onSidebarToggle={() => setIsSidebarOpen(true)}
+            conversations={conversations}
+            selectedConversation={selectedConversation}
+            onSelectConversation={setSelectedConversation}
+          />
+        )}
+        {selectedConversation ? (
+          <div className={cn(isMobile ? "w-full" : "hidden lg:flex w-full")}>
+             <ChatWindow
+              conversation={selectedConversation}
+              userData={userData!}
+              onBack={() => setSelectedConversation(null)}
+            />
+          </div>
+        ) : (
+          <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+            <MessageSquare className="h-16 w-16 mb-4" />
+            <h2 className="text-xl font-semibold">Select a chat</h2>
+            <p>Choose a conversation to start messaging.</p>
+          </div>
+        )}
+      </>
+    );
+
     if (isMobile) {
-        if (selectedConversation) {
-            return <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => setSelectedConversation(null)} />;
-        } else {
-            return <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} />;
-        }
+      return mainContent;
     }
-    
-    // Desktop layout for messages
+
     return (
-        <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(250px,30%)_1fr]">
-             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-                <MainSidebar userData={userData!} userPosts={userPosts} />
-            </aside>
-            <ConversationList onSidebarToggle={() => setIsSidebarOpen(true)} conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
-            {selectedConversation ? (
-              <ChatWindow conversation={selectedConversation} userData={userData!} onBack={() => {}} />
-            ) : (
-              <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                <MessageSquare className="h-16 w-16 mb-4" />
-                <h2 className="text-xl font-semibold">Select a chat</h2>
-                <p>Choose a conversation to start messaging.</p>
-              </div>
-            )}
-        </div>
+      <div className="grid h-screen w-full lg:grid-cols-[260px_350px_1fr]">
+        <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+          <MainSidebar userData={userData!} userPosts={userPosts} />
+        </aside>
+        {mainContent}
+      </div>
     );
   };
 
   if (activeView === 'messages') {
     return (
-        <div className="h-screen w-full">
-             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                <SheetContent side="left" className="p-0 w-80 md:hidden">
-                     <SheetHeader>
-                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    </SheetHeader>
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </SheetContent>
-                {renderMessagesView(isSidebarOpen, setIsSidebarOpen)}
-            </Sheet>
-        </div>
+      <div className="h-screen w-full">
+        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+          <SheetContent side="left" className="p-0 w-80 md:hidden">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Main Menu</SheetTitle>
+            </SheetHeader>
+            <MainSidebar userData={userData!} userPosts={userPosts} />
+          </SheetContent>
+          {renderMessagesView()}
+        </Sheet>
+      </div>
     );
   }
 
@@ -833,18 +841,10 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(250px,40%)_1fr]">
-            <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+        <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
+             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
-            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-                <SheetContent side="left" className="p-0 w-80 md:hidden">
-                    <SheetHeader>
-                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    </SheetHeader>
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </SheetContent>
-            </Sheet>
 
             <div className="flex flex-col h-screen">
                  <header className="p-4 border-b shrink-0 flex items-center gap-4">
@@ -977,6 +977,14 @@ function FeedPageContent() {
                     )}
                 </ScrollArea>
             </aside>
+             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                <SheetContent side="left" className="p-0 w-80 md:hidden">
+                     <SheetHeader>
+                        <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    </SheetHeader>
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </SheetContent>
+            </Sheet>
         </div>
     </>
   )
@@ -990,4 +998,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
