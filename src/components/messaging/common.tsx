@@ -105,14 +105,14 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
 
 export function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
     return (
-        <div 
+        <div
             className={cn(
                 "flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted group",
                 isSelected && "bg-muted"
             )}
             onClick={onClick}
         >
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-12 w-12 flex-shrink-0">
                 <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
                 <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -130,10 +130,10 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
                     )}
                 </div>
             </div>
-             <AlertDialog>
+            <AlertDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                             <MoreVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
