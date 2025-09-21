@@ -768,11 +768,11 @@ function FeedPageContent() {
     }
     // Desktop view
     return (
-        <div className="flex h-full border-t">
-            <div className="w-full md:w-1/3 border-r h-full overflow-y-auto">
+        <div className="grid grid-cols-[minmax(250px,30%)_1fr] h-full border-t">
+            <div className="h-full overflow-y-auto border-r">
                  <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} />
             </div>
-            <div className="hidden md:flex w-2/3 h-full">
+            <div className="h-full">
                 {selectedConversation ? (
                     <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
                 ) : (
@@ -815,113 +815,90 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
+        <div className="grid h-screen w-full md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr]">
+            <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
+                <MainSidebar userData={userData!} userPosts={userPosts} />
+            </aside>
             <div className={cn(
-                "grid md:grid-cols-[250px_1fr]",
-                activeView !== 'messages' && "lg:grid-cols-[250px_1fr_350px]"
+                "grid",
+                activeView === 'messages' ? 'grid-rows-[auto_1fr]' : 'grid-rows-[auto_1fr_auto]'
             )}>
-                
-                <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </aside>
-
-                <main className={cn("min-w-0 h-screen flex flex-col", activeView === 'messages' && "h-full")}>
-                    <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
-                        <SidebarTrigger />
-                        {activeView !== 'messages' && (
-                            <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
-                                <PopoverAnchor asChild>
-                                    <div className="relative w-full max-w-sm">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search for users, posts, #tags"
-                                            className="bg-transparent rounded-full pl-10"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                </PopoverAnchor>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
-                                    <div className="space-y-4">
-                                        {searchSuggestions.users.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
-                                                {searchSuggestions.users.map(u => (
-                                                    <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                            <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.hashtags.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
-                                                {searchSuggestions.hashtags.map(h => (
-                                                    <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
-                                                        <div className="flex items-center gap-2 font-semibold">
-                                                            <Hash className="h-4 w-4 text-muted-foreground" />
-                                                            <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {searchSuggestions.posts.length > 0 && (
-                                            <div>
-                                                <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
-                                                {searchSuggestions.posts.map(p => (
-                                                    <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
-                                                        <BookText className="h-4 w-4 inline-block mr-2" />
-                                                        <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                 <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
+                    <SidebarTrigger />
+                     {activeView !== 'messages' && (
+                        <Popover open={showSuggestions} onOpenChange={(open) => !open && setSearchSuggestions({users:[], hashtags:[], posts:[]})}>
+                            <PopoverAnchor asChild>
+                                <div className="relative w-full max-w-sm">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search for users, posts, #tags"
+                                        className="bg-transparent rounded-full pl-10"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </PopoverAnchor>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-2 max-h-80 overflow-y-auto" align="start">
+                                <div className="space-y-4">
+                                    {searchSuggestions.users.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-sm px-2 mb-1">Users</h4>
+                                            {searchSuggestions.users.map(u => (
+                                                <button key={u.uid} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('user', u.uid)}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8"><AvatarImage src={u.photoURL} /><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                        <Highlight text={u.displayName} highlight={debouncedSearchTerm} />
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
-                                            <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
-                                        )}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        )}
-                        <div/>
-                    </header>
-                    
-                    <div className="flex-grow overflow-y-auto no-scrollbar max-w-3xl w-full mx-auto">
-                        {activeView === 'messages' ? renderMessages() :
-                        (
-                            <section>
-                                {activeView === 'saves' ? (
-                                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-                                        {filteredFeed.map(post => (
-                                            <FeedPost 
-                                                key={post.id}
-                                                post={post}
-                                                currentUser={user}
-                                                onDelete={handleDeletePost}
-                                                onEdit={handleEditPost}
-                                                onShare={handleShare}
-                                                onReport={() => setIsReportDialogOpen(true)}
-                                                onSaveToggle={handleSaveToggle}
-                                                isSaved={isPostSaved(post.id)}
-                                                highlightTerm={debouncedSearchTerm}
-                                                onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                onCommentClick={(post) => setSelectedPostForComments(post)}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="divide-y divide-border/20">
-                                        {isLoadingFeed ? (
-                                            <>
-                                                <FeedPostSkeleton />
-                                                <FeedPostSkeleton />
-                                            </>
-                                        ) : (
-                                            filteredFeed.map(post => (
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {searchSuggestions.hashtags.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-sm px-2 mb-1">Hashtags</h4>
+                                            {searchSuggestions.hashtags.map(h => (
+                                                <button key={h} className="w-full text-left p-2 rounded-md hover:bg-accent" onClick={() => handleSearchFilter('hashtag', h)}>
+                                                    <div className="flex items-center gap-2 font-semibold">
+                                                        <Hash className="h-4 w-4 text-muted-foreground" />
+                                                        <Highlight text={h} highlight={debouncedSearchTerm.replace('#', '')} />
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {searchSuggestions.posts.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-sm px-2 mb-1">Posts</h4>
+                                            {searchSuggestions.posts.map(p => (
+                                                <div key={p.id} className="p-2 text-sm text-muted-foreground truncate">
+                                                    <BookText className="h-4 w-4 inline-block mr-2" />
+                                                    <Highlight text={p.content} highlight={debouncedSearchTerm} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {(searchSuggestions.users.length + searchSuggestions.hashtags.length + searchSuggestions.posts.length) === 0 && debouncedSearchTerm.length > 0 && (
+                                        <p className="text-center text-sm text-muted-foreground p-4">No results found.</p>
+                                    )}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                    <div/>
+                </header>
+
+                <div className="overflow-hidden">
+                    <div className="h-full flex flex-col">
+                        <div className={cn(
+                            "flex-grow overflow-y-auto no-scrollbar",
+                            activeView === 'messages' ? 'h-full' : 'max-w-3xl w-full mx-auto'
+                        )}>
+                            {activeView === 'messages' ? renderMessages() :
+                            (
+                                <section>
+                                    {activeView === 'saves' ? (
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+                                            {filteredFeed.map(post => (
                                                 <FeedPost 
                                                     key={post.id}
                                                     post={post}
@@ -936,43 +913,72 @@ function FeedPageContent() {
                                                     onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                                                     onCommentClick={(post) => setSelectedPostForComments(post)}
                                                 />
-                                            ))
-                                        )}
-                                    </div>
-                                )}
-                                {filteredFeed.length === 0 && !isLoadingFeed && (
-                                    <div className="text-center py-16 text-muted-foreground">
-                                        <h3 className="text-lg font-semibold">No Posts Found</h3>
-                                        <p className="text-sm">Try changing your filters or searching for something else.</p>
-                                    </div>
-                                )}
-                            </section>
-                        )}
-                    </div>
-                    {activeView === 'feed' && (
-                         <div className="w-full max-w-3xl mx-auto pointer-events-auto mt-auto">
-                            <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
-                                <CreatePostForm
-                                    onPost={handlePostSubmit}
-                                    postToEdit={postToEdit}
-                                    onFinishEditing={onFinishEditing}
-                                    isSubmitting={isFormSubmitting}
-                                />
-                            </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-border/20">
+                                            {isLoadingFeed ? (
+                                                <>
+                                                    <FeedPostSkeleton />
+                                                    <FeedPostSkeleton />
+                                                </>
+                                            ) : (
+                                                filteredFeed.map(post => (
+                                                    <FeedPost 
+                                                        key={post.id}
+                                                        post={post}
+                                                        currentUser={user}
+                                                        onDelete={handleDeletePost}
+                                                        onEdit={handleEditPost}
+                                                        onShare={handleShare}
+                                                        onReport={() => setIsReportDialogOpen(true)}
+                                                        onSaveToggle={handleSaveToggle}
+                                                        isSaved={isPostSaved(post.id)}
+                                                        highlightTerm={debouncedSearchTerm}
+                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                                                    />
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                    {filteredFeed.length === 0 && !isLoadingFeed && (
+                                        <div className="text-center py-16 text-muted-foreground">
+                                            <h3 className="text-lg font-semibold">No Posts Found</h3>
+                                            <p className="text-sm">Try changing your filters or searching for something else.</p>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
                         </div>
-                    )}
-                </main>
-                 <aside className={cn(
-                     "hidden lg:flex flex-col h-screen border-l sticky top-0",
-                     activeView === 'messages' && "lg:hidden"
-                 )}>
+                    </div>
+                </div>
+
+                {activeView === 'feed' && (
+                     <div className="w-full max-w-3xl mx-auto pointer-events-auto mt-auto">
+                        <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg">
+                            <CreatePostForm
+                                onPost={handlePostSubmit}
+                                postToEdit={postToEdit}
+                                onFinishEditing={onFinishEditing}
+                                isSubmitting={isFormSubmitting}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+             <aside className={cn(
+                "hidden lg:flex flex-col h-screen border-l sticky top-0",
+                activeView === 'messages' && "hidden"
+            )}>
+                <ScrollArea className="flex-1">
                     {selectedPostForComments ? (
                         <CommentColumn 
                             post={selectedPostForComments} 
                             onClose={() => setSelectedPostForComments(null)} 
                         />
                     ) : (
-                        <div className="p-6 space-y-6 h-full overflow-y-auto no-scrollbar">
+                        <div className="p-6 space-y-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Trending</CardTitle>
@@ -1023,8 +1029,8 @@ function FeedPageContent() {
                             </Card>
                         </div>
                     )}
-                </aside>
-            </div>
+                </ScrollArea>
+            </aside>
         </div>
     </>
   )
