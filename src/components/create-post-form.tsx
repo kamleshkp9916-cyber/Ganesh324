@@ -28,7 +28,6 @@ import { Textarea } from "./ui/textarea";
 export interface PostData {
     content: string;
     media: { type: 'video' | 'image', file?: File, url: string }[] | null;
-    location: string | null;
     taggedProduct: any | null;
 }
   
@@ -58,7 +57,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const { toast } = useToast();
     const [content, setContent] = useState("");
     const [media, setMedia] = useState<{type: 'video' | 'image', file?: File, url: string}[]>([]);
-    const [location, setLocation] = useState<string | null>(null);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
     
@@ -69,12 +67,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const debouncedTagQuery = useDebounce(tagging?.query, 300);
     
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const resetForm = useCallback(() => {
         setContent("");
         setMedia([]);
-        setLocation(null);
         setTaggedProduct(null);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
@@ -84,7 +82,6 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         if (postToEdit) {
             setContent(postToEdit.content || '');
             setMedia(postToEdit.images?.map((img: any) => ({ type: 'image', url: img.url })) || []);
-            setLocation(postToEdit.location || null);
             setTaggedProduct(postToEdit.taggedProduct || null);
         } else {
              resetForm();
@@ -174,11 +171,11 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setSuggestions([]);
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image') => {
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
         const files = event.target.files;
         if (files) {
             if (media.length + files.length > 5) {
-                toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload a maximum of 5 images.' });
+                toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload a maximum of 5 media files.' });
                 return;
             }
 
@@ -198,13 +195,8 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        await onPost({ content, media, location, taggedProduct });
+        await onPost({ content, media, taggedProduct });
         resetForm();
-    };
-
-    const handleGetLocation = () => {
-        setLocation("New York, USA");
-        toast({ title: 'Location added!' });
     };
 
     const addEmoji = (emoji: string) => {
@@ -258,13 +250,17 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                      <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar">
                         {media.map((item, index) => (
                              <div key={index} className="relative w-20 h-20 flex-shrink-0">
-                                <Image
-                                    src={item.url}
-                                    alt="Preview"
-                                    width={80}
-                                    height={80}
-                                    className="rounded-lg object-cover w-full h-full"
-                                />
+                                {item.type === 'image' ? (
+                                    <Image
+                                        src={item.url}
+                                        alt="Preview"
+                                        width={80}
+                                        height={80}
+                                        className="rounded-lg object-cover w-full h-full"
+                                    />
+                                ) : (
+                                    <video src={item.url} className="rounded-lg object-cover w-full h-full" />
+                                )}
                                 <Button
                                     type="button"
                                     variant="destructive"
@@ -339,11 +335,12 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 </div>
                 <div className="flex items-center flex-wrap gap-x-1 gap-y-2">
                     <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+                    <input type="file" multiple accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => imageInputRef.current?.click()} disabled={media.length >= 5}>
                         <ImageIcon className="mr-2 h-5 w-5" /> Image
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={handleGetLocation}>
-                        <MapPin className="mr-2 h-5 w-5" /> Location
+                    <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()} disabled={media.length >= 5}>
+                        <Video className="mr-2 h-5 w-5" /> Video
                     </Button>
                      {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
                         <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))} value={taggedProduct?.id}>
