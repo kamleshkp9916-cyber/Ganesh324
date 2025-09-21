@@ -438,7 +438,6 @@ function FeedPageContent() {
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
   
   const { open, setOpen } = useSidebar();
 
@@ -449,7 +448,6 @@ function FeedPageContent() {
 
   const handleSelectConversation = (convo: Conversation) => {
     setSelectedConversation(convo);
-    setMessages(mockMessages[convo.userId] || []);
   };
 
   const handleSendMessage = (text: string) => {
@@ -460,8 +458,18 @@ function FeedPageContent() {
       text: text,
       timestamp: format(new Date(), 'p')
     };
-    setMessages(prev => [...prev, newMessage]);
+    // This is mock, so we're not persisting it.
+    // In a real app, you'd call a `sendMessage` flow.
+    toast({ title: "Message Sent (Mock)" });
   }
+
+  const handleDeleteConversation = (conversationId: string) => {
+      setConversations(prev => prev.filter(c => c.conversationId !== conversationId));
+      if (selectedConversation?.conversationId === conversationId) {
+          setSelectedConversation(null);
+      }
+      toast({ title: "Conversation Deleted" });
+  };
 
 
   const handleSearchFilter = (type: 'user' | 'hashtag', value: string) => {
@@ -882,18 +890,19 @@ function FeedPageContent() {
                                                 conversations={conversations}
                                                 selectedConversation={selectedConversation}
                                                 onSelectConversation={handleSelectConversation}
+                                                onDeleteConversation={handleDeleteConversation}
                                             />
                                         </div>
                                         <div className={cn(
                                             "h-full w-full flex-col md:flex md:w-full lg:w-3/5",
                                             isMobile && !selectedConversation && "hidden"
                                         )}>
-                                           {selectedConversation ? (
+                                           {selectedConversation && userData ? (
                                                 <ChatWindow 
                                                     key={selectedConversation.userId}
                                                     conversation={selectedConversation}
                                                     userData={userData}
-                                                    messages={messages}
+                                                    messages={mockMessages[selectedConversation.userId] || []}
                                                     onSendMessage={handleSendMessage}
                                                     onBack={() => setSelectedConversation(null)}
                                                 />
@@ -1015,6 +1024,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,6 +17,7 @@ import { useSidebar } from "../ui/sidebar";
 import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 
 export interface Message {
   id: number | string;
@@ -36,36 +38,53 @@ export interface Conversation {
   isExecutive?: boolean;
 }
 
-export const ConversationItem = ({ convo, isSelected, onClick }: { convo: Conversation, isSelected: boolean, onClick: () => void }) => {
+export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { convo: Conversation, isSelected: boolean, onClick: () => void, onDelete: () => void }) => {
     const truncatedMessage = convo.lastMessage.split(' ').slice(0, 4).join(' ') + (convo.lastMessage.split(' ').length > 4 ? '...' : '');
 
     return (
-        <button
-            className={cn(
-                "w-full text-left p-2 flex items-center gap-3 rounded-lg",
-                isSelected ? "bg-secondary" : "hover:bg-secondary/50"
-            )}
-            onClick={onClick}
-        >
-            <Avatar className="h-10 w-10">
-                <AvatarImage src={convo.avatarUrl} />
-                <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-grow overflow-hidden">
-                <div className="flex justify-between items-center">
-                    <p className="font-semibold text-sm truncate">{convo.userName}</p>
-                    <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
+        <div className="group relative">
+             <button
+                className={cn(
+                    "w-full text-left p-2 flex items-center gap-3 rounded-lg",
+                    isSelected ? "bg-secondary" : "hover:bg-secondary/50"
+                )}
+                onClick={onClick}
+            >
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={convo.avatarUrl} />
+                    <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-grow overflow-hidden">
+                    <div className="flex justify-between items-center">
+                        <p className="font-semibold text-sm truncate">{convo.userName}</p>
+                        <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
+                    </div>
+                    <div className="flex justify-between items-start mt-0.5">
+                        <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
+                        {convo.unreadCount > 0 && (
+                            <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
+                                {convo.unreadCount}
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="flex justify-between items-start mt-0.5">
-                    <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
-                    {convo.unreadCount > 0 && (
-                        <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
-                            {convo.unreadCount}
-                        </div>
-                    )}
-                </div>
+            </button>
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Chat
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
-        </button>
+        </div>
     );
 };
 
@@ -87,10 +106,11 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
     );
 };
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, onDeleteConversation }: {
     conversations: Conversation[];
     selectedConversation: Conversation | null;
     onSelectConversation: (convo: Conversation) => void;
+    onDeleteConversation: (conversationId: string) => void;
 }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const { setOpen } = useSidebar();
@@ -130,6 +150,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                             key={convo.userId}
                             convo={convo}
                             onClick={() => onSelectConversation(convo)}
+                            onDelete={() => onDeleteConversation(convo.conversationId)}
                             isSelected={selectedConversation?.userId === convo.userId}
                         />
                     ))}
