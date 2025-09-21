@@ -272,7 +272,6 @@ const FeedPost = ({
                         </Button>
                     </div>
                 </DialogContent>
-                <div className="absolute top-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
                 <div className="p-4">
                     <div className="flex items-start justify-between">
                         <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
@@ -384,7 +383,6 @@ const FeedPost = ({
                         <span>{post.replies || 0} Comments</span>
                     </Button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-px bg-border/20 opacity-50"></div>
             </Card>
         </Dialog>
     )
@@ -756,10 +754,6 @@ function FeedPageContent() {
                             {(activeView === 'feed' || activeView === 'saves') && (
                                 <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 space-y-3">
                                      <div className='flex items-center gap-2'>
-                                        <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                                            <Menu className="h-5 w-5" />
-                                            <span className="sr-only">Toggle navigation menu</span>
-                                        </Button>
                                         <Popover open={showSuggestions}>
                                             <PopoverAnchor asChild>
                                                 <div className="relative flex-grow">
@@ -800,6 +794,10 @@ function FeedPageContent() {
                                                 </ScrollArea>
                                             </PopoverContent>
                                         </Popover>
+                                        <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
+                                            <Menu className="h-5 w-5" />
+                                            <span className="sr-only">Toggle navigation menu</span>
+                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -974,6 +972,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
