@@ -127,6 +127,7 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { MainSidebar } from '@/components/main-sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -417,7 +418,7 @@ function FeedPageContent() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { open, setOpen } = useSidebar();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -753,49 +754,51 @@ function FeedPageContent() {
   }
 
  const renderMessagesView = () => {
-    return (
-      <div className="h-screen w-full">
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <SheetContent side="left" className="p-0 w-80 md:hidden">
-            <SheetHeader>
-                <SheetTitle className="sr-only">Main Menu</SheetTitle>
-            </SheetHeader>
-            <MainSidebar userData={userData!} userPosts={userPosts} />
-          </SheetContent>
-          
-          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
-            <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-              <MainSidebar userData={userData!} userPosts={userPosts} />
-            </aside>
-            
-            <div className={cn("border-r", isMobile && selectedConversation ? 'hidden' : 'flex flex-col')}>
-              <ConversationList
-                onSidebarToggle={() => setIsSidebarOpen(true)}
-                conversations={conversations}
-                selectedConversation={selectedConversation}
-                onSelectConversation={handleMobileConversationSelect}
-              />
-            </div>
-            
-            <div className={cn(isMobile && !selectedConversation ? 'hidden' : 'flex flex-col')}>
-              {selectedConversation ? (
-                <ChatWindow
-                  conversation={selectedConversation}
-                  userData={userData!}
-                  onBack={() => setSelectedConversation(null)}
-                />
-              ) : (
-                <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                  <MessageSquare className="h-16 w-16 mb-4" />
-                  <h2 className="text-xl font-semibold">Select a chat</h2>
-                  <p>Choose a conversation to start messaging.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Sheet>
-      </div>
-    );
+      return (
+        <div className="h-screen w-full">
+            <SidebarProvider>
+                <Sheet open={open} onOpenChange={setOpen}>
+                    <SheetContent side="left" className="p-0 w-80 md:hidden">
+                        <SheetHeader>
+                            <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                        </SheetHeader>
+                        <MainSidebar userData={userData!} userPosts={userPosts} />
+                    </SheetContent>
+                    
+                    <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,2fr)_3fr]">
+                        <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                          <MainSidebar userData={userData!} userPosts={userPosts} />
+                        </aside>
+                        
+                        <div className={cn("border-r flex-col", isMobile && selectedConversation ? 'hidden' : 'flex', !isMobile && 'flex' )}>
+                          <ConversationList
+                            onSidebarToggle={() => setOpen(true)}
+                            conversations={conversations}
+                            selectedConversation={selectedConversation}
+                            onSelectConversation={handleMobileConversationSelect}
+                          />
+                        </div>
+                        
+                        <div className={cn("flex-col", isMobile && !selectedConversation ? 'hidden' : 'flex', !isMobile && 'flex')}>
+                          {selectedConversation ? (
+                            <ChatWindow
+                              conversation={selectedConversation}
+                              userData={userData!}
+                              onBack={() => setSelectedConversation(null)}
+                            />
+                          ) : (
+                            <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                              <MessageSquare className="h-16 w-16 mb-4" />
+                              <h2 className="text-xl font-semibold">Select a chat</h2>
+                              <p>Choose a conversation to start messaging.</p>
+                            </div>
+                          )}
+                        </div>
+                    </div>
+                </Sheet>
+            </SidebarProvider>
+        </div>
+      );
 };
 
   if (activeView === 'messages') {
@@ -803,7 +806,7 @@ function FeedPageContent() {
   }
 
   return (
-    <>
+    <SidebarProvider>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -839,7 +842,7 @@ function FeedPageContent() {
 
             <div className="flex flex-col h-screen">
                  <header className="p-4 border-b shrink-0 flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setIsSidebarOpen(true)}>
+                    <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setOpen(true)}>
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
@@ -968,7 +971,7 @@ function FeedPageContent() {
                     )}
                 </ScrollArea>
             </aside>
-             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
                     <SheetHeader>
                         <SheetTitle className="sr-only">Main Menu</SheetTitle>
@@ -977,7 +980,7 @@ function FeedPageContent() {
                 </SheetContent>
             </Sheet>
         </div>
-    </>
+    </SidebarProvider>
   )
 }
 

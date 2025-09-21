@@ -105,32 +105,32 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
 
 export function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
     return (
-      <button
-        className={cn(
-          "flex w-full items-center gap-3 p-3 rounded-lg text-left cursor-pointer hover:bg-muted group",
-          isSelected && "bg-muted"
-        )}
-        onClick={onClick}
-      >
-        <Avatar className="h-12 w-12 flex-shrink-0">
-          <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
-          <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-grow min-w-0">
-          <div className="flex justify-between items-start">
-            <p className="font-semibold truncate">{convo.userName}</p>
-            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
-          </div>
-          <div className="flex justify-between items-start">
-            <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
-            {convo.unreadCount > 0 && (
-              <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
-                {convo.unreadCount}
-              </Badge>
+        <button
+            className={cn(
+                "flex w-full items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                isSelected ? "bg-muted" : "hover:bg-muted/50"
             )}
-          </div>
-        </div>
-      </button>
+            onClick={onClick}
+        >
+            <Avatar className="h-12 w-12 flex-shrink-0">
+                <AvatarImage src={convo.avatarUrl} alt={convo.userName} />
+                <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-grow min-w-0">
+                <div className="flex justify-between items-start">
+                    <p className="font-semibold truncate">{convo.userName}</p>
+                    <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
+                </div>
+                <div className="flex justify-between items-start">
+                    <p className="text-sm text-muted-foreground truncate pr-2">{convo.lastMessage}</p>
+                    {convo.unreadCount > 0 && (
+                        <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
+                            {convo.unreadCount}
+                        </Badge>
+                    )}
+                </div>
+            </div>
+        </button>
     );
 }
 
