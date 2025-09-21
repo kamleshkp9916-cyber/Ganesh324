@@ -100,7 +100,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { getCart } from '@/lib/product-history';
@@ -407,14 +407,7 @@ function MessagesView() {
     const loadConversations = useCallback(() => {
         let allConvos = [...mockConversations];
         setConversations(allConvos);
-        const userIdFromParams = searchParams.get('userId');
-        if (userIdFromParams) {
-            const preselected = allConvos.find(c => c.userId === userIdFromParams);
-            if (preselected) {
-                setSelectedConversation(preselected);
-            }
-        }
-    }, [searchParams]);
+    }, []);
 
     useEffect(() => {
         loadConversations();
@@ -423,8 +416,8 @@ function MessagesView() {
     if (!userData) return null;
 
     return (
-        <div className="h-full w-full lg:grid lg:grid-cols-[minmax(320px,1fr)_2fr]">
-            <div className={cn("h-full flex-col border-r", isMobile && selectedConversation ? "hidden" : "flex", "md:flex")}>
+        <div className="h-full w-full lg:grid md:grid md:grid-cols-[minmax(320px,1fr)_2fr] lg:grid-cols-[minmax(320px,1fr)_2fr]">
+            <div className={cn("h-full flex-col", isMobile && selectedConversation ? "hidden" : "flex", "md:flex")}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
                     conversations={conversations}
@@ -440,7 +433,7 @@ function MessagesView() {
                         onBack={() => setSelectedConversation(null)}
                     />
                 ) : (
-                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
                         <MessageSquare className="h-16 w-16 mb-4" />
                         <h2 className="text-xl font-semibold">Select a chat</h2>
                         <p>Choose a conversation to start messaging.</p>
@@ -802,7 +795,7 @@ function FeedPageContent() {
                 </aside>
 
                 <div className="flex flex-col h-screen">
-                     <header className="p-4 border-b shrink-0 flex items-center gap-4">
+                     <header className="p-4 border-b shrink-0 flex items-center justify-between gap-4">
                         <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                             <Menu className="h-5 w-5" />
                             <span className="sr-only">Toggle navigation menu</span>
@@ -816,6 +809,9 @@ function FeedPageContent() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+                        <Button asChild variant="ghost" size="icon" className="lg:hidden">
+                            <Link href="/live-selling"><Home className="h-5 w-5" /></Link>
+                        </Button>
                     </header>
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="h-full flex flex-col">
