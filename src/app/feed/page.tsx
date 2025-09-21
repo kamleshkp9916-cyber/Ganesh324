@@ -402,8 +402,10 @@ function MessagesView() {
     const isMobile = useIsMobile();
 
     const loadConversations = useCallback(() => {
-        let allConvos = [...mockConversations];
-        setConversations(allConvos);
+        // In a real app, this would fetch data.
+        // For now, it will be an empty view as requested.
+        setConversations([]);
+        setSelectedConversation(null);
     }, []);
 
     useEffect(() => {
@@ -413,7 +415,7 @@ function MessagesView() {
     if (!userData) return null;
     
     return (
-        <div className="h-full w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr]">
+        <div className="h-full w-full grid md:grid-cols-[minmax(320px,1fr)_2fr]">
             <div className={cn("h-full flex-col md:flex", isMobile && selectedConversation && "hidden")}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
@@ -430,7 +432,7 @@ function MessagesView() {
                         onBack={() => setSelectedConversation(null)}
                     />
                 ) : (
-                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
                         <MessageSquare className="h-16 w-16 mb-4" />
                         <h2 className="text-xl font-semibold">Select a chat</h2>
                         <p>Choose a conversation to start messaging.</p>
@@ -787,7 +789,7 @@ function FeedPageContent() {
             <MessagesView />
         ) : (
             <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                 <aside className="h-screen flex-col border-r sticky top-0 hidden lg:flex">
+                 <aside className="lg:flex h-screen flex-col border-r sticky top-0 hidden">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
