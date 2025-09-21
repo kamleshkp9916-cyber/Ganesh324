@@ -744,7 +744,7 @@ function FeedPageContent() {
   return (
     <div className="h-screen w-full">
          <div className="grid h-screen w-full lg:grid-cols-[260px_1fr_384px]">
-                 <aside className={cn("lg:flex h-screen flex-col border-r sticky top-0 hidden")}>
+                <aside className={cn("lg:flex h-screen flex-col border-r sticky top-0", "hidden")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
