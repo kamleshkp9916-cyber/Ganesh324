@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -14,7 +13,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
 import { useAuth, type UserData } from '@/hooks/use-auth';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -305,32 +304,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     return (
         <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
-            <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
-                <div className="flex items-center gap-3">
-                    {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft/></Button>}
-                    <Link href={`/profile?userId=${conversation.userId}`} className="flex items-center gap-3 group">
-                        <Avatar>
-                            <AvatarImage src={conversation.avatarUrl} />
-                            <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h2 className="font-semibold group-hover:underline">{conversation.userName}</h2>
-                            <p className="text-xs text-muted-foreground">Online</p>
-                        </div>
-                    </Link>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem><Link2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                            <DropdownMenuItem><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+            {/* This header is now conditionally rendered inside the parent component */}
             <ScrollArea className="flex-grow" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isLoading ? (
@@ -432,3 +406,5 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
+
+    
