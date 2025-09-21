@@ -804,6 +804,12 @@ function FeedPageContent() {
                 </aside>
 
                 <div className="flex flex-col h-screen">
+                    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
+                        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                            <Menu className="h-5 w-5" />
+                            <span className="sr-only">Toggle navigation menu</span>
+                        </Button>
+                    </header>
                      {activeView === 'messages' ? (
                         <MessagesView />
                      ) : (

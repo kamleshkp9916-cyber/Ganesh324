@@ -96,13 +96,13 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     </div>
                      <Separator className="my-4 bg-border/50" />
                     <nav className="space-y-1">
-                        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base h-11" data-active={isFeedActive}>
+                        <Button asChild variant="ghost" className={cn("w-full justify-start gap-3 text-base h-11", isFeedActive && "bg-secondary text-secondary-foreground")}>
                            <Link href="/feed"><Home /> Feed</Link>
                         </Button>
-                        <Button asChild variant="ghost" className="w-full justify-start gap-3 text-base h-11" data-active={isActive('/feed', 'saves')}>
+                        <Button asChild variant="ghost" className={cn("w-full justify-start gap-3 text-base h-11", isActive('/feed', 'saves') && "bg-secondary text-secondary-foreground")}>
                              <Link href={{ pathname: '/feed', query: { tab: 'saves' } }}><Save /> Saves</Link>
                         </Button>
-                        <Button asChild variant={isMessagesActive ? "default" : "ghost"} className="w-full justify-start gap-3 text-base h-11" data-active={isMessagesActive}>
+                        <Button asChild variant="ghost" className={cn("w-full justify-start gap-3 text-base h-11", isMessagesActive && "bg-secondary text-secondary-foreground")}>
                            <Link href={{ pathname: '/feed', query: { tab: 'messages' } }}><MessageSquare /> Messages</Link>
                         </Button>
                     </nav>
