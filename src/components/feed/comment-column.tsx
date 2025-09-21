@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestoreDb } from '@/lib/firebase';
@@ -18,8 +18,6 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
-  getDoc,
-  writeBatch,
   getDocs,
   where,
 } from 'firebase/firestore';
@@ -49,7 +47,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 interface CommentType {
@@ -113,23 +110,22 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
     
     const handleFetchReplies = async () => {
-        if (replies.length > 0) {
-            setIsRepliesOpen(prev => !prev);
-            return;
-        }
-
-        setIsRepliesLoading(true);
-        setIsRepliesOpen(true);
-        try {
-            const db = getFirestoreDb();
-            const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
-            const snapshot = await getDocs(repliesQuery);
-            const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
-            setReplies(fetchedReplies);
-        } catch (error) {
-            console.error("Error fetching replies:", error);
-        } finally {
-            setIsRepliesLoading(false);
+        if (!isRepliesOpen && replies.length === 0) { // Only fetch if opening for the first time
+             setIsRepliesLoading(true);
+             setIsRepliesOpen(true);
+             try {
+                const db = getFirestoreDb();
+                const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
+                const snapshot = await getDocs(repliesQuery);
+                const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
+                setReplies(fetchedReplies);
+            } catch (error) {
+                console.error("Error fetching replies:", error);
+            } finally {
+                setIsRepliesLoading(false);
+            }
+        } else {
+            setIsRepliesOpen(prev => !prev); // Just toggle visibility if already fetched
         }
     };
 
@@ -216,7 +212,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 )}
                 
-                {comment.replyCount > 0 && !comment.parentId && (
+                 {comment.replyCount > 0 && !comment.parentId && (
                      <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={handleFetchReplies}>
                         <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", isRepliesOpen && "rotate-180")} />
                         {isRepliesOpen ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
@@ -226,7 +222,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 {isRepliesOpen && (
                      <div className="pt-4 pl-6 space-y-4 border-l-2 border-border/50">
                         {isRepliesLoading ? (
-                            <div className="w-4/5 space-y-4">
+                            <div className="w-full space-y-4">
                                 {Array.from({ length: Math.min(comment.replyCount, 3) }).map((_, i) => <CommentSkeleton key={i} />)}
                             </div>
                         ) : (
@@ -246,7 +242,6 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         )}
                     </div>
                 )}
-
             </div>
         </div>
     );
@@ -260,7 +255,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const topLevelComments = useMemo(() => comments.filter(c => !c.parentId), [comments]);
+    const topLevelComments = useMemo(() => comments.filter(c => !c.parentId).sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds), [comments]);
 
     useEffect(() => {
         if (!post?.id) {
