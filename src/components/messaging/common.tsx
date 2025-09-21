@@ -14,7 +14,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '../ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
 import { useAuth, type UserData } from '@/hooks/use-auth';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -137,24 +137,33 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
 
 export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, userData, userPosts }: { conversations: Conversation[], selectedConversation: Conversation | null, onSelectConversation: (convo: Conversation) => void, userData: UserData, userPosts: any[] }) => {
     const [searchTerm, setSearchTerm] = useState('');
-
+    const { user } = useAuth();
+    const isMobile = useIsMobile();
+    
     const filteredConversations = useMemo(() => {
         if (!searchTerm) return conversations;
         return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [conversations, searchTerm]);
     
+    const renderSidebar = () => {
+        if (!userData) return null;
+        return <MainSidebar userData={userData} userPosts={userPosts} />
+    }
+
     return (
-         <div className="w-full h-full flex flex-col bg-background">
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
+         <div className="w-full h-full flex flex-col bg-background border-r">
+            <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-2">
-                     <Sheet>
-                        <SheetTrigger asChild>
-                             <Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /></Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="p-0 w-80">
-                            {userData && <MainSidebar userData={userData} userPosts={userPosts} />}
-                        </SheetContent>
-                    </Sheet>
+                    {isMobile && (
+                         <Sheet>
+                            <SheetTrigger asChild>
+                                 <Button variant="outline" size="icon" className="shrink-0"><Menu className="h-5 w-5" /></Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="p-0 w-80">
+                                {renderSidebar()}
+                            </SheetContent>
+                        </Sheet>
+                    )}
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
@@ -170,16 +179,18 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     />
                 </div>
             </div>
-            <div className="p-2 flex-grow overflow-y-auto">
-                {filteredConversations.map(convo => (
-                    <ConversationItem 
-                        key={convo.userId} 
-                        convo={convo} 
-                        onClick={() => onSelectConversation(convo)}
-                        isSelected={selectedConversation?.userId === convo.userId}
-                    />
-                ))}
-            </div>
+            <ScrollArea className="flex-grow">
+                <div className="p-2">
+                    {filteredConversations.map(convo => (
+                        <ConversationItem 
+                            key={convo.userId} 
+                            convo={convo} 
+                            onClick={() => onSelectConversation(convo)}
+                            isSelected={selectedConversation?.userId === convo.userId}
+                        />
+                    ))}
+                </div>
+            </ScrollArea>
         </div>
     );
 };
@@ -235,8 +246,14 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         fetchMessages();
     }, [conversation]);
     
+    const scrollChatToBottom = () => {
+        if(chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    };
+
     useEffect(() => {
-        chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
+        scrollChatToBottom();
     }, [messages]);
 
     const handleSendMessage = async (e?: React.FormEvent, content?: {text?: string, image?: string}) => {
@@ -288,7 +305,7 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     return (
         <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
-             <header className="p-4 border-b flex items-center justify-between shrink-0">
+            <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
                     {isMobile && <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft/></Button>}
                     <Link href={`/profile?userId=${conversation.userId}`} className="flex items-center gap-3 group">
@@ -314,16 +331,18 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
                     </DropdownMenu>
                 </div>
             </header>
-            <div ref={chatContainerRef} className="flex-grow p-4 space-y-4 overflow-y-auto bg-muted/20">
-                {isLoading ? (
-                    <div className="space-y-4">
-                        <Skeleton className="h-12 w-2/3" />
-                        <Skeleton className="h-12 w-1/2 ml-auto" />
-                    </div>
-                ) : (
-                    messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} onDelete={handleDeleteMessage}/>)
-                )}
-            </div>
+            <ScrollArea className="flex-grow" ref={chatContainerRef}>
+                <div className="p-4 space-y-4">
+                    {isLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-12 w-2/3" />
+                            <Skeleton className="h-12 w-1/2 ml-auto" />
+                        </div>
+                    ) : (
+                        messages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={userData?.displayName || null} onDelete={handleDeleteMessage}/>)
+                    )}
+                </div>
+            </ScrollArea>
             <footer className="p-4 border-t shrink-0 bg-background">
                  <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                      <Popover>

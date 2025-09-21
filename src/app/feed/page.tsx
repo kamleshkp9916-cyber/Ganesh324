@@ -125,7 +125,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
-import { ConversationList, ChatWindow, Conversation } from '@/components/messaging/common';
+import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
@@ -530,7 +530,7 @@ function FeedPageContent() {
         currentFeed = savedPosts;
     }
     
-    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
     if (!lowercasedSearchTerm) return currentFeed;
 
     if(lowercasedSearchTerm.startsWith('#')) {
@@ -542,7 +542,7 @@ function FeedPageContent() {
     return currentFeed.filter(item => 
         item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [searchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -759,6 +759,7 @@ function FeedPageContent() {
   }
 
   const renderMessagesView = () => {
+    // On mobile, show ChatWindow if a conversation is selected, otherwise show ConversationList
     if (isMobile) {
         if (selectedConversation) {
             return <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => setSelectedConversation(null)} />;
@@ -766,10 +767,20 @@ function FeedPageContent() {
             return <ConversationList conversations={conversations} selectedConversation={null} onSelectConversation={handleMobileConversationSelect} userData={userData} userPosts={userPosts} />;
         }
     }
-    // Desktop view
+    
+    // On desktop, always show both
     return (
-        <div className="h-full border-t">
+        <div className="grid grid-cols-[minmax(250px,35%)_1fr] h-full">
             <ConversationList conversations={conversations} selectedConversation={selectedConversation} onSelectConversation={setSelectedConversation} userData={userData} userPosts={userPosts} />
+            {selectedConversation ? (
+                 <ChatWindow conversation={selectedConversation} userData={userData} onBack={() => {}} />
+            ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                    <MessageSquare className="h-16 w-16 mb-4"/>
+                    <h2 className="text-xl font-semibold">Select a chat</h2>
+                    <p>Choose a conversation to start messaging.</p>
+                </div>
+            )}
         </div>
     );
   }
@@ -804,44 +815,39 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <div className={cn(
-            "grid h-screen w-full md:grid-cols-[200px_1fr]",
-            activeView === 'messages' ? 'lg:grid-cols-[260px_1fr]' : 'lg:grid-cols-[260px_minmax(0,_1fr)_400px]'
+        <div className={cn(
+            "grid h-screen w-full",
+            activeView === 'messages' 
+                ? 'md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr]'
+                : 'md:grid-cols-[200px_minmax(0,_1fr)] lg:grid-cols-[260px_minmax(0,_1fr)_400px]'
         )}>
             <aside className="hidden md:flex flex-col h-screen border-r sticky top-0">
                 <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
-            <div className="flex flex-col h-screen">
+
+             <div className="flex flex-col h-screen">
                 {activeView === 'messages' ? (
-                     <div className="flex-1 overflow-y-auto no-scrollbar">
+                    <div className="flex-1 overflow-y-auto no-scrollbar">
                         {renderMessagesView()}
                     </div>
                 ) : (
                     <>
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <header className="p-4 border-b shrink-0">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search feed..." 
+                                    className="pl-9 rounded-full"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </header>
+                         <div className="flex-1 overflow-y-auto no-scrollbar">
                              <div className="h-full flex flex-col">
                                 <div className="w-full max-w-3xl mx-auto flex-grow">
                                     <section>
-                                        {activeView === 'saves' ? (
-                                            <div className="divide-y divide-border/20">
-                                                {filteredFeed.map(post => (
-                                                    <FeedPost 
-                                                        key={post.id}
-                                                        post={post}
-                                                        currentUser={user}
-                                                        onDelete={handleDeletePost}
-                                                        onEdit={handleEditPost}
-                                                        onShare={handleShare}
-                                                        onReport={() => setIsReportDialogOpen(true)}
-                                                        onSaveToggle={handleSaveToggle}
-                                                        isSaved={isPostSaved(post.id)}
-                                                        highlightTerm={debouncedSearchTerm}
-                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                    />
-                                                ))}
-                                            </div>
-                                        ) : (
+                                        {(activeView === 'feed' || activeView === 'saves') && (
                                             <div className="divide-y divide-border/20">
                                                 {isLoadingFeed ? (
                                                     <>
@@ -892,7 +898,8 @@ function FeedPageContent() {
                     </>
                 )}
             </div>
-             {activeView !== 'messages' && (
+
+            {activeView !== 'messages' && (
                  <aside className={cn(
                     "hidden lg:flex flex-col h-screen border-l sticky top-0"
                 )}>
