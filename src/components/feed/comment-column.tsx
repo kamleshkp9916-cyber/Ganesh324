@@ -65,14 +65,16 @@ interface CommentType {
   replyCount: number;
 }
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete }: {
+const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, replies, onShowReplies }: {
     comment: CommentType,
     onReply: (text: string, parentId: string, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
-    onDelete: (id: string) => void
+    onDelete: (id: string) => void,
+    replies: CommentType[],
+    onShowReplies: (comment: CommentType) => void,
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -93,6 +95,8 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         setReplyText('');
         setIsReplying(false);
     };
+    
+    const singleReply = replies.length === 1 ? replies[0] : null;
 
     return (
         <div className="flex items-start gap-3 w-full">
@@ -103,10 +107,12 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             <div className="flex-grow space-y-1">
                 <div className="relative">
                     <div className="flex flex-col">
-                        <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                         <p className="text-xs text-muted-foreground flex-shrink-0">
-                            <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
-                        </p>
+                        <div className="flex items-center gap-2">
+                           <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                           <p className="text-xs text-muted-foreground flex-shrink-0">
+                                <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
+                           </p>
+                        </div>
                     </div>
 
                     <div className="absolute top-0 right-0">
@@ -174,6 +180,22 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                         </div>
                     </div>
                 )}
+                
+                {singleReply ? (
+                    <div className="pl-6 pt-4">
+                        <Comment 
+                           key={singleReply.id}
+                           comment={singleReply}
+                           {...{ onReply, onLike, onReport, onCopyLink, onEdit, onDelete, onShowReplies }}
+                           replies={[]}
+                        />
+                    </div>
+                ) : comment.replyCount > 0 && (
+                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={() => onShowReplies(comment)}>
+                        <ChevronDown className="w-4 h-4 mr-1" />
+                        View {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
+                    </Button>
+                )}
             </div>
         </div>
     );
@@ -186,6 +208,16 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [viewingRepliesFor, setViewingRepliesFor] = useState<CommentType | null>(null);
+
+    const activeCommentList = useMemo(() => {
+        if (viewingRepliesFor) {
+            const rootComment = comments.find(c => c.id === viewingRepliesFor.id);
+            const childReplies = comments.filter(c => c.parentId === viewingRepliesFor.id);
+            return rootComment ? [rootComment, ...childReplies] : childReplies;
+        }
+        return comments.filter(c => !c.parentId);
+    }, [comments, viewingRepliesFor]);
 
     useEffect(() => {
         if (!post?.id) {
@@ -339,7 +371,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete };
     
-    const rootComments = useMemo(() => comments.filter(comment => !comment.parentId), [comments]);
     const repliesByParent = useMemo(() => {
         const map = new Map<string, CommentType[]>();
         comments.forEach(comment => {
@@ -374,31 +405,15 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : rootComments.length > 0 ? (
-                        rootComments.map(comment => (
-                            <div key={comment.id} className="w-full">
-                                <Comment 
-                                    comment={comment}
-                                    {...handlers}
-                                />
-                                 {comment.replyCount > 0 && (
-                                     <Collapsible className="pl-6">
-                                        <CollapsibleTrigger asChild>
-                                            <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs">
-                                                <ChevronDown className="w-4 h-4 mr-1" />
-                                                View {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                        <CollapsibleContent>
-                                            <div className="space-y-4 pt-4">
-                                                {(repliesByParent.get(comment.id) || []).map(reply => (
-                                                    <Comment key={reply.id} {...handlers} comment={reply} />
-                                                ))}
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                )}
-                            </div>
+                    ) : activeCommentList.length > 0 ? (
+                        activeCommentList.map(comment => (
+                            <Comment 
+                                key={comment.id}
+                                comment={comment}
+                                replies={repliesByParent.get(comment.id) || []}
+                                onShowReplies={setViewingRepliesFor}
+                                {...handlers}
+                            />
                         ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
