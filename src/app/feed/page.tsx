@@ -753,16 +753,17 @@ function FeedPageContent() {
   }
 
  const renderMessagesView = () => {
-    const mainContent = (
-      <>
-        {isMobile && selectedConversation ? null : (
-          <ConversationList
+    return (
+      <div className="grid h-screen w-full lg:grid-cols-[260px_350px_1fr]">
+        <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+          <MainSidebar userData={userData!} userPosts={userPosts} />
+        </aside>
+        <ConversationList
             onSidebarToggle={() => setIsSidebarOpen(true)}
             conversations={conversations}
             selectedConversation={selectedConversation}
             onSelectConversation={setSelectedConversation}
           />
-        )}
         {selectedConversation ? (
           <div className={cn(isMobile ? "w-full" : "hidden lg:flex w-full")}>
              <ChatWindow
@@ -778,19 +779,6 @@ function FeedPageContent() {
             <p>Choose a conversation to start messaging.</p>
           </div>
         )}
-      </>
-    );
-
-    if (isMobile) {
-      return mainContent;
-    }
-
-    return (
-      <div className="grid h-screen w-full lg:grid-cols-[260px_350px_1fr]">
-        <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-          <MainSidebar userData={userData!} userPosts={userPosts} />
-        </aside>
-        {mainContent}
       </div>
     );
   };
@@ -864,7 +852,7 @@ function FeedPageContent() {
                 </header>
                 <div className="flex-1 overflow-y-auto no-scrollbar">
                     <div className="h-full flex flex-col">
-                        <div className="w-full max-w-3xl mx-auto flex-grow">
+                        <div className="w-full flex-grow">
                             <section>
                                 {(activeView === 'feed' || activeView === 'saves') && (
                                     <div className="divide-y divide-border/20">
@@ -904,7 +892,7 @@ function FeedPageContent() {
                     </div>
                 </div>
 
-                <div className="w-full max-w-3xl mx-auto pointer-events-auto mt-auto">
+                <div className="w-full pointer-events-auto mt-auto">
                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t">
                         <CreatePostForm
                             onPost={handlePostSubmit}
