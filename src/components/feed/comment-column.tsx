@@ -59,7 +59,7 @@ const mockCommentsData: CommentType[] = [
 
 
 const CommentSkeleton = () => (
-    <div className="flex items-start gap-3 w-full p-4">
+    <div className="flex items-start gap-3 w-full p-4 border rounded-lg">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="flex-grow space-y-2">
             <Skeleton className="h-4 w-1/4" />
@@ -89,9 +89,8 @@ const Comment = ({ comment, post, handlers, allComments }: {
 
     const hasLiked = user && comment.likedBy ? comment.likedBy.includes(user.uid) : false;
 
-    const handleFetchReplies = useCallback(async () => {
+    const handleFetchReplies = useCallback(() => {
         setIsRepliesLoading(true);
-        // Simulate fetching replies
         setTimeout(() => {
             const fetchedReplies = allComments.filter(c => c.parentId === comment.id).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
             setReplies(fetchedReplies);
@@ -102,7 +101,7 @@ const Comment = ({ comment, post, handlers, allComments }: {
     const handleToggleReplies = () => {
         const newShowState = !showReplies;
         setShowReplies(newShowState);
-        if (newShowState && replies.length === 0) {
+        if (newShowState && replies.length === 0 && comment.replyCount && comment.replyCount > 0) {
             handleFetchReplies();
         }
     };
@@ -201,15 +200,13 @@ const Comment = ({ comment, post, handlers, allComments }: {
                 )}
 
                 {showReplies && (
-                    isRepliesLoading ? (
-                         <div className="pt-4 space-y-4 border-l-2 ml-4 pl-4">
+                    <div className="pt-4 space-y-6 ml-4 pl-4 border-l-2">
+                        {isRepliesLoading ? (
                             <CommentSkeleton />
-                        </div>
-                    ) : (
-                        <div className="pt-4 space-y-6 border-l-2 ml-4 pl-4">
-                            {replies.map(reply => <Comment key={reply.id} comment={reply} post={post} handlers={handlers} allComments={allComments} />)}
-                        </div>
-                    )
+                        ) : (
+                            replies.map(reply => <Comment key={reply.id} comment={reply} post={post} handlers={handlers} allComments={allComments} />)
+                        )}
+                    </div>
                 )}
             </div>
         </div>
@@ -228,7 +225,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     useEffect(() => {
       if (!post) return;
       setIsLoading(true);
-      // Simulate fetching mock data
       setTimeout(() => {
           setAllComments(mockCommentsData);
           setIsLoading(false);
@@ -240,14 +236,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             .filter(comment => !comment.parentId)
             .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     }, [allComments]);
-
-    if (!post) {
-      return (
-        <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        </div>
-      );
-    }
     
     const handleNewCommentSubmit = (data: { text: string, parentId?: string, replyingTo?: string }) => {
         if (!user || !userData) {
@@ -303,6 +291,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         toast({ title: "Comment Deleted" });
     };
     
+    if (!post) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
     const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
 
     return (
@@ -314,7 +310,7 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                 </Button>
             </div>
             <ScrollArea className="flex-grow">
-                <div className="p-4 flex flex-col items-start gap-y-6">
+                <div className="p-4 flex flex-col items-start gap-y-4">
                     {isLoading ? (
                         <div className="w-full space-y-4 pt-4">
                             <CommentSkeleton />
@@ -322,13 +318,14 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
                         </div>
                     ) : topLevelComments.length > 0 ? (
                         topLevelComments.map(comment => (
-                            <Comment 
-                                key={comment.id}
-                                comment={comment}
-                                post={post}
-                                handlers={handlers}
-                                allComments={allComments}
-                            />
+                            <div key={comment.id} className="w-full p-4 border rounded-lg">
+                                <Comment 
+                                    comment={comment}
+                                    post={post}
+                                    handlers={handlers}
+                                    allComments={allComments}
+                                />
+                            </div>
                         ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
