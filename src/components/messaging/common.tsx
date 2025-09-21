@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -13,7 +14,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '../ui/sheet';
 import { MainSidebar } from '../main-sidebar';
 import { useAuth, type UserData } from '@/hooks/use-auth';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -155,10 +156,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                 <div className="flex items-center gap-2">
                     {isMobile && (
                          <Sheet>
-                            <SheetTrigger asChild>
-                                 <Button variant="outline" size="icon" className="shrink-0"><Menu className="h-5 w-5" /></Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="p-0 w-80">
+                             <SheetContent side="left" className="p-0 w-80">
                                 {renderSidebar()}
                             </SheetContent>
                         </Sheet>
@@ -304,7 +302,39 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
     return (
         <Dialog open={isOrderSelectOpen} onOpenChange={setIsOrderSelectOpen}>
          <div className="flex flex-col h-full w-full bg-background">
-            {/* This header is now conditionally rendered inside the parent component */}
+            {/* Header for the chat window */}
+            <header className="p-4 border-b flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                    {isMobile && (
+                        <Button variant="ghost" size="icon" className="-ml-2" onClick={onBack}>
+                            <ArrowLeft />
+                        </Button>
+                    )}
+                    <Link href={`/seller/profile?userId=${conversation.userId}`} className="cursor-pointer group">
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage src={conversation.avatarUrl} />
+                                <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <h2 className="font-semibold group-hover:underline">{conversation.userName}</h2>
+                                <p className="text-xs text-muted-foreground">Online</p>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-5 w-5" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
+
             <ScrollArea className="flex-grow" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isLoading ? (
@@ -406,5 +436,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
