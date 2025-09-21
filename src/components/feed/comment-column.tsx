@@ -21,7 +21,7 @@ import {
   getDocs,
   where,
 } from 'firebase/firestore';
-import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile, ArrowLeft } from 'lucide-react';
+import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,11 +56,11 @@ interface CommentType {
   authorAvatar: string;
   text: string;
   timestamp: Timestamp;
-  isEdited: boolean;
-  likes: string[];
+  isEdited?: boolean;
+  likes?: string[];
   replyingTo?: string | null;
   parentId: string | null;
-  replyCount: number;
+  replyCount?: number;
 }
 
 const CommentSkeleton = () => (
@@ -91,7 +91,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     const [replies, setReplies] = useState<CommentType[]>([]);
     const [isRepliesLoading, setIsRepliesLoading] = useState(false);
     const [isRepliesOpen, setIsRepliesOpen] = useState(false);
-    const hasLiked = user ? comment.likes.includes(user.uid) : false;
+    const hasLiked = user && comment.likes ? comment.likes.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
         onEdit(comment.id, editedText);
@@ -108,7 +108,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         }
     };
     
-    const handleFetchReplies = async () => {
+    const handleFetchReplies = useCallback(async () => {
         if (isRepliesOpen) {
             setIsRepliesOpen(false);
             return;
@@ -127,7 +127,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
         } finally {
             setIsRepliesLoading(false);
         }
-    };
+    }, [isRepliesOpen, postId, comment.id]);
 
     return (
         <div className="flex items-start gap-3 w-full">
@@ -149,7 +149,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     <div className="absolute top-0 right-0">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="text-muted-foreground hover:text-foreground">
+                                <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                                     <MoreHorizontal className="w-4 h-4" />
                                 </button>
                             </DropdownMenuTrigger>
@@ -191,7 +191,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
                     <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
                         <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
-                        <span>{comment.likes.length > 0 ? comment.likes.length : ''}</span>
+                        <span>{comment.likes && comment.likes.length > 0 ? comment.likes.length : ''}</span>
                     </button>
                     <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                 </div>
@@ -212,10 +212,10 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                     </div>
                 )}
                 
-                 {comment.replyCount > 0 && !comment.parentId && (
+                 {(comment.replyCount || 0) > 0 && !comment.parentId && (
                      <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={handleFetchReplies}>
                         <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", isRepliesOpen && "rotate-180")} />
-                        {isRepliesOpen ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount > 1 ? 'replies' : 'reply'}
+                        {isRepliesOpen ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
                     </Button>
                 )}
                 
@@ -223,7 +223,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                      <div className="pt-4 pl-6 space-y-4 border-l-2 border-border/50">
                         {isRepliesLoading ? (
                             <div className="w-full space-y-4">
-                                {Array.from({ length: Math.min(comment.replyCount, 3) }).map((_, i) => <CommentSkeleton key={i} />)}
+                                {Array.from({ length: Math.min(comment.replyCount || 0, 3) }).map((_, i) => <CommentSkeleton key={i} />)}
                             </div>
                         ) : (
                              replies.map(reply => (
@@ -255,9 +255,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const topLevelComments = useMemo(() => comments.filter(c => !c.parentId).sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds), [comments]);
-    
-    // Immediately return or show loader if post is not available
     if (!post) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -265,7 +262,9 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
             </div>
         );
     }
-
+    
+    const topLevelComments = useMemo(() => comments.filter(c => !c.parentId).sort((a, b) => a.timestamp?.seconds - b.timestamp?.seconds), [comments]);
+    
     useEffect(() => {
         if (!post?.id) {
             setComments([]);
@@ -422,9 +421,6 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
                 <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
-                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
-                    <X className="h-5 w-5" />
-                </Button>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
