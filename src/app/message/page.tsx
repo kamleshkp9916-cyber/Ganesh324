@@ -40,40 +40,34 @@ export default function MessagePage() {
     const isMobile = useIsMobile();
     
     useEffect(() => {
-        const fetchConversations = async () => {
-            if (!userData) return;
-            try {
-                let execMessages = mockChatDatabase['StreamCart'] || [];
-                let executiveConversation: Conversation | null = null;
-                if (execMessages.length > 0) {
-                    const lastMessage = execMessages[execMessages.length - 1];
-                    executiveConversation = {
-                        userId: userData.uid,
-                        userName: 'StreamCart',
-                        avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
-                        lastMessage: lastMessage.text || 'Image Sent',
-                        lastMessageTimestamp: lastMessage.timestamp,
-                        unreadCount: 0,
-                        isExecutive: true,
-                    };
-                }
-
-                let allConvos = [...mockConversations];
-                if (executiveConversation) {
-                    allConvos = [executiveConversation, ...allConvos];
-                }
-
-                setConversations(allConvos);
-                if (allConvos.length > 0 && !isMobile) {
-                    setSelectedConversation(allConvos[0]);
-                }
-            } catch (error) {
-                console.error("Failed to fetch conversations:", error);
-            } finally {
-                setIsLoading(false);
+        // Directly use mock data instead of fetching
+        if (userData) {
+            let execMessages = mockChatDatabase['StreamCart'] || [];
+            let executiveConversation: Conversation | null = null;
+            if (execMessages.length > 0) {
+                const lastMessage = execMessages[execMessages.length - 1];
+                executiveConversation = {
+                    userId: userData.uid,
+                    userName: 'StreamCart',
+                    avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                    lastMessage: lastMessage.text || 'Image Sent',
+                    lastMessageTimestamp: lastMessage.timestamp,
+                    unreadCount: 0,
+                    isExecutive: true,
+                };
             }
-        };
-        fetchConversations();
+
+            let allConvos = [...mockConversations];
+            if (executiveConversation) {
+                allConvos = [executiveConversation, ...allConvos];
+            }
+
+            setConversations(allConvos);
+            if (allConvos.length > 0 && !isMobile) {
+                setSelectedConversation(allConvos[0]);
+            }
+            setIsLoading(false);
+        }
     }, [userData, isMobile]);
     
     useEffect(() => {
