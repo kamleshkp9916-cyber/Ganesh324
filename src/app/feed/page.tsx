@@ -800,7 +800,7 @@ function FeedPageContent() {
                 renderMobileMessages()
             ) : (
                 <SidebarProvider>
-                     <div className={cn("grid min-h-screen", activeView === 'messages' ? 'md:grid-cols-[1fr_2fr_1fr]' : 'md:grid-cols-[1fr_2.5fr_1.25fr]')}>
+                     <div className={cn("grid min-h-screen w-full", activeView === 'messages' ? 'md:grid-cols-[1fr_2fr_1fr]' : 'md:grid-cols-[1fr_2.5fr_1.25fr]')}>
                         <Sidebar variant="sidebar" collapsible="offcanvas">
                            <SidebarContent>
                                <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -900,7 +900,7 @@ function FeedPageContent() {
                                     <div className="flex-grow overflow-y-auto no-scrollbar pb-32">
                                         <section>
                                              {activeView === 'saves' ? (
-                                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
                                                     {filteredFeed.map(post => (
                                                         <FeedPost 
                                                             key={post.id}
