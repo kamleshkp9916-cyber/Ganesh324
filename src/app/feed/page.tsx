@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -775,33 +776,24 @@ function FeedPageContent() {
                 />
             </div>
             
-            {isMobile ? (
-                selectedConversation && (
-                     <div className="absolute inset-0 z-10 bg-background h-full w-full flex-col flex">
-                        <ChatWindow
-                            conversation={selectedConversation}
-                            userData={userData!}
-                            onBack={() => setSelectedConversation(null)}
-                        />
+            <div className={cn(
+                "h-full w-full flex-col",
+                isMobile ? (selectedConversation ? 'flex' : 'hidden') : 'flex'
+            )}>
+                {selectedConversation ? (
+                    <ChatWindow
+                        conversation={selectedConversation}
+                        userData={userData!}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                        <MessageSquare className="h-16 w-16 mb-4" />
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
                     </div>
-                )
-            ) : (
-                <div className="h-full w-full flex-col flex">
-                    {selectedConversation ? (
-                        <ChatWindow
-                            conversation={selectedConversation}
-                            userData={userData!}
-                            onBack={() => setSelectedConversation(null)}
-                        />
-                    ) : (
-                        <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                            <MessageSquare className="h-16 w-16 mb-4" />
-                            <h2 className="text-xl font-semibold">Select a chat</h2>
-                            <p>Choose a conversation to start messaging.</p>
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
+            </div>
           </div>
         </Sheet>
       </div>
@@ -999,5 +991,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    

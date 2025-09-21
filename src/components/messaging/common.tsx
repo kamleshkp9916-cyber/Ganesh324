@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { cn } from '@/lib/utils';
@@ -104,9 +105,9 @@ export function ChatMessage({ msg, currentUserName, onDelete }: { msg: Message, 
 
 export function ConversationItem({ convo, onClick, isSelected }: { convo: Conversation, onClick: () => void, isSelected: boolean }) {
     return (
-      <div
+      <button
         className={cn(
-          "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted group",
+          "flex w-full items-center gap-3 p-3 rounded-lg text-left cursor-pointer hover:bg-muted group",
           isSelected && "bg-muted"
         )}
         onClick={onClick}
@@ -129,7 +130,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
             )}
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 
@@ -145,7 +146,7 @@ export const ConversationList = ({ onSidebarToggle, conversations, selectedConve
     }, [conversations, searchTerm]);
     
     return (
-         <div className="w-full h-full flex flex-col bg-background border-r">
+         <div className="w-full h-full flex flex-col bg-background">
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                  <div className="flex items-center gap-2">
                      {onSidebarToggle && (
@@ -428,5 +429,3 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
-
-    
