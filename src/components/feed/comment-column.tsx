@@ -110,22 +110,23 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
     };
     
     const handleFetchReplies = async () => {
-        if (!isRepliesOpen && replies.length === 0) { // Only fetch if opening for the first time
-             setIsRepliesLoading(true);
-             setIsRepliesOpen(true);
-             try {
-                const db = getFirestoreDb();
-                const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
-                const snapshot = await getDocs(repliesQuery);
-                const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
-                setReplies(fetchedReplies);
-            } catch (error) {
-                console.error("Error fetching replies:", error);
-            } finally {
-                setIsRepliesLoading(false);
-            }
-        } else {
-            setIsRepliesOpen(prev => !prev); // Just toggle visibility if already fetched
+        if (isRepliesOpen) {
+            setIsRepliesOpen(false);
+            return;
+        }
+
+        setIsRepliesLoading(true);
+        setIsRepliesOpen(true);
+        try {
+            const db = getFirestoreDb();
+            const repliesQuery = query(collection(db, `posts/${postId}/comments`), where("parentId", "==", comment.id), orderBy("timestamp", "asc"));
+            const snapshot = await getDocs(repliesQuery);
+            const fetchedReplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentType));
+            setReplies(fetchedReplies);
+        } catch (error) {
+            console.error("Error fetching replies:", error);
+        } finally {
+            setIsRepliesLoading(false);
         }
     };
 
