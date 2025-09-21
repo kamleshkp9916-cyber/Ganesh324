@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -815,7 +814,7 @@ function FeedPageContent() {
                      ) : (
                         <div className="flex-1 overflow-y-auto no-scrollbar">
                            <div className="h-full flex flex-col">
-                                <div className="sticky top-0 lg:top-16 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
+                                <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
                                     <Popover open={showSuggestions}>
                                         <PopoverAnchor asChild>
                                             <div className="relative">
@@ -974,3 +973,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
