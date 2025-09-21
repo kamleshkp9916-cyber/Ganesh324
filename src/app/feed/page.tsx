@@ -744,11 +744,6 @@ function FeedPageContent() {
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                    {(activeView === 'feed' || activeView === 'saves') && (
-                        <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
-                            {/* Mobile menu trigger is now in the search bar area */}
-                        </header>
-                    )}
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
                             {(activeView === 'feed' || activeView === 'saves') && (
@@ -771,24 +766,29 @@ function FeedPageContent() {
                                                     {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
                                                     (
                                                         <>
-                                                            {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
-                                                            {searchSuggestions.users.map(u => (
-                                                                <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                    <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                                    {u.displayName}
-                                                                </button>
-                                                            ))}
-                                                            {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
-                                                            {searchSuggestions.hashtags.map(h => (
-                                                                <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
-                                                            ))}
-                                                            {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
-                                                            {searchSuggestions.posts.map(p => (
-                                                                <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                    <span className="truncate">{p.content}</span>
-                                                                </button>
-                                                            ))}
-                                                            {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                                            {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 ? (
+                                                                <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                                                            ) : (
+                                                                <>
+                                                                    {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
+                                                                    {searchSuggestions.users.map(u => (
+                                                                        <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                            <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                            {u.displayName}
+                                                                        </button>
+                                                                    ))}
+                                                                    {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
+                                                                    {searchSuggestions.hashtags.map(h => (
+                                                                        <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
+                                                                    ))}
+                                                                    {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
+                                                                    {searchSuggestions.posts.map(p => (
+                                                                        <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                            <span className="truncate">{p.content}</span>
+                                                                        </button>
+                                                                    ))}
+                                                                </>
+                                                            )}
                                                         </>
                                                     )}
                                                 </ScrollArea>
@@ -972,6 +972,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
