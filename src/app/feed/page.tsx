@@ -785,7 +785,7 @@ function FeedPageContent() {
   if (activeView === 'messages') {
     return (
         <div className="h-screen w-full">
-            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
                     <SheetHeader className="sr-only"><SheetTitle>Main Menu</SheetTitle></SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
