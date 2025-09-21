@@ -17,12 +17,11 @@ const SidebarContext = React.createContext<{
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
     const [open, setOpen] = React.useState(false);
-    const isMobile = useIsMobile();
-
+    
     const value = React.useMemo(() => ({
-        open: isMobile ? open : false,
-        setOpen: isMobile ? setOpen : () => {},
-    }), [isMobile, open, setOpen]);
+        open,
+        setOpen,
+    }), [open, setOpen]);
     
     return (
         <SidebarContext.Provider value={value}>
@@ -40,16 +39,13 @@ export function useSidebar() {
 }
 
 export const Sidebar = ({ children, className }: { children: React.ReactNode, className?: string }) => {
-    const isMobile = useIsMobile();
     const { open, setOpen } = useSidebar();
-
+    const isMobile = useIsMobile();
+    
     if (isMobile) {
         return (
             <Sheet open={open} onOpenChange={setOpen}>
                 <SheetContent side="left" className={className}>
-                     <SheetHeader>
-                        <SheetTitle className="sr-only">Sidebar Menu</SheetTitle>
-                    </SheetHeader>
                     {children}
                 </SheetContent>
             </Sheet>
@@ -76,9 +72,4 @@ export const SidebarTrigger = () => {
 export const SidebarContent = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
 }
-export const SidebarHeader = ({ children }: { children: React.ReactNode }) => {
-    return <>{children}</>;
-}
-export const SidebarInset = ({ children }: { children: React.ReactNode }) => {
-    return <>{children}</>;
-}
+

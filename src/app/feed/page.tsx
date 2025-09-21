@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -776,7 +777,7 @@ function FeedPageContent() {
   }
 
   return (
-    <>
+    <SidebarProvider>
       <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -805,18 +806,17 @@ function FeedPageContent() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <SidebarProvider>
         <div className={cn("min-h-screen bg-background text-foreground", isMobile && activeView === 'messages' && "h-screen")}>
             <div className="grid md:grid-cols-[var(--sidebar-width)_1fr] lg:grid-cols-[var(--sidebar-width)_1fr_350px]">
-                <div className="hidden md:block">
-                     <MainSidebar userData={userData!} userPosts={userPosts} />
-                </div>
                 
+                <Sidebar className="hidden md:block h-screen border-r sticky top-0">
+                    <SidebarContent>
+                        <MainSidebar userData={userData!} userPosts={userPosts} />
+                    </SidebarContent>
+                </Sidebar>
+
                 <main className="flex-1 min-w-0 h-screen flex flex-col">
-                   <div className={cn(
-                       "flex flex-col h-full w-full mx-auto",
-                        activeView === 'messages' ? 'md:grid md:grid-cols-2' : 'max-w-3xl'
-                    )}>
+                   <div className={cn("flex flex-col h-full", activeView === 'messages' ? 'md:grid md:grid-cols-2' : 'w-full max-w-3xl mx-auto')}>
                         <div className={cn("flex flex-col h-full w-full", activeView === 'messages' && "border-r")}>
                             <header className="p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-30 flex items-center gap-2 justify-between">
                                 <SidebarTrigger />
@@ -1038,8 +1038,7 @@ function FeedPageContent() {
                 </div>
             )}
         </div>
-      </SidebarProvider>
-    </>
+    </SidebarProvider>
   )
 }
 
@@ -1051,6 +1050,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-
-    
