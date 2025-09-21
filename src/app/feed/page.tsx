@@ -397,8 +397,6 @@ const FeedPost = ({
 
 function MessagesView() {
     const { userData } = useAuth();
-    const router = useRouter();
-    const searchParams = useSearchParams();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const { open, setOpen } = useSidebar();
@@ -414,10 +412,10 @@ function MessagesView() {
     }, [loadConversations]);
 
     if (!userData) return null;
-
+    
     return (
-        <div className="h-full w-full lg:grid md:grid md:grid-cols-[minmax(320px,1fr)_2fr] lg:grid-cols-[minmax(320px,1fr)_2fr]">
-            <div className={cn("h-full flex-col", isMobile && selectedConversation ? "hidden" : "flex", "md:flex")}>
+        <div className="h-full w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr]">
+            <div className={cn("h-full flex-col", (isMobile && selectedConversation) && "hidden", "md:flex")}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
                     conversations={conversations}
@@ -425,7 +423,7 @@ function MessagesView() {
                     onSelectConversation={setSelectedConversation}
                 />
             </div>
-            <div className={cn("h-full flex-col", isMobile && !selectedConversation ? "hidden" : "flex", "md:flex")}>
+            <div className={cn("h-full flex-col", (isMobile && !selectedConversation) && "hidden", "md:flex")}>
                 {selectedConversation ? (
                     <ChatWindow
                         conversation={selectedConversation}
