@@ -417,11 +417,12 @@ function FeedPageContent() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
-  const { open, setOpen } = useSidebar();
-
+  
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const isMobile = useIsMobile();
+  const { open, setOpen } = useSidebar();
+
 
   const activeView = (activeTabParam === 'saves' || activeTabParam === 'messages') ? activeTabParam : 'feed';
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
@@ -760,66 +761,45 @@ function FeedPageContent() {
   }
 
  const renderMessagesView = () => {
-      return (
-            <div className="h-screen w-full md:grid md:grid-cols-[minmax(320px,1fr)_2fr] lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
-                {/* Desktop Sidebar */}
-                <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </aside>
+    return (
+        <div className="h-screen w-full lg:grid lg:grid-cols-[260px_1fr_2fr]">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                <MainSidebar userData={userData!} userPosts={userPosts} />
+            </aside>
 
-                {/* Middle Column (Conversation List) */}
-                 <div
-                    className={cn(
-                        "h-full border-r flex-col",
-                        isMobile && selectedConversation ? "hidden" : "flex",
-                        !isMobile && "flex"
-                    )}
-                >
-                    <ConversationList
-                        onSidebarToggle={() => setOpen(true)}
-                        conversations={conversations}
-                        selectedConversation={selectedConversation}
-                        onSelectConversation={handleMobileConversationSelect}
-                    />
-                </div>
-
-                {/* Right Column (Chat Window) */}
-                <div
-                    className={cn(
-                        "h-full flex-col",
-                        isMobile && !selectedConversation ? "hidden" : "flex",
-                        !isMobile && "flex"
-                    )}
-                >
-                    {selectedConversation ? (
-                        <ChatWindow
-                            conversation={selectedConversation}
-                            userData={userData!}
-                            onBack={() => setSelectedConversation(null)}
-                        />
-                    ) : (
-                        <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                            <MessageSquare className="h-16 w-16 mb-4" />
-                            <h2 className="text-xl font-semibold">Select a chat</h2>
-                            <p>Choose a conversation to start messaging.</p>
-                        </div>
-                    )}
-                </div>
+            {/* Conversation List */}
+            <div className={cn("h-full flex-col border-r", selectedConversation && isMobile ? "hidden" : "flex")}>
+                <ConversationList
+                    onSidebarToggle={() => setOpen(true)}
+                    conversations={conversations}
+                    selectedConversation={selectedConversation}
+                    onSelectConversation={handleMobileConversationSelect}
+                />
             </div>
+            
+            {/* Chat Window */}
+            <div className={cn("h-full flex-col", !selectedConversation && isMobile ? "hidden" : "flex")}>
+                {selectedConversation ? (
+                    <ChatWindow
+                        conversation={selectedConversation}
+                        userData={userData!}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                        <MessageSquare className="h-16 w-16 mb-4" />
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 };
 
   if (activeView === 'messages') {
-    return (
-        <SidebarProvider>
-            <Sheet open={open} onOpenChange={setOpen}>
-                <SheetContent side="left" className="p-0 w-80 md:hidden">
-                    <MainSidebar userData={userData!} userPosts={userPosts} />
-                </SheetContent>
-            </Sheet>
-            {renderMessagesView()}
-        </SidebarProvider>
-    );
+    return renderMessagesView();
   }
 
   return (
@@ -859,7 +839,7 @@ function FeedPageContent() {
 
             <div className="flex flex-col h-screen">
                  <header className="p-4 border-b shrink-0 flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setOpen(true)}>
+                    <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
@@ -989,7 +969,7 @@ function FeedPageContent() {
                 </ScrollArea>
             </aside>
              <Sheet open={open} onOpenChange={setOpen}>
-                <SheetContent side="left" className="p-0 w-80 md:hidden">
+                <SheetContent side="left" className="p-0 w-80 lg:hidden">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </SheetContent>
             </Sheet>

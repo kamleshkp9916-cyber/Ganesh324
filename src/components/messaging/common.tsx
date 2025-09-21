@@ -149,7 +149,7 @@ export const ConversationList = ({ onSidebarToggle, conversations, selectedConve
             <header className="p-4 border-b flex items-center justify-between shrink-0 h-16">
                  <div className="flex items-center gap-2">
                      {onSidebarToggle && (
-                        <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={onSidebarToggle}>
+                        <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={onSidebarToggle}>
                             <Menu className="h-5 w-5" />
                         </Button>
                      )}
@@ -430,3 +430,4 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
 };
 
     
+
