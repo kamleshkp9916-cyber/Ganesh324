@@ -740,18 +740,14 @@ function FeedPageContent() {
                 </aside>
 
                 <div className="flex flex-col h-screen">
-                    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
-                        <Link href="/live-selling" className="flex items-center gap-2">
-                             <Logo className="h-7 w-7" />
-                             <span className="font-bold text-lg">StreamCart</span>
-                        </Link>
+                    <header className="sticky top-0 z-40 flex h-16 items-center justify-end gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon">
-                                <Search className="h-5 w-5"/>
-                            </Button>
-                             <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                            <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
                                 <Menu className="h-5 w-5" />
                                 <span className="sr-only">Toggle navigation menu</span>
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                                <Search className="h-5 w-5"/>
                             </Button>
                          </div>
                     </header>
@@ -923,3 +919,4 @@ export default function FeedPage() {
 }
 
     
+
