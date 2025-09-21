@@ -421,6 +421,7 @@ function FeedPageContent() {
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const isMobile = useIsMobile();
 
   const activeView = (activeTabParam === 'saves' || activeTabParam === 'messages') ? activeTabParam : 'feed';
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
@@ -482,13 +483,20 @@ function FeedPageContent() {
   const loadConversations = useCallback(() => {
     let allConvos = [...mockConversations];
     setConversations(allConvos);
-    if (searchParams.get('userId')) {
-        const preselected = allConvos.find(c => c.userId === searchParams.get('userId'));
-        if (preselected) setSelectedConversation(preselected);
-    } else if (allConvos.length > 0) {
+    const userIdFromParams = searchParams.get('userId');
+    if (userIdFromParams) {
+        const preselected = allConvos.find(c => c.userId === userIdFromParams);
+        if (preselected) {
+          setSelectedConversation(preselected);
+          // On mobile, ensure the chat window is shown
+          if (isMobile) {
+            router.push('/feed?tab=messages');
+          }
+        }
+    } else if (allConvos.length > 0 && !isMobile) { // Don't preselect on mobile
         setSelectedConversation(allConvos[0]);
     }
-  }, [searchParams]);
+  }, [searchParams, isMobile, router]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -764,43 +772,45 @@ function FeedPageContent() {
                         <MainSidebar userData={userData!} userPosts={userPosts} />
                     </SheetContent>
                     
-                    <div className="grid h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
+                    <div className="grid h-screen w-full lg:grid-cols-[260px_1fr] md:grid-cols-[minmax(320px,1fr)_2fr]">
                         <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
                           <MainSidebar userData={userData!} userPosts={userPosts} />
                         </aside>
                         
-                        <div className={cn(
-                            "border-r flex-col",
-                            "hidden md:flex",
-                            selectedConversation && "md:hidden lg:flex"
-                        )}>
-                          <ConversationList
-                            onSidebarToggle={() => setOpen(true)}
-                            conversations={conversations}
-                            selectedConversation={selectedConversation}
-                            onSelectConversation={handleMobileConversationSelect}
-                          />
-                        </div>
-                        
-                        <div className={cn(
-                            "flex-col",
-                            "hidden md:flex",
-                            !selectedConversation && "md:hidden lg:flex"
-                        )}>
-                          {selectedConversation ? (
-                            <ChatWindow
-                              conversation={selectedConversation}
-                              userData={userData!}
-                              onBack={() => setSelectedConversation(null)}
-                            />
-                          ) : (
-                            <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                              <MessageSquare className="h-16 w-16 mb-4" />
-                              <h2 className="text-xl font-semibold">Select a chat</h2>
-                              <p>Choose a conversation to start messaging.</p>
+                        <main className="grid h-full grid-cols-1 md:grid-cols-[minmax(320px,1fr)_2fr]">
+                            <div className={cn(
+                                "border-r flex-col",
+                                "md:flex",
+                                selectedConversation && "hidden md:flex",
+                            )}>
+                              <ConversationList
+                                onSidebarToggle={() => setOpen(true)}
+                                conversations={conversations}
+                                selectedConversation={selectedConversation}
+                                onSelectConversation={handleMobileConversationSelect}
+                              />
                             </div>
-                          )}
-                        </div>
+                            
+                            <div className={cn(
+                                "flex-col",
+                                "md:flex",
+                                !selectedConversation && "hidden md:flex"
+                            )}>
+                              {selectedConversation ? (
+                                <ChatWindow
+                                  conversation={selectedConversation}
+                                  userData={userData!}
+                                  onBack={() => setSelectedConversation(null)}
+                                />
+                              ) : (
+                                <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                                  <MessageSquare className="h-16 w-16 mb-4" />
+                                  <h2 className="text-xl font-semibold">Select a chat</h2>
+                                  <p>Choose a conversation to start messaging.</p>
+                                </div>
+                              )}
+                            </div>
+                        </main>
                     </div>
                 </Sheet>
             </SidebarProvider>
@@ -1003,6 +1013,7 @@ export default function FeedPage() {
   
 
     
+
 
 
 
