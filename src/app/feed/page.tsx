@@ -176,18 +176,18 @@ const mockConversations: Conversation[] = [
 
 const mockMessages: Record<string, Message[]> = {
   "support": [
-    { id: 1, senderId: 'customer', text: 'I have an issue with my recent order.', timestamp: '10:28 AM' },
+    { id: 1, senderId: 'customer', text: 'I have an issue with my recent order.', timestamp: '10:28 AM', status: 'read' },
     { id: 2, senderId: 'support', text: 'Hello! I can certainly help you with that. Can you please provide me with the order ID?', timestamp: '10:29 AM' },
-    { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM' },
+    { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM', status: 'read' },
     { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
   ],
   "FashionFinds": [
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM' },
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM', status: 'read' },
     { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM', status: 'delivered' },
   ],
   "GadgetGuru": [
-      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday' },
+      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday', status: 'read' },
       { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
   ]
 };
@@ -436,8 +436,9 @@ function FeedPageContent() {
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
   const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   
   const { open, setOpen } = useSidebar();
 
@@ -448,6 +449,8 @@ function FeedPageContent() {
 
   const handleSelectConversation = (convo: Conversation) => {
     setSelectedConversation(convo);
+    // @ts-ignore
+    setCurrentMessages(mockMessages[convo.userId] || []);
   };
 
   const handleSendMessage = (text: string) => {
@@ -456,17 +459,27 @@ function FeedPageContent() {
       id: Date.now(),
       senderId: user.uid,
       text: text,
-      timestamp: format(new Date(), 'p')
+      timestamp: format(new Date(), 'p'),
+      status: 'sent',
     };
+    setCurrentMessages(prev => [...prev, newMessage]);
     // This is mock, so we're not persisting it.
-    // In a real app, you'd call a `sendMessage` flow.
     toast({ title: "Message Sent (Mock)" });
+
+    // Simulate delivered and read status
+    setTimeout(() => {
+        setCurrentMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, status: 'delivered'} : m));
+    }, 500);
+     setTimeout(() => {
+        setCurrentMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, status: 'read'} : m));
+    }, 2000);
   }
 
   const handleDeleteConversation = (conversationId: string) => {
       setConversations(prev => prev.filter(c => c.conversationId !== conversationId));
       if (selectedConversation?.conversationId === conversationId) {
           setSelectedConversation(null);
+          setCurrentMessages([]);
       }
       toast({ title: "Conversation Deleted" });
   };
@@ -542,6 +555,15 @@ function FeedPageContent() {
         window.removeEventListener('storage', handleStorageChange);
     }
   }, [loadFollowData, loadSavedPosts]);
+
+  useEffect(() => {
+    if(activeView === 'messages') {
+        setConversations(mockConversations);
+        if(mockConversations.length > 0) {
+            handleSelectConversation(mockConversations[0]);
+        }
+    }
+  }, [activeView]);
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -902,7 +924,7 @@ function FeedPageContent() {
                                                     key={selectedConversation.userId}
                                                     conversation={selectedConversation}
                                                     userData={userData}
-                                                    messages={mockMessages[selectedConversation.userId] || []}
+                                                    messages={currentMessages}
                                                     onSendMessage={handleSendMessage}
                                                     onBack={() => setSelectedConversation(null)}
                                                 />
@@ -1024,6 +1046,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 

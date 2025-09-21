@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,6 +18,7 @@ import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp } 
 import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 export interface Message {
   id: number | string;
@@ -25,6 +26,7 @@ export interface Message {
   imageUrl?: string;
   senderId: string; 
   timestamp: string | Timestamp;
+  status?: 'sent' | 'delivered' | 'read';
 }
 
 export interface Conversation {
@@ -93,14 +95,36 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
     const isMyMessage = msg.senderId === currentUserId;
     const timestamp = msg.timestamp instanceof Timestamp ? format(msg.timestamp.toDate(), 'p') : msg.timestamp;
 
+    const renderStatus = () => {
+        if (!isMyMessage) return null;
+        if (msg.status === 'read') return <CheckCheck className="h-4 w-4 text-blue-400" />;
+        if (msg.status === 'delivered') return <CheckCheck className="h-4 w-4" />;
+        return <Check className="h-4 w-4" />;
+    };
+
     return (
-        <div key={msg.id} className={cn("flex items-end gap-2", isMyMessage ? "justify-end" : "justify-start")}>
+        <div key={msg.id} className={cn("flex items-end gap-2 group", isMyMessage ? "justify-end" : "justify-start")}>
+            {isMyMessage && (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                         <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
             <div className={cn("max-w-[75%] rounded-2xl px-4 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
-                <p className={cn("text-xs mt-1", isMyMessage ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-right")}>
-                    {timestamp}
-                </p>
+                <div className={cn("text-xs mt-1 flex items-center gap-1", isMyMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-end")}>
+                    <span>{timestamp}</span>
+                    {renderStatus()}
+                </div>
             </div>
         </div>
     );
@@ -209,9 +233,18 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                         </div>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-5 w-5" />
-                </Button>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem>
+                            <Flag className="mr-2 h-4 w-4" /> Report User
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </header>
             <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
@@ -230,6 +263,23 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
             </ScrollArea>
             <footer className="p-4 border-t shrink-0">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                     <Popover>
+                        <PopoverTrigger asChild>
+                             <Button variant="ghost" size="icon" type="button" className="flex-shrink-0 rounded-full">
+                                <PlusCircle className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-2 mb-2">
+                             <div className="grid gap-1">
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <Paperclip className="mr-2 h-4 w-4" /> Order Status
+                                </Button>
+                                <Button variant="ghost" className="w-full justify-start">
+                                    <FileText className="mr-2 h-4 w-4" /> Send Image
+                                </Button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                      <div className="relative flex-grow">
                         <Input 
                             placeholder="Type a message" 
