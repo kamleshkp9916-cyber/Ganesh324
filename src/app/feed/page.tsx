@@ -127,8 +127,6 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/compon
 import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { getConversations, sendMessage, getMessages } from '@/ai/flows/chat-flow';
-import { ChatWindow, Conversation, ConversationList, Message } from '@/components/messaging/common';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -391,71 +389,6 @@ const FeedPost = ({
     )
 }
 
-function MessagesView() {
-    const { user, userData } = useAuth();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const isMobile = useIsMobile();
-
-    useEffect(() => {
-        if (userData) {
-            const fetchConversations = async () => {
-                try {
-                    const convos = await getConversations();
-                    setConversations(convos);
-                    // Don't auto-select on mobile
-                    if (convos.length > 0 && !isMobile) {
-                        setSelectedConversation(convos[0]);
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch conversations:", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            fetchConversations();
-        }
-    }, [userData, isMobile]);
-
-    if (!user || !userData) return <div className="h-full flex items-center justify-center"><LoadingSpinner /></div>;
-    if (isLoading) return <div className="h-full flex items-center justify-center"><LoadingSpinner /></div>;
-
-    return (
-        <div className="grid h-full w-full grid-cols-1 md:grid-cols-[minmax(280px,350px)_1fr]">
-            <div className={cn(
-                "h-full flex-col border-r border-border md:flex",
-                isMobile && selectedConversation ? "hidden" : "flex"
-            )}>
-                <ConversationList
-                    conversations={conversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={setSelectedConversation}
-                />
-            </div>
-             <div className={cn(
-                "h-full flex-col bg-background md:flex",
-                isMobile && !selectedConversation ? "hidden" : "flex"
-            )}>
-                {selectedConversation ? (
-                    <ChatWindow
-                        key={selectedConversation.userId}
-                        conversation={selectedConversation}
-                        userData={userData}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
-                        <MessageSquare className="h-16 w-16 mb-4" />
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
 function FeedPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -478,6 +411,7 @@ function FeedPageContent() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<{users: UserData[], hashtags: string[], posts: any[]}>({users: [], hashtags: [], posts: []});
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
+  const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   
   const { open, setOpen } = useSidebar();
 
@@ -503,6 +437,7 @@ function FeedPageContent() {
             return;
         }
 
+        setIsSuggestionLoading(true);
         const lowercasedTerm = debouncedSearchTerm.toLowerCase();
         
         const db = getFirestoreDb();
@@ -524,6 +459,7 @@ function FeedPageContent() {
         ))).slice(0, 5);
 
         setSearchSuggestions({users, hashtags, posts});
+        setIsSuggestionLoading(false);
     }
     getSuggestions();
   }, [debouncedSearchTerm, feed]);
@@ -805,97 +741,95 @@ function FeedPageContent() {
 
                 <div className="flex flex-col h-screen">
                     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm lg:hidden">
-                        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
-                            <Menu className="h-5 w-5" />
-                            <span className="sr-only">Toggle navigation menu</span>
-                        </Button>
-                         <Link href="/live-selling" className="flex items-center gap-2">
+                        <Link href="/live-selling" className="flex items-center gap-2">
                              <Logo className="h-7 w-7" />
                              <span className="font-bold text-lg">StreamCart</span>
-                         </Link>
-                         <Button variant="ghost" size="icon">
-                            <Search className="h-5 w-5"/>
-                        </Button>
+                        </Link>
+                         <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon">
+                                <Search className="h-5 w-5"/>
+                            </Button>
+                             <Button variant="outline" size="icon" className="shrink-0" onClick={() => setOpen(true)}>
+                                <Menu className="h-5 w-5" />
+                                <span className="sr-only">Toggle navigation menu</span>
+                            </Button>
+                         </div>
                     </header>
-                     {activeView === 'messages' ? (
-                        <MessagesView />
-                     ) : (
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
-                           <div className="h-full flex flex-col">
-                                <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
-                                    <Popover open={showSuggestions}>
-                                        <PopoverAnchor asChild>
-                                            <div className="relative">
-                                                <Input
-                                                    placeholder="Search feed..."
-                                                    className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
-                                                    value={searchTerm}
-                                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                                />
-                                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                        </PopoverAnchor>
-                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-                                            <ScrollArea className="max-h-80">
-                                                {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
-                                                (
-                                                    <>
-                                                        {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
-                                                        {searchSuggestions.users.map(u => (
-                                                            <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                                {u.displayName}
-                                                            </button>
-                                                        ))}
-                                                        {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
-                                                        {searchSuggestions.hashtags.map(h => (
-                                                            <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
-                                                        ))}
-                                                        {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
-                                                        {searchSuggestions.posts.map(p => (
-                                                            <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                <span className="truncate">{p.content}</span>
-                                                            </button>
-                                                        ))}
-                                                        {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
-                                                    </>
-                                                )}
-                                            </ScrollArea>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                               <div className="w-full flex-grow">
-                                  <section>
-                                       <div className="divide-y divide-border/20">
-                                           {isLoadingFeed ? (
-                                               <>
-                                                   <FeedPostSkeleton />
-                                                   <FeedPostSkeleton />
-                                               </>
-                                           ) : (
-                                               filteredFeed.map(post => (
-                                                   <FeedPost 
-                                                       key={post.id}
-                                                       post={post}
-                                                       currentUser={user}
-                                                       onDelete={handleDeletePost}
-                                                       onEdit={handleEditPost}
-                                                       onShare={handleShare}
-                                                       onReport={() => setIsReportDialogOpen(true)}
-                                                       onSaveToggle={handleSaveToggle}
-                                                       isSaved={isPostSaved(post.id)}
-                                                       highlightTerm={debouncedSearchTerm}
-                                                       onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                       onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                   />
-                                               ))
-                                           )}
-                                       </div>
-                                   </section>
-                               </div>
+                     <div className="flex-1 overflow-y-auto no-scrollbar">
+                       <div className="h-full flex flex-col">
+                            <div className="sticky top-0 lg:top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50">
+                                <Popover open={showSuggestions}>
+                                    <PopoverAnchor asChild>
+                                        <div className="relative">
+                                            <Input
+                                                placeholder="Search feed..."
+                                                className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                    </PopoverAnchor>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                                        <ScrollArea className="max-h-80">
+                                            {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
+                                            (
+                                                <>
+                                                    {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
+                                                    {searchSuggestions.users.map(u => (
+                                                        <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                            <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                            {u.displayName}
+                                                        </button>
+                                                    ))}
+                                                    {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
+                                                    {searchSuggestions.hashtags.map(h => (
+                                                        <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
+                                                    ))}
+                                                    {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
+                                                    {searchSuggestions.posts.map(p => (
+                                                        <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                            <span className="truncate">{p.content}</span>
+                                                        </button>
+                                                    ))}
+                                                    {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                                </>
+                                            )}
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                           <div className="w-full flex-grow">
+                              <section>
+                                   <div className="divide-y divide-border/20">
+                                       {isLoadingFeed ? (
+                                           <>
+                                               <FeedPostSkeleton />
+                                               <FeedPostSkeleton />
+                                           </>
+                                       ) : (
+                                           filteredFeed.map(post => (
+                                               <FeedPost 
+                                                   key={post.id}
+                                                   post={post}
+                                                   currentUser={user}
+                                                   onDelete={handleDeletePost}
+                                                   onEdit={handleEditPost}
+                                                   onShare={handleShare}
+                                                   onReport={() => setIsReportDialogOpen(true)}
+                                                   onSaveToggle={handleSaveToggle}
+                                                   isSaved={isPostSaved(post.id)}
+                                                   highlightTerm={debouncedSearchTerm}
+                                                   onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                                                   onCommentClick={(post) => setSelectedPostForComments(post)}
+                                               />
+                                           ))
+                                       )}
+                                   </div>
+                               </section>
                            </div>
                        </div>
-                     )}
+                   </div>
                     {activeView === 'feed' && (
                         <div className="w-full pointer-events-auto mt-auto">
                             <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
