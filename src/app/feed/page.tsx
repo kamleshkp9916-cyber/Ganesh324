@@ -754,51 +754,48 @@ function FeedPageContent() {
 
  const renderMessagesView = () => {
     return (
-      <div className="h-screen w-full">
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <SheetContent side="left" className="p-0 w-80 md:hidden">
-            <SheetHeader>
-                <SheetTitle className="sr-only">Main Menu</SheetTitle>
-            </SheetHeader>
-            <MainSidebar userData={userData!} userPosts={userPosts} />
-          </SheetContent>
-          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
-            <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
-              <MainSidebar userData={userData!} userPosts={userPosts} />
-            </aside>
-            
-            <div className={cn("h-full", isMobile && selectedConversation ? 'hidden' : 'flex')}>
-                <ConversationList
-                    onSidebarToggle={() => setIsSidebarOpen(true)}
-                    conversations={conversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={handleMobileConversationSelect}
-                />
-            </div>
-            
-            <div className={cn(
-                "h-full w-full",
-                isMobile ? (selectedConversation ? 'flex' : 'hidden') : 'flex'
-            )}>
-                {selectedConversation ? (
-                    <ChatWindow
-                        conversation={selectedConversation}
-                        userData={userData!}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
-                        <MessageSquare className="h-16 w-16 mb-4" />
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
+        <div className="h-screen w-full">
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+                <SheetContent side="left" className="p-0 w-80 md:hidden">
+                    <SheetHeader className="sr-only">
+                        <SheetTitle>Main Menu</SheetTitle>
+                    </SheetHeader>
+                    <MainSidebar userData={userData!} userPosts={userPosts} />
+                </SheetContent>
+                <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
+                    <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
+                        <MainSidebar userData={userData!} userPosts={userPosts} />
+                    </aside>
+                    
+                    <div className={cn("h-full", isMobile && selectedConversation ? 'hidden' : 'flex flex-col')}>
+                        <ConversationList
+                            onSidebarToggle={() => setIsSidebarOpen(true)}
+                            conversations={conversations}
+                            selectedConversation={selectedConversation}
+                            onSelectConversation={handleMobileConversationSelect}
+                        />
                     </div>
-                )}
-            </div>
-          </div>
-        </Sheet>
-      </div>
+                    
+                    <div className={cn("h-full w-full", isMobile ? (selectedConversation ? 'flex' : 'hidden') : 'flex')}>
+                        {selectedConversation ? (
+                            <ChatWindow
+                                conversation={selectedConversation}
+                                userData={userData!}
+                                onBack={() => setSelectedConversation(null)}
+                            />
+                        ) : (
+                            <div className="hidden lg:flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/20">
+                                <MessageSquare className="h-16 w-16 mb-4" />
+                                <h2 className="text-xl font-semibold">Select a chat</h2>
+                                <p>Choose a conversation to start messaging.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </Sheet>
+        </div>
     );
-  };
+};
 
   if (activeView === 'messages') {
     return renderMessagesView();
@@ -972,7 +969,7 @@ function FeedPageContent() {
             </aside>
              <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
                 <SheetContent side="left" className="p-0 w-80 md:hidden">
-                     <SheetHeader className="sr-only">
+                    <SheetHeader className="sr-only">
                         <SheetTitle>Main Menu</SheetTitle>
                     </SheetHeader>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
@@ -993,3 +990,5 @@ export default function FeedPage() {
 }
 
   
+
+    
