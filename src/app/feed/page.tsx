@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -412,10 +413,8 @@ function MessagesView() {
             if (preselected) {
                 setSelectedConversation(preselected);
             }
-        } else if (allConvos.length > 0 && !isMobile) {
-            setSelectedConversation(allConvos[0]);
         }
-    }, [searchParams, isMobile]);
+    }, [searchParams]);
 
     useEffect(() => {
         loadConversations();
@@ -425,7 +424,7 @@ function MessagesView() {
 
     return (
         <div className="h-full w-full lg:grid lg:grid-cols-[minmax(320px,1fr)_2fr]">
-            <div className={cn("h-full flex-col border-r", "flex", isMobile && selectedConversation ? "hidden" : "flex")}>
+            <div className={cn("h-full flex-col border-r", isMobile && selectedConversation ? "hidden" : "flex", "md:flex")}>
                 <ConversationList
                     onSidebarToggle={() => setOpen(true)}
                     conversations={conversations}
@@ -433,7 +432,7 @@ function MessagesView() {
                     onSelectConversation={setSelectedConversation}
                 />
             </div>
-            <div className={cn("h-full flex-col", "flex", isMobile && !selectedConversation ? "hidden" : "flex")}>
+            <div className={cn("h-full flex-col", isMobile && !selectedConversation ? "hidden" : "flex", "md:flex")}>
                 {selectedConversation ? (
                     <ChatWindow
                         conversation={selectedConversation}
