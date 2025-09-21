@@ -106,7 +106,7 @@ export function ConversationItem({ convo, onClick, isSelected }: { convo: Conver
     return (
       <div
         className={cn(
-          "flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted group",
+          "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-muted group",
           isSelected && "bg-muted"
         )}
         onClick={onClick}
@@ -428,3 +428,5 @@ export const ChatWindow = ({ conversation, userData, onBack }: { conversation: C
         </Dialog>
     )
 };
+
+    
