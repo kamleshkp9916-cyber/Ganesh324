@@ -758,16 +758,16 @@ function FeedPageContent() {
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent side="left" className="p-0 w-80 md:hidden">
             <SheetHeader>
-              <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                <SheetTitle className="sr-only">Main Menu</SheetTitle>
             </SheetHeader>
             <MainSidebar userData={userData!} userPosts={userPosts} />
           </SheetContent>
-          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,2fr)_3fr]">
+          <div className="grid h-screen w-full lg:grid-cols-[260px_minmax(384px,1fr)_2fr]">
             <aside className="hidden lg:flex flex-col h-screen border-r sticky top-0">
               <MainSidebar userData={userData!} userPosts={userPosts} />
             </aside>
             
-            <div className={cn("h-full w-full flex-col md:flex", isMobile && selectedConversation ? 'hidden' : 'flex')}>
+            <div className={cn("h-full", isMobile && selectedConversation ? 'hidden' : 'flex')}>
                 <ConversationList
                     onSidebarToggle={() => setIsSidebarOpen(true)}
                     conversations={conversations}
@@ -777,7 +777,7 @@ function FeedPageContent() {
             </div>
             
             <div className={cn(
-                "h-full w-full flex-col",
+                "h-full w-full",
                 isMobile ? (selectedConversation ? 'flex' : 'hidden') : 'flex'
             )}>
                 {selectedConversation ? (
@@ -991,3 +991,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+  
