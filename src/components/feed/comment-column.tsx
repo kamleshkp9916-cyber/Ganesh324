@@ -18,8 +18,6 @@ import {
   serverTimestamp,
   increment,
   runTransaction,
-  where,
-  getDocs,
 } from 'firebase/firestore';
 import { X, MoreHorizontal, Edit, Trash2, Send, MessageSquare, ThumbsUp, ChevronDown, Flag, Link as Link2, Loader2, Smile, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,15 +49,15 @@ import { RealtimeTimestamp } from '@/components/feed/realtime-timestamp';
 
 interface CommentType {
   id: string;
-  authorName: string;
   userId: string;
-  authorAvatar: string;
+  authorName: string;
+  authorAvatar?: string;
   text: string;
   timestamp: Timestamp;
   isEdited?: boolean;
-  likes?: string[];
-  replyingTo?: string | null;
-  parentId: string | null;
+  likes?: number;
+  likedBy?: string[];
+  parentId?: string | null;
   replyCount?: number;
 }
 
@@ -73,32 +71,37 @@ const CommentSkeleton = () => (
     </div>
 );
 
-const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, postId, onFetchReplies }: {
+const Comment = ({ comment, replies, onReply, onLike, onReport, onCopyLink, onEdit, onDelete, postId }: {
     comment: CommentType,
-    onReply: (text: string, parentId: string, replyingTo: string) => void,
+    replies: CommentType[],
+    onReply: (text: string, parentId: string | null, replyingTo: string) => void,
     onLike: (id: string) => void,
     onReport: (id: string) => void,
     onCopyLink: (id: string) => void,
     onEdit: (id: string, text: string) => void,
-    onDelete: (id: string) => void,
+    onDelete: (id: string, parentId: string | null) => void,
     postId: string;
-    onFetchReplies: (comment: CommentType) => void;
 }) => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [editedText, setEditedText] = useState(comment.text);
     const [isReplying, setIsReplying] = useState(false);
     const [replyText, setReplyText] = useState('');
-    const hasLiked = user && comment.likes ? comment.likes.includes(user.uid) : false;
+    const [showReplies, setShowReplies] = useState(false);
+    const hasLiked = user && comment.likedBy ? comment.likedBy.includes(user.uid) : false;
 
     const handleEditSubmit = () => {
+        if (!editedText.trim() || editedText === comment.text) {
+            setIsEditing(false);
+            return;
+        }
         onEdit(comment.id, editedText);
         setIsEditing(false);
     }
 
     const handleReplySubmit = () => {
         if (!replyText.trim()) return;
-        onReply(replyText, comment.id, comment.authorName);
+        onReply(replyText, comment.parentId || comment.id, comment.authorName);
         setReplyText('');
         setIsReplying(false);
     };
@@ -111,13 +114,11 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
             </Avatar>
             <div className="flex-grow space-y-1">
                 <div className="relative">
-                    <div className="flex flex-col">
-                         <div className="flex items-center gap-2">
-                           <p className="font-semibold text-sm break-all">{comment.authorName}</p>
-                           <p className="text-xs text-muted-foreground flex-shrink-0">
-                                <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
-                           </p>
-                        </div>
+                    <div className="flex items-center gap-2">
+                       <p className="font-semibold text-sm break-all">{comment.authorName}</p>
+                       <p className="text-xs text-muted-foreground flex-shrink-0">
+                            <RealtimeTimestamp date={comment.timestamp} isEdited={comment.isEdited} />
+                       </p>
                     </div>
 
                     <div className="absolute top-0 right-0">
@@ -135,7 +136,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                                             <AlertDialogTrigger asChild><DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
                                             <AlertDialogContent>
                                                 <AlertDialogHeader><AlertDialogTitle>Delete Comment?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                                                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(comment.id, comment.parentId)}>Delete</AlertDialogAction></AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
                                         <DropdownMenuSeparator />
@@ -165,7 +166,7 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
                     <button onClick={() => onLike(comment.id)} className={cn("flex items-center gap-1.5 hover:text-primary", hasLiked && "text-primary")}>
                         <ThumbsUp className={cn("w-4 h-4", hasLiked && "fill-primary")} />
-                        <span>{comment.likes && comment.likes.length > 0 ? comment.likes.length : ''}</span>
+                        <span>{comment.likes && comment.likes > 0 ? comment.likes : ''}</span>
                     </button>
                     <button onClick={() => setIsReplying(prev => !prev)} className="hover:text-primary">Reply</button>
                 </div>
@@ -187,10 +188,29 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
                 )}
                 
                  {(comment.replyCount || 0) > 0 && !comment.parentId && (
-                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={() => onFetchReplies(comment)}>
-                        <ChevronDown className="w-4 h-4 mr-1" />
-                        View {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
+                     <Button variant="ghost" size="sm" className="text-primary -ml-2 text-xs" onClick={() => setShowReplies(prev => !prev)}>
+                        <ChevronDown className={cn("w-4 h-4 mr-1 transition-transform", showReplies && "-rotate-180")} />
+                        {showReplies ? 'Hide' : 'View'} {comment.replyCount} {comment.replyCount && comment.replyCount > 1 ? 'replies' : 'reply'}
                     </Button>
+                )}
+
+                {showReplies && replies.length > 0 && (
+                     <div className="pt-4 space-y-6 pl-6 border-l-2 ml-5">
+                         {replies.map(reply => (
+                            <Comment 
+                                key={reply.id} 
+                                comment={reply}
+                                replies={[]}
+                                onReply={onReply}
+                                onLike={onLike}
+                                onReport={onReport}
+                                onCopyLink={onCopyLink}
+                                onEdit={onEdit}
+                                onDelete={onDelete}
+                                postId={postId}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
         </div>
@@ -200,11 +220,61 @@ const Comment = ({ comment, onReply, onLike, onReport, onCopyLink, onEdit, onDel
 export function CommentColumn({ post, onClose }: { post: any, onClose: () => void }) {
     const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [comments, setComments] = useState<CommentType[]>([]);
+    const [allComments, setAllComments] = useState<CommentType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [newCommentText, setNewCommentText] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [activeThread, setActiveThread] = useState<CommentType | null>(null);
+    
+    // Memoized computation of comment structure
+    const { topLevelComments, repliesMap } = useMemo(() => {
+        const topLevel: CommentType[] = [];
+        const replies = new Map<string, CommentType[]>();
+
+        allComments.forEach(comment => {
+            if (comment.parentId) {
+                if (!replies.has(comment.parentId)) {
+                    replies.set(comment.parentId, []);
+                }
+                replies.get(comment.parentId)!.push(comment);
+            } else {
+                topLevel.push(comment);
+            }
+        });
+
+        // Sort replies chronologically
+        replies.forEach(replyList => replyList.sort((a, b) => a.timestamp.toMillis() - b.timestamp.toMillis()));
+        
+        return { topLevelComments: topLevel, repliesMap: replies };
+    }, [allComments]);
+
+
+    // Real-time listener for all comments on the post
+    useEffect(() => {
+        if (!post?.id) {
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        const db = getFirestoreDb();
+        const q = query(collection(db, `posts/${post.id}/comments`), orderBy("timestamp", "asc"));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            } as CommentType));
+            setAllComments(commentsData);
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Firestore snapshot error:", error);
+            toast({ variant: 'destructive', title: "Error", description: "Could not load comments." });
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [post?.id, toast]);
+
 
     const handleNewCommentSubmit = async (text: string, parentId: string | null = null, replyingTo: string | null = null) => {
         if (!text.trim() || !user || !userData) return;
@@ -217,36 +287,34 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         try {
             await runTransaction(db, async (transaction) => {
                 const postDoc = await transaction.get(postRef);
-                if (!postDoc.exists()) {
-                    throw new Error("Post does not exist!");
-                }
+                if (!postDoc.exists()) throw new Error("Post does not exist!");
 
-                if (parentId) {
-                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
-                    transaction.update(parentRef, { replyCount: increment(1) });
-                }
-                
                 const newCommentRef = doc(collection(db, `posts/${post.id}/comments`));
-                const newCommentData: any = {
+                const newCommentData: Omit<CommentType, 'id'> = {
                     userId: user.uid,
                     authorName: userData.displayName,
                     authorAvatar: userData.photoURL || '',
                     text: text,
-                    timestamp: serverTimestamp(),
+                    timestamp: Timestamp.now(),
                     isEdited: false,
-                    likes: [],
+                    likes: 0,
+                    likedBy: [],
                     replyingTo: replyingTo,
-                    replyCount: 0,
                     parentId: parentId,
+                    replyCount: 0,
                 };
-
                 transaction.set(newCommentRef, newCommentData);
+                
+                if (parentId) {
+                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                    transaction.update(parentRef, { replyCount: increment(1) });
+                }
+
                 transaction.update(postRef, { replies: increment(1) });
             });
 
-            if (!parentId) {
-                setNewCommentText("");
-            }
+            if (!parentId) setNewCommentText("");
+
         } catch (error: any) {
             console.error("Error posting comment:", error);
             toast({ variant: 'destructive', title: "Error posting comment", description: error.message });
@@ -256,110 +324,58 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
     };
 
     const handleEdit = async (commentId: string, newText: string) => {
-        try {
-            const db = getFirestoreDb();
-            await updateDoc(doc(db, `posts/${post.id}/comments`, commentId), {
-                text: newText,
-                isEdited: true,
-            });
-            toast({ title: "Comment Updated" });
-        } catch (error) {
-            console.error("Error editing comment:", error);
-            toast({ variant: 'destructive', title: "Error", description: "Could not update comment." });
-        }
+        const db = getFirestoreDb();
+        const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
+        await updateDoc(commentRef, { text: newText, isEdited: true });
+        toast({ title: "Comment Updated" });
     };
 
-    const handleDelete = async (commentId: string) => {
-        try {
-            const db = getFirestoreDb();
-            const postRef = doc(db, 'posts', post.id);
-            const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
-            
-            await runTransaction(db, async (transaction) => {
-                const commentDoc = await transaction.get(commentRef);
-                if (!commentDoc.exists()) return;
+    const handleDelete = async (commentId: string, parentId: string | null) => {
+        const db = getFirestoreDb();
+        const postRef = doc(db, 'posts', post.id);
+        const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
 
-                const parentId = commentDoc.data().parentId;
-                
-                transaction.delete(commentRef);
-                transaction.update(postRef, { replies: increment(-1) });
-
-                if (parentId) {
-                    const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
-                    transaction.update(parentRef, { replyCount: increment(-1) });
-                }
-            });
-
-            toast({ title: "Comment Deleted" });
-        } catch (error) {
-             console.error("Error deleting comment:", error);
-            toast({ variant: 'destructive', title: "Error", description: "Could not delete comment." });
-        }
+        await runTransaction(db, async (transaction) => {
+            transaction.delete(commentRef);
+            transaction.update(postRef, { replies: increment(-1) });
+            if (parentId) {
+                const parentRef = doc(db, `posts/${post.id}/comments`, parentId);
+                transaction.update(parentRef, { replyCount: increment(-1) });
+            }
+        });
+        toast({ title: "Comment Deleted" });
     };
     
     const handleLike = async (commentId: string) => {
         if (!user) return;
-        try {
-            const db = getFirestoreDb();
-            const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
-            await runTransaction(db, async (transaction) => {
-                const commentDoc = await transaction.get(commentRef);
-                if (!commentDoc.exists()) throw "Comment does not exist!";
-                
-                const likes: string[] = commentDoc.data().likes || [];
-                if (likes.includes(user.uid)) {
-                    transaction.update(commentRef, { likes: likes.filter(uid => uid !== user.uid) });
-                } else {
-                    transaction.update(commentRef, { likes: [...likes, user.uid] });
-                }
-            });
-        } catch (error) {
-            console.error("Error liking comment:", error);
-        }
-    };
-
-    const handleReport = (commentId: string) => {
-        toast({
-            title: "Comment Reported",
-            description: "Thank you for your feedback.",
+        const db = getFirestoreDb();
+        const commentRef = doc(db, `posts/${post.id}/comments`, commentId);
+        
+        await runTransaction(db, async (transaction) => {
+            const commentDoc = await transaction.get(commentRef);
+            if (!commentDoc.exists()) return;
+            
+            const currentLikes = (commentDoc.data().likedBy || []) as string[];
+            if (currentLikes.includes(user.uid)) {
+                transaction.update(commentRef, { 
+                    likedBy: currentLikes.filter(uid => uid !== user.uid),
+                    likes: increment(-1)
+                });
+            } else {
+                transaction.update(commentRef, { 
+                    likedBy: [...currentLikes, user.uid],
+                    likes: increment(1)
+                });
+            }
         });
     };
-    
+
+    const handleReport = (commentId: string) => toast({ title: "Comment Reported" });
     const handleCopyLink = (commentId: string) => {
-        navigator.clipboard.writeText(`${window.location.href}#comment-${commentId}`);
+        navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}#comment-${commentId}`);
         toast({ title: "Link Copied!" });
     };
-
-    useEffect(() => {
-        if (!post?.id) {
-            setComments([]);
-            setIsLoading(false);
-            return;
-        };
-
-        setIsLoading(true);
-        const db = getFirestoreDb();
-        const parentId = activeThread ? activeThread.id : null;
-        
-        const q = query(collection(db, `posts/${post.id}/comments`), where("parentId", "==", parentId), orderBy("timestamp", "asc"));
-        
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            } as CommentType));
-            setComments(commentsData);
-            setIsLoading(false);
-        }, (error) => {
-             console.error("Firestore snapshot error:", error);
-            setIsLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [post?.id, activeThread]);
-
-    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post?.id || '', onFetchReplies: setActiveThread };
-
+    
     if (!post) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -368,54 +384,43 @@ export function CommentColumn({ post, onClose }: { post: any, onClose: () => voi
         );
     }
     
+    const handlers = { onReply: handleNewCommentSubmit, onLike: handleLike, onReport: handleReport, onCopyLink: handleCopyLink, onEdit: handleEdit, onDelete: handleDelete, postId: post.id };
+
     return (
         <div className="h-full flex flex-col bg-background/80 backdrop-blur-sm">
             <div className="p-4 border-b flex justify-between items-center flex-shrink-0">
-                <div className="flex items-center gap-2">
-                    {activeThread && (
-                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => setActiveThread(null)}>
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
-                    )}
-                    <h3 className="font-bold text-lg">
-                        {activeThread ? `Replies to @${activeThread.authorName}` : `Comments (${post.replies || 0})`}
-                    </h3>
-                </div>
+                <h3 className="font-bold text-lg">Comments ({post.replies || 0})</h3>
             </div>
             <ScrollArea className="flex-grow">
                 <div className="p-4 flex flex-col items-start gap-y-6">
-                    {activeThread && (
-                        <Comment key={activeThread.id} {...handlers} comment={activeThread} />
-                    )}
-                    {(isLoading && (!activeThread || comments.length === 0)) ? (
+                    {isLoading ? (
                         <div className="w-full space-y-4 pt-4">
                             <CommentSkeleton />
                             <CommentSkeleton />
                         </div>
-                    ) : (comments.length > 0) ? (
-                        <div className={cn("w-full space-y-6", activeThread && "pl-6 border-l-2 ml-5")}>
-                            {comments.map(comment => (
-                                <Comment 
-                                    key={comment.id}
-                                    {...handlers}
-                                    comment={comment}
-                                />
-                            ))}
-                        </div>
-                    ) : (!activeThread) ? (
+                    ) : topLevelComments.length > 0 ? (
+                        topLevelComments.map(comment => (
+                            <Comment 
+                                key={comment.id}
+                                {...handlers}
+                                comment={comment}
+                                replies={repliesMap.get(comment.id) || []}
+                            />
+                        ))
+                    ) : (
                         <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground text-center p-4 min-h-48">
                             <MessageSquare className="w-10 h-10 mb-2" />
                             <h4 className="font-semibold">No comments yet</h4>
                             <p className="text-sm">Be the first one to comment.</p>
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </ScrollArea>
             <div className="p-4 border-t flex-shrink-0 bg-background">
-                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText, activeThread?.id || null, activeThread?.authorName); }} className="flex items-center gap-2">
+                <form onSubmit={(e) => { e.preventDefault(); handleNewCommentSubmit(newCommentText); }} className="flex items-center gap-2">
                     <div className="relative flex-grow">
                         <Textarea 
-                            placeholder={activeThread ? `Replying to @${activeThread.authorName}...` : "Add a comment..."}
+                            placeholder="Add a comment..."
                             value={newCommentText}
                             onChange={(e) => setNewCommentText(e.target.value)}
                             rows={1}
