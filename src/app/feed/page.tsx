@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -115,7 +114,7 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
@@ -290,7 +289,7 @@ const FeedPost = ({
         <Dialog>
             <Collapsible>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
-                <div className="p-4">
+                 <div className="p-4">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <Link href={`/seller/profile?userId=${post.sellerId}`} className="group flex-shrink-0">
@@ -376,10 +375,10 @@ const FeedPost = ({
                         </div>
                     </div>
                 </div>
-                 <CollapsibleContent>
-                    {post.taggedProducts && post.taggedProducts.length > 0 && (
-                        <div className="px-4 pb-2">
-                             <Card>
+                <div className="px-4 pb-2">
+                    <CollapsibleContent>
+                        {post.taggedProducts && post.taggedProducts.length > 0 && (
+                            <Card>
                                 <CardContent className="p-3 divide-y">
                                     {post.taggedProducts.map((product: any, index: number) => (
                                         <div key={product.key || index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
@@ -415,9 +414,9 @@ const FeedPost = ({
                                     ))}
                                 </CardContent>
                             </Card>
-                        </div>
-                    )}
-                </CollapsibleContent>
+                        )}
+                    </CollapsibleContent>
+                </div>
                     
                 <div className="px-4">
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
@@ -985,33 +984,29 @@ function FeedPageContent() {
   };
   
   const renderFeedContent = () => (
-    <div className="divide-y">
-      <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                  <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                  <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-              </div>
-          </TabsList>
-      </Tabs>
+    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+            </div>
+        </TabsList>
       {renderPostList(filteredFeed, isLoadingFeed)}
-    </div>
+    </Tabs>
   );
 
-  const renderSavesContent = () => (
+const renderSavesContent = () => (
     <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
         <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
-                    <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                    <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-                </TabsList>
-            </div>
+             <TabsList className="w-full justify-start rounded-none bg-transparent p-0 container mx-auto px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+            </TabsList>
         </div>
-        <TabsContent value="saved-posts" className="mt-4">
+        <TabsContent value="saved-posts">
             {renderPostList(filteredSavedPosts, false)}
         </TabsContent>
-        <TabsContent value="upvoted-posts" className="mt-4">
+        <TabsContent value="upvoted-posts">
             <div className="text-center py-20 text-muted-foreground">
                 <Heart className="h-12 w-12 mx-auto mb-4"/>
                 <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1249,11 +1244,3 @@ export default function FeedPage() {
     
 
     
-
-
-
-
-
-
-
-
