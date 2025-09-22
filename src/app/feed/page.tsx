@@ -220,6 +220,7 @@ const FeedPost = ({
     onFollowToggle,
     onAddToCart,
     onBuyNow,
+    onNotifyMe,
     isSaved,
     isFollowing: initialIsFollowing,
     currentUser,
@@ -236,6 +237,7 @@ const FeedPost = ({
     onFollowToggle: (targetId: string) => void,
     onAddToCart: (product: any) => void,
     onBuyNow: (product: any) => void,
+    onNotifyMe: (product: any) => void;
     isSaved: boolean,
     isFollowing: boolean,
     currentUser: User | null,
@@ -389,7 +391,7 @@ const FeedPost = ({
                     </div>
 
                     <CollapsibleContent>
-                        {post.taggedProducts && post.taggedProducts.length > 0 && (
+                         {post.taggedProducts && post.taggedProducts.length > 0 && (
                             <Card className="my-2">
                                 <CardContent className="p-3 space-y-2">
                                     {post.taggedProducts.map((product: any) => (
@@ -402,16 +404,24 @@ const FeedPost = ({
                                                     <h4 className="font-semibold text-sm">{product.name}</h4>
                                                 </Link>
                                                 <p className="font-bold text-lg">{product.price}</p>
-                                                <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
+                                                </p>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
-                                                    <ShoppingCart className="h-4 w-4" />
+                                            {product.stock > 0 ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
+                                                        <ShoppingCart className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
+                                                        Buy Now
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                 <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
+                                                    Notify Me
                                                 </Button>
-                                                <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
-                                                    Buy Now
-                                                </Button>
-                                            </div>
+                                            )}
                                         </div>
                                     ))}
                                 </CardContent>
@@ -482,8 +492,8 @@ const FeedPost = ({
 
 function FeedPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isMobile = useIsMobile();
 
   const { user, userData, loading: authLoading } = useAuth();
@@ -729,14 +739,8 @@ function FeedPageContent() {
                 replies: 45,
                 images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
                 taggedProducts: [
-                    {
-                        id: 'prod_1',
-                        key: 'prod_1',
-                        name: 'Vintage Camera',
-                        price: '₹12,500.00',
-                        image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080',
-                        stock: 15,
-                    }
+                    productDetails['prod_1'],
+                    productDetails['prod_3']
                 ]
             };
             
@@ -927,6 +931,13 @@ function FeedPageContent() {
         description: `${product.name} has been added to your cart.`
     });
   };
+  
+  const handleNotifyMe = (product: any) => {
+      toast({
+          title: "You're on the list!",
+          description: `We'll notify you when ${product.name} is back in stock.`
+      })
+  }
 
   const handleBuyNow = (product: any) => {
     router.push(`/cart?buyNow=true&productId=${product.key}`);
@@ -957,6 +968,7 @@ function FeedPageContent() {
                         onFollowToggle={handleFollowToggle}
                         onAddToCart={handleAddToCart}
                         onBuyNow={handleBuyNow}
+                        onNotifyMe={handleNotifyMe}
                         isSaved={isPostSaved(post.id)}
                         isFollowing={followingIds.includes(post.sellerId)}
                         highlightTerm={debouncedSearchTerm}
