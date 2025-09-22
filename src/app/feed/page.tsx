@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -60,7 +59,6 @@ import {
   Sparkles,
   Edit,
   Download,
-  ThumbsUp,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -333,6 +331,13 @@ const FeedPost = ({
                                             {isFollowing ? "Following" : "Follow"}
                                         </Button>
                                     )}
+                                     {post.taggedProduct && (
+                                        <CollapsibleTrigger asChild>
+                                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                                                <ShoppingBag className="w-4 h-4"/>
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                    )}
                                 </div>
                                 <div className="text-xs text-muted-foreground font-normal">
                                     {post.timestamp}
@@ -379,13 +384,28 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
+                    <CollapsibleContent>
+                        {post.taggedProduct && (
+                            <Card className="my-2">
+                                <CardContent className="p-3 flex items-center gap-4">
+                                     <Image src={post.taggedProduct.image} alt={post.taggedProduct.name} width={60} height={60} className="rounded-md" />
+                                    <div className="flex-grow">
+                                        <h4 className="font-semibold">{post.taggedProduct.name}</h4>
+                                        <p className="font-bold text-lg">{post.taggedProduct.price}</p>
+                                    </div>
+                                    <Button onClick={() => onBuyNow(post.taggedProduct)}>Buy Now</Button>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </CollapsibleContent>
+
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
                     </div>
                 </div>
 
                 {imageCount > 0 && (
-                    <div className="px-4 relative group/post-image">
+                    <div className="px-4">
                          <div
                             className={cn(
                                 "grid gap-1 rounded-lg overflow-hidden",
@@ -416,33 +436,6 @@ const FeedPost = ({
                                 </DialogTrigger>
                             ))}
                         </div>
-                        {post.taggedProduct && (
-                            <div className="absolute inset-0 bg-black/30 group-hover/post-image:bg-black/50 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover/post-image:opacity-100">
-                                <Card className="bg-background/80 backdrop-blur-sm max-w-sm">
-                                    <CardContent className="p-4 flex flex-col gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <Image src={post.taggedProduct?.image} alt={post.taggedProduct?.name} width={80} height={80} className="rounded-md" />
-                                            <div className="flex-grow">
-                                                <h4 className="font-semibold text-base">{post.taggedProduct?.name}</h4>
-                                                <p className="font-bold text-xl">{post.taggedProduct?.price}</p>
-                                                <div className="text-xs text-muted-foreground mt-1">
-                                                    <p>{post.taggedProduct.stock} left in stock</p>
-                                                    <p>{post.taggedProduct.totalBought || 0} already sold</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button size="sm" className="flex-1" onClick={() => onAddToCart(post.taggedProduct)}>
-                                                <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                                            </Button>
-                                            <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(post.taggedProduct)}>
-                                                Buy Now
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        )}
                     </div>
                 )}
                 <div className="px-4 pb-4 mt-4 flex items-center justify-between">
@@ -719,8 +712,6 @@ function FeedPageContent() {
                     name: 'Vintage Camera',
                     price: '₹12,500.00',
                     image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080',
-                    stock: 15,
-                    totalBought: 42
                 }
             };
             
@@ -976,14 +967,18 @@ function FeedPageContent() {
   );
 
   const renderSavesContent = () => (
-    <div className="pt-4">
-        <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-[65px] z-20 backdrop-blur-sm">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                    <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-                </div>
-            </TabsList>
+    <>
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm pt-4 border-b border-border/50">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+                    <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
+                        <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                        <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
+      </div>
+      <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
             <TabsContent value="saved-posts" className="mt-0">
                 {renderPostList(filteredSavedPosts, false)}
             </TabsContent>
@@ -995,7 +990,7 @@ function FeedPageContent() {
                 </div>
             </TabsContent>
         </Tabs>
-    </div>
+    </>
   );
   
   const renderMessagesContent = () => (
@@ -1222,3 +1217,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
