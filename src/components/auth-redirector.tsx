@@ -8,13 +8,20 @@ import { LoadingSpinner } from './ui/loading-spinner';
 
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
+const adminPaths = ['/admin', '/admin/dashboard', '/admin/orders', '/admin/users', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/messages', '/admin/inquiries', '/admin/edit/privacy', '/admin/edit/terms'];
+const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages'];
+
 
 const isPublicAllowedPath = (pathname: string) => {
     const publicAllowedPrefixes = [
         '/live-selling', '/about', '/contact', '/terms-and-conditions', 
         '/privacy-and-security', '/faq', '/product/', '/stream/', 
-        '/seller/profile', '/profile'
+        '/seller/profile', '/profile', '/listed-products', '/women', '/men',
+        '/kids', '/home', '/electronics', '/shoes', '/handbags', '/trending', '/sale',
     ];
+    // Allow category pages
+    if (pathname.startsWith('/[...category]')) return true;
+
     return publicAllowedPrefixes.some(prefix => pathname.startsWith(prefix));
 };
 
@@ -61,10 +68,13 @@ export function AuthRedirector() {
     } 
     else { 
         // --- No user is logged in ---
-        const isAllowed = publicOnlyPaths.includes(pathname) || isPublicAllowedPath(pathname);
-                                
-        if (!isAllowed) {
-            targetPath = '/';
+        const isAuthRequiredPath = adminPaths.some(p => pathname.startsWith(p)) || sellerPaths.some(p => pathname.startsWith(p))
+            || pathname === '/profile' || pathname === '/orders' || pathname === '/wishlist'
+            || pathname === '/cart' || pathname === '/wallet' || pathname === '/setting'
+            || pathname === '/message';
+
+        if (isAuthRequiredPath) {
+             targetPath = '/';
         }
     }
 
