@@ -59,8 +59,9 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                 <div className="flex-grow overflow-hidden">
                     <div className="flex justify-between items-center">
                         <p className="font-semibold text-sm truncate">{convo.userName}</p>
-                        <div className="flex items-center gap-2 pl-2">
-                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-2 pl-2 flex-shrink-0">
+                            <p className="text-xs text-muted-foreground">{convo.lastMessageTimestamp}</p>
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
@@ -75,7 +76,6 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
                         </div>
                     </div>
                     <div className="flex justify-between items-start mt-0.5">
@@ -301,4 +301,3 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
         </div>
     );
 };
-
