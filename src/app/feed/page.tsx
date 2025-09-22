@@ -63,6 +63,8 @@ import {
   BookText,
   ArrowLeft,
   PanelLeft,
+  Paperclip,
+  PlusCircle,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -556,14 +558,15 @@ function FeedPageContent() {
     }
   }, [loadFollowData, loadSavedPosts]);
 
-  useEffect(() => {
-    if(activeView === 'messages') {
+ useEffect(() => {
+    if (activeView === 'messages') {
         setConversations(mockConversations);
-        if(mockConversations.length > 0) {
+        if (mockConversations.length > 0 && !isMobile) {
             handleSelectConversation(mockConversations[0]);
         }
     }
-  }, [activeView]);
+  }, [activeView, isMobile]);
+
 
   const userPosts = useMemo(() => {
     if (!user) return [];
@@ -1046,6 +1049,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
