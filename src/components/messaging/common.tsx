@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -132,10 +131,11 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
     );
 };
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, onDeleteConversation }: {
     conversations: Conversation[];
     selectedConversation: Conversation | null;
     onSelectConversation: (convo: Conversation) => void;
+    onDeleteConversation?: (conversationId: string) => void;
 }) => {
     const { setOpen } = useSidebar();
      const [searchTerm, setSearchTerm] = useState('');
@@ -176,6 +176,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                             convo={convo}
                             onClick={() => onSelectConversation(convo)}
                             isSelected={selectedConversation?.userId === convo.userId}
+                            onDelete={onDeleteConversation ? () => onDeleteConversation(convo.conversationId) : undefined}
                         />
                     ))}
                 </div>
@@ -185,12 +186,13 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 };
 
 
-export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMessage }: {
+export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMessage, isFullScreen = false }: {
     conversation: Conversation;
     userData: UserData;
     onBack: () => void;
     messages: Message[];
     onSendMessage: (text: string) => void;
+    isFullScreen?: boolean;
 }) => {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [newMessage, setNewMessage] = useState("");
@@ -217,7 +219,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
         <div className="h-full flex flex-col">
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
-                    {isMobile && (
+                    {(isMobile || isFullScreen) && (
                         <Button variant="ghost" size="icon" onClick={onBack}>
                             <ArrowLeft className="h-6 w-6" />
                         </Button>

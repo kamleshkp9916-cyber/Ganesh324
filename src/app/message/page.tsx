@@ -61,46 +61,30 @@ export default function MessagePage() {
 
     return (
         <div className="h-screen w-full flex overflow-hidden">
-            <div className={cn(
-                "h-full w-full flex-col border-r md:flex md:w-1/3",
-                isMobile && selectedConversation && "hidden"
-            )}>
-                 <ConversationList
-                    conversations={conversations}
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={handleSelectConversation}
+             {selectedConversation ? (
+                 <ChatWindow 
+                    key={selectedConversation.userId}
+                    conversation={selectedConversation}
+                    userData={userData}
+                    messages={messages}
+                    onSendMessage={(text) => {
+                        const newMessage: Message = {
+                            id: Date.now(),
+                            senderId: user.uid,
+                            text,
+                            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        };
+                        setMessages(prev => [...prev, newMessage]);
+                    }}
+                    onBack={() => router.back()}
+                    isFullScreen={true}
                 />
-            </div>
-            
-            <div className={cn(
-                "h-full w-full flex-col md:flex md:w-2/3",
-                isMobile && !selectedConversation && "hidden"
-            )}>
-                {selectedConversation ? (
-                     <ChatWindow 
-                        key={selectedConversation.userId}
-                        conversation={selectedConversation}
-                        userData={userData}
-                        messages={messages}
-                        onSendMessage={(text) => {
-                            const newMessage: Message = {
-                                id: Date.now(),
-                                senderId: user.uid,
-                                text,
-                                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                            };
-                            setMessages(prev => [...prev, newMessage]);
-                        }}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                     <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
-                        <MessageSquare className="h-16 w-16 mb-4"/>
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
-                    </div>
-                 )}
-            </div>
+            ) : (
+                 <div className="flex flex-col items-center justify-center h-full w-full text-muted-foreground">
+                    <MessageSquare className="h-16 w-16 mb-4"/>
+                    <h2 className="text-xl font-semibold">No Conversation Selected</h2>
+                </div>
+             )}
         </div>
     );
 }
