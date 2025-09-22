@@ -704,7 +704,7 @@ function FeedPageContent() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-        const hashtags = Array.from(post.content.matchAll(/#\w+/g)).map((match: any) => match[1]);
+        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map((match: any) => match[1]);
         hashtags.forEach((tag: string) => {
             if (tag) {
                 hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
@@ -992,40 +992,40 @@ function FeedPageContent() {
       );
   };
   
- const renderFeedContent = () => (
+  const renderFeedContent = () => (
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
-        <div className="flex-shrink-0 border-b">
-            <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
-                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-            </TabsList>
-        </div>
-        <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
-            {renderPostList(filteredFeed, isLoadingFeed)}
-        </TabsContent>
-        <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
-            {renderPostList(filteredFeed, isLoadingFeed)}
-        </TabsContent>
+      <div className="flex-shrink-0 border-b">
+        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
+          <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+          <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+        {renderPostList(filteredFeed, isLoadingFeed)}
+      </TabsContent>
+      <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+        {renderPostList(filteredFeed, isLoadingFeed)}
+      </TabsContent>
     </Tabs>
   );
 
   const renderSavesContent = () => (
     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full h-full flex flex-col">
-        <div className="flex-shrink-0 border-b">
-            <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
-                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-            </TabsList>
-        </div>
+      <div className="flex-shrink-0 border-b">
+        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
+          <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+          <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+        </TabsList>
+      </div>
       <TabsContent value="saved-posts" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
-          {renderPostList(filteredSavedPosts, false)}
+        {renderPostList(filteredSavedPosts, false)}
       </TabsContent>
       <TabsContent value="upvoted-posts" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
-          <div className="text-center py-20 text-muted-foreground">
-              <Heart className="h-12 w-12 mx-auto mb-4"/>
-              <p className="text-lg font-semibold">No upvoted posts yet</p>
-              <p>Posts you upvote will appear here.</p>
-          </div>
+        <div className="text-center py-20 text-muted-foreground">
+          <Heart className="h-12 w-12 mx-auto mb-4"/>
+          <p className="text-lg font-semibold">No upvoted posts yet</p>
+          <p>Posts you upvote will appear here.</p>
+        </div>
       </TabsContent>
     </Tabs>
   );
@@ -1259,6 +1259,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
