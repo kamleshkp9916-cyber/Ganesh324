@@ -1199,6 +1199,12 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
+                                <Button variant="ghost" asChild className="h-10 px-4">
+                                  <Link href="/live-selling">
+                                      <Home className="h-5 w-5 mr-2" />
+                                      Home
+                                  </Link>
+                                </Button>
                             </div>
                         </header>
                     )}
@@ -1209,7 +1215,7 @@ function FeedPageContent() {
                            </div>
                            
                            {mainTab === 'feed' && (
-                                <div className="w-full pointer-events-auto mt-auto flex-shrink-0">
+                                <div className="w-full pointer-events-auto mt-auto flex-shrink-0 sticky bottom-0 z-10">
                                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                         <CreatePostForm
                                             onPost={handlePostSubmit}
@@ -1314,6 +1320,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
