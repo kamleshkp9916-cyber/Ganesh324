@@ -417,7 +417,6 @@ const FeedPost = ({
 function FeedPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTabParam = searchParams.get('tab');
   const isMobile = useIsMobile();
 
   const { user, userData, loading: authLoading } = useAuth();
@@ -1015,10 +1014,17 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
+                                <Button asChild variant="ghost" size="icon">
+                                    <Link href="/live-selling">
+                                        <Home className="h-5 w-5" />
+                                    </Link>
+                                </Button>
                             </div>
 
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                               {renderMainContent()}
+                               {mainTab === 'feed' && renderFeedContent()}
+                               {mainTab === 'saves' && renderSavesContent()}
+                               {mainTab === 'messages' && renderMessagesContent()}
                            </div>
                            
                            {mainTab === 'feed' && (
