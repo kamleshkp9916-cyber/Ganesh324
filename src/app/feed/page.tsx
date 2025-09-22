@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -281,6 +282,7 @@ const FeedPost = ({
 
     return (
         <Dialog>
+            <Collapsible>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                     <DialogHeader className="sr-only">
@@ -309,7 +311,7 @@ const FeedPost = ({
                                 </Avatar>
                             </Link>
                             <div className="flex-grow">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                      <Link href={`/seller/profile?userId=${post.sellerId}`} className="group">
                                         <span className="font-semibold group-hover:underline">
                                             <Highlight text={post.sellerName} highlight={highlightTerm} />
@@ -325,6 +327,14 @@ const FeedPost = ({
                                              <UserPlus className="mr-1 h-3 w-3" />
                                             {isFollowing ? "Following" : "Follow"}
                                         </Button>
+                                    )}
+                                    {post.taggedProduct && (
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+                                                <ShoppingBag className="mr-1 h-3 w-3" />
+                                                View Product
+                                            </Button>
+                                        </CollapsibleTrigger>
                                     )}
                                 </div>
                                 <div className="text-xs text-muted-foreground font-normal">
@@ -371,6 +381,22 @@ const FeedPost = ({
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
+                     <CollapsibleContent>
+                        <Card className="my-3">
+                            <CardContent className="p-3 flex items-center gap-4">
+                                <Image src={post.taggedProduct?.image} alt={post.taggedProduct?.name} width={60} height={60} className="rounded-md" />
+                                <div className="flex-grow">
+                                    <h4 className="font-semibold text-sm">{post.taggedProduct?.name}</h4>
+                                    <p className="font-bold text-base">{post.taggedProduct?.price}</p>
+                                </div>
+                                <Button asChild size="sm">
+                                    <Link href={`/product/${post.taggedProduct?.id}`}>
+                                        Buy Now
+                                    </Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                     </CollapsibleContent>
 
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
@@ -428,6 +454,7 @@ const FeedPost = ({
                     </Button>
                 </div>
             </Card>
+            </Collapsible>
         </Dialog>
     )
 }
@@ -678,6 +705,12 @@ function FeedPageContent() {
                 likes: 123,
                 replies: 45,
                 images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
+                taggedProduct: {
+                    id: 'prod_1',
+                    name: 'Vintage Camera',
+                    price: '₹12,500.00',
+                    image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080'
+                }
             };
             
             setFeed([mockDemoPost, ...postsData]);
@@ -720,6 +753,7 @@ function FeedPageContent() {
                 content: postData.content,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
+                taggedProduct: postData.taggedProduct
             };
             
             await updateDoc(postRef, dataToUpdate);
@@ -730,12 +764,7 @@ function FeedPageContent() {
             const dataToSave: any = {
                 content: postData.content,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
-                taggedProduct: postData.taggedProduct ? {
-                    id: postData.taggedProduct.id,
-                    name: postData.taggedProduct.name,
-                    price: postData.taggedProduct.price,
-                    image: postData.taggedProduct.images[0]?.preview,
-                } : null,
+                taggedProduct: postData.taggedProduct,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
                 avatarUrl: userData.photoURL,
@@ -1063,9 +1092,7 @@ function FeedPageContent() {
                             </div>
 
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                               {mainTab === 'feed' && renderFeedContent()}
-                               {mainTab === 'saves' && renderSavesContent()}
-                               {mainTab === 'messages' && renderMessagesContent()}
+                               {renderMainContent()}
                            </div>
                            
                            {mainTab === 'feed' && (

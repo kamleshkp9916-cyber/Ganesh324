@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     
     useEffect(() => {
         if (userData?.role === 'seller' || userData?.role === 'admin') {
-            const productsKey = `sellerProducts_${userData.displayName}`;
+            const productsKey = `sellerProducts`; // Using a generic key, assuming it's centrally managed now.
             const storedProducts = localStorage.getItem(productsKey);
             if (storedProducts) {
                 setSellerProducts(JSON.parse(storedProducts));
