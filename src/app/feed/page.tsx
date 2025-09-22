@@ -441,11 +441,12 @@ function FeedPageContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
+  const [feedTab, setFeedTab] = useState('for-you');
   
   const { open, setOpen } = useSidebar();
 
 
-  const activeView = (activeTabParam === 'saves' || activeTabParam === 'messages') ? activeTabParam : 'feed';
+  const activeView = (activeTabParam === 'messages') ? activeTabParam : 'feed';
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
 
@@ -576,15 +577,12 @@ function FeedPageContent() {
   
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
-    if (activeView === 'feed') {
+    if (feedTab === 'for-you') {
         currentFeed = feed;
-        if (feedFilter === 'following' && user) {
-            currentFeed = currentFeed.filter(post => 
-                followingIds.includes(post.sellerId) || post.sellerId === user.uid
-            );
-        }
-    } else if (activeView === 'saves') {
-        currentFeed = savedPosts;
+    } else if (feedTab === 'following' && user) {
+        currentFeed = feed.filter(post => 
+            followingIds.includes(post.sellerId) || post.sellerId === user.uid
+        );
     }
     
     const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
@@ -599,7 +597,21 @@ function FeedPageContent() {
     return currentFeed.filter(item => 
         item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [debouncedSearchTerm, feed, feedFilter, followingIds, user, activeView, savedPosts]);
+  }, [debouncedSearchTerm, feed, feedTab, followingIds, user]);
+  
+  const filteredSavedPosts = useMemo(() => {
+      if (!debouncedSearchTerm) return savedPosts;
+      const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
+      if(lowercasedSearchTerm.startsWith('#')) {
+        return savedPosts.filter(item => 
+            (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm.substring(1))))
+        );
+    }
+    return savedPosts.filter(item => 
+        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
+    );
+  }, [debouncedSearchTerm, savedPosts]);
+
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -808,6 +820,42 @@ function FeedPageContent() {
     toggleSavePost(post);
     loadSavedPosts();
   };
+  
+  const renderFeedContent = (posts: any[]) => {
+      return (
+        <div className="divide-y divide-border/20">
+            {isLoadingFeed ? (
+                <>
+                    <FeedPostSkeleton />
+                    <FeedPostSkeleton />
+                </>
+            ) : posts.length > 0 ? (
+                posts.map(post => (
+                    <FeedPost 
+                        key={post.id}
+                        post={post}
+                        currentUser={user}
+                        onDelete={handleDeletePost}
+                        onEdit={handleEditPost}
+                        onShare={handleShare}
+                        onReport={() => setIsReportDialogOpen(true)}
+                        onSaveToggle={handleSaveToggle}
+                        isSaved={isPostSaved(post.id)}
+                        highlightTerm={debouncedSearchTerm}
+                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                        onCommentClick={(post) => setSelectedPostForComments(post)}
+                    />
+                ))
+            ) : (
+                 <div className="text-center py-20 text-muted-foreground">
+                    <p className="text-lg font-semibold">No posts to show</p>
+                    {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
+                    {feedTab === 'saves' && <p>Your saved posts will appear here.</p>}
+                </div>
+            )}
+        </div>
+      )
+  }
 
   return (
     <div className="h-screen w-full">
@@ -821,7 +869,8 @@ function FeedPageContent() {
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                     {(activeView === 'feed' || activeView === 'saves') && (
+                     {(activeView === 'feed') && (
+                        <>
                         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 flex items-center gap-2">
                             <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                                 <Menu className="h-5 w-5" />
@@ -873,40 +922,27 @@ function FeedPageContent() {
                                 </PopoverContent>
                             </Popover>
                         </div>
+                        <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+                           <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                    <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                                    <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+                                    <TabsTrigger value="saves" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saves</TabsTrigger>
+                                </div>
+                            </TabsList>
+                            <div className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
+                                <TabsContent value="for-you">{renderFeedContent(filteredFeed)}</TabsContent>
+                                <TabsContent value="following">{renderFeedContent(filteredFeed)}</TabsContent>
+                                <TabsContent value="saves">{renderFeedContent(filteredSavedPosts)}</TabsContent>
+                            </div>
+                        </Tabs>
+                        </>
                     )}
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
                            
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                                {activeView === 'feed' || activeView === 'saves' ? (
-                                    <section>
-                                        <div className="divide-y divide-border/20">
-                                            {isLoadingFeed ? (
-                                                <>
-                                                    <FeedPostSkeleton />
-                                                    <FeedPostSkeleton />
-                                                </>
-                                            ) : (
-                                                filteredFeed.map(post => (
-                                                    <FeedPost 
-                                                        key={post.id}
-                                                        post={post}
-                                                        currentUser={user}
-                                                        onDelete={handleDeletePost}
-                                                        onEdit={handleEditPost}
-                                                        onShare={handleShare}
-                                                        onReport={() => setIsReportDialogOpen(true)}
-                                                        onSaveToggle={handleSaveToggle}
-                                                        isSaved={isPostSaved(post.id)}
-                                                        highlightTerm={debouncedSearchTerm}
-                                                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
-                                                        onCommentClick={(post) => setSelectedPostForComments(post)}
-                                                    />
-                                                ))
-                                            )}
-                                        </div>
-                                    </section>
-                                ) : activeView === 'messages' && (
+                                {activeView === 'messages' && (
                                      <div className="h-full flex overflow-hidden">
                                         <div className={cn(
                                             "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
@@ -964,7 +1000,7 @@ function FeedPageContent() {
                     </Sheet>
                 </div>
 
-                {(activeView === 'feed' || activeView === 'saves') && (
+                {(activeView === 'feed') && (
                     <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
                     <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                             <div className="flex-shrink-0">
@@ -1050,6 +1086,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
