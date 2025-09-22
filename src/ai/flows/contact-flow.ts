@@ -4,7 +4,7 @@
  * @fileOverview Manages customer inquiries from contact forms.
  */
 
-import { z } from 'genkit';
+import { z } from 'zod';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import { getFirestore, collection, addDoc, serverTimestamp, query, getDocs, orderBy, doc, updateDoc } from 'firebase-admin/firestore';
 
