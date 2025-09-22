@@ -1140,11 +1140,8 @@ function FeedPageContent() {
                  <div className="flex flex-col h-screen">
                     {mainTab !== 'messages' && (
                         <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
-                            <div className="p-4 flex items-center justify-between gap-2">
+                            <div className="p-4 flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                        <ArrowLeft className="h-5 w-5" />
-                                    </Button>
                                     <div className="lg:hidden">
                                          <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
                                             <Menu className="h-5 w-5" />
@@ -1196,6 +1193,10 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
+                                <Button variant="ghost" onClick={() => router.back()} className="h-10 px-4">
+                                  <ArrowLeft className="h-5 w-5 mr-2" />
+                                  Back
+                                </Button>
                             </div>
                         </header>
                     )}
@@ -1311,4 +1312,5 @@ export default function FeedPage() {
     
 
     
+
 
