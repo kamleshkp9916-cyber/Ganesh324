@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -339,7 +340,7 @@ const FeedPost = ({
                                     )}
                                      {post.taggedProducts && post.taggedProducts.length > 0 && (
                                         <CollapsibleTrigger asChild>
-                                             <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:bg-secondary">
+                                             <Button variant="secondary" size="sm" className="h-7 px-2 text-secondary-foreground hover:bg-secondary/80">
                                                 <ShoppingBag className="w-4 h-4 mr-1"/>
                                                 View Product{post.taggedProducts.length > 1 && 's'}
                                             </Button>
@@ -394,10 +395,10 @@ const FeedPost = ({
                  <CollapsibleContent>
                     {post.taggedProducts && post.taggedProducts.length > 0 && (
                         <div className="px-4 pb-2">
-                            <Card>
-                                <CardContent className="p-0 divide-y">
+                             <Card>
+                                <CardContent className="p-3 divide-y">
                                     {post.taggedProducts.map((product: any, index: number) => (
-                                        <div key={product.key} className="flex items-center gap-4 p-3">
+                                        <div key={product.key} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                                             <Link href={`/product/${product.key}`}>
                                                 <Image src={product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
