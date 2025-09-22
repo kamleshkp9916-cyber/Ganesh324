@@ -107,7 +107,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     </nav>
                 </div>
             </ScrollArea>
-             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50 text-sm">
+             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50 text-xs">
                 <div className="flex flex-row items-center justify-center gap-4">
                     <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
                         <Link href="/help">Help</Link>
