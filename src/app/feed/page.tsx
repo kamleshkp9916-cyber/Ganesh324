@@ -984,36 +984,34 @@ function FeedPageContent() {
       );
   };
   
-  const renderFeedContent = () => (
+ const renderFeedContent = () => (
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-            </div>
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
+            <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+            <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
         </TabsList>
       {renderPostList(filteredFeed, isLoadingFeed)}
     </Tabs>
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
-        <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-             <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
-                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-            </TabsList>
-        </div>
-        <TabsContent value="saved-posts">
-            {renderPostList(filteredSavedPosts, false)}
-        </TabsContent>
-        <TabsContent value="upvoted-posts">
-            <div className="text-center py-20 text-muted-foreground">
-                <Heart className="h-12 w-12 mx-auto mb-4"/>
-                <p className="text-lg font-semibold">No upvoted posts yet</p>
-                <p>Posts you upvote will appear here.</p>
-            </div>
-        </TabsContent>
+    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
+        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
+            <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+            <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="saved-posts">
+          {renderPostList(filteredSavedPosts, false)}
+      </TabsContent>
+      <TabsContent value="upvoted-posts">
+          <div className="text-center py-20 text-muted-foreground">
+              <Heart className="h-12 w-12 mx-auto mb-4"/>
+              <p className="text-lg font-semibold">No upvoted posts yet</p>
+              <p>Posts you upvote will appear here.</p>
+          </div>
+      </TabsContent>
     </Tabs>
 );
   
