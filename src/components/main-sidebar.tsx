@@ -107,18 +107,18 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     </nav>
                 </div>
             </ScrollArea>
-             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50 text-xs">
+             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50">
                 <div className="flex flex-row items-center justify-center gap-4">
-                    <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                    <Button asChild variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                         <Link href="/help">Help</Link>
                     </Button>
-                     <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                     <Button asChild variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                         <Link href="/contact">Contact</Link>
                     </Button>
-                    <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                    <Button asChild variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                        <Link href="/privacy-and-security">Privacy</Link>
                     </Button>
-                    <Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                    <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                        Feedback
                     </Button>
                 </div>
