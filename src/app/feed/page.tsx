@@ -625,6 +625,13 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
+    const handleTabChange = (newTab: string) => {
+        if (newTab !== mainTab) {
+            setMainTab(newTab);
+            router.push(`/feed?tab=${newTab}`, { scroll: false });
+        }
+    };
+
     if (isMounted) {
         const tabFromUrl = searchParams.get('tab');
         if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
@@ -640,7 +647,7 @@ function FeedPageContent() {
             }
         }
     }
-}, [mainTab, isMobile, isMounted, searchParams, pathname]);
+}, [mainTab, isMobile, isMounted, searchParams, pathname, router]);
 
 
 
@@ -996,8 +1003,8 @@ function FeedPageContent() {
     </Tabs>
   );
 
- const renderSavesContent = () => (
-    <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+  const renderSavesContent = () => (
+    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full mt-0">
       <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="px-4 sm:px-6 lg:px-8">
             <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
@@ -1017,7 +1024,7 @@ function FeedPageContent() {
           </div>
       </TabsContent>
     </Tabs>
-);
+  );
   
   const renderMessagesContent = () => (
        <div className="h-full flex overflow-hidden">
@@ -1083,7 +1090,7 @@ function FeedPageContent() {
                  <div className="flex flex-col h-screen">
                      <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
-                           <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
+                            <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                                 <div className="p-4 flex items-center gap-2">
                                     <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                                         <Menu className="h-5 w-5" />
@@ -1141,7 +1148,6 @@ function FeedPageContent() {
                                     </Button>
                                 </div>
                             </div>
-
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
                                {renderMainContent()}
                            </div>
@@ -1249,6 +1255,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
