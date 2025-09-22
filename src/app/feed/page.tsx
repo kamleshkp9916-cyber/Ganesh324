@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -992,31 +993,36 @@ function FeedPageContent() {
   };
   
  const renderFeedContent = () => (
-    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm">
+    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 flex-shrink-0">
             <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
             <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
         </TabsList>
-        <div className="pt-4">
-            {renderPostList(filteredFeed, isLoadingFeed)}
-        </div>
+        <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto">
+            <div className="pt-4">
+                {renderPostList(filteredFeed, isLoadingFeed)}
+            </div>
+        </TabsContent>
+        <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto">
+             <div className="pt-4">
+                {renderPostList(filteredFeed, isLoadingFeed)}
+            </div>
+        </TabsContent>
     </Tabs>
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-        <div className="">
-            <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
-                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-            </TabsList>
-        </div>
-      </div>
-      <TabsContent value="saved-posts" className="pt-4">
-          {renderPostList(filteredSavedPosts, false)}
+    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full h-full flex flex-col">
+        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 border-b flex-shrink-0">
+            <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+            <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+        </TabsList>
+      <TabsContent value="saved-posts" className="flex-grow mt-0 overflow-y-auto">
+          <div className="pt-4">
+            {renderPostList(filteredSavedPosts, false)}
+          </div>
       </TabsContent>
-      <TabsContent value="upvoted-posts" className="pt-4">
+      <TabsContent value="upvoted-posts" className="flex-grow mt-0 overflow-y-auto">
           <div className="text-center py-20 text-muted-foreground">
               <Heart className="h-12 w-12 mx-auto mb-4"/>
               <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1088,9 +1094,9 @@ function FeedPageContent() {
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
+                    <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
-                            <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
+                            <div className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                                 <div className="p-4 flex items-center gap-2">
                                     <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                                         <Menu className="h-5 w-5" />
@@ -1153,7 +1159,7 @@ function FeedPageContent() {
                            </div>
                            
                            {mainTab === 'feed' && (
-                                <div className="w-full pointer-events-auto mt-auto">
+                                <div className="w-full pointer-events-auto mt-auto flex-shrink-0">
                                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                         <CreatePostForm
                                             onPost={handlePostSubmit}
@@ -1255,6 +1261,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
