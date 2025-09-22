@@ -138,12 +138,10 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
     onDeleteConversation?: (conversationId: string) => void;
 }) => {
     const { setOpen } = useSidebar();
-     const [searchTerm, setSearchTerm] = useState('');
     
     const filteredConversations = useMemo(() => {
-        if (!searchTerm) return conversations;
-        return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [conversations, searchTerm]);
+        return conversations;
+    }, [conversations]);
 
     return (
         <>
@@ -156,18 +154,6 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
-            <div className="p-4 border-b">
-                 <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search conversations..."
-                        className="pl-8 w-full"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
             <ScrollArea className="flex-grow">
                 <div className="p-2 space-y-1">
                     {filteredConversations.map(convo => (
@@ -217,37 +203,39 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
 
     return (
         <div className="h-full flex flex-col">
-            <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
-                <div className="flex items-center gap-3">
-                    {(isMobile || isFullScreen) && (
-                        <Button variant="ghost" size="icon" onClick={onBack}>
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                    )}
+            {!isFullScreen && (
+                <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                     <div className="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage src={conversation.avatarUrl} />
-                            <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h2 className="font-semibold">{conversation.userName}</h2>
-                            <p className="text-xs text-muted-foreground">Online</p>
+                        {(isMobile || isFullScreen) && (
+                            <Button variant="ghost" size="icon" onClick={onBack}>
+                                <ArrowLeft className="h-6 w-6" />
+                            </Button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage src={conversation.avatarUrl} />
+                                <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <h2 className="font-semibold">{conversation.userName}</h2>
+                                <p className="text-xs text-muted-foreground">Online</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-5 w-5" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" /> Report User
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </header>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem>
+                                <Flag className="mr-2 h-4 w-4" /> Report User
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </header>
+            )}
             <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
