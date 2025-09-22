@@ -614,21 +614,23 @@ function FeedPageContent() {
 
  useEffect(() => {
     if (isMounted) {
-      const tabFromUrl = searchParams.get('tab');
-      if (tabFromUrl) {
-          setMainTab(tabFromUrl);
-      } else {
-          setMainTab('feed');
-      }
-      
-      if (mainTab === 'messages') {
-        setConversations(mockConversations);
-        if (mockConversations.length > 0 && !isMobile) {
-            handleSelectConversation(mockConversations[0]);
+        const tabFromUrl = searchParams.get('tab');
+        if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
+            setMainTab(tabFromUrl);
+        } else {
+            // Default to 'feed' if no valid tab is in the URL
+            setMainTab('feed');
         }
-      }
+        
+        if (mainTab === 'messages') {
+            setConversations(mockConversations);
+            if (mockConversations.length > 0 && !isMobile) {
+                handleSelectConversation(mockConversations[0]);
+            }
+        }
     }
 }, [mainTab, isMobile, isMounted, searchParams]);
+
 
 
   const userPosts = useMemo(() => {
@@ -1228,5 +1230,7 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+
+    
 
     
