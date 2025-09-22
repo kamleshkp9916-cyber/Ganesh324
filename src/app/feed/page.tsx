@@ -310,14 +310,14 @@ const FeedPost = ({
                                         <Button
                                             variant={isFollowingState ? "outline" : "secondary"}
                                             size="sm"
-                                            className="h-6 px-2 text-xs"
+                                            className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
                                             onClick={() => {
                                                 onFollowToggle(post.sellerId);
                                                 setIsFollowingState(prev => !prev);
                                             }}
                                         >
-                                            <UserPlus className="mr-1 h-3 w-3" />
-                                            {isFollowingState ? "Following" : "Follow"}
+                                            <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                            <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
                                         </Button>
                                     )}
                                 </div>
@@ -1262,6 +1262,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
