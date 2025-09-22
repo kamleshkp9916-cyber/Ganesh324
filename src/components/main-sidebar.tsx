@@ -68,11 +68,6 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     <Logo className="h-8 w-8 text-foreground" />
                     <span className="font-bold text-xl">StreamCart</span>
                 </Link>
-                <Button asChild variant="ghost" size="icon">
-                    <Link href="/live-selling">
-                        <Home className="h-5 w-5" />
-                    </Link>
-                </Button>
             </div>
              <ScrollArea className="-mx-4">
                 <div className="px-4">
