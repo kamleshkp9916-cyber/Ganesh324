@@ -213,6 +213,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
 
     return (
         <div className="h-full flex flex-col">
+            {!isFullScreen && (
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
                     {(isMobile || isFullScreen) && (
@@ -244,6 +245,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
+            )}
             <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
