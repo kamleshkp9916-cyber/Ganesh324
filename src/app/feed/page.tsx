@@ -289,7 +289,7 @@ const FeedPost = ({
         <Dialog>
             <Collapsible>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
-                 <div className="p-4">
+                 <div className="p-4 pb-0">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                             <Link href={`/seller/profile?userId=${post.sellerId}`} className="group flex-shrink-0">
@@ -375,10 +375,11 @@ const FeedPost = ({
                         </div>
                     </div>
                 </div>
-                <div className="px-4 pb-2">
-                    <CollapsibleContent>
+
+                <div className="px-4 pt-3">
+                     <CollapsibleContent>
                         {post.taggedProducts && post.taggedProducts.length > 0 && (
-                            <Card>
+                            <Card className="mb-3">
                                 <CardContent className="p-3 divide-y">
                                     {post.taggedProducts.map((product: any, index: number) => (
                                         <div key={product.key || index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
@@ -419,7 +420,7 @@ const FeedPost = ({
                 </div>
                     
                 <div className="px-4">
-                     <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
+                     <div className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
                     </div>
                 </div>
@@ -995,10 +996,10 @@ function FeedPageContent() {
     </Tabs>
   );
 
-const renderSavesContent = () => (
-    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+  const renderSavesContent = () => (
+    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
         <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-             <TabsList className="w-full justify-start rounded-none bg-transparent p-0 container mx-auto px-4 sm:px-6 lg:px-8">
+             <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
                 <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
                 <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
             </TabsList>
