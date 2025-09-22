@@ -1095,6 +1095,11 @@ function FeedPageContent() {
                     {mainTab !== 'messages' && (
                         <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                             <div className="p-4 flex items-center justify-between gap-2">
+                                <div className="lg:hidden">
+                                     <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+                                        <Menu className="h-5 w-5" />
+                                    </Button>
+                                </div>
                                 <Popover open={showSuggestions}>
                                     <PopoverAnchor asChild>
                                         <div className="relative flex-grow">
@@ -1257,6 +1262,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
