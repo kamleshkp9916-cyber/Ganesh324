@@ -1,9 +1,8 @@
 
-
 "use client";
 
 import Link from 'next/link';
-import { Home, Save, MessageSquare, Globe, Users, ArrowLeft } from 'lucide-react';
+import { Home, Save, MessageSquare, Globe, Users, ArrowLeft, HelpCircle, FileText, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -108,12 +107,20 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     </nav>
                 </div>
             </ScrollArea>
-             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50">
-                <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarFallback>M</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium text-sm">Messageo</span>
+             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50 text-sm">
+                <div className="flex flex-col items-start gap-1">
+                    <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                        <Link href="/help"><HelpCircle className="w-4 h-4 mr-2"/>Help</Link>
+                    </Button>
+                     <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                        <Link href="/contact"><MessageSquare className="w-4 h-4 mr-2"/>Contact Us</Link>
+                    </Button>
+                    <Button asChild variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                       <Link href="/privacy-and-security"><FileText className="w-4 h-4 mr-2"/>Privacy Policy</Link>
+                    </Button>
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                       <Send className="w-4 h-4 mr-2"/>Feedback
+                    </Button>
                 </div>
             </div>
         </div>
