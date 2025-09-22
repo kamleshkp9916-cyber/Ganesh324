@@ -203,39 +203,37 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
 
     return (
         <div className="h-full flex flex-col">
-            {!isFullScreen && (
-                <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
+            <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
+                <div className="flex items-center gap-3">
+                    {(isMobile || isFullScreen) && (
+                        <Button variant="ghost" size="icon" onClick={onBack}>
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                    )}
                     <div className="flex items-center gap-3">
-                        {(isMobile || isFullScreen) && (
-                            <Button variant="ghost" size="icon" onClick={onBack}>
-                                <ArrowLeft className="h-6 w-6" />
-                            </Button>
-                        )}
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src={conversation.avatarUrl} />
-                                <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h2 className="font-semibold">{conversation.userName}</h2>
-                                <p className="text-xs text-muted-foreground">Online</p>
-                            </div>
+                        <Avatar>
+                            <AvatarImage src={conversation.avatarUrl} />
+                            <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h2 className="font-semibold">{conversation.userName}</h2>
+                            <p className="text-xs text-muted-foreground">Online</p>
                         </div>
                     </div>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>
-                                <Flag className="mr-2 h-4 w-4" /> Report User
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
-            )}
+                </div>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem>
+                            <Flag className="mr-2 h-4 w-4" /> Report User
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </header>
             <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
