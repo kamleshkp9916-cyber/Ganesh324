@@ -62,31 +62,16 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { getInquiries, markInquiryRead, Inquiry } from "@/ai/flows/contact-flow"
 import { cn } from "@/lib/utils"
-
-// Mock data until flows are restored
-type Inquiry = {
-    id: string;
-    name: string;
-    email: string;
-    subject: string;
-    message: string;
-    createdAt: string;
-    isRead: boolean;
-}
-
-const mockInquiries: Inquiry[] = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', subject: 'Question about my order', message: 'Hello, I have a question...', createdAt: new Date().toISOString(), isRead: false },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', subject: 'Feedback on the new feature', message: 'I love the new feature...', createdAt: new Date().toISOString(), isRead: true },
-];
 
 
 export default function AdminInquiriesPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
+  const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
 
   useEffect(() => {
     if (!loading) {
@@ -94,20 +79,24 @@ export default function AdminInquiriesPage() {
             router.replace('/');
             return;
         }
-        // Using mock data for now
-        setInquiries(mockInquiries);
+        const fetchInquiries = async () => {
+            const data = await getInquiries();
+            setInquiries(data);
+        };
+        fetchInquiries();
     }
   }, [loading, user, userData, router]);
 
-  const handleViewInquiry = (inquiry: Inquiry) => {
+  const handleViewInquiry = (inquiry: Inquiry & { id: string }) => {
     setSelectedInquiry(inquiry);
     if (!inquiry.isRead) {
-        setInquiries(prev => prev.map(i => i.id === inquiry.id ? { ...i, isRead: true } : i));
+        markInquiryRead(inquiry.id).then(() => {
+            setInquiries(prev => prev.map(i => i.id === inquiry.id ? { ...i, isRead: true } : i));
+        });
     }
   };
 
-  const handleReplyToInquiry = (inquiry: Inquiry) => {
-    // This will open the new admin message page
+  const handleReplyToInquiry = (inquiry: Inquiry & {id: string}) => {
     router.push(`/admin/messages?userId=${inquiry.email}&userName=${inquiry.name}`);
   }
 
