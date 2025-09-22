@@ -14,8 +14,6 @@ import { getConversations } from '@/ai/flows/chat-flow';
 
 const mockConversations: Conversation[] = [
     { conversationId: '1', userId: "support", userName: "StreamCart Support", avatarUrl: "https://placehold.co/40x40/000000/FFFFFF?text=SC", lastMessage: "Yes, we can help with that!", lastMessageTimestamp: "10:30 AM", unreadCount: 1, isExecutive: true },
-    { conversationId: '2', userId: "seller1", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
-    { conversationId: '3', userId: "seller2", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
 ];
 
 const mockMessages: Record<string, Message[]> = {
