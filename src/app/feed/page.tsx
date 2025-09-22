@@ -115,7 +115,7 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
@@ -398,15 +398,15 @@ const FeedPost = ({
                                              <div className="flex items-center gap-2">
                                                  {product.stock > 0 ? (
                                                     <>
-                                                        <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
+                                                        <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onAddToCart(product)}>
                                                             <ShoppingCart className="h-4 w-4" />
                                                         </Button>
-                                                        <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
+                                                        <Button size="sm" className="h-9" onClick={() => onBuyNow(product)}>
                                                             Buy Now
                                                         </Button>
                                                     </>
                                                  ) : (
-                                                     <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
+                                                     <Button size="sm" className="h-9" onClick={() => onNotifyMe(product)}>
                                                         Notify Me
                                                     </Button>
                                                  )}
@@ -998,20 +998,20 @@ function FeedPageContent() {
     </div>
   );
 
- const renderSavesContent = () => (
-    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
+  const renderSavesContent = () => (
+    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
         <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-            <div className="px-4 sm:px-6 lg:px-8">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
                     <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
                     <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
                 </TabsList>
             </div>
         </div>
-        <TabsContent value="saved-posts">
+        <TabsContent value="saved-posts" className="mt-4">
             {renderPostList(filteredSavedPosts, false)}
         </TabsContent>
-        <TabsContent value="upvoted-posts">
+        <TabsContent value="upvoted-posts" className="mt-4">
             <div className="text-center py-20 text-muted-foreground">
                 <Heart className="h-12 w-12 mx-auto mb-4"/>
                 <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1249,6 +1249,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
