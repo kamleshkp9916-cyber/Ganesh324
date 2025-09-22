@@ -997,7 +997,7 @@ function FeedPageContent() {
   );
 
  const renderSavesContent = () => (
-    <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
+    <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
       <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="px-4 sm:px-6 lg:px-8">
             <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
@@ -1140,12 +1140,6 @@ function FeedPageContent() {
                                         </Link>
                                     </Button>
                                 </div>
-                                {mainTab === 'feed' && (
-                                    <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8 -mb-px">
-                                        <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                                        <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                    </TabsList>
-                                )}
                             </div>
 
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
@@ -1255,5 +1249,6 @@ export default function FeedPage() {
     
 
     
+
 
 
