@@ -405,11 +405,11 @@ const FeedPost = ({
                                                 <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onAddToCart(product)}>
-                                                    <ShoppingCart className="mr-2 h-4 w-4" /> Cart
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
+                                                    <ShoppingCart className="h-4 w-4" />
                                                 </Button>
-                                                <Button size="sm" className="h-8 text-xs" onClick={() => onBuyNow(product)}>
-                                                    Buy
+                                                <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
+                                                    Buy Now
                                                 </Button>
                                             </div>
                                         </div>
@@ -1241,15 +1241,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
-
-    
-
-
-
-    
-
-    
-
-    
