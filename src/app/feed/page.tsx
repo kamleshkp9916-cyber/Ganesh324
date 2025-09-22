@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -648,7 +649,21 @@ function FeedPageContent() {
                 ...doc.data(),
                 timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
             }));
-            setFeed(postsData);
+
+            const mockDemoPost = {
+                id: 'demo-post-1',
+                sellerId: 'demo-seller',
+                sellerName: 'Demo Seller',
+                avatarUrl: 'https://placehold.co/40x40.png?text=D',
+                timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
+                content: 'This is a sample post for demonstration purposes. You can edit this to see how posts will look on the feed! #demopost #example',
+                tags: ['demopost', 'example'],
+                likes: 123,
+                replies: 45,
+                images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
+            };
+            
+            setFeed([mockDemoPost, ...postsData]);
             setIsLoadingFeed(false);
         }, (error) => {
             console.error("Error fetching feed:", error);
@@ -1129,3 +1144,4 @@ export default function FeedPage() {
 }
 
     
+
