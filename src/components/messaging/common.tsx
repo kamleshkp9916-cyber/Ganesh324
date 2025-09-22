@@ -214,7 +214,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
     if (!user) return null;
 
     return (
-        <>
+        <div className="h-full flex flex-col">
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
                     {isMobile && (
@@ -296,6 +296,6 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                     </Button>
                 </form>
             </footer>
-        </>
+        </div>
     );
 };
