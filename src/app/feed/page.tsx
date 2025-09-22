@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -285,7 +286,7 @@ const FeedPost = ({
 
     return (
         <Dialog>
-            <Collapsible>
+            <Collapsible defaultOpen={true}>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                     <DialogHeader className="sr-only">
@@ -904,10 +905,10 @@ function FeedPageContent() {
 
   const handleFollowToggle = async (targetId: string) => {
     if (!user) return;
-    await toggleFollow(user.uid, targetId);
     setFollowingIds(prev =>
       prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
     );
+    await toggleFollow(user.uid, targetId);
   };
 
   const handleAddToCart = (product: any) => {
@@ -981,8 +982,8 @@ function FeedPageContent() {
 
   const renderSavesContent = () => (
     <>
-      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm pt-4 border-b border-border/50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
                 <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
                     <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
                         <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
@@ -997,7 +998,7 @@ function FeedPageContent() {
             </TabsContent>
             <TabsContent value="upvoted-posts" className="mt-0">
                 <div className="text-center py-20 text-muted-foreground">
-                    <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
+                    <Heart className="h-12 w-12 mx-auto mb-4"/>
                     <p className="text-lg font-semibold">No upvoted posts yet</p>
                     <p>Posts you upvote will appear here.</p>
                 </div>
@@ -1026,6 +1027,7 @@ function FeedPageContent() {
              {selectedConversation && userData ? (
                   <ChatWindow 
                       key={selectedConversation.userId}
+                      conversation={selectedConversation}
                       userData={userData}
                       messages={currentMessages || []}
                       onSendMessage={handleSendMessage}
