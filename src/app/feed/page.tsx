@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -441,7 +440,7 @@ function FeedPageContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
-  const [mainTab, setMainTab] = useState(activeTabParam === 'saves' ? 'saves' : 'feed');
+  const [mainTab, setMainTab] = useState('feed');
   const [feedTab, setFeedTab] = useState('for-you');
   const [savesSubTab, setSavesSubTab] = useState('saved-posts');
   
@@ -560,9 +559,9 @@ function FeedPageContent() {
 
  useEffect(() => {
     if (isMounted) {
-      const activeTabFromUrl = searchParams.get('tab');
-      if (activeTabFromUrl) {
-        setMainTab(activeTabFromUrl);
+      const tabFromUrl = searchParams.get('tab');
+      if (tabFromUrl) {
+          setMainTab(tabFromUrl);
       }
       
       if (mainTab === 'messages') {
@@ -863,7 +862,80 @@ function FeedPageContent() {
             <p>Follow sellers or explore topics to see posts here.</p>
         </div>
       );
-  }
+  };
+  
+  const renderFeedContent = () => (
+    <>
+      <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                  <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                  <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+              </div>
+          </TabsList>
+      </Tabs>
+      {renderPostList(filteredFeed, isLoadingFeed)}
+    </>
+  );
+
+  const renderSavesContent = () => (
+    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+            </div>
+        </TabsList>
+        <TabsContent value="saved-posts">
+            {renderPostList(filteredSavedPosts, false)}
+        </TabsContent>
+        <TabsContent value="upvoted-posts">
+            <div className="text-center py-20 text-muted-foreground">
+                <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
+                <p className="text-lg font-semibold">No upvoted posts yet</p>
+                <p>Posts you upvote will appear here.</p>
+            </div>
+        </TabsContent>
+    </Tabs>
+  );
+  
+  const renderMessagesContent = () => (
+       <div className="h-full flex overflow-hidden">
+          <div className={cn(
+              "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
+              isMobile && selectedConversation && "hidden"
+          )}>
+              <ConversationList
+                  conversations={conversations}
+                  selectedConversation={selectedConversation}
+                  onSelectConversation={handleSelectConversation}
+                  onDeleteConversation={handleDeleteConversation}
+              />
+          </div>
+          <div className={cn(
+              "h-full w-full flex-col md:flex md:w-full lg:w-3/5",
+              isMobile && !selectedConversation && "hidden"
+          )}>
+             {selectedConversation && userData ? (
+                  <ChatWindow 
+                      key={selectedConversation.userId}
+                      conversation={selectedConversation}
+                      userData={userData}
+                      messages={currentMessages || []}
+                      onSendMessage={handleSendMessage}
+                      onBack={() => setSelectedConversation(null)}
+                  />
+              ) : (
+                  <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
+                      <MessageSquare className="h-16 w-16 mb-4"/>
+                      <h2 className="text-xl font-semibold">Select a chat</h2>
+                      <p>Choose a conversation to start messaging.</p>
+                  </div>
+              )}
+          </div>
+      </div>
+  );
+
 
   return (
     <div className="h-screen w-full">
@@ -932,78 +1004,12 @@ function FeedPageContent() {
                             </div>
 
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                                {mainTab === 'feed' && (
-                                    <>
-                                        <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-                                            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
-                                                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                                    <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                                                    <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                                </div>
-                                            </TabsList>
-                                        </Tabs>
-                                        {renderPostList(filteredFeed, isLoadingFeed)}
-                                    </>
-                                )}
-
-                                {mainTab === 'saves' && (
-                                     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
-                                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                                                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-                                            </div>
-                                        </TabsList>
-                                        <TabsContent value="saved-posts">
-                                            {renderPostList(filteredSavedPosts, false)}
-                                        </TabsContent>
-                                        <TabsContent value="upvoted-posts">
-                                            <div className="text-center py-20 text-muted-foreground">
-                                                <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
-                                                <p className="text-lg font-semibold">No upvoted posts yet</p>
-                                                <p>Posts you upvote will appear here.</p>
-                                            </div>
-                                        </TabsContent>
-                                    </Tabs>
-                                )}
-                                {mainTab === 'messages' && (
-                                     <div className="h-full flex overflow-hidden">
-                                        <div className={cn(
-                                            "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
-                                            isMobile && selectedConversation && "hidden"
-                                        )}>
-                                            <ConversationList
-                                                conversations={conversations}
-                                                selectedConversation={selectedConversation}
-                                                onSelectConversation={handleSelectConversation}
-                                                onDeleteConversation={handleDeleteConversation}
-                                            />
-                                        </div>
-                                        <div className={cn(
-                                            "h-full w-full flex-col md:flex md:w-full lg:w-3/5",
-                                            isMobile && !selectedConversation && "hidden"
-                                        )}>
-                                           {selectedConversation && userData ? (
-                                                <ChatWindow 
-                                                    key={selectedConversation.userId}
-                                                    conversation={selectedConversation}
-                                                    userData={userData}
-                                                    messages={currentMessages || []}
-                                                    onSendMessage={handleSendMessage}
-                                                    onBack={() => setSelectedConversation(null)}
-                                                />
-                                            ) : (
-                                                <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
-                                                    <MessageSquare className="h-16 w-16 mb-4"/>
-                                                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                                                    <p>Choose a conversation to start messaging.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                               {mainTab === 'feed' && renderFeedContent()}
+                               {mainTab === 'saves' && renderSavesContent()}
+                               {mainTab === 'messages' && renderMessagesContent()}
                            </div>
-                           {(mainTab === 'feed') && (
+                           
+                           {mainTab === 'feed' && (
                                 <div className="w-full pointer-events-auto mt-auto">
                                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                         <CreatePostForm
