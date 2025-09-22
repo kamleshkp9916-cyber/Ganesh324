@@ -446,7 +446,7 @@ function FeedPageContent() {
   const { open, setOpen } = useSidebar();
 
 
-  const activeView = (activeTabParam === 'messages') ? activeTabParam : 'feed';
+  const activeView = (activeTabParam === 'messages' || activeTabParam === 'saves') ? activeTabParam : 'feed';
   const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
 
@@ -850,7 +850,7 @@ function FeedPageContent() {
                  <div className="text-center py-20 text-muted-foreground">
                     <p className="text-lg font-semibold">No posts to show</p>
                     {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
-                    {feedTab === 'saves' && <p>Your saved posts will appear here.</p>}
+                    {activeView === 'saves' && <p>Your saved posts will appear here.</p>}
                 </div>
             )}
         </div>
@@ -869,7 +869,7 @@ function FeedPageContent() {
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                     {(activeView === 'feed') && (
+                     {(activeView === 'feed' || activeView === 'saves') && (
                         <>
                         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 flex items-center gap-2">
                             <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
@@ -922,24 +922,24 @@ function FeedPageContent() {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-                           <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-                                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                    <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                                    <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                </div>
-                            </TabsList>
-                            <div className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
-                                <TabsContent value="for-you">{renderFeedContent(filteredFeed)}</TabsContent>
-                                <TabsContent value="following">{renderFeedContent(filteredFeed)}</TabsContent>
-                            </div>
-                        </Tabs>
+                        {activeView === 'feed' && (
+                            <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+                            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                        <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                                        <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+                                    </div>
+                                </TabsList>
+                            </Tabs>
+                        )}
                         </>
                     )}
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
                            
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
+                                {activeView === 'feed' && renderFeedContent(filteredFeed)}
+                                {activeView === 'saves' && renderFeedContent(filteredSavedPosts)}
                                 {activeView === 'messages' && (
                                      <div className="h-full flex overflow-hidden">
                                         <div className={cn(
@@ -977,7 +977,7 @@ function FeedPageContent() {
                                     </div>
                                 )}
                            </div>
-                           {activeView === 'feed' && (
+                           {(activeView === 'feed' || activeView === 'saves') && (
                                 <div className="w-full pointer-events-auto mt-auto">
                                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                         <CreatePostForm
@@ -998,7 +998,7 @@ function FeedPageContent() {
                     </Sheet>
                 </div>
 
-                {(activeView === 'feed') && (
+                {(activeView === 'feed' || activeView === 'saves') && (
                     <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
                     <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                             <div className="flex-shrink-0">
@@ -1084,6 +1084,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
