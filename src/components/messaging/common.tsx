@@ -154,6 +154,16 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
+            <div className="p-4 border-b">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search conversations..."
+                        className="pl-8 w-full"
+                    />
+                </div>
+            </div>
             <ScrollArea className="flex-grow">
                 <div className="p-2 space-y-1">
                     {filteredConversations.map(convo => (
