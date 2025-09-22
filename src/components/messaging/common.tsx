@@ -136,13 +136,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
     onSelectConversation: (convo: Conversation) => void;
     onDeleteConversation: (conversationId: string) => void;
 }) => {
-    const [searchTerm, setSearchTerm] = useState("");
     const { setOpen } = useSidebar();
-
-    const filteredConversations = useMemo(() => {
-        if (!searchTerm) return conversations;
-        return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [conversations, searchTerm]);
 
     return (
         <>
@@ -155,21 +149,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
-            <div className="p-4 border-b">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder="Search conversations..."
-                        className="pl-9 w-full rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
             <ScrollArea className="flex-grow">
                 <div className="p-2 space-y-1">
-                    {filteredConversations.map(convo => (
+                    {conversations.map(convo => (
                         <ConversationItem
                             key={convo.userId}
                             convo={convo}
