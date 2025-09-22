@@ -395,7 +395,7 @@ const FeedPost = ({
                                     {post.taggedProducts.map((product: any) => (
                                         <div key={product.key} className="flex items-center gap-4">
                                             <Link href={`/product/${product.key}`}>
-                                                <Image src={product.image || product.images?.[0].preview} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                <Image src={product.image || product.images?.[0]?.preview} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${product.key}`} className="hover:underline">
@@ -479,6 +479,7 @@ const FeedPost = ({
 function FeedPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const isMobile = useIsMobile();
 
   const { user, userData, loading: authLoading } = useAuth();
@@ -1242,5 +1243,7 @@ export default function FeedPage() {
     
 
 
+
+    
 
     
