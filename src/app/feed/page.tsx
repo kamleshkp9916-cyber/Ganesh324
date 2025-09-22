@@ -116,7 +116,7 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
@@ -1316,24 +1316,3 @@ export default function FeedPage() {
     
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
