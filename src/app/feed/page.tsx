@@ -116,7 +116,7 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
@@ -1193,7 +1193,7 @@ function FeedPageContent() {
                                 <Button asChild variant="ghost" size="icon" className="h-auto flex-col px-1 lg:hidden">
                                   <Link href="/live-selling">
                                     <Home className="h-5 w-5" />
-                                    <span className="text-xs">Go Home</span>
+                                    <span style={{ fontSize: '0.6rem' }}>Go Home</span>
                                   </Link>
                                 </Button>
                                 <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex">
@@ -1335,4 +1335,5 @@ export default function FeedPage() {
 
 
     
+
 
