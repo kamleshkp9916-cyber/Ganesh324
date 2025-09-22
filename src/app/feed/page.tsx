@@ -288,7 +288,7 @@ const FeedPost = ({
 
     return (
         <Dialog>
-            <Collapsible>
+            <Collapsible defaultOpen={false}>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                     <DialogHeader className="sr-only">
@@ -397,7 +397,7 @@ const FeedPost = ({
                                     {post.taggedProducts.map((product: any) => (
                                         <div key={product.key} className="flex items-center gap-4">
                                             <Link href={`/product/${product.key}`}>
-                                                <Image src={product.image || product.images?.[0]?.preview} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                <Image src={product.image || product.images?.[0]?.preview || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${product.key}`} className="hover:underline">
