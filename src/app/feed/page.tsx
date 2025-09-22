@@ -588,7 +588,7 @@ function FeedPageContent() {
         ).slice(0, 5);
         
         const hashtags = Array.from(new Set(feed.flatMap(post => 
-            (post.tags || []).filter((tag: string) => tag.toLowerCase().includes(lowercasedTerm.replace('#', '')))
+            (post.content.match(/#(\w+)/g) || []).map((tag: string) => tag.substring(1)).filter((tag: string) => tag.toLowerCase().includes(lowercasedTerm.replace('#', '')))
         ))).slice(0, 5);
 
         setSearchSuggestions({users, hashtags, posts});
@@ -994,10 +994,10 @@ function FeedPageContent() {
   
   const renderFeedContent = () => (
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
-      <div className="flex-shrink-0 border-b">
-        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
-          <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-          <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+      <div className="flex-shrink-0 border-b px-4 sm:px-6 lg:px-8">
+        <TabsList className="bg-transparent p-0">
+          <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+          <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
         </TabsList>
       </div>
       <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
@@ -1011,10 +1011,10 @@ function FeedPageContent() {
 
   const renderSavesContent = () => (
     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full h-full flex flex-col">
-      <div className="flex-shrink-0 border-b">
-        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
-          <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-          <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+      <div className="flex-shrink-0 border-b px-4 sm:px-6 lg:px-8">
+        <TabsList className="bg-transparent p-0">
+          <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+          <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
         </TabsList>
       </div>
       <TabsContent value="saved-posts" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
@@ -1093,11 +1093,7 @@ function FeedPageContent() {
 
                  <div className="flex flex-col h-screen">
                     <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
-                        <div className="p-4 flex items-center gap-2">
-                            <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle navigation menu</span>
-                            </Button>
+                        <div className="p-4 flex items-center justify-between gap-2">
                             <Popover open={showSuggestions}>
                                 <PopoverAnchor asChild>
                                     <div className="relative flex-grow">
@@ -1259,6 +1255,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
