@@ -45,7 +45,7 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
 
     return (
         <div className="group relative">
-             <button
+            <button
                 className={cn(
                     "w-full text-left p-2 flex items-center gap-3 rounded-lg",
                     isSelected ? "bg-secondary" : "hover:bg-secondary/50"
@@ -59,7 +59,24 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                 <div className="flex-grow overflow-hidden">
                     <div className="flex justify-between items-center">
                         <p className="font-semibold text-sm truncate">{convo.userName}</p>
-                        <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
+                        <div className="flex items-center gap-2 pl-2">
+                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete Chat
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <p className="text-xs text-muted-foreground flex-shrink-0">{convo.lastMessageTimestamp}</p>
+                        </div>
                     </div>
                     <div className="flex justify-between items-start mt-0.5">
                         <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
@@ -71,21 +88,6 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                     </div>
                 </div>
             </button>
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Chat
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
         </div>
     );
 };
@@ -299,3 +301,4 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
         </div>
     );
 };
+
