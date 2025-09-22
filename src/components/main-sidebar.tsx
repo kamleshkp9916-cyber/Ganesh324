@@ -14,6 +14,7 @@ import { useSidebar } from './ui/sidebar';
 import { format } from 'url';
 import { ScrollArea } from './ui/scroll-area';
 import { Logo } from './logo';
+import { FeedbackDialog } from './feedback-dialog';
 
 
 interface MainSidebarProps {
@@ -118,9 +119,11 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     <Button asChild variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                        <Link href="/privacy-and-security">Privacy</Link>
                     </Button>
-                    <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
-                       Feedback
-                    </Button>
+                    <FeedbackDialog>
+                        <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
+                           Feedback
+                        </Button>
+                    </FeedbackDialog>
                 </div>
             </div>
         </div>
