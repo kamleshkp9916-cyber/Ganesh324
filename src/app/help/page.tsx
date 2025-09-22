@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -22,6 +21,16 @@ const faqData = [
       { q: "What payment methods do you accept?", a: "We accept all major credit/debit cards, UPI (including Google Pay, PhonePe, etc.), Net Banking, and our own StreamCart Wallet." },
       { q: "How do I get a refund?", a: "Once a return is successfully processed and the item is received by the seller, the refund amount will be credited to your original payment method or your StreamCart Wallet within 5-7 business days." },
       { q: "How do I add money to my wallet?", a: "You can add money to your wallet from the 'Wallet' section in your profile. We support various top-up methods including UPI and credit/debit cards." },
+    ]
+  },
+  {
+    category: "Feed & Community",
+    questions: [
+        { q: "What is the Feed page?", a: "The Feed is your central hub for community content. Here you can see posts from sellers you follow, discover new creators, and interact with other users. It is divided into three main tabs: Feed, Saves, and Messages." },
+        { q: "How do I create a post?", a: "At the bottom of the 'Feed' tab, you'll find a 'Share something...' box. You can write your post, tag products, attach images or videos, and share it with the community." },
+        { q: "What is the difference between the 'For You' and 'Following' feeds?", a: "The 'For You' feed shows you a mix of popular posts and content from creators we think you'll like. The 'Following' feed shows you posts exclusively from the sellers and users you follow." },
+        { q: "How do I save a post?", a: "Click the 'Save' icon on any post. You can find all your saved posts later in the 'Saves' tab for easy access." },
+        { q: "How do I send a private message?", a: "You can start a conversation by visiting a seller's profile and clicking the 'Message' button. All your private conversations can be found in the 'Messages' tab on the Feed page." },
     ]
   },
     {
