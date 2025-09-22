@@ -190,13 +190,13 @@ export default function SellerDashboard() {
             <span className="sr-only">StreamCart Seller</span>
           </Link>
           <Link
-            href="#"
+            href="/seller/dashboard"
             className="text-foreground transition-colors hover:text-foreground"
           >
             Dashboard
           </Link>
           <Link
-            href="/orders"
+            href="/seller/orders"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Orders
@@ -206,6 +206,12 @@ export default function SellerDashboard() {
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Products
+          </Link>
+          <Link
+            href="/seller/feed"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Feed
           </Link>
           <Link
             href="#"
@@ -234,11 +240,11 @@ export default function SellerDashboard() {
                 <Package2 className="h-6 w-6" />
                 <span className="sr-only">StreamCart</span>
               </Link>
-              <Link href="#" className="hover:text-foreground">
+              <Link href="/seller/dashboard" className="hover:text-foreground">
                 Dashboard
               </Link>
               <Link
-                href="/orders"
+                href="/seller/orders"
                 className="text-muted-foreground hover:text-foreground"
               >
                 Orders
@@ -248,6 +254,12 @@ export default function SellerDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
+              </Link>
+              <Link
+                href="/seller/feed"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Feed
               </Link>
               <Link
                 href="#"
