@@ -947,7 +947,7 @@ function FeedPageContent() {
                                 )}
 
                                 {mainTab === 'saves' && (
-                                     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full pt-4">
+                                     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
                                         <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
                                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                                                 <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
