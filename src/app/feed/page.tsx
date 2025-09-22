@@ -329,9 +329,9 @@ const FeedPost = ({
                          <div className="flex items-center gap-2">
                              {post.taggedProducts && post.taggedProducts.length > 0 && (
                                 <CollapsibleTrigger asChild>
-                                    <Button variant="secondary" size="sm" className="h-7 px-2">
-                                        <ShoppingBag className="w-4 h-4 mr-1"/>
-                                        View Products
+                                    <Button variant="secondary" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                        <ShoppingBag className="w-4 h-4 sm:mr-1"/>
+                                        <span className="hidden sm:inline">View Products</span>
                                     </Button>
                                 </CollapsibleTrigger>
                             )}
@@ -1262,6 +1262,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
