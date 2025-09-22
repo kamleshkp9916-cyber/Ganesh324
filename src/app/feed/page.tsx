@@ -257,7 +257,7 @@ const FeedPost = ({
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = blobUrl;
-                a.download = 'streamcart_image_' + Date.now() + '.jpg';
+                a.download = `streamcart_image_${Date.now()}.jpg`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(blobUrl);
@@ -269,7 +269,7 @@ const FeedPost = ({
     const imageCount = post.images?.length || 0;
     
     const renderContentWithHashtags = (text: string) => {
-        const parts = text.split(/(#\\w+)/g);
+        const parts = text.split(/(#\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 const tag = part.substring(1);
@@ -704,7 +704,7 @@ function FeedPageContent() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-        const hashtags = Array.from(post.content.matchAll(/#(\\w+)/g)).map((match: any) => match[1]);
+        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map((match: any) => match[1]);
         hashtags.forEach((tag: string) => {
             if (tag) {
                 hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
@@ -787,7 +787,7 @@ function FeedPageContent() {
             
             const dataToUpdate: any = {
                 content: postData.content,
-                tags: Array.from(postData.content.matchAll(/#(\\w+)/g) || []).map((match: any) => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
                 taggedProducts: postData.taggedProducts
             };
@@ -799,7 +799,7 @@ function FeedPageContent() {
             const db = getFirestoreDb();
             const dataToSave: any = {
                 content: postData.content,
-                tags: Array.from(postData.content.matchAll(/#(\\w+)/g) || []).map((match: any) => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 taggedProducts: postData.taggedProducts,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
@@ -994,35 +994,33 @@ function FeedPageContent() {
   
  const renderFeedContent = () => (
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 flex-shrink-0">
-            <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-            <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-        </TabsList>
-        <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto">
-            <div className="pt-4">
-                {renderPostList(filteredFeed, isLoadingFeed)}
-            </div>
+        <div className="flex-shrink-0 sticky top-16 z-20 bg-background/80 backdrop-blur-sm">
+            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+            </TabsList>
+        </div>
+        <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+            {renderPostList(filteredFeed, isLoadingFeed)}
         </TabsContent>
-        <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto">
-             <div className="pt-4">
-                {renderPostList(filteredFeed, isLoadingFeed)}
-            </div>
+        <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+            {renderPostList(filteredFeed, isLoadingFeed)}
         </TabsContent>
     </Tabs>
   );
 
   const renderSavesContent = () => (
     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full h-full flex flex-col">
-        <TabsList className="w-full justify-start rounded-none bg-transparent p-0 border-b flex-shrink-0">
-            <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-            <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-        </TabsList>
-      <TabsContent value="saved-posts" className="flex-grow mt-0 overflow-y-auto">
-          <div className="pt-4">
-            {renderPostList(filteredSavedPosts, false)}
-          </div>
+         <div className="flex-shrink-0 sticky top-16 z-20 bg-background/80 backdrop-blur-sm">
+            <TabsList className="w-full justify-start rounded-none bg-transparent p-0 border-b px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+            </TabsList>
+        </div>
+      <TabsContent value="saved-posts" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+          {renderPostList(filteredSavedPosts, false)}
       </TabsContent>
-      <TabsContent value="upvoted-posts" className="flex-grow mt-0 overflow-y-auto">
+      <TabsContent value="upvoted-posts" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
           <div className="text-center py-20 text-muted-foreground">
               <Heart className="h-12 w-12 mx-auto mb-4"/>
               <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1096,7 +1094,7 @@ function FeedPageContent() {
                  <div className="flex flex-col h-screen">
                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
-                            <div className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
+                           <div className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                                 <div className="p-4 flex items-center gap-2">
                                     <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                                         <Menu className="h-5 w-5" />
@@ -1261,6 +1259,8 @@ export default function FeedPage() {
     
 
     
+
+
 
 
 
