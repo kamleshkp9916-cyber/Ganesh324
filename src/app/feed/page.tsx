@@ -825,16 +825,19 @@ function FeedPageContent() {
     loadSavedPosts();
   };
   
-  const renderFeedContent = (posts: any[]) => {
-      return (
-        <div className="divide-y divide-border/20">
-            {isLoadingFeed ? (
-                <>
-                    <FeedPostSkeleton />
-                    <FeedPostSkeleton />
-                </>
-            ) : posts.length > 0 ? (
-                posts.map(post => (
+  const renderFeedContent = (posts: any[], isLoading: boolean) => {
+      if (isLoading) {
+          return (
+              <div className="divide-y divide-border/20">
+                  <FeedPostSkeleton />
+                  <FeedPostSkeleton />
+              </div>
+          );
+      }
+      if (posts.length > 0) {
+          return (
+            <div className="divide-y divide-border/20">
+                {posts.map(post => (
                     <FeedPost 
                         key={post.id}
                         post={post}
@@ -849,15 +852,16 @@ function FeedPageContent() {
                         onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                         onCommentClick={(post) => setSelectedPostForComments(post)}
                     />
-                ))
-            ) : (
-                 <div className="text-center py-20 text-muted-foreground">
-                    <p className="text-lg font-semibold">No posts to show</p>
-                    {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
-                </div>
-            )}
+                ))}
+            </div>
+          );
+      }
+      return (
+         <div className="text-center py-20 text-muted-foreground">
+            <p className="text-lg font-semibold">No posts to show</p>
+            {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
         </div>
-      )
+      );
   }
 
   return (
@@ -937,7 +941,7 @@ function FeedPageContent() {
                                             </div>
                                         </TabsList>
                                     </Tabs>
-                                    {renderFeedContent(filteredFeed)}
+                                    {renderFeedContent(filteredFeed, isLoadingFeed)}
                                    </>
                                )}
 
@@ -950,7 +954,7 @@ function FeedPageContent() {
                                             </div>
                                         </TabsList>
                                         <TabsContent value="saved-posts">
-                                            {renderFeedContent(filteredSavedPosts)}
+                                            {renderFeedContent(filteredSavedPosts, false)}
                                         </TabsContent>
                                         <TabsContent value="upvoted-posts">
                                             <div className="text-center py-20 text-muted-foreground">
@@ -1098,5 +1102,3 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-
-    
