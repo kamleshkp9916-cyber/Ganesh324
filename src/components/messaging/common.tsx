@@ -44,50 +44,48 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
     const truncatedMessage = convo.lastMessage.split(' ').slice(0, 4).join(' ') + (convo.lastMessage.split(' ').length > 4 ? '...' : '');
 
     return (
-        <div className="group relative">
-            <button
-                className={cn(
-                    "w-full text-left p-2 flex items-center gap-3 rounded-lg",
-                    isSelected ? "bg-secondary" : "hover:bg-secondary/50"
-                )}
-                onClick={onClick}
-            >
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={convo.avatarUrl} />
-                    <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-grow overflow-hidden">
-                    <div className="flex justify-between items-center">
-                        <p className="font-semibold text-sm truncate">{convo.userName}</p>
-                        <div className="flex items-center gap-2 pl-2 flex-shrink-0">
-                            <p className="text-xs text-muted-foreground">{convo.lastMessageTimestamp}</p>
-                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Delete Chat
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex justify-between items-start mt-0.5">
-                        <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
+        <div
+            className={cn(
+                "group relative w-full text-left p-2 flex items-center gap-3 rounded-lg cursor-pointer",
+                isSelected ? "bg-secondary" : "hover:bg-secondary/50"
+            )}
+            onClick={onClick}
+        >
+            <Avatar className="h-10 w-10">
+                <AvatarImage src={convo.avatarUrl} />
+                <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-grow overflow-hidden">
+                <div className="flex justify-between items-center">
+                    <p className="font-semibold text-sm truncate">{convo.userName}</p>
+                     <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
+                </div>
+                <div className="flex justify-between items-start mt-0.5">
+                    <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
+                    <div className="flex items-center gap-2 flex-shrink-0">
                         {convo.unreadCount > 0 && (
-                            <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full flex-shrink-0">
+                            <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full">
                                 {convo.unreadCount}
                             </div>
                         )}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                    <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Chat
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </div>
-            </button>
+            </div>
         </div>
     );
 };
