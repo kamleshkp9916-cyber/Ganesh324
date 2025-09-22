@@ -118,6 +118,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                 const querySnapshot = await getDocs(q);
                 setSuggestions(querySnapshot.docs.map(doc => doc.data() as UserData));
             } else if (tagging?.type === '#') {
+                // For hashtags, we'll just suggest from existing content for simplicity
                 const existingHashtags = Array.from(content.matchAll(/#(\w+)/g)).map(match => match[1]);
                 const uniqueHashtags = [...new Set(existingHashtags)];
                 const filtered = uniqueHashtags.filter(tag => tag.toLowerCase().startsWith(debouncedTagQuery.toLowerCase()));
@@ -148,6 +149,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         const cursorPos = e.target.selectionStart || 0;
         const textBeforeCursor = value.substring(0, cursorPos);
         
+        // Match @ or # followed by word characters, right at the cursor
         const atMatch = textBeforeCursor.match(/@(\w+)$/);
         const hashMatch = textBeforeCursor.match(/#(\w+)$/);
 
@@ -170,6 +172,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         setContent(`${textBefore}${tagging.type}${tagName} ${textAfter}`);
         setTagging(null);
         setSuggestions([]);
+        textareaRef.current?.focus();
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
@@ -280,7 +283,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
-                     <Popover open={!!(tagging && tagging.query.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
+                     <Popover open={!!(tagging && suggestions.length > 0)} onOpenChange={(open) => !open && setTagging(null)}>
                         <PopoverAnchor asChild>
                             <div className="relative flex-grow">
                                 <Textarea 
@@ -316,7 +319,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                             ) : suggestions.length > 0 ? (
                                 <ul className="space-y-1 p-2">
                                     {suggestions.map((item, index) => (
-                                        <li key={item.uid || item.id || index} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
+                                        <li key={item.uid || item.name || index} onClick={() => handleSuggestionClick(item)} className="p-2 hover:bg-accent rounded-md cursor-pointer text-sm">
                                             {tagging?.type === '@' ? (
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-6 w-6"><AvatarImage src={item.photoURL} /><AvatarFallback>{item.displayName.charAt(0)}</AvatarFallback></Avatar>
@@ -384,4 +387,3 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
-
