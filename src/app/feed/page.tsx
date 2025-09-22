@@ -291,23 +291,6 @@ const FeedPost = ({
         <Dialog>
             <Collapsible>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
-                <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>Post Image</DialogTitle>
-                        <DialogDescription>Viewing post image</DialogDescription>
-                    </DialogHeader>
-                    <div className="relative">
-                        {viewingImage && <Image src={viewingImage} alt="Full screen post image" width={1200} height={900} className="w-full h-full object-contain" />}
-                        <Button 
-                            variant="secondary" 
-                            size="icon" 
-                            className="absolute bottom-4 right-4 z-10"
-                            onClick={() => viewingImage && handleDownloadImage(viewingImage)}
-                        >
-                            <Download />
-                        </Button>
-                    </div>
-                </DialogContent>
                 <div className="p-4">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -1020,18 +1003,16 @@ function FeedPageContent() {
                 </Tabs>
             </div>
       </div>
-      <Tabs value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-            <TabsContent value="saved-posts" className="mt-0">
-                {renderPostList(filteredSavedPosts, false)}
-            </TabsContent>
-            <TabsContent value="upvoted-posts" className="mt-0">
-                <div className="text-center py-20 text-muted-foreground">
-                    <Heart className="h-12 w-12 mx-auto mb-4"/>
-                    <p className="text-lg font-semibold">No upvoted posts yet</p>
-                    <p>Posts you upvote will appear here.</p>
-                </div>
-            </TabsContent>
-        </Tabs>
+      <TabsContent value="saved-posts" className="mt-0">
+          {renderPostList(filteredSavedPosts, false)}
+      </TabsContent>
+      <TabsContent value="upvoted-posts" className="mt-0">
+          <div className="text-center py-20 text-muted-foreground">
+              <Heart className="h-12 w-12 mx-auto mb-4"/>
+              <p className="text-lg font-semibold">No upvoted posts yet</p>
+              <p>Posts you upvote will appear here.</p>
+          </div>
+      </TabsContent>
     </>
   );
   
@@ -1263,3 +1244,4 @@ export default function FeedPage() {
     
 
     
+
