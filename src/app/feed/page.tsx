@@ -126,6 +126,7 @@ import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
+import { addToCart } from '@/lib/product-history';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -219,6 +220,8 @@ const FeedPost = ({
     onReport,
     onSaveToggle,
     onFollowToggle,
+    onAddToCart,
+    onBuyNow,
     isSaved,
     isFollowing,
     currentUser,
@@ -233,6 +236,8 @@ const FeedPost = ({
     onReport: () => void,
     onSaveToggle: (post: any) => void,
     onFollowToggle: (targetId: string) => void,
+    onAddToCart: (product: any) => void,
+    onBuyNow: (product: any) => void,
     isSaved: boolean,
     isFollowing: boolean,
     currentUser: User | null,
@@ -328,14 +333,6 @@ const FeedPost = ({
                                             {isFollowing ? "Following" : "Follow"}
                                         </Button>
                                     )}
-                                    {post.taggedProduct && (
-                                        <CollapsibleTrigger asChild>
-                                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
-                                                <ShoppingBag className="mr-1 h-3 w-3" />
-                                                View Product
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                    )}
                                 </div>
                                 <div className="text-xs text-muted-foreground font-normal">
                                     {post.timestamp}
@@ -381,22 +378,6 @@ const FeedPost = ({
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-                     <CollapsibleContent>
-                        <Card className="my-3">
-                            <CardContent className="p-3 flex items-center gap-4">
-                                <Image src={post.taggedProduct?.image} alt={post.taggedProduct?.name} width={60} height={60} className="rounded-md" />
-                                <div className="flex-grow">
-                                    <h4 className="font-semibold text-sm">{post.taggedProduct?.name}</h4>
-                                    <p className="font-bold text-base">{post.taggedProduct?.price}</p>
-                                </div>
-                                <Button asChild size="sm">
-                                    <Link href={`/product/${post.taggedProduct?.id}`}>
-                                        Buy Now
-                                    </Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                     </CollapsibleContent>
 
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
@@ -404,7 +385,7 @@ const FeedPost = ({
                 </div>
 
                 {imageCount > 0 && (
-                    <div className="px-4">
+                    <div className="px-4 relative group/post-image">
                          <div
                             className={cn(
                                 "grid gap-1 rounded-lg overflow-hidden",
@@ -435,6 +416,33 @@ const FeedPost = ({
                                 </DialogTrigger>
                             ))}
                         </div>
+                        {post.taggedProduct && (
+                            <div className="absolute inset-0 bg-black/30 group-hover/post-image:bg-black/50 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover/post-image:opacity-100">
+                                <Card className="bg-background/80 backdrop-blur-sm max-w-sm">
+                                    <CardContent className="p-4 flex flex-col gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <Image src={post.taggedProduct?.image} alt={post.taggedProduct?.name} width={80} height={80} className="rounded-md" />
+                                            <div className="flex-grow">
+                                                <h4 className="font-semibold text-base">{post.taggedProduct?.name}</h4>
+                                                <p className="font-bold text-xl">{post.taggedProduct?.price}</p>
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    <p>{post.taggedProduct.stock} left in stock</p>
+                                                    <p>{post.taggedProduct.totalBought || 0} already sold</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button size="sm" className="flex-1" onClick={() => onAddToCart(post.taggedProduct)}>
+                                                <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                                            </Button>
+                                            <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(post.taggedProduct)}>
+                                                Buy Now
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className="px-4 pb-4 mt-4 flex items-center justify-between">
@@ -707,9 +715,12 @@ function FeedPageContent() {
                 images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
                 taggedProduct: {
                     id: 'prod_1',
+                    key: 'prod_1',
                     name: 'Vintage Camera',
                     price: '₹12,500.00',
-                    image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080'
+                    image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080',
+                    stock: 15,
+                    totalBought: 42
                 }
             };
             
@@ -894,6 +905,18 @@ function FeedPageContent() {
       prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
     );
   };
+
+  const handleAddToCart = (product: any) => {
+    addToCart({ ...product, quantity: 1 });
+    toast({
+        title: "Added to Cart!",
+        description: `${product.name} has been added to your cart.`
+    });
+  };
+
+  const handleBuyNow = (product: any) => {
+    router.push(`/cart?buyNow=true&productId=${product.key}`);
+  };
   
   const renderPostList = (posts: any[], isLoading: boolean) => {
       if (isLoading) {
@@ -918,6 +941,8 @@ function FeedPageContent() {
                         onReport={() => setIsReportDialogOpen(true)}
                         onSaveToggle={handleSaveToggle}
                         onFollowToggle={handleFollowToggle}
+                        onAddToCart={handleAddToCart}
+                        onBuyNow={handleBuyNow}
                         isSaved={isPostSaved(post.id)}
                         isFollowing={followingIds.includes(post.sellerId)}
                         highlightTerm={debouncedSearchTerm}
@@ -951,24 +976,26 @@ function FeedPageContent() {
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-            </div>
-        </TabsList>
-        <TabsContent value="saved-posts" className="mt-0">
-            {renderPostList(filteredSavedPosts, false)}
-        </TabsContent>
-        <TabsContent value="upvoted-posts" className="mt-0">
-            <div className="text-center py-20 text-muted-foreground">
-                <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
-                <p className="text-lg font-semibold">No upvoted posts yet</p>
-                <p>Posts you upvote will appear here.</p>
-            </div>
-        </TabsContent>
-    </Tabs>
+    <div className="pt-4">
+        <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-[65px] z-20 backdrop-blur-sm">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                    <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+                </div>
+            </TabsList>
+            <TabsContent value="saved-posts" className="mt-0">
+                {renderPostList(filteredSavedPosts, false)}
+            </TabsContent>
+            <TabsContent value="upvoted-posts" className="mt-0">
+                <div className="text-center py-20 text-muted-foreground">
+                    <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
+                    <p className="text-lg font-semibold">No upvoted posts yet</p>
+                    <p>Posts you upvote will appear here.</p>
+                </div>
+            </TabsContent>
+        </Tabs>
+    </div>
   );
   
   const renderMessagesContent = () => (
