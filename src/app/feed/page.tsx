@@ -1127,17 +1127,17 @@ function FeedPageContent() {
 
 
   return (
-    <div className="h-screen w-full">
+    <div className="h-dvh w-full">
          <div className={cn(
-             "grid h-screen w-full", 
+             "grid h-full w-full", 
              (mainTab === 'feed' || mainTab === 'saves') && "lg:grid-cols-[260px_1fr_320px]",
              (mainTab === 'messages') && "lg:grid-cols-[260px_1fr]"
          )}>
-                <aside className={cn("h-screen flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
+                <aside className={cn("h-full flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
-                 <div className="flex flex-col h-screen">
+                 <div className="flex flex-col h-full">
                     {mainTab !== 'messages' && (
                         <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                             <div className="p-4 flex items-center justify-between gap-4">
@@ -1147,6 +1147,12 @@ function FeedPageContent() {
                                             <Menu className="h-5 w-5" />
                                         </Button>
                                     </div>
+                                    <Button variant="ghost" asChild className="h-10 px-4">
+                                        <Link href="/live-selling">
+                                            <ArrowLeft className="h-5 w-5 mr-2" />
+                                            Back
+                                        </Link>
+                                    </Button>
                                 </div>
                                 <Popover open={showSuggestions}>
                                     <PopoverAnchor asChild>
@@ -1193,10 +1199,6 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
-                                <Button variant="ghost" onClick={() => router.back()} className="h-10 px-4">
-                                  <ArrowLeft className="h-5 w-5 mr-2" />
-                                  Back
-                                </Button>
                             </div>
                         </header>
                     )}
@@ -1221,14 +1223,14 @@ function FeedPageContent() {
                         </div>
                     </div>
                      <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
-                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[85vh] p-0" : "lg:w-96 p-0 border-l")}>
+                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[85dvh] p-0" : "lg:w-96 p-0 border-l")}>
                             <CommentColumn post={selectedPostForComments} onClose={() => setSelectedPostForComments(null)} />
                         </SheetContent>
                     </Sheet>
                 </div>
 
                 {(mainTab === 'feed' || mainTab === 'saves') && (
-                    <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
+                    <aside className="h-full flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
                     <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                             <div className="flex-shrink-0">
                             </div>
@@ -1312,5 +1314,6 @@ export default function FeedPage() {
     
 
     
+
 
 

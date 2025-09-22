@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -60,7 +61,7 @@ export default function MessagePage() {
     }
 
     return (
-        <div className="h-screen w-full flex overflow-hidden">
+        <div className="h-dvh w-full flex overflow-hidden">
              {selectedConversation ? (
                  <ChatWindow 
                     key={selectedConversation.userId}

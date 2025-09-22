@@ -507,7 +507,7 @@ export default function StreamPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <div className="h-screen w-full bg-black text-white flex flex-col lg:flex-row">
+    <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         {/* Main content for large screens */}
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
@@ -592,7 +592,7 @@ export default function StreamPage() {
         </div>
 
         {/* Combined layout for small screens */}
-        <div className="lg:hidden flex flex-col h-screen w-full bg-black">
+        <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handleClick}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />

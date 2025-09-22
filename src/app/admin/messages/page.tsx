@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -106,7 +107,7 @@ export default function AdminMessagePage() {
   }, [conversations, debouncedSearchTerm]);
 
   return (
-    <div className="h-screen w-full flex bg-background text-foreground overflow-hidden">
+    <div className="h-dvh w-full flex bg-background text-foreground overflow-hidden">
         <div className={cn(
             "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
             isMobile && selectedConversation && "hidden"
