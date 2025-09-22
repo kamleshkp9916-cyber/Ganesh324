@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -58,6 +59,7 @@ import {
   List,
   Sparkles,
   Edit,
+  UserCheck,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -315,7 +317,7 @@ const FeedPost = ({
                                                 setIsFollowingState(prev => !prev);
                                             }}
                                         >
-                                            <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                            {isFollowingState ? <UserCheck className="h-4 w-4 sm:mr-1.5" /> : <UserPlus className="h-4 w-4 sm:mr-1.5" />}
                                             <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
                                         </Button>
                                     )}
@@ -509,6 +511,7 @@ function FeedPageContent() {
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [mainTab, setMainTab] = useState('feed');
   const [feedTab, setFeedTab] = useState('for-you');
+  const [activeHashtag, setActiveHashtag] = useState<string | null>(null);
   const [savesSubTab, setSavesSubTab] = useState('saved-posts');
   
   const { open, setOpen } = useSidebar();
@@ -659,11 +662,18 @@ function FeedPageContent() {
   
   const filteredFeed = useMemo(() => {
     let currentFeed: any[] = [];
-    if (feedTab === 'for-you') {
-        currentFeed = feed;
-    } else if (feedTab === 'following' && user) {
+    if (feedTab === 'following' && user) {
         currentFeed = feed.filter(post => 
             followingIds.includes(post.sellerId) || post.sellerId === user.uid
+        );
+    } else {
+        currentFeed = feed;
+    }
+
+    if(activeHashtag) {
+        setFeedTab(`hashtag-${activeHashtag}`);
+        return currentFeed.filter(item => 
+            item.content.toLowerCase().includes(`#${activeHashtag.toLowerCase()}`)
         );
     }
     
@@ -672,14 +682,14 @@ function FeedPageContent() {
 
     if(lowercasedSearchTerm.startsWith('#')) {
         return currentFeed.filter(item => 
-            (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm.substring(1))))
+            item.content.toLowerCase().includes(lowercasedSearchTerm)
         );
     }
 
     return currentFeed.filter(item => 
         item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [debouncedSearchTerm, feed, feedTab, followingIds, user]);
+  }, [debouncedSearchTerm, feed, feedTab, followingIds, user, activeHashtag]);
   
   const filteredSavedPosts = useMemo(() => {
       let postsToFilter = savedPosts;
@@ -996,7 +1006,11 @@ function FeedPageContent() {
                         isSaved={isPostSaved(post.id)}
                         isFollowing={followingIds.includes(post.sellerId)}
                         highlightTerm={debouncedSearchTerm}
-                        onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
+                        onHashtagClick={(tag) => {
+                            setActiveHashtag(tag);
+                            setFeedTab(`hashtag-${tag}`);
+                            setSearchTerm('');
+                        }}
                         onCommentClick={(post) => setSelectedPostForComments(post)}
                     />
                 ))}
@@ -1012,17 +1026,29 @@ function FeedPageContent() {
   };
   
   const renderFeedContent = () => (
-    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
+    <Tabs value={feedTab} onValueChange={(value) => {
+        if (!value.startsWith('hashtag-')) {
+            setActiveHashtag(null);
+            setFeedTab(value);
+        }
+    }} className="w-full h-full flex flex-col">
       <div className="flex-shrink-0 border-b px-4 sm:px-6 lg:px-8">
         <TabsList className="bg-transparent p-0">
           <TabsTrigger value="for-you" onClick={handleDoubleClick} onDoubleClick={(e) => e.preventDefault()} className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
           <TabsTrigger value="following" onClick={handleDoubleClick} onDoubleClick={(e) => e.preventDefault()} className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+           {activeHashtag && (
+             <TabsTrigger value={`hashtag-${activeHashtag}`} className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">
+                <div className="flex items-center gap-2">
+                    <span>#{activeHashtag}</span>
+                    <button onClick={(e) => { e.stopPropagation(); setActiveHashtag(null); setFeedTab('for-you'); }} className="rounded-full hover:bg-muted p-0.5">
+                        <X className="h-3 w-3" />
+                    </button>
+                </div>
+            </TabsTrigger>
+           )}
         </TabsList>
       </div>
-      <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
-        {renderPostList(filteredFeed, isLoadingFeed)}
-      </TabsContent>
-      <TabsContent value="following" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
+      <TabsContent value={feedTab} className="flex-grow mt-0 overflow-y-auto no-scrollbar">
         {renderPostList(filteredFeed, isLoadingFeed)}
       </TabsContent>
     </Tabs>
@@ -1218,7 +1244,10 @@ function FeedPageContent() {
                                             <ul className="space-y-3">
                                                 {trendingTopics.map(topic => (
                                                     <li key={topic.topic}>
-                                                        <button onClick={() => setSearchTerm(`#${topic.topic}`)} className="font-semibold hover:underline text-left w-full">
+                                                        <button onClick={() => {
+                                                            setActiveHashtag(topic.topic);
+                                                            setFeedTab(`hashtag-${topic.topic}`);
+                                                        }} className="font-semibold hover:underline text-left w-full">
                                                             #{topic.topic}
                                                         </button>
                                                         <p className="text-xs text-muted-foreground">{topic.posts}</p>
