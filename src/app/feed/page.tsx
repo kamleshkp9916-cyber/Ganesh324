@@ -1147,12 +1147,6 @@ function FeedPageContent() {
                                             <Menu className="h-5 w-5" />
                                         </Button>
                                     </div>
-                                    <Button variant="ghost" asChild className="h-10 px-4">
-                                        <Link href="/live-selling">
-                                            <ArrowLeft className="h-5 w-5 mr-2" />
-                                            Back
-                                        </Link>
-                                    </Button>
                                 </div>
                                 <Popover open={showSuggestions}>
                                     <PopoverAnchor asChild>
@@ -1201,8 +1195,8 @@ function FeedPageContent() {
                                 </Popover>
                                 <Button variant="ghost" asChild className="h-10 px-4">
                                   <Link href="/live-selling">
-                                      <Home className="h-5 w-5 mr-2" />
-                                      Home
+                                      <ArrowLeft className="h-5 w-5 mr-2" />
+                                      Back
                                   </Link>
                                 </Button>
                             </div>
@@ -1320,6 +1314,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
