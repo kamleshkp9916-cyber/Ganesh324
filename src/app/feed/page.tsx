@@ -320,58 +320,60 @@ const FeedPost = ({
                                             {isFollowingState ? "Following" : "Follow"}
                                         </Button>
                                     )}
-                                     {post.taggedProducts && post.taggedProducts.length > 0 && (
-                                        <CollapsibleTrigger asChild>
-                                             <Button variant="secondary" size="sm" className="h-7 px-2 text-secondary-foreground hover:bg-secondary/80">
-                                                <ShoppingBag className="w-4 h-4 mr-1"/>
-                                                View Product{post.taggedProducts.length > 1 && 's'}
-                                            </Button>
-                                        </CollapsibleTrigger>
-                                    )}
                                 </div>
                                 <div className="text-xs text-muted-foreground font-normal">
                                     {post.timestamp}
                                 </div>
                             </div>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                {isOwnPost && (
-                                    <>
-                                        <DropdownMenuItem onSelect={() => onEdit(post)}>
-                                            <Edit className="mr-2 h-4 w-4" /> Edit
-                                        </DropdownMenuItem>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                         <div className="flex items-center gap-2">
+                             {post.taggedProducts && post.taggedProducts.length > 0 && (
+                                <CollapsibleTrigger asChild>
+                                     <Button variant="secondary" size="sm" className="h-7 px-2 text-secondary-foreground hover:bg-secondary/80">
+                                        <ShoppingBag className="w-4 h-4 mr-1"/>
+                                        View Products
+                                    </Button>
+                                </CollapsibleTrigger>
+                            )}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    {isOwnPost && (
+                                        <>
+                                            <DropdownMenuItem onSelect={() => onEdit(post)}>
+                                                <Edit className="mr-2 h-4 w-4" /> Edit
+                                            </DropdownMenuItem>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>This will permanently delete your post.</AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
 
-                                        <DropdownMenuSeparator />
-                                    </>
-                                )}
-                                <DropdownMenuItem onClick={() => onSaveToggle(post)}>
-                                    <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave' : 'Save'}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                            <DropdownMenuSeparator />
+                                        </>
+                                    )}
+                                    <DropdownMenuItem onClick={() => onSaveToggle(post)}>
+                                        <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave' : 'Save'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => onShare(post.id)}><Share2 className="mr-2 h-4 w-4" /> Share</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={onReport}><Flag className="mr-2 h-4 w-4" /> Report</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </div>
                  <CollapsibleContent>
@@ -992,26 +994,26 @@ function FeedPageContent() {
 
   const renderSavesContent = () => (
     <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
-      <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
                     <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
                     <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
                 </TabsList>
             </div>
-      </div>
-      <TabsContent value="saved-posts" className="mt-0">
-          {renderPostList(filteredSavedPosts, false)}
-      </TabsContent>
-      <TabsContent value="upvoted-posts" className="mt-0">
-          <div className="text-center py-20 text-muted-foreground">
-              <Heart className="h-12 w-12 mx-auto mb-4"/>
-              <p className="text-lg font-semibold">No upvoted posts yet</p>
-              <p>Posts you upvote will appear here.</p>
-          </div>
-      </TabsContent>
+        </div>
+        <TabsContent value="saved-posts" className="mt-0">
+            {renderPostList(filteredSavedPosts, false)}
+        </TabsContent>
+        <TabsContent value="upvoted-posts" className="mt-0">
+            <div className="text-center py-20 text-muted-foreground">
+                <Heart className="h-12 w-12 mx-auto mb-4"/>
+                <p className="text-lg font-semibold">No upvoted posts yet</p>
+                <p>Posts you upvote will appear here.</p>
+            </div>
+        </TabsContent>
     </Tabs>
-  );
+);
   
   const renderMessagesContent = () => (
        <div className="h-full flex overflow-hidden">
@@ -1241,5 +1243,6 @@ export default function FeedPage() {
     
 
     
+
 
 
