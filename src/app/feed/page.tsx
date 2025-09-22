@@ -404,9 +404,13 @@ const FeedPost = ({
                                                 <p className="font-bold text-lg">{product.price}</p>
                                                 <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
                                             </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-2 h-4 w-4" /> Cart</Button>
-                                                <Button size="sm" className="flex-1 h-7 text-xs" onClick={() => onBuyNow(product)}>Buy</Button>
+                                            <div className="flex items-center gap-2">
+                                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onAddToCart(product)}>
+                                                    <ShoppingCart className="mr-2 h-4 w-4" /> Cart
+                                                </Button>
+                                                <Button size="sm" className="h-8 text-xs" onClick={() => onBuyNow(product)}>
+                                                    Buy
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}
@@ -1243,6 +1247,8 @@ export default function FeedPage() {
     
 
 
+
+    
 
     
 
