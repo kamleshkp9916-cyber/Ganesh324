@@ -256,7 +256,7 @@ const FeedPost = ({
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = blobUrl;
-                a.download = `streamcart_image_${Date.now()}.jpg`;
+                a.download = 'streamcart_image_' + Date.now() + '.jpg';
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(blobUrl);
@@ -268,7 +268,7 @@ const FeedPost = ({
     const imageCount = post.images?.length || 0;
     
     const renderContentWithHashtags = (text: string) => {
-        const parts = text.split(/(#\w+)/g);
+        const parts = text.split(/(#\\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 const tag = part.substring(1);
@@ -576,7 +576,7 @@ function FeedPageContent() {
         const usersRef = collection(db, "users");
         const userQuery = query(usersRef, 
             where("displayName", ">=", debouncedSearchTerm), 
-            where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
+            where("displayName", "<=", debouncedSearchTerm + '\\uf8ff'),
             limit(3)
         );
         const userSnapshot = await getDocs(userQuery);
@@ -703,7 +703,7 @@ function FeedPageContent() {
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
     feed.forEach(post => {
-        const hashtags = Array.from(post.content.matchAll(/#(\w+)/g)).map((match: any) => match[1]);
+        const hashtags = Array.from(post.content.matchAll(/#(\\w+)/g)).map((match: any) => match[1]);
         hashtags.forEach((tag: string) => {
             if (tag) {
                 hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
@@ -713,7 +713,7 @@ function FeedPageContent() {
     return Object.entries(hashtagCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(([topic, posts]) => ({ topic, posts, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
+        .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
   }, [feed]);
 
   const trendingStreams = useMemo(() => {
@@ -786,7 +786,7 @@ function FeedPageContent() {
             
             const dataToUpdate: any = {
                 content: postData.content,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
                 taggedProducts: postData.taggedProducts
             };
@@ -798,7 +798,7 @@ function FeedPageContent() {
             const db = getFirestoreDb();
             const dataToSave: any = {
                 content: postData.content,
-                tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
+                tags: Array.from(postData.content.matchAll(/#(\\w+)/g) || []).map((match: any) => match[1]),
                 taggedProducts: postData.taggedProducts,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
@@ -993,7 +993,7 @@ function FeedPageContent() {
   
  const renderFeedContent = () => (
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
+        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-16 z-20 backdrop-blur-sm">
             <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
             <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
         </TabsList>
@@ -1004,19 +1004,19 @@ function FeedPageContent() {
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full mt-0">
+    <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
       <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-        <div className="px-4 sm:px-6 lg:px-8">
+        <div className="">
             <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
                 <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
                 <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
             </TabsList>
         </div>
       </div>
-      <TabsContent value="saved-posts" className="mt-4">
+      <TabsContent value="saved-posts" className="pt-4">
           {renderPostList(filteredSavedPosts, false)}
       </TabsContent>
-      <TabsContent value="upvoted-posts" className="mt-4">
+      <TabsContent value="upvoted-posts" className="pt-4">
           <div className="text-center py-20 text-muted-foreground">
               <Heart className="h-12 w-12 mx-auto mb-4"/>
               <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1255,6 +1255,8 @@ export default function FeedPage() {
     
 
     
+
+
 
 
 
