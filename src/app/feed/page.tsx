@@ -1137,7 +1137,7 @@ function FeedPageContent() {
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
-                 <div className="flex flex-col h-full">
+                 <div className="flex flex-col h-full overflow-hidden">
                     {mainTab !== 'messages' && (
                         <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                             <div className="p-4 flex items-center justify-between gap-4">
@@ -1202,25 +1202,23 @@ function FeedPageContent() {
                             </div>
                         </header>
                     )}
-                    <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
-                        <div className="flex-1 flex flex-col h-full">
-                           <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                               {renderMainContent()}
-                           </div>
-                           
-                           {mainTab === 'feed' && (
-                                <div className="w-full pointer-events-auto mt-auto flex-shrink-0 sticky bottom-0 z-10">
-                                    <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
-                                        <CreatePostForm
-                                            onPost={handlePostSubmit}
-                                            postToEdit={postToEdit}
-                                            onFinishEditing={onFinishEditing}
-                                            isSubmitting={isFormSubmitting}
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                    <div className={cn("flex-1 flex flex-col overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
+                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                            {renderMainContent()}
                         </div>
+                        
+                        {mainTab === 'feed' && (
+                            <div className="flex-shrink-0 mt-auto sticky bottom-0 z-10">
+                                <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
+                                    <CreatePostForm
+                                        onPost={handlePostSubmit}
+                                        postToEdit={postToEdit}
+                                        onFinishEditing={onFinishEditing}
+                                        isSubmitting={isFormSubmitting}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                      <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
                         <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[85dvh] p-0" : "lg:w-96 p-0 border-l")}>
@@ -1314,6 +1312,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
