@@ -1190,10 +1190,16 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
-                                <Button asChild variant="ghost" size="icon">
-                                    <Link href="/live-selling">
-                                        <Home className="h-5 w-5" />
-                                    </Link>
+                                <Button asChild variant="ghost" size="icon" className="h-auto flex-col px-1 lg:hidden">
+                                  <Link href="/live-selling">
+                                    <Home className="h-5 w-5" />
+                                    <span className="text-xs">Go Home</span>
+                                  </Link>
+                                </Button>
+                                <Button asChild variant="ghost" size="icon" className="hidden lg:inline-flex">
+                                  <Link href="/live-selling">
+                                    <Home className="h-5 w-5" />
+                                  </Link>
                                 </Button>
                             </div>
                         </header>
@@ -1329,3 +1335,4 @@ export default function FeedPage() {
 
 
     
+
