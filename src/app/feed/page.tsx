@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -339,8 +340,9 @@ const FeedPost = ({
                                     )}
                                      {post.taggedProducts && post.taggedProducts.length > 0 && (
                                         <CollapsibleTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-                                                <ShoppingBag className="w-4 h-4"/>
+                                            <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground">
+                                                <ShoppingBag className="w-4 h-4 mr-1"/>
+                                                View Products
                                             </Button>
                                         </CollapsibleTrigger>
                                     )}
@@ -390,45 +392,7 @@ const FeedPost = ({
                         </DropdownMenu>
                     </div>
 
-                    <CollapsibleContent>
-                         {post.taggedProducts && post.taggedProducts.length > 0 && (
-                            <Card className="my-2">
-                                <CardContent className="p-3 space-y-2">
-                                    {post.taggedProducts.map((product: any) => (
-                                        <div key={product.key} className="flex items-center gap-4">
-                                            <Link href={`/product/${product.key}`}>
-                                                <Image src={product.image || product.images?.[0]?.preview || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
-                                            </Link>
-                                            <div className="flex-grow">
-                                                <Link href={`/product/${product.key}`} className="hover:underline">
-                                                    <h4 className="font-semibold text-sm">{product.name}</h4>
-                                                </Link>
-                                                <p className="font-bold text-lg">{product.price}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
-                                                </p>
-                                            </div>
-                                            {product.stock > 0 ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
-                                                        <ShoppingCart className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
-                                                        Buy Now
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                 <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
-                                                    Notify Me
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        )}
-                    </CollapsibleContent>
-
+                    
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
                     </div>
@@ -468,6 +432,49 @@ const FeedPost = ({
                         </div>
                     </div>
                 )}
+                 <CollapsibleContent>
+                         {post.taggedProducts && post.taggedProducts.length > 0 && (
+                            <div className="p-4">
+                                <Card>
+                                    <CardContent className="p-3 space-y-2">
+                                        {post.taggedProducts.map((product: any) => (
+                                            <div key={product.key} className="flex items-center gap-4">
+                                                <Link href={`/product/${product.key}`}>
+                                                    <Image src={product.image || product.images?.[0]?.preview || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                </Link>
+                                                <div className="flex-grow">
+                                                    <Link href={`/product/${product.key}`} className="hover:underline">
+                                                        <h4 className="font-semibold text-sm">{product.name}</h4>
+                                                    </Link>
+                                                    <p className="font-bold text-lg">{product.price}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                     {product.stock > 0 ? (
+                                                        <>
+                                                            <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
+                                                                <ShoppingCart className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
+                                                                Buy Now
+                                                            </Button>
+                                                        </>
+                                                     ) : (
+                                                         <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
+                                                            Notify Me
+                                                        </Button>
+                                                     )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+                    </CollapsibleContent>
+
                 <div className="px-4 pb-4 mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" className="flex items-center gap-1.5 px-2">
