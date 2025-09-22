@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -59,13 +58,6 @@ import {
   List,
   Sparkles,
   Edit,
-  Download,
-  BookText,
-  ArrowLeft,
-  PanelLeft,
-  Paperclip,
-  PlusCircle,
-  ThumbsUp,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -223,7 +215,9 @@ const FeedPost = ({
     onShare,
     onReport,
     onSaveToggle,
+    onFollowToggle,
     isSaved,
+    isFollowing,
     currentUser,
     highlightTerm,
     onHashtagClick,
@@ -235,7 +229,9 @@ const FeedPost = ({
     onShare: (postId: string) => void,
     onReport: () => void,
     onSaveToggle: (post: any) => void,
+    onFollowToggle: (targetId: string) => void,
     isSaved: boolean,
+    isFollowing: boolean,
     currentUser: User | null,
     highlightTerm?: string,
     onHashtagClick: (tag: string) => void;
@@ -278,6 +274,8 @@ const FeedPost = ({
         });
     };
 
+    const isOwnPost = currentUser?.uid === post.sellerId;
+
 
     return (
         <Dialog>
@@ -301,26 +299,43 @@ const FeedPost = ({
                 </DialogContent>
                 <div className="p-4">
                     <div className="flex items-start justify-between">
-                        <Link href={`/seller/profile?userId=${post.sellerId}`} className="flex items-center gap-3 group">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={post.avatarUrl} />
-                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <span className="font-semibold group-hover:underline">
-                                    <Highlight text={post.sellerName} highlight={highlightTerm} />
-                                </span>
+                        <div className="flex items-center gap-3">
+                            <Link href={`/seller/profile?userId=${post.sellerId}`} className="group flex-shrink-0">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage src={post.avatarUrl} />
+                                    <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </Link>
+                            <div className="flex-grow">
+                                <div className="flex items-center gap-2">
+                                     <Link href={`/seller/profile?userId=${post.sellerId}`} className="group">
+                                        <span className="font-semibold group-hover:underline">
+                                            <Highlight text={post.sellerName} highlight={highlightTerm} />
+                                        </span>
+                                    </Link>
+                                    {!isOwnPost && (
+                                        <Button
+                                            variant={isFollowing ? "outline" : "secondary"}
+                                            size="sm"
+                                            className="h-6 px-2 text-xs"
+                                            onClick={() => onFollowToggle(post.sellerId)}
+                                        >
+                                             <UserPlus className="mr-1 h-3 w-3" />
+                                            {isFollowing ? "Following" : "Follow"}
+                                        </Button>
+                                    )}
+                                </div>
                                 <div className="text-xs text-muted-foreground font-normal">
                                     {post.timestamp}
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {currentUser && currentUser.uid === post.sellerId && (
+                                {isOwnPost && (
                                     <>
                                         <DropdownMenuItem onSelect={() => onEdit(post)}>
                                             <Edit className="mr-2 h-4 w-4" /> Edit
@@ -840,6 +855,14 @@ function FeedPageContent() {
     toggleSavePost(post);
     loadSavedPosts();
   };
+
+  const handleFollowToggle = async (targetId: string) => {
+    if (!user) return;
+    await toggleFollow(user.uid, targetId);
+    setFollowingIds(prev =>
+      prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
+    );
+  };
   
   const renderPostList = (posts: any[], isLoading: boolean) => {
       if (isLoading) {
@@ -863,7 +886,9 @@ function FeedPageContent() {
                         onShare={handleShare}
                         onReport={() => setIsReportDialogOpen(true)}
                         onSaveToggle={handleSaveToggle}
+                        onFollowToggle={handleFollowToggle}
                         isSaved={isPostSaved(post.id)}
+                        isFollowing={followingIds.includes(post.sellerId)}
                         highlightTerm={debouncedSearchTerm}
                         onHashtagClick={(tag) => setSearchTerm(`#${tag}`)}
                         onCommentClick={(post) => setSelectedPostForComments(post)}
@@ -935,7 +960,6 @@ function FeedPageContent() {
              {selectedConversation && userData ? (
                   <ChatWindow 
                       key={selectedConversation.userId}
-                      conversation={selectedConversation}
                       userData={userData}
                       messages={currentMessages || []}
                       onSendMessage={handleSendMessage}
@@ -1145,3 +1169,6 @@ export default function FeedPage() {
 
     
 
+
+
+    
