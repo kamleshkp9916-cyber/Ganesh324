@@ -390,57 +390,58 @@ const FeedPost = ({
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-
-                     <CollapsibleContent>
-                         {post.taggedProducts && post.taggedProducts.length > 0 && (
-                            <div className="pt-3">
-                                <Card>
-                                    <CardContent className="p-3 space-y-2">
-                                        {post.taggedProducts.map((product: any) => (
-                                            <div key={product.key} className="flex items-center gap-4">
-                                                <Link href={`/product/${product.key}`}>
-                                                    <Image src={product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                </div>
+                 <CollapsibleContent>
+                    {post.taggedProducts && post.taggedProducts.length > 0 && (
+                        <div className="px-4 pb-2">
+                            <Card>
+                                <CardContent className="p-0 divide-y">
+                                    {post.taggedProducts.map((product: any, index: number) => (
+                                        <div key={product.key} className="flex items-center gap-4 p-3">
+                                            <Link href={`/product/${product.key}`}>
+                                                <Image src={product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                                            </Link>
+                                            <div className="flex-grow">
+                                                <Link href={`/product/${product.key}`} className="hover:underline">
+                                                    <h4 className="font-semibold text-sm">{product.name}</h4>
                                                 </Link>
-                                                <div className="flex-grow">
-                                                    <Link href={`/product/${product.key}`} className="hover:underline">
-                                                        <h4 className="font-semibold text-sm">{product.name}</h4>
-                                                    </Link>
-                                                    <p className="font-bold text-lg">{product.price}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
-                                                    </p>
-                                                </div>
-                                                 <div className="flex items-center gap-2">
-                                                     {product.stock > 0 ? (
-                                                        <>
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
-                                                                <ShoppingCart className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
-                                                                Buy Now
-                                                            </Button>
-                                                        </>
-                                                     ) : (
-                                                         <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
-                                                            Notify Me
-                                                        </Button>
-                                                     )}
-                                                </div>
+                                                <p className="font-bold text-lg">{product.price}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
+                                                </p>
                                             </div>
-                                        ))}
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        )}
-                    </CollapsibleContent>
+                                             <div className="flex items-center gap-2">
+                                                 {product.stock > 0 ? (
+                                                    <>
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 border" onClick={() => onAddToCart(product)}>
+                                                            <ShoppingCart className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button size="sm" className="h-9 text-xs" onClick={() => onBuyNow(product)}>
+                                                            Buy Now
+                                                        </Button>
+                                                    </>
+                                                 ) : (
+                                                     <Button size="sm" className="h-9 text-xs" onClick={() => onNotifyMe(product)}>
+                                                        Notify Me
+                                                    </Button>
+                                                 )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                </CollapsibleContent>
                     
+                <div className="px-4">
                      <div className="pt-4 text-sm text-muted-foreground whitespace-pre-wrap">
                         {renderContentWithHashtags(post.content)}
                     </div>
                 </div>
 
                 {imageCount > 0 && (
-                    <div className="px-4">
+                    <div className="px-4 pt-4">
                          <div
                             className={cn(
                                 "grid gap-1 rounded-lg overflow-hidden",
@@ -745,7 +746,7 @@ function FeedPageContent() {
                 images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
                 taggedProducts: [
                     productDetails['prod_1'],
-                    productDetails['prod_3']
+                    {...productDetails['prod_3'], stock: 0}
                 ]
             };
             
@@ -1258,5 +1259,6 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
+    
 
     
