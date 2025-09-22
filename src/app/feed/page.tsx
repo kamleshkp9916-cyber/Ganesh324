@@ -384,7 +384,7 @@ const FeedPost = ({
                                     {post.taggedProducts.map((product: any, index: number) => (
                                         <div key={product.key || index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                                             <Link href={`/product/${product.key}`}>
-                                                <Image src={product.images?.[0] || product.image?.preview || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                <Image src={product.image?.preview || product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${product.key}`} className="hover:underline">
@@ -999,19 +999,17 @@ function FeedPageContent() {
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
+    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
         <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
-                    <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
-                    <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
-                </TabsList>
-            </div>
+            <TabsList className="w-full justify-start rounded-none bg-transparent p-0 px-4 sm:px-6 lg:px-8">
+                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+            </TabsList>
         </div>
-        <TabsContent value="saved-posts">
+        <TabsContent value="saved-posts" className="mt-0">
             {renderPostList(filteredSavedPosts, false)}
         </TabsContent>
-        <TabsContent value="upvoted-posts">
+        <TabsContent value="upvoted-posts" className="mt-0">
             <div className="text-center py-20 text-muted-foreground">
                 <Heart className="h-12 w-12 mx-auto mb-4"/>
                 <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1249,6 +1247,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
