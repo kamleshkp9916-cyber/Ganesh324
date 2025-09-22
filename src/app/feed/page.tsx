@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -222,7 +221,7 @@ const FeedPost = ({
     onAddToCart,
     onBuyNow,
     isSaved,
-    isFollowing,
+    isFollowing: initialIsFollowing,
     currentUser,
     highlightTerm,
     onHashtagClick,
@@ -247,6 +246,7 @@ const FeedPost = ({
     
     const [viewingImage, setViewingImage] = useState<string | null>(null);
     const { toast } = useToast();
+    const [isFollowingState, setIsFollowingState] = useState(initialIsFollowing);
 
     const handleDownloadImage = (url: string) => {
         fetch(url)
@@ -316,25 +316,28 @@ const FeedPost = ({
                             </Link>
                             <div className="flex-grow">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                     <Link href={`/seller/profile?userId=${post.sellerId}`} className="group">
+                                    <Link href={`/seller/profile?userId=${post.sellerId}`} className="group">
                                         <span className="font-semibold group-hover:underline">
                                             <Highlight text={post.sellerName} highlight={highlightTerm} />
                                         </span>
                                     </Link>
                                     {!isOwnPost && (
                                         <Button
-                                            variant={isFollowing ? "outline" : "secondary"}
+                                            variant={isFollowingState ? "outline" : "secondary"}
                                             size="sm"
                                             className="h-6 px-2 text-xs"
-                                            onClick={() => onFollowToggle(post.sellerId)}
+                                            onClick={() => {
+                                                onFollowToggle(post.sellerId);
+                                                setIsFollowingState(prev => !prev);
+                                            }}
                                         >
-                                             <UserPlus className="mr-1 h-3 w-3" />
-                                            {isFollowing ? "Following" : "Follow"}
+                                            <UserPlus className="mr-1 h-3 w-3" />
+                                            {isFollowingState ? "Following" : "Follow"}
                                         </Button>
                                     )}
                                      {post.taggedProducts && post.taggedProducts.length > 0 && (
                                         <CollapsibleTrigger asChild>
-                                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
                                                 <ShoppingBag className="w-4 h-4"/>
                                             </Button>
                                         </CollapsibleTrigger>
@@ -392,7 +395,7 @@ const FeedPost = ({
                                     {post.taggedProducts.map((product: any) => (
                                         <div key={product.key} className="flex items-center gap-4">
                                             <Link href={`/product/${product.key}`}>
-                                                <Image src={product.image} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                <Image src={product.image || product.images?.[0].preview} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${product.key}`} className="hover:underline">
@@ -620,8 +623,7 @@ function FeedPageContent() {
         const tabFromUrl = searchParams.get('tab');
         if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
             setMainTab(tabFromUrl);
-        } else {
-            // Default to 'feed' if no valid tab is in the URL
+        } else if (pathname === '/feed') {
             setMainTab('feed');
         }
         
@@ -632,7 +634,7 @@ function FeedPageContent() {
             }
         }
     }
-}, [mainTab, isMobile, isMounted, searchParams]);
+}, [mainTab, isMobile, isMounted, searchParams, pathname]);
 
 
 
@@ -721,14 +723,16 @@ function FeedPageContent() {
                 likes: 123,
                 replies: 45,
                 images: [{ url: 'https://placehold.co/600x400.png', id: 'demo-img-1' }],
-                taggedProduct: {
-                    id: 'prod_1',
-                    key: 'prod_1',
-                    name: 'Vintage Camera',
-                    price: '₹12,500.00',
-                    image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080',
-                    stock: 15,
-                }
+                taggedProducts: [
+                    {
+                        id: 'prod_1',
+                        key: 'prod_1',
+                        name: 'Vintage Camera',
+                        price: '₹12,500.00',
+                        image: 'https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc1NjI4NzMwOHww&ixlib=rb-4.1.0&q=80&w=1080',
+                        stock: 15,
+                    }
+                ]
             };
             
             setFeed([mockDemoPost, ...postsData]);
@@ -907,8 +911,8 @@ function FeedPageContent() {
 
   const handleFollowToggle = async (targetId: string) => {
     if (!user) return;
-    setIsFollowingState(prev => !prev);
     await toggleFollow(user.uid, targetId);
+    loadFollowData();
   };
 
   const handleAddToCart = (product: any) => {
@@ -1237,3 +1241,6 @@ export default function FeedPage() {
 
     
 
+
+
+    
