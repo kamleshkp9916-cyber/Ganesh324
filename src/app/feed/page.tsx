@@ -927,13 +927,11 @@ function FeedPageContent() {
                                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                                     <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
                                     <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                    <TabsTrigger value="saves" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saves</TabsTrigger>
                                 </div>
                             </TabsList>
                             <div className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
                                 <TabsContent value="for-you">{renderFeedContent(filteredFeed)}</TabsContent>
                                 <TabsContent value="following">{renderFeedContent(filteredFeed)}</TabsContent>
-                                <TabsContent value="saves">{renderFeedContent(filteredSavedPosts)}</TabsContent>
                             </div>
                         </Tabs>
                         </>
@@ -1086,6 +1084,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
