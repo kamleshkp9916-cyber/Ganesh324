@@ -559,13 +559,14 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    if (activeView === 'messages') {
+    // This effect runs once when isMounted becomes true.
+    if (isMounted && activeView === 'messages') {
         setConversations(mockConversations);
         if (mockConversations.length > 0 && !isMobile) {
             handleSelectConversation(mockConversations[0]);
         }
     }
-  }, [activeView, isMobile]);
+}, [activeView, isMobile, isMounted]);
 
 
   const userPosts = useMemo(() => {
@@ -927,7 +928,7 @@ function FeedPageContent() {
                                                     key={selectedConversation.userId}
                                                     conversation={selectedConversation}
                                                     userData={userData}
-                                                    messages={currentMessages}
+                                                    messages={currentMessages || []}
                                                     onSendMessage={handleSendMessage}
                                                     onBack={() => setSelectedConversation(null)}
                                                 />
@@ -1049,6 +1050,7 @@ export default function FeedPage() {
 
 
     
+
 
 
 
