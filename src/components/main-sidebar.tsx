@@ -63,11 +63,16 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
 
     return (
         <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
-            <div className="flex items-center gap-2 mb-8 flex-shrink-0">
+            <div className="flex items-center justify-between gap-2 mb-8 flex-shrink-0">
                 <Link href="/live-selling" className="flex items-center gap-2">
                     <Logo className="h-8 w-8 text-foreground" />
                     <span className="font-bold text-xl">StreamCart</span>
                 </Link>
+                <Button asChild variant="ghost" size="icon">
+                    <Link href="/live-selling">
+                        <Home className="h-5 w-5" />
+                    </Link>
+                </Button>
             </div>
              <ScrollArea className="-mx-4">
                 <div className="px-4">
