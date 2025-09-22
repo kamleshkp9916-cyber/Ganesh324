@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export interface Message {
   id: number | string;
@@ -139,6 +140,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
     onDeleteConversation?: (conversationId: string) => void;
 }) => {
     const { setOpen } = useSidebar();
+    const router = useRouter();
     
     const filteredConversations = useMemo(() => {
         return conversations;
@@ -154,9 +156,9 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
-                <Button asChild variant="ghost" size="icon">
-                    <Link href="/live-selling">
-                        <Home className="h-5 w-5" />
+                <Button asChild variant="ghost" size="icon" onClick={() => router.back()}>
+                    <Link href="/feed">
+                        <ArrowLeft className="h-5 w-5" />
                     </Link>
                 </Button>
             </header>
