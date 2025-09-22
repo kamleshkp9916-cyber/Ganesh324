@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -825,7 +826,7 @@ function FeedPageContent() {
     loadSavedPosts();
   };
   
-  const renderFeedContent = (posts: any[], isLoading: boolean) => {
+  const renderPostList = (posts: any[], isLoading: boolean) => {
       if (isLoading) {
           return (
               <div className="divide-y divide-border/20">
@@ -859,7 +860,7 @@ function FeedPageContent() {
       return (
          <div className="text-center py-20 text-muted-foreground">
             <p className="text-lg font-semibold">No posts to show</p>
-            {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
+            <p>Follow sellers or explore topics to see posts here.</p>
         </div>
       );
   }
@@ -931,19 +932,19 @@ function FeedPageContent() {
                             </div>
 
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                               {mainTab === 'feed' && (
-                                   <>
-                                    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
-                                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                                                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                            </div>
-                                        </TabsList>
-                                    </Tabs>
-                                    {renderFeedContent(filteredFeed, isLoadingFeed)}
-                                   </>
-                               )}
+                                {mainTab === 'feed' && (
+                                    <>
+                                        <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+                                            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
+                                                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                                    <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                                                    <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+                                                </div>
+                                            </TabsList>
+                                        </Tabs>
+                                        {renderPostList(filteredFeed, isLoadingFeed)}
+                                    </>
+                                )}
 
                                 {mainTab === 'saves' && (
                                      <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full pt-4">
@@ -954,7 +955,7 @@ function FeedPageContent() {
                                             </div>
                                         </TabsList>
                                         <TabsContent value="saved-posts">
-                                            {renderFeedContent(filteredSavedPosts, false)}
+                                            {renderPostList(filteredSavedPosts, false)}
                                         </TabsContent>
                                         <TabsContent value="upvoted-posts">
                                             <div className="text-center py-20 text-muted-foreground">
