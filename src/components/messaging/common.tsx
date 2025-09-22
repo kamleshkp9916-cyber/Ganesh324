@@ -40,7 +40,7 @@ export interface Conversation {
   isExecutive?: boolean;
 }
 
-export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { convo: Conversation, isSelected: boolean, onClick: () => void, onDelete: () => void }) => {
+export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { convo: Conversation, isSelected: boolean, onClick: () => void, onDelete?: () => void }) => {
     const truncatedMessage = convo.lastMessage.split(' ').slice(0, 4).join(' ') + (convo.lastMessage.split(' ').length > 4 ? '...' : '');
 
     return (
@@ -68,21 +68,23 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                                 {convo.unreadCount}
                             </div>
                         )}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                    <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Chat
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
+                        {onDelete && (
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete Chat
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -130,13 +132,18 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
     );
 };
 
-export const ConversationList = ({ conversations, selectedConversation, onSelectConversation, onDeleteConversation }: {
+export const ConversationList = ({ conversations, selectedConversation, onSelectConversation }: {
     conversations: Conversation[];
     selectedConversation: Conversation | null;
     onSelectConversation: (convo: Conversation) => void;
-    onDeleteConversation: (conversationId: string) => void;
 }) => {
     const { setOpen } = useSidebar();
+     const [searchTerm, setSearchTerm] = useState('');
+    
+    const filteredConversations = useMemo(() => {
+        if (!searchTerm) return conversations;
+        return conversations.filter(convo => convo.userName.toLowerCase().includes(searchTerm.toLowerCase()));
+    }, [conversations, searchTerm]);
 
     return (
         <>
@@ -149,14 +156,25 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
             </header>
+            <div className="p-4 border-b">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search conversations..."
+                        className="pl-8 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
             <ScrollArea className="flex-grow">
                 <div className="p-2 space-y-1">
-                    {conversations.map(convo => (
+                    {filteredConversations.map(convo => (
                         <ConversationItem
                             key={convo.userId}
                             convo={convo}
                             onClick={() => onSelectConversation(convo)}
-                            onDelete={() => onDeleteConversation(convo.conversationId)}
                             isSelected={selectedConversation?.userId === convo.userId}
                         />
                     ))}

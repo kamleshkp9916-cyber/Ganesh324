@@ -22,15 +22,6 @@ const mockMessages: Record<string, Message[]> = {
     { id: 2, senderId: 'support', text: 'Hello! I can certainly help you with that. Can you please provide me with the order ID?', timestamp: '10:29 AM' },
     { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM' },
     { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
-  ],
-  "seller1": [
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM' },
-    { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM' },
-  ],
-  "seller2": [
-      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday' },
-      { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
   ]
 };
 
