@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -513,6 +512,7 @@ function FeedPageContent() {
   const [savesSubTab, setSavesSubTab] = useState('saved-posts');
   
   const { open, setOpen } = useSidebar();
+  const doubleClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
 
@@ -774,6 +774,25 @@ function FeedPageContent() {
         }
     };
   }, [isMounted, setupFeedListener]);
+  
+  const handleRefresh = useCallback(() => {
+    toast({ title: "Refreshing feed..." });
+    setupFeedListener();
+  }, [setupFeedListener, toast]);
+
+ const handleDoubleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (doubleClickTimeoutRef.current) {
+      clearTimeout(doubleClickTimeoutRef.current);
+      doubleClickTimeoutRef.current = null;
+      handleRefresh();
+    } else {
+      doubleClickTimeoutRef.current = setTimeout(() => {
+        doubleClickTimeoutRef.current = null;
+        // This is a single click, which is handled by onValueChange.
+        // We let the default TabsTrigger behavior handle it.
+      }, 300);
+    }
+  };
 
  const handlePostSubmit = async (postData: PostData) => {
     if ((!postData.content.trim() && (!postData.media || postData.media.length === 0)) || !user || !userData) return;
@@ -996,8 +1015,8 @@ function FeedPageContent() {
     <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full h-full flex flex-col">
       <div className="flex-shrink-0 border-b px-4 sm:px-6 lg:px-8">
         <TabsList className="bg-transparent p-0">
-          <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-          <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+          <TabsTrigger value="for-you" onClick={handleDoubleClick} onDoubleClick={(e) => e.preventDefault()} className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+          <TabsTrigger value="following" onClick={handleDoubleClick} onDoubleClick={(e) => e.preventDefault()} className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-4 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
         </TabsList>
       </div>
       <TabsContent value="for-you" className="flex-grow mt-0 overflow-y-auto no-scrollbar">
@@ -1278,3 +1297,6 @@ export default function FeedPage() {
 
 
 
+
+
+    
