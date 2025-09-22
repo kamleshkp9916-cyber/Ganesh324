@@ -329,7 +329,7 @@ const FeedPost = ({
                          <div className="flex items-center gap-2">
                              {post.taggedProducts && post.taggedProducts.length > 0 && (
                                 <CollapsibleTrigger asChild>
-                                     <Button variant="secondary" size="sm" className="h-7 px-2 text-secondary-foreground hover:bg-secondary/80">
+                                    <Button variant="secondary" size="sm" className="h-7 px-2">
                                         <ShoppingBag className="w-4 h-4 mr-1"/>
                                         View Products
                                     </Button>
@@ -382,9 +382,9 @@ const FeedPost = ({
                              <Card>
                                 <CardContent className="p-3 divide-y">
                                     {post.taggedProducts.map((product: any, index: number) => (
-                                        <div key={product.key} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                                        <div key={product.key || index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                                             <Link href={`/product/${product.key}`}>
-                                                <Image src={product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                                                <Image src={product.images?.[0] || product.image?.preview || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${product.key}`} className="hover:underline">
@@ -674,17 +674,23 @@ function FeedPageContent() {
   }, [debouncedSearchTerm, feed, feedTab, followingIds, user]);
   
   const filteredSavedPosts = useMemo(() => {
-      if (!debouncedSearchTerm) return savedPosts;
+      let postsToFilter = savedPosts;
+      if (savesSubTab === 'upvoted-posts') {
+          // This is a placeholder for actual upvoted posts logic
+          postsToFilter = []; 
+      }
+      if (!debouncedSearchTerm) return postsToFilter;
+
       const lowercasedSearchTerm = debouncedSearchTerm.toLowerCase();
       if(lowercasedSearchTerm.startsWith('#')) {
-        return savedPosts.filter(item => 
+        return postsToFilter.filter(item => 
             (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(lowercasedSearchTerm.substring(1))))
         );
-    }
-    return savedPosts.filter(item => 
-        item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
-    );
-  }, [debouncedSearchTerm, savedPosts]);
+      }
+      return postsToFilter.filter(item => 
+          item.sellerName.toLowerCase().includes(lowercasedSearchTerm) || item.content.toLowerCase().includes(lowercasedSearchTerm)
+      );
+  }, [debouncedSearchTerm, savedPosts, savesSubTab]);
 
 
   const trendingTopics = useMemo(() => {
@@ -993,7 +999,7 @@ function FeedPageContent() {
   );
 
   const renderSavesContent = () => (
-    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full">
+    <Tabs defaultValue={savesSubTab} onValueChange={setSavesSubTab} className="w-full -mt-4">
         <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <TabsList className="w-full justify-start rounded-none bg-transparent p-0">
@@ -1002,10 +1008,10 @@ function FeedPageContent() {
                 </TabsList>
             </div>
         </div>
-        <TabsContent value="saved-posts" className="mt-0">
+        <TabsContent value="saved-posts">
             {renderPostList(filteredSavedPosts, false)}
         </TabsContent>
-        <TabsContent value="upvoted-posts" className="mt-0">
+        <TabsContent value="upvoted-posts">
             <div className="text-center py-20 text-muted-foreground">
                 <Heart className="h-12 w-12 mx-auto mb-4"/>
                 <p className="text-lg font-semibold">No upvoted posts yet</p>
@@ -1243,6 +1249,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
