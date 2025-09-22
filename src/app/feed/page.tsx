@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -65,6 +64,7 @@ import {
   PanelLeft,
   Paperclip,
   PlusCircle,
+  ThumbsUp,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -418,7 +418,6 @@ function FeedPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTabParam = searchParams.get('tab');
-  const feedFilterParam = searchParams.get('filter');
   const isMobile = useIsMobile();
 
   const { user, userData, loading: authLoading } = useAuth();
@@ -441,13 +440,12 @@ function FeedPageContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
+  const [mainTab, setMainTab] = useState(activeTabParam === 'saves' ? 'saves' : 'feed');
   const [feedTab, setFeedTab] = useState('for-you');
+  const [savesSubTab, setSavesSubTab] = useState('saved-posts');
   
   const { open, setOpen } = useSidebar();
 
-
-  const activeView = (activeTabParam === 'messages' || activeTabParam === 'saves') ? activeTabParam : 'feed';
-  const feedFilter = feedFilterParam === 'following' ? 'following' : 'global';
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
 
   const handleSelectConversation = (convo: Conversation) => {
@@ -560,14 +558,13 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    // This effect runs once when isMounted becomes true.
-    if (isMounted && activeView === 'messages') {
+    if (isMounted && mainTab === 'messages') {
         setConversations(mockConversations);
         if (mockConversations.length > 0 && !isMobile) {
             handleSelectConversation(mockConversations[0]);
         }
     }
-}, [activeView, isMobile, isMounted]);
+}, [mainTab, isMobile, isMounted]);
 
 
   const userPosts = useMemo(() => {
@@ -850,7 +847,6 @@ function FeedPageContent() {
                  <div className="text-center py-20 text-muted-foreground">
                     <p className="text-lg font-semibold">No posts to show</p>
                     {feedTab === 'following' && <p>Follow sellers to see their posts here.</p>}
-                    {activeView === 'saves' && <p>Your saved posts will appear here.</p>}
                 </div>
             )}
         </div>
@@ -861,15 +857,15 @@ function FeedPageContent() {
     <div className="h-screen w-full">
          <div className={cn(
              "grid h-screen w-full", 
-             (activeView === 'feed' || activeView === 'saves') && "lg:grid-cols-[260px_1fr_320px]",
-             (activeView === 'messages') && "lg:grid-cols-[260px_1fr]"
+             (mainTab === 'feed' || mainTab === 'saves') && "lg:grid-cols-[260px_1fr_320px]",
+             (mainTab === 'messages') && "lg:grid-cols-[260px_1fr]"
          )}>
                 <aside className={cn("h-screen flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                     {(activeView === 'feed' || activeView === 'saves') && (
+                     {(mainTab === 'feed' || mainTab === 'saves') && (
                         <>
                         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 flex items-center gap-2">
                             <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
@@ -922,7 +918,7 @@ function FeedPageContent() {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        {activeView === 'feed' && (
+                        {mainTab === 'feed' && (
                             <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
                             <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
                                     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -938,9 +934,28 @@ function FeedPageContent() {
                         <div className="flex-1 flex flex-col h-full">
                            
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                                {activeView === 'feed' && renderFeedContent(filteredFeed)}
-                                {activeView === 'saves' && renderFeedContent(filteredSavedPosts)}
-                                {activeView === 'messages' && (
+                                {mainTab === 'feed' && renderFeedContent(filteredFeed)}
+                                {mainTab === 'saves' && (
+                                     <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full pt-4">
+                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                                <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
+                                                <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
+                                            </div>
+                                        </TabsList>
+                                        <TabsContent value="saved-posts">
+                                            {renderFeedContent(filteredSavedPosts)}
+                                        </TabsContent>
+                                        <TabsContent value="upvoted-posts">
+                                            <div className="text-center py-20 text-muted-foreground">
+                                                <ThumbsUp className="h-12 w-12 mx-auto mb-4"/>
+                                                <p className="text-lg font-semibold">No upvoted posts yet</p>
+                                                <p>Posts you upvote will appear here.</p>
+                                            </div>
+                                        </TabsContent>
+                                    </Tabs>
+                                )}
+                                {mainTab === 'messages' && (
                                      <div className="h-full flex overflow-hidden">
                                         <div className={cn(
                                             "h-full w-full flex-col border-r md:flex md:w-full lg:w-2/5",
@@ -977,7 +992,7 @@ function FeedPageContent() {
                                     </div>
                                 )}
                            </div>
-                           {(activeView === 'feed' || activeView === 'saves') && (
+                           {(mainTab === 'feed') && (
                                 <div className="w-full pointer-events-auto mt-auto">
                                     <div className="p-3 bg-background/80 backdrop-blur-sm rounded-t-lg border-t border-border/50">
                                         <CreatePostForm
@@ -998,7 +1013,7 @@ function FeedPageContent() {
                     </Sheet>
                 </div>
 
-                {(activeView === 'feed' || activeView === 'saves') && (
+                {(mainTab === 'feed' || mainTab === 'saves') && (
                     <aside className="h-screen flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
                     <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                             <div className="flex-shrink-0">
@@ -1079,24 +1094,3 @@ export default function FeedPage() {
 }
 
     
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
