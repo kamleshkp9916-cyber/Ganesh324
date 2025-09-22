@@ -286,7 +286,7 @@ const FeedPost = ({
 
     return (
         <Dialog>
-            <Collapsible defaultOpen={true}>
+            <Collapsible>
             <Card className={cn("border-x-0 border-t-0 rounded-none shadow-none bg-transparent")}>
                 <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-transparent border-none" aria-describedby={undefined}>
                     <DialogHeader className="sr-only">
@@ -332,7 +332,7 @@ const FeedPost = ({
                                             {isFollowing ? "Following" : "Follow"}
                                         </Button>
                                     )}
-                                     {post.taggedProduct && (
+                                     {post.taggedProducts && post.taggedProducts.length > 0 && (
                                         <CollapsibleTrigger asChild>
                                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
                                                 <ShoppingBag className="w-4 h-4"/>
@@ -386,25 +386,27 @@ const FeedPost = ({
                     </div>
 
                     <CollapsibleContent>
-                        {post.taggedProduct && (
+                        {post.taggedProducts && post.taggedProducts.length > 0 && (
                             <Card className="my-2">
-                                <CardContent className="p-3">
-                                    <div className="flex items-center gap-4">
-                                        <Link href={`/product/${post.taggedProduct.key}`}>
-                                            <Image src={post.taggedProduct.image} alt={post.taggedProduct.name} width={60} height={60} className="rounded-md" />
-                                        </Link>
-                                        <div className="flex-grow">
-                                            <Link href={`/product/${post.taggedProduct.key}`} className="hover:underline">
-                                                <h4 className="font-semibold text-sm">{post.taggedProduct.name}</h4>
+                                <CardContent className="p-3 space-y-2">
+                                    {post.taggedProducts.map((product: any) => (
+                                        <div key={product.key} className="flex items-center gap-4">
+                                            <Link href={`/product/${product.key}`}>
+                                                <Image src={product.image} alt={product.name} width={60} height={60} className="rounded-md" />
                                             </Link>
-                                            <p className="font-bold text-lg">{post.taggedProduct.price}</p>
-                                            <p className="text-xs text-muted-foreground">Stock: {post.taggedProduct.stock}</p>
+                                            <div className="flex-grow">
+                                                <Link href={`/product/${product.key}`} className="hover:underline">
+                                                    <h4 className="font-semibold text-sm">{product.name}</h4>
+                                                </Link>
+                                                <p className="font-bold text-lg">{product.price}</p>
+                                                <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-2 h-4 w-4" /> Cart</Button>
+                                                <Button size="sm" className="flex-1 h-7 text-xs" onClick={() => onBuyNow(product)}>Buy</Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-2 mt-2">
-                                        <Button size="sm" variant="outline" className="flex-1" onClick={() => onAddToCart(post.taggedProduct)}><ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart</Button>
-                                        <Button size="sm" className="flex-1" onClick={() => onBuyNow(post.taggedProduct)}>Buy Now</Button>
-                                    </div>
+                                    ))}
                                 </CardContent>
                             </Card>
                         )}
@@ -769,7 +771,7 @@ function FeedPageContent() {
                 content: postData.content,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
                 lastEditedAt: serverTimestamp(),
-                taggedProduct: postData.taggedProduct
+                taggedProducts: postData.taggedProducts
             };
             
             await updateDoc(postRef, dataToUpdate);
@@ -780,7 +782,7 @@ function FeedPageContent() {
             const dataToSave: any = {
                 content: postData.content,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
-                taggedProduct: postData.taggedProduct,
+                taggedProducts: postData.taggedProducts,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
                 avatarUrl: userData.photoURL,
@@ -905,9 +907,7 @@ function FeedPageContent() {
 
   const handleFollowToggle = async (targetId: string) => {
     if (!user) return;
-    setFollowingIds(prev =>
-      prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
-    );
+    setIsFollowingState(prev => !prev);
     await toggleFollow(user.uid, targetId);
   };
 
@@ -1236,3 +1236,4 @@ export default function FeedPage() {
     
 
     
+

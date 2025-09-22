@@ -29,7 +29,7 @@ import { Textarea } from "./ui/textarea";
 export interface PostData {
     content: string;
     media: { type: 'video' | 'image', file?: File, url: string }[] | null;
-    taggedProduct: any | null;
+    taggedProducts: any[] | null;
 }
   
 interface CreatePostFormProps {
@@ -59,7 +59,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const [content, setContent] = useState("");
     const [media, setMedia] = useState<{type: 'video' | 'image', file?: File, url: string}[]>([]);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
-    const [taggedProduct, setTaggedProduct] = useState<any | null>(null);
+    const [taggedProducts, setTaggedProducts] = useState<any[]>([]);
     
     // State for tagging suggestions
     const [tagging, setTagging] = useState<{type: '@' | '#', query: string, position: number} | null>(null);
@@ -74,7 +74,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     const resetForm = useCallback(() => {
         setContent("");
         setMedia([]);
-        setTaggedProduct(null);
+        setTaggedProducts([]);
         if (onClearReply) onClearReply();
         if (onFinishEditing) onFinishEditing();
     }, [onClearReply, onFinishEditing]);
@@ -83,7 +83,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         if (postToEdit) {
             setContent(postToEdit.content || '');
             setMedia(postToEdit.images?.map((img: any) => ({ type: 'image', url: img.url })) || []);
-            setTaggedProduct(postToEdit.taggedProduct || null);
+            setTaggedProducts(postToEdit.taggedProducts || []);
         } else {
              resetForm();
         }
@@ -196,7 +196,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     };
 
     const handleSubmit = async () => {
-        await onPost({ content, media, taggedProduct });
+        await onPost({ content, media, taggedProducts });
         resetForm();
     };
 
@@ -344,16 +344,31 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                         <Video className="mr-2 h-5 w-5" /> Video
                     </Button>
                      {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
-                        <Select onValueChange={(productId) => setTaggedProduct(sellerProducts.find(p => p.id === productId))} value={taggedProduct?.id}>
+                        <Select onValueChange={(productId) => {
+                            const product = sellerProducts.find(p => p.id === productId);
+                            if (product && !taggedProducts.some(p => p.id === productId)) {
+                                setTaggedProducts(prev => [...prev, product]);
+                            }
+                        }}>
                              <SelectTrigger className="w-auto h-9 text-muted-foreground bg-transparent border-none focus:ring-0 text-sm">
                                 <Tag className="mr-2 h-5 w-5" />
                                 <SelectValue placeholder="Tag Product" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sellerProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                {sellerProducts.filter(p => !taggedProducts.some(tp => tp.id === p.id)).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     )}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {taggedProducts.map((p, index) => (
+                             <Badge key={index} variant="secondary" className="gap-1.5">
+                                {p.name}
+                                <button onClick={() => setTaggedProducts(prev => prev.filter(tp => tp.id !== p.id))}>
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        ))}
+                    </div>
                     <Button 
                         className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
                         onClick={handleSubmit}
@@ -369,3 +384,4 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
