@@ -558,13 +558,20 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    if (isMounted && mainTab === 'messages') {
+    if (isMounted) {
+      const activeTabFromUrl = searchParams.get('tab');
+      if (activeTabFromUrl) {
+        setMainTab(activeTabFromUrl);
+      }
+      
+      if (mainTab === 'messages') {
         setConversations(mockConversations);
         if (mockConversations.length > 0 && !isMobile) {
             handleSelectConversation(mockConversations[0]);
         }
+      }
     }
-}, [mainTab, isMobile, isMounted]);
+}, [mainTab, isMobile, isMounted, searchParams]);
 
 
   const userPosts = useMemo(() => {
@@ -865,79 +872,78 @@ function FeedPageContent() {
                 </aside>
 
                  <div className="flex flex-col h-screen">
-                     {(mainTab === 'feed' || mainTab === 'saves') && (
-                        <>
-                        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 flex items-center gap-2">
-                            <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle navigation menu</span>
-                            </Button>
-                             <Popover open={showSuggestions}>
-                                <PopoverAnchor asChild>
-                                    <div className="relative flex-grow">
-                                        <Input
-                                            placeholder="Search feed..."
-                                            className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                </PopoverAnchor>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-                                    <ScrollArea className="max-h-80">
-                                        {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
-                                        (
-                                            <>
-                                                {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 ? (
-                                                    <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
-                                                ) : (
-                                                    <>
-                                                        {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
-                                                        {searchSuggestions.users.map(u => (
-                                                            <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
-                                                                {u.displayName}
-                                                            </button>
-                                                        ))}
-                                                        {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
-                                                        {searchSuggestions.hashtags.map(h => (
-                                                            <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
-                                                        ))}
-                                                        {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
-                                                        {searchSuggestions.posts.map(p => (
-                                                            <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
-                                                                <span className="truncate">{p.content}</span>
-                                                            </button>
-                                                        ))}
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
-                                    </ScrollArea>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                        {mainTab === 'feed' && (
-                            <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
-                            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-                                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                        <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
-                                        <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
-                                    </div>
-                                </TabsList>
-                            </Tabs>
-                        )}
-                        </>
-                    )}
-                    <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
+                     <div className={cn("flex flex-1 overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
                         <div className="flex-1 flex flex-col h-full">
-                           
+                           <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm p-4 border-b border-border/50 flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
+                                    <Menu className="h-5 w-5" />
+                                    <span className="sr-only">Toggle navigation menu</span>
+                                </Button>
+                                <Popover open={showSuggestions}>
+                                    <PopoverAnchor asChild>
+                                        <div className="relative flex-grow">
+                                            <Input
+                                                placeholder="Search feed..."
+                                                className="rounded-full bg-muted border-transparent focus:bg-background focus:border-border"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                    </PopoverAnchor>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                                        <ScrollArea className="max-h-80">
+                                            {isSuggestionLoading ? <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div> : 
+                                            (
+                                                <>
+                                                    {searchSuggestions.users.length === 0 && searchSuggestions.hashtags.length === 0 && searchSuggestions.posts.length === 0 ? (
+                                                        <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>
+                                                    ) : (
+                                                        <>
+                                                            {searchSuggestions.users.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Users</div>}
+                                                            {searchSuggestions.users.map(u => (
+                                                                <button key={u.uid} onClick={() => handleSearchFilter('user', u.uid)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                    <Avatar className="h-6 w-6 mr-2"><AvatarImage src={u.photoURL}/><AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback></Avatar>
+                                                                    {u.displayName}
+                                                                </button>
+                                                            ))}
+                                                            {searchSuggestions.hashtags.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Hashtags</div>}
+                                                            {searchSuggestions.hashtags.map(h => (
+                                                                <button key={h} onClick={() => handleSearchFilter('hashtag', h)} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">#{h}</button>
+                                                            ))}
+                                                            {searchSuggestions.posts.length > 0 && <div className="px-3 py-1.5 text-sm font-semibold">Posts</div>}
+                                                            {searchSuggestions.posts.map(p => (
+                                                                <button key={p.id} onClick={() => setSearchTerm(p.content.substring(0,20))} className="relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-3 py-1.5 text-sm outline-none transition-colors hover:bg-secondary focus:bg-secondary">
+                                                                    <span className="truncate">{p.content}</span>
+                                                                </button>
+                                                            ))}
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
                            <div className="w-full flex-grow overflow-y-auto no-scrollbar">
-                                {mainTab === 'feed' && renderFeedContent(filteredFeed)}
+                               {mainTab === 'feed' && (
+                                   <>
+                                    <Tabs value={feedTab} onValueChange={setFeedTab} className="w-full">
+                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
+                                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                                <TabsTrigger value="for-you" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">For You</TabsTrigger>
+                                                <TabsTrigger value="following" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Following</TabsTrigger>
+                                            </div>
+                                        </TabsList>
+                                    </Tabs>
+                                    {renderFeedContent(filteredFeed)}
+                                   </>
+                               )}
+
                                 {mainTab === 'saves' && (
                                      <Tabs defaultValue="saved-posts" value={savesSubTab} onValueChange={setSavesSubTab} className="w-full pt-4">
-                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 sticky top-0 z-20 backdrop-blur-sm">
                                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                                                 <TabsTrigger value="saved-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Saved Posts</TabsTrigger>
                                                 <TabsTrigger value="upvoted-posts" className="relative rounded-none border-b-2 border-transparent bg-transparent px-4 pb-3 pt-2 font-semibold text-muted-foreground shadow-none transition-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none">Upvoted Posts</TabsTrigger>
