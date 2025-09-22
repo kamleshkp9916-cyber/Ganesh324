@@ -60,6 +60,7 @@ import {
   Sparkles,
   Edit,
   UserCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -1140,10 +1141,15 @@ function FeedPageContent() {
                     {mainTab !== 'messages' && (
                         <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                             <div className="p-4 flex items-center justify-between gap-2">
-                                <div className="lg:hidden">
-                                     <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-                                        <Menu className="h-5 w-5" />
+                                <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                                        <ArrowLeft className="h-5 w-5" />
                                     </Button>
+                                    <div className="lg:hidden">
+                                         <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
+                                            <Menu className="h-5 w-5" />
+                                        </Button>
+                                    </div>
                                 </div>
                                 <Popover open={showSuggestions}>
                                     <PopoverAnchor asChild>
@@ -1190,12 +1196,6 @@ function FeedPageContent() {
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
-                                <Button asChild variant="ghost" size="icon" className="h-auto flex-col px-1">
-                                    <Link href="/live-selling">
-                                        <Home className="h-5 w-5" />
-                                        <span style={{ fontSize: '0.6rem' }}>Go Home</span>
-                                    </Link>
-                                </Button>
                             </div>
                         </header>
                     )}
@@ -1311,3 +1311,4 @@ export default function FeedPage() {
     
 
     
+
