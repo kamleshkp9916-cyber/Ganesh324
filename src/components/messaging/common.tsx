@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,6 +18,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import Link from "next/link";
 
 export interface Message {
   id: number | string;
@@ -153,6 +154,11 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                     </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
+                <Button asChild variant="ghost" size="icon">
+                    <Link href="/live-selling">
+                        <Home className="h-5 w-5" />
+                    </Link>
+                </Button>
             </header>
             <div className="p-4 border-b">
                  <div className="relative">
@@ -213,7 +219,6 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
 
     return (
         <div className="h-full flex flex-col">
-            {!isFullScreen && (
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
                     {(isMobile || isFullScreen) && (
@@ -245,7 +250,6 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
-            )}
             <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
