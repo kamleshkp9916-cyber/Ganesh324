@@ -89,7 +89,7 @@ const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
-    { id: '4', type: 'system', text: 'Sarah joined the stream.'},
+    { id: 4, type: 'system', text: 'Sarah joined the stream.'},
     { id: 5, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
@@ -229,13 +229,13 @@ export default function StreamPage() {
         addToCart({ ...product, quantity: 1 });
         toast({
           title: "Added to Cart!",
-          description: `${product.name} has been added to your cart.`,
+          description: `${"'"}${product.name}${"'"} has been added to your cart.`,
         });
       }
     };
     const handleBuyNow = (product: any) => {
       if (product) {
-        router.push(`/cart?buyNow=true&productId=${product.key}`);
+        router.push(`/cart?buyNow=true&productId=${"'"}${product.key}${"'"}`);
       }
     };
     const handleNotifyMe = () => {
@@ -248,9 +248,9 @@ export default function StreamPage() {
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
-        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 lg:overflow-hidden">
             <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
-                <div className="w-full h-[60%] relative group" ref={playerRef}>
+                <div className="w-full h-[60%] lg:h-full relative group" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -299,7 +299,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="p-4 border-t border-border bg-background text-foreground h-[40%] overflow-y-auto">
+                 <div className="p-4 border-t border-border bg-background text-foreground h-[40%] overflow-y-auto hidden lg:block">
                     <Collapsible>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -410,11 +410,11 @@ export default function StreamPage() {
                              <div className="p-4 space-y-4">
                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
                                     <div key={product.key} className="flex items-center gap-4">
-                                        <Link href={`/product/${product.key}`} className="block flex-shrink-0">
+                                        <Link href={`/product/${"'"}${product.key}${"'"}`} className="block flex-shrink-0">
                                             <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
                                         </Link>
                                         <div className="flex-grow">
-                                            <Link href={`/product/${product.key}`} className="hover:underline">
+                                            <Link href={`/product/${"'"}${product.key}${"'"}`} className="hover:underline">
                                                 <h3 className="font-semibold text-sm">{product.name}</h3>
                                             </Link>
                                             <p className="font-bold text-base text-foreground">{product.price}</p>
