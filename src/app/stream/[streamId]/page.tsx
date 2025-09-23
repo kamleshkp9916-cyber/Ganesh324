@@ -77,11 +77,17 @@ import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
 
-
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!' },
     { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics', description: 'Unboxing the brand new SoundWave Pro 2 headphones. We will be testing the noise cancellation and battery life. Ask me anything!' },
     { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.' },
+];
+
+const mockChatMessages = [
+    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
+    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
+    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
+    { id: 4, user: 'Chris', text: 'Is there a discount for first-time buyers?', avatar: 'https://placehold.co/40x40.png' },
 ];
 
 function formatTime(seconds: number) {
@@ -103,8 +109,8 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     
-    // Using mock data directly
-    const streamData = {
+    // Mock Data for UI building - will be replaced with Firestore data
+    const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
         status: "live",
@@ -112,7 +118,8 @@ export default function StreamPage() {
         viewerCount: 12400,
         streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     };
-    
+
+    const streamData = mockStreamData; // Use mock data directly
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     
@@ -124,18 +131,19 @@ export default function StreamPage() {
     const [controlsVisible, setControlsVisible] = useState(true);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [chatMessages, setChatMessages] = useState(mockChatMessages);
+    const [newMessage, setNewMessage] = useState("");
 
-    const handlePlayPause = () => {
-        if (videoRef.current) {
-            if (videoRef.current.paused) {
-                videoRef.current.play();
-                setIsPaused(false);
-            } else {
-                videoRef.current.pause();
-                setIsPaused(true);
-            }
+    const handlePlayPause = useCallback(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            video.play().catch(console.error);
+        } else {
+            video.pause();
         }
-    };
+    }, []);
     
     useEffect(() => {
         const video = videoRef.current;
@@ -150,6 +158,13 @@ export default function StreamPage() {
             video.addEventListener("play", onPlay);
             video.addEventListener("pause", onPause);
 
+            // Start muted and autoplay if possible
+            video.muted = true;
+            video.play().catch(() => {
+                // Autoplay was prevented, user will have to click to start.
+                setIsPaused(true);
+            });
+
             return () => {
                 video.removeEventListener("timeupdate", updateProgress);
                 video.removeEventListener("loadedmetadata", setVideoDuration);
@@ -158,88 +173,136 @@ export default function StreamPage() {
             };
         }
     }, []);
+
+    const handleNewMessageSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim()) return;
+        const newMsg = {
+            id: Date.now(),
+            user: user?.displayName || 'You',
+            text: newMessage,
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+        };
+        setChatMessages(prev => [...prev, newMsg]);
+        setNewMessage("");
+    };
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
 
     return (
-        <div ref={playerRef} className="h-dvh w-full bg-black text-white flex items-center justify-center">
-            <div className="w-full h-full relative">
-                <video
-                    ref={videoRef}
-                    src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                    className="w-full h-full object-contain"
-                    loop
-                    onClick={handlePlayPause}
-                />
-                 <div 
-                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/70 flex flex-col p-4"
-                >
-                    {/* Top Bar */}
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                           <Button variant="ghost" size="sm" className="bg-black/30 hover:bg-black/50" onClick={() => router.back()}>
-                                <ArrowLeft className="mr-2"/>
-                                Back
-                            </Button>
-                             <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
-                        </div>
-                        <Badge variant="secondary" className="gap-2 bg-black/30">
-                            <Users />
-                            {streamData.viewerCount ? (streamData.viewerCount / 1000).toFixed(1) + 'K watching' : '12.4K watching'}
-                        </Badge>
-                    </div>
-
-                    {/* Center Controls */}
-                     <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                        <Button variant="ghost" size="icon" className="h-16 w-16">
-                            <Rewind className="w-8 h-8 fill-white" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
-                            {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
-                        </Button>
-                         <Button variant="ghost" size="icon" className="h-16 w-16">
-                            <FastForward className="w-8 h-8 fill-white" />
-                        </Button>
-                    </div>
-
-                     {/* Bottom Bar */}
-                     <div className="space-y-3">
-                         <Slider 
-                            value={[currentTime]}
-                            max={duration || 1}
-                            className="w-full h-2 [&>span:first-child]:h-2 [&>span>span]:h-2 [&>span>span]:bg-primary"
-                         />
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex items-center justify-center">
+                <div ref={playerRef} className="w-full h-full relative group">
+                    <video
+                        ref={videoRef}
+                        src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                        className="w-full h-full object-contain"
+                        loop
+                        onClick={handlePlayPause}
+                    />
+                     <div 
+                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                        {/* Top Bar */}
                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 sm:gap-4">
-                                {streamData.status === 'live' && (
-                                     <Badge variant="destructive" className="items-center gap-1.5">
-                                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                        LIVE
-                                    </Badge>
-                                )}
-                                <div className="flex items-center gap-2">
-                                     <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
-                                    </Button>
-                                    <Slider 
-                                        className="w-20 hidden sm:flex"
-                                        value={[volume * 100]}
-                                    />
-                                </div>
-                                <span className="text-xs font-mono">{formatTime(currentTime)} / {streamData.status === 'live' ? formatTime(elapsedTime) : formatTime(duration)}</span>
-                            </div>
-                            <div className="flex items-center gap-1 sm:gap-2">
-                                {typeof document !== 'undefined' && document.pictureInPictureEnabled && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8"><PictureInPicture/></Button>
-                                )}
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8"><Settings /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    {isFullscreen ? <Minimize /> : <Maximize />}
+                            <div className="flex items-center gap-2">
+                               <Button variant="ghost" size="sm" className="bg-black/30 hover:bg-black/50" onClick={() => router.back()}>
+                                    <ArrowLeft className="mr-2"/>
+                                    Back
                                 </Button>
+                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
                             </div>
-                         </div>
+                            <Badge variant="secondary" className="gap-2 bg-black/30">
+                                <Users />
+                                {streamData.viewerCount ? (streamData.viewerCount / 1000).toFixed(1) + 'K watching' : '12.4K watching'}
+                            </Badge>
+                        </div>
+
+                        {/* Center Controls */}
+                         <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                            <Button variant="ghost" size="icon" className="h-16 w-16">
+                                <Rewind className="w-8 h-8 fill-white" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
+                                {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
+                            </Button>
+                             <Button variant="ghost" size="icon" className="h-16 w-16">
+                                <FastForward className="w-8 h-8 fill-white" />
+                            </Button>
+                        </div>
+
+                         {/* Bottom Bar */}
+                         <div className="space-y-3">
+                             <Slider 
+                                value={[currentTime]}
+                                max={duration || 1}
+                                className="w-full h-2 [&>span:first-child]:h-2 [&>span>span]:h-2 [&>span>span]:bg-primary"
+                             />
+                             <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 sm:gap-4">
+                                    {streamData.status === 'live' && (
+                                         <Badge variant="destructive" className="items-center gap-1.5">
+                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                            LIVE
+                                        </Badge>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                         <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
+                                        </Button>
+                                        <Slider 
+                                            className="w-20 hidden sm:flex"
+                                            value={[volume * 100]}
+                                        />
+                                    </div>
+                                    <span className="text-xs font-mono">{formatTime(currentTime)} / {streamData.status === 'live' ? formatTime(elapsedTime) : formatTime(duration)}</span>
+                                </div>
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                    {typeof document !== 'undefined' && document.pictureInPictureEnabled && (
+                                        <Button variant="ghost" size="icon" className="h-8 w-8"><PictureInPicture/></Button>
+                                    )}
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 /></Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Settings /></Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        {isFullscreen ? <Minimize /> : <Maximize />}
+                                    </Button>
+                                </div>
+                             </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+            <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border">
+                 <div className="p-4 border-b">
+                    <h3 className="font-bold text-lg">Live Chat</h3>
+                </div>
+                <ScrollArea className="flex-grow p-4">
+                    <div className="space-y-4">
+                        {chatMessages.map(msg => (
+                            <div key={msg.id} className="flex items-start gap-2 text-sm">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={msg.avatar} />
+                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <span className="font-semibold">{msg.user}</span>
+                                    <p className="text-muted-foreground">{msg.text}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+                <div className="p-4 border-t">
+                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
+                        <Input
+                            placeholder="Send a message..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                        />
+                        <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                            <Send className="h-4 w-4" />
+                        </Button>
+                    </form>
                 </div>
             </div>
         </div>
