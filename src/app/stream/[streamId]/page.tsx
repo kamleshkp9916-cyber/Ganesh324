@@ -556,7 +556,7 @@ export default function StreamPage() {
                         })}
                     </div>
                 </ScrollArea>
-                <div className="p-4 border-t">
+                <div className="p-4 border-t flex-shrink-0">
                     <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                         <Popover>
                             <PopoverTrigger asChild>
