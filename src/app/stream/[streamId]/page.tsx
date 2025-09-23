@@ -90,7 +90,6 @@ const mockChatMessages = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
     { id: 4, type: 'system', text: 'Sarah joined the stream.'},
-    { id: 5, user: 'Chris', text: 'Is there a discount for first-time buyers?', avatar: 'https://placehold.co/40x40.png' },
 ];
 
 function formatTime(seconds: number) {
@@ -335,6 +334,11 @@ export default function StreamPage() {
                 <div className="p-4 border-b flex items-center justify-between z-10">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
+                        {seller?.hasAuction && (
+                            <Button variant="ghost" size="icon">
+                                <Gavel className="h-5 w-5 text-purple-500" />
+                            </Button>
+                        )}
                        <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
                             <ShoppingBag className="h-5 w-5" />
                         </Button>
