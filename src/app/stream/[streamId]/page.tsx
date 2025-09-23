@@ -125,29 +125,31 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
     if (!product) return null;
 
     return (
-        <Card className="bg-background/80 backdrop-blur-sm border-primary/50 my-2">
-            <CardContent className="p-3 flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                    <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md object-cover" data-ai-hint={product.hint}/>
-                    <div className="flex-grow overflow-hidden">
-                        <p className="text-sm font-semibold truncate">{product.name}</p>
-                        <p className="text-sm font-bold text-foreground">{product.price}</p>
-                         <Badge variant={stock > 10 ? "outline" : "destructive"} className="mt-1">
-                            <Zap className="mr-1 h-3 w-3" />
-                            {stock} left
-                        </Badge>
+        <Link href={`/product/${productKey}`}>
+            <Card className="bg-background/80 backdrop-blur-sm border-primary/50 my-2 cursor-pointer hover:bg-background/90">
+                <CardContent className="p-3 flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md object-cover" data-ai-hint={product.hint}/>
+                        <div className="flex-grow overflow-hidden">
+                            <p className="text-sm font-semibold truncate">{product.name}</p>
+                            <p className="text-sm font-bold text-foreground">{product.price}</p>
+                             <Badge variant={stock > 10 ? "outline" : "destructive"} className="mt-1">
+                                <Zap className="mr-1 h-3 w-3" />
+                                {stock} left
+                            </Badge>
+                        </div>
                     </div>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onAddToCart(productKey)} disabled={isAdminView}>
-                        <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-                    </Button>
-                    <Button size="sm" className="flex-1" onClick={() => onBuyNow(productKey)} disabled={isAdminView}>
-                        Buy Now
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+                     <div className="flex items-center gap-2">
+                        <Button size="sm" variant="secondary" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
+                            <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+                        </Button>
+                        <Button size="sm" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
+                            Buy Now
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
     );
 }
 
@@ -632,8 +634,8 @@ export default function StreamPage() {
                 </div>
 
                 <div className="absolute inset-0 flex flex-col">
-                    <ScrollArea className="flex-1 p-4 space-y-4">
-                         <div className="flex justify-between items-start gap-4">
+                    <div className="p-4 bg-black/50 backdrop-blur-sm border-b border-white/10 flex-shrink-0">
+                        <div className="flex justify-between items-start gap-4">
                             <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                 <Link href={sellerProfileUrl}>
                                     <Avatar className="h-10 w-10">
@@ -670,10 +672,8 @@ export default function StreamPage() {
                                 )}
                             </div>
                         </div>
-                        <div className='p-2 my-2'>
-                            <h1 className="font-bold text-lg">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                            <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                        </div>
+                    </div>
+                    <ScrollArea className="flex-1 p-4 space-y-4">
                         {chatMessages.map(item => (
                             item.type === 'chat' ? (
                                 <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
