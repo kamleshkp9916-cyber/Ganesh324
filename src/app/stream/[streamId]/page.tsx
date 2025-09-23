@@ -308,10 +308,14 @@ export default function StreamPage() {
 
     video.addEventListener("timeupdate", updateProgress);
     video.addEventListener("loadedmetadata", setVideoDuration);
+    video.addEventListener("play", () => setIsPaused(false));
+    video.addEventListener("pause", () => setIsPaused(true));
 
     return () => {
         video.removeEventListener("timeupdate", updateProgress);
         video.removeEventListener("loadedmetadata", setVideoDuration);
+        video.removeEventListener("play", () => setIsPaused(false));
+        video.removeEventListener("pause", () => setIsPaused(true));
     };
   }, []);
 
@@ -380,10 +384,8 @@ export default function StreamPage() {
     if (videoRef.current) {
         if (videoRef.current.paused) {
             videoRef.current.play();
-            setIsPaused(false);
         } else {
             videoRef.current.pause();
-            setIsPaused(true);
         }
     }
   }, []);
@@ -416,15 +418,13 @@ export default function StreamPage() {
                     muted={isMuted}
                     loop
                     playsInline
-                    onPause={() => setIsPaused(true)}
-                    onPlay={() => setIsPaused(false)}
                 />
                  <div className={cn(
                     "absolute inset-0 bg-black/20 transition-opacity duration-300 flex flex-col justify-between p-4",
                     controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}>
                     <div>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => setControlsVisible(false)}>
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); setControlsVisible(false); }}>
                             <PanelRightClose className="text-white" />
                         </Button>
                     </div>
