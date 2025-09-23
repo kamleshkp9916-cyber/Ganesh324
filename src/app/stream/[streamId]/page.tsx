@@ -65,7 +65,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -201,6 +201,31 @@ export default function StreamPage() {
     };
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
+    
+    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+    
+    const handleAddToCart = (product: any) => {
+      if (product) {
+        addToCart({ ...product, quantity: 1 });
+        toast({
+          title: "Added to Cart!",
+          description: `${product.name} has been added to your cart.`,
+        });
+      }
+    };
+    const handleBuyNow = (product: any) => {
+      if (product) {
+        router.push(`/cart?buyNow=true&productId=${product.key}`);
+      }
+    };
+    const handleNotifyMe = () => {
+        toast({
+            title: "You're on the list!",
+            description: "We'll notify you when this product is back in stock."
+        });
+    };
+
+    const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
@@ -259,9 +284,48 @@ export default function StreamPage() {
                 <div className="p-4 border-b flex items-center justify-between">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                            <ShoppingBag className="h-5 w-5" />
-                        </Button>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <ShoppingBag className="h-5 w-5" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Products in this Stream</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="max-h-[60vh]">
+                                    <div className="p-1 space-y-4">
+                                    {sellerProducts.length > 0 ? sellerProducts.map(product => (
+                                        <div key={product.key} className="flex items-center gap-4">
+                                            <Link href={`/product/${product.key}`} className="block flex-shrink-0">
+                                                <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
+                                            </Link>
+                                            <div className="flex-grow">
+                                                <Link href={`/product/${product.key}`} className="hover:underline">
+                                                    <h3 className="font-semibold text-sm">{product.name}</h3>
+                                                </Link>
+                                                <p className="font-bold text-base text-foreground">{product.price}</p>
+                                                <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                            {product.stock > 0 ? (
+                                                <>
+                                                    <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                    <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                </>
+                                            ) : (
+                                                <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
+                                            )}
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <p className="text-muted-foreground text-center py-8">No products are featured in this stream.</p>
+                                    )}
+                                    </div>
+                                </ScrollArea>
+                            </DialogContent>
+                        </Dialog>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -269,12 +333,12 @@ export default function StreamPage() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => toast({ title: 'Feedback form coming soon!' })}>
+                                <DropdownMenuItem>
                                     <MessageCircle className="mr-2 h-4 w-4" /> Feedback
                                 </DropdownMenuItem>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
                                             <Flag className="mr-2 h-4 w-4" /> Report
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
