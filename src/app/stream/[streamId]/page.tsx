@@ -93,6 +93,8 @@ const mockChatMessages: any[] = [
     { id: 4, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
+const streamCategories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Fitness", "Handmade", "Books"];
+
 function formatTime(seconds: number) {
     if (isNaN(seconds) || seconds < 0) {
         return "00:00";
@@ -248,9 +250,41 @@ export default function StreamPage() {
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
-        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 lg:overflow-hidden">
-            <ScrollArea className="lg:col-span-2 xl:col-span-3 w-full h-full">
-                <div className="w-full aspect-video relative group" ref={playerRef}>
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 lg:overflow-hidden">
+            <aside className="hidden lg:flex lg:col-span-1 xl:col-span-1 h-full flex-col border-r border-border bg-background text-foreground">
+                <ScrollArea className="h-full">
+                    <div className="p-4">
+                        <h3 className="font-semibold mb-4">Browse by Category</h3>
+                        <div className="space-y-2">
+                            {streamCategories.map(category => (
+                                <Button key={category} variant="ghost" className="w-full justify-start">{category}</Button>
+                            ))}
+                        </div>
+                        <Separator className="my-4" />
+                        <h3 className="font-semibold mb-4">Live Sellers</h3>
+                        <div className="space-y-3">
+                            {liveSellers.map(s => (
+                                <Link key={s.id} href={`/stream/${s.id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarImage src={s.avatarUrl} />
+                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow overflow-hidden">
+                                        <p className="font-semibold text-sm truncate">{s.name}</p>
+                                        <p className="text-xs text-muted-foreground">{s.category}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <Users className="h-3 w-3" />
+                                        {s.viewers}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </ScrollArea>
+            </aside>
+            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
+                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -299,7 +333,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto">
+                 <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
                     <Collapsible>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -344,7 +378,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-            </ScrollArea>
+            </div>
             <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
                 <div className="p-4 border-b flex items-center justify-between z-10">
                     <h3 className="font-bold text-lg">Live Chat</h3>
