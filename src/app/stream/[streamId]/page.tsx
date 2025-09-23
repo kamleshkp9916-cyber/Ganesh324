@@ -61,7 +61,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "./ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -307,7 +307,6 @@ export default function StreamPage() {
     } else {
       video.pause();
     }
-    setIsPaused(video.paused);
   }, []);
 
    useEffect(() => {
@@ -430,7 +429,7 @@ export default function StreamPage() {
                 >
                     <div >
                          <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => router.push('/live-selling') }>
-                            <ArrowLeft className="text-white" />
+                            
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
@@ -447,15 +446,15 @@ export default function StreamPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Button variant="secondary" size="sm" className="text-xs h-7" onClick={(e) => {e.stopPropagation(); if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setIsMuted(prev => !prev)}}>{isMuted ? <VolumeX className="w-5 h-5 text-white"/> : <Volume2 className="w-5 h-5 text-white"/>}</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setIsMuted(prev => !prev)}}></Button>
                             </div>
                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setControlsVisible(false)}}>
-                                <PanelRightClose className="h-5 w-5 text-white" />
+                                
                             </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                        <Settings className="w-5 h-5 text-white" />
+                                        
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
@@ -468,7 +467,7 @@ export default function StreamPage() {
                 </div>
                  {!controlsVisible && (
                     <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => setControlsVisible(true)}>
-                        <PanelRightOpen className="text-white" />
+                        
                     </Button>
                 )}
             </div>
@@ -547,7 +546,7 @@ export default function StreamPage() {
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
              <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handlePlayPause}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                    <ArrowLeft className="text-white" />
+                    
                 </Button>
                 <video 
                     ref={videoRef} 
@@ -675,15 +674,15 @@ export default function StreamPage() {
                     
                      <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
-                            <List className="text-white" />
+                            
                         </Button>
                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
-                            <Share2 className="text-white" />
+                            
                         </Button>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                  <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
-                                    <MoreVertical className="text-white" />
+                                    
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -763,12 +762,12 @@ export default function StreamPage() {
                     <h3 className="font-bold text-lg text-white">Live Chat</h3>
                      <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsProductListOpen(prev => !prev)}>
-                            <List />
+                            
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-white">
-                                    <MoreVertical />
+                                    
                                 </Button>
                             </DropdownMenuTrigger>
                              <DropdownMenuContent align="end">
@@ -911,3 +910,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
