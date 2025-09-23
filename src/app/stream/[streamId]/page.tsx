@@ -89,6 +89,7 @@ const mockChatMessages = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
+    { id: 4, type: 'system', text: 'Sarah joined the stream.'},
     { id: 4, user: 'Chris', text: 'Is there a discount for first-time buyers?', avatar: 'https://placehold.co/40x40.png' },
 ];
 
@@ -389,6 +390,11 @@ export default function StreamPage() {
                 <ScrollArea className="flex-grow p-4" ref={chatContainerRef}>
                     <div className="space-y-4">
                         {chatMessages.map(msg => (
+                            msg.type === 'system' ? (
+                                <div key={msg.id} className="text-center text-xs text-muted-foreground italic py-1">
+                                    {msg.text}
+                                </div>
+                            ) : (
                             <div key={msg.id} className="flex items-start gap-2 text-sm group">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={msg.avatar} />
@@ -427,6 +433,7 @@ export default function StreamPage() {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             </div>
+                            )
                         ))}
                     </div>
                 </ScrollArea>
@@ -446,5 +453,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
-    
