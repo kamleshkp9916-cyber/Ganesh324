@@ -41,6 +41,7 @@ import {
   Minimize,
   PictureInPicture,
   ShoppingBag,
+  Paperclip,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,7 @@ import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
 import { FeedbackDialog } from "@/components/feedback-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'woman posing stylish outfit' },
@@ -238,13 +240,13 @@ export default function StreamPage() {
         addToCart({ ...product, quantity: 1 });
         toast({
           title: "Added to Cart!",
-          description: `${"'"}${product.name}${"'"} has been added to your cart.`,
+          description: `'${product.name}' has been added to your cart.`,
         });
       }
     };
     const handleBuyNow = (product: any) => {
       if (product) {
-        router.push(`/cart?buyNow=true&productId=${"'"}${product.key}${"'"}`);
+        router.push(`/cart?buyNow=true&productId='${product.key}'`);
       }
     };
     const handleNotifyMe = () => {
@@ -257,7 +259,7 @@ export default function StreamPage() {
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
-        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[300px_1fr_340px] lg:overflow-hidden">
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[300px_1fr_340px] overflow-hidden">
             <aside className="hidden lg:flex lg:col-span-1 h-full flex-col border-r border-border bg-background text-foreground">
                 <ScrollArea className="h-full">
                     <div className="p-4">
@@ -270,7 +272,7 @@ export default function StreamPage() {
                         <Separator className="my-4" />
                         <h3 className="font-semibold mb-4">Live Sellers</h3>
                         <div className="space-y-3">
-                            {liveSellers.map(s => (
+                            {liveSellers.slice(0, 10).map(s => (
                                 <Link key={s.id} href={`/stream/${s.id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted">
                                     <Avatar className="h-9 w-9">
                                         <AvatarImage src={s.avatarUrl} />
@@ -287,102 +289,104 @@ export default function StreamPage() {
                                 </Link>
                             ))}
                         </div>
-                         <Button variant="link" className="text-muted-foreground w-full mt-2">More...</Button>
+                         <Button variant="link" className="text-muted-foreground w-full mt-2 justify-end p-2 h-auto">More...</Button>
                     </div>
                 </ScrollArea>
             </aside>
-            <div className="lg:col-span-1 w-full h-full flex flex-col overflow-y-auto">
-                <div className="w-full h-[60vh] bg-black relative group flex-shrink-0" ref={playerRef}>
-                    <video
-                        ref={videoRef}
-                        src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                        className="w-full h-full object-cover"
-                        loop
-                    />
-                     <div 
-                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    >
-                        {/* Top Bar */}
-                         <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
-                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
-                            </div>
-                            <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
-                        </div>
-
-                        {/* Center Controls */}
-                         <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                            </Button>
-                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                        </div>
-
-                         {/* Bottom Bar */}
-                         <div className="space-y-3">
-                            <Progress value={(currentTime / duration) * 100} className="h-2" />
+             <div className="lg:col-span-1 w-full h-full flex flex-col overflow-hidden">
+                 <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+                    <div className="w-full h-[60vh] bg-black relative group flex-shrink-0" ref={playerRef}>
+                        <video
+                            ref={videoRef}
+                            src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                            className="w-full h-full object-cover"
+                            loop
+                        />
+                         <div 
+                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        >
+                            {/* Top Bar */}
                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 sm:gap-4">
-                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                        {isMuted ? <VolumeX /> : <Volume2 />}
-                                    </Button>
-                                    <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                                 <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
+                                     <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
                                 </div>
-                                <div className="flex items-center gap-1 sm:gap-2">
-                                    <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                                    <Button variant="ghost" size="icon"><Share2 /></Button>
-                                    <Button variant="ghost" size="icon"><Settings /></Button>
-                                    <Button variant="ghost" size="icon"><Maximize /></Button>
-                                </div>
-                             </div>
+                                <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
+                            </div>
+
+                            {/* Center Controls */}
+                             <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                    {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                                </Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                            </div>
+
+                             {/* Bottom Bar */}
+                             <div className="space-y-3">
+                                <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                 <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 sm:gap-4">
+                                        <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                            {isMuted ? <VolumeX /> : <Volume2 />}
+                                        </Button>
+                                        <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 sm:gap-2">
+                                        <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                        <Button variant="ghost" size="icon"><Share2 /></Button>
+                                        <Button variant="ghost" size="icon"><Settings /></Button>
+                                        <Button variant="ghost" size="icon"><Maximize /></Button>
+                                    </div>
+                                 </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                 <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
-                    <Collapsible>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {seller && (
-                                    <>
-                                        <Avatar>
-                                            <AvatarImage src={seller.avatarUrl} />
-                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <h3 className="font-semibold">{seller.name}</h3>
-                                        <Button variant="secondary" size="sm" className="h-7">
-                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                        </Button>
-                                    </>
-                                )}
+                    <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
+                        <Collapsible>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {seller && (
+                                        <>
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <h3 className="font-semibold">{seller.name}</h3>
+                                            <Button variant="secondary" size="sm" className="h-7">
+                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                        Show Description
+                                        <ChevronDown className="h-4 w-4 ml-2" />
+                                    </Button>
+                                </CollapsibleTrigger>
                             </div>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                    Show Description
-                                    <ChevronDown className="h-4 w-4 ml-2" />
-                                </Button>
-                            </CollapsibleTrigger>
-                        </div>
-                        <CollapsibleContent>
-                            <p className="text-sm text-muted-foreground pt-3">
-                                {seller?.description || "No description available for this stream."}
-                            </p>
-                        </CollapsibleContent>
-                    </Collapsible>
-                      <div className="mt-6">
-                        <h4 className="font-semibold mb-4">Related Streams</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {liveSellers.filter(s => s.id !== streamId).map(s => (
-                                <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden">
-                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                     <Image src={s.thumbnailUrl} alt={s.name} width={200} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                                         <p className="font-semibold text-white text-sm truncate">{s.name}</p>
-                                     </div>
-                                </Link>
-                            ))}
+                            <CollapsibleContent>
+                                <p className="text-sm text-muted-foreground pt-3">
+                                    {seller?.description || "No description available for this stream."}
+                                </p>
+                            </CollapsibleContent>
+                        </Collapsible>
+                        <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Related Streams</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {liveSellers.filter(s => s.id !== streamId).map(s => (
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <Image src={s.thumbnailUrl} alt={s.name} width={200} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                                            <p className="font-semibold text-white text-sm truncate">{s.name}</p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -452,11 +456,11 @@ export default function StreamPage() {
                              <div className="p-4 space-y-4">
                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
                                     <div key={product.key} className="flex items-center gap-4">
-                                        <Link href={`/product/${"'"}${product.key}${"'"}`} className="block flex-shrink-0">
+                                        <Link href={`/product/'${product.key}'`} className="block flex-shrink-0">
                                             <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
                                         </Link>
                                         <div className="flex-grow">
-                                            <Link href={`/product/${"'"}${product.key}${"'"}`} className="hover:underline">
+                                            <Link href={`/product/'${product.key}'`} className="hover:underline">
                                                 <h3 className="font-semibold text-sm">{product.name}</h3>
                                             </Link>
                                             <p className="font-bold text-base text-foreground">{product.price}</p>
@@ -553,11 +557,39 @@ export default function StreamPage() {
                     </div>
                 </ScrollArea>
                 <div className="p-4 border-t">
-                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
-                        <Input
+                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" type="button" className="flex-shrink-0">
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <p>Emoji picker coming soon!</p>
+                            </PopoverContent>
+                        </Popover>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" type="button" className="flex-shrink-0">
+                                    <Paperclip className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                             <PopoverContent>
+                                <p>File attachments coming soon!</p>
+                            </PopoverContent>
+                        </Popover>
+                        <Textarea
                             placeholder="Send a message..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
+                            className="resize-none flex-grow"
+                            rows={1}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleNewMessageSubmit(e);
+                                }
+                            }}
                         />
                         <Button type="submit" size="icon" disabled={!newMessage.trim()}>
                             <Send className="h-4 w-4" />
