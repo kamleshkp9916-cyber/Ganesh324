@@ -77,6 +77,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!' },
@@ -133,6 +134,7 @@ export default function StreamPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
+    const [isProductListVisible, setIsProductListVisible] = useState(false);
     
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
@@ -280,66 +282,29 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border">
-                <div className="p-4 border-b flex items-center justify-between">
+            <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
+                <div className="p-4 border-b flex items-center justify-between z-10">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <ShoppingBag className="h-5 w-5" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>Products in this Stream</DialogTitle>
-                                </DialogHeader>
-                                <ScrollArea className="max-h-[60vh]">
-                                    <div className="p-1 space-y-4">
-                                    {sellerProducts.length > 0 ? sellerProducts.map(product => (
-                                        <div key={product.key} className="flex items-center gap-4">
-                                            <Link href={`/product/${product.key}`} className="block flex-shrink-0">
-                                                <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
-                                            </Link>
-                                            <div className="flex-grow">
-                                                <Link href={`/product/${product.key}`} className="hover:underline">
-                                                    <h3 className="font-semibold text-sm">{product.name}</h3>
-                                                </Link>
-                                                <p className="font-bold text-base text-foreground">{product.price}</p>
-                                                <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
-                                            </div>
-                                            <div className="flex flex-col gap-2">
-                                            {product.stock > 0 ? (
-                                                <>
-                                                    <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                    <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                                </>
-                                            ) : (
-                                                <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
-                                            )}
-                                            </div>
-                                        </div>
-                                    )) : (
-                                        <p className="text-muted-foreground text-center py-8">No products are featured in this stream.</p>
-                                    )}
-                                    </div>
-                                </ScrollArea>
-                            </DialogContent>
-                        </Dialog>
+                       <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
+                            <ShoppingBag className="h-5 w-5" />
+                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
                                     <MoreVertical className="h-5 w-5" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                    <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                </DropdownMenuItem>
+                             <DropdownMenuContent align="end">
+                                <FeedbackDialog>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                    </DropdownMenuItem>
+                                </FeedbackDialog>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                            <Flag className="mr-2 h-4 w-4" /> Report
+                                            <Flag className="mr-2 h-4 w-4" /> Report Stream
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
@@ -359,6 +324,53 @@ export default function StreamPage() {
                         </DropdownMenu>
                     </div>
                 </div>
+
+                <div
+                    className={cn(
+                        "absolute inset-x-0 top-16 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out",
+                        isProductListVisible ? 'translate-y-0' : 'translate-y-full'
+                    )}
+                >
+                    <div className="h-full flex flex-col">
+                         <div className="p-4 border-b flex items-center justify-between">
+                            <h3 className="font-semibold">Products in this Stream</h3>
+                             <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </div>
+                        <ScrollArea className="flex-grow">
+                             <div className="p-4 space-y-4">
+                                {sellerProducts.length > 0 ? sellerProducts.map(product => (
+                                    <div key={product.key} className="flex items-center gap-4">
+                                        <Link href={`/product/${product.key}`} className="block flex-shrink-0">
+                                            <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
+                                        </Link>
+                                        <div className="flex-grow">
+                                            <Link href={`/product/${product.key}`} className="hover:underline">
+                                                <h3 className="font-semibold text-sm">{product.name}</h3>
+                                            </Link>
+                                            <p className="font-bold text-base text-foreground">{product.price}</p>
+                                            <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                        {product.stock > 0 ? (
+                                            <>
+                                                <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                            </>
+                                        ) : (
+                                            <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
+                                        )}
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <p className="text-muted-foreground text-center py-8">No products are featured in this stream.</p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                </div>
+
                 <ScrollArea className="flex-grow p-4">
                     <div className="space-y-4">
                         {chatMessages.map(msg => (
