@@ -1,4 +1,5 @@
 
+
       
 "use client";
 
@@ -16,7 +17,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { format, addDays } from 'date-fns';
+import { format, addDays, parse, differenceInDays } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
@@ -920,5 +921,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
 
     
+
+    
+
 
     

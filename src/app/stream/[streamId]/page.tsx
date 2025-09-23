@@ -131,7 +131,7 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                     <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md object-cover" data-ai-hint={product.hint}/>
                     <div className="flex-grow overflow-hidden">
                         <p className="text-sm font-semibold truncate">{product.name}</p>
-                        <p className="text-sm font-bold text-primary">{product.price}</p>
+                        <p className="text-sm font-bold text-foreground">{product.price}</p>
                          <Badge variant={stock > 10 ? "outline" : "destructive"} className="mt-1">
                             <Zap className="mr-1 h-3 w-3" />
                             {stock} left
@@ -956,3 +956,5 @@ export default function StreamPage() {
   );
 }
 
+
+    
