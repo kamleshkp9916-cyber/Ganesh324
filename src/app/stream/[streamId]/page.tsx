@@ -125,6 +125,7 @@ export default function StreamPage() {
     const streamData = mockStreamData; // Use mock data directly
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -153,6 +154,15 @@ export default function StreamPage() {
         const newTime = direction === 'forward' ? video.currentTime + 10 : video.currentTime - 10;
         video.currentTime = Math.max(0, Math.min(duration, newTime));
     };
+
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            const viewport = chatContainerRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, [chatMessages]);
     
     useEffect(() => {
         const video = videoRef.current;
@@ -371,7 +381,7 @@ export default function StreamPage() {
                     </div>
                 </div>
 
-                <ScrollArea className="flex-grow p-4">
+                <ScrollArea className="flex-grow p-4" ref={chatContainerRef}>
                     <div className="space-y-4">
                         {chatMessages.map(msg => (
                             <div key={msg.id} className="flex items-start gap-2 text-sm">
