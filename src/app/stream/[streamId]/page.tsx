@@ -90,7 +90,7 @@ const mockChatMessages = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
     { id: 4, type: 'system', text: 'Sarah joined the stream.'},
-    { id: 4, user: 'Chris', text: 'Is there a discount for first-time buyers?', avatar: 'https://placehold.co/40x40.png' },
+    { id: 5, user: 'Chris', text: 'Is there a discount for first-time buyers?', avatar: 'https://placehold.co/40x40.png' },
 ];
 
 function formatTime(seconds: number) {
