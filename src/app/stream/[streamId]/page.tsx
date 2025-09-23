@@ -178,31 +178,12 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
 const STREAM_TERMINATED_KEY = 'stream_terminated_violation';
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 
-function StreamTimer() {
-    const [elapsedTime, setElapsedTime] = useState(0);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setElapsedTime(prev => prev + 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    const formatTime = (seconds: number) => {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    };
-
-    return (
-        <div className="absolute bottom-4 left-4 bg-black/50 text-white px-2 py-1 rounded-md text-xs font-mono flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-            <span>LIVE</span>
-            <span>{formatTime(elapsedTime)}</span>
-        </div>
-    );
+function formatTime(seconds: number) {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    if(h === '00') return `${m}:${s}`;
+    return `${h}:${m}:${s}`;
 }
 
 export default function StreamPage() {
@@ -230,6 +211,9 @@ export default function StreamPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
   const featuredProductIds = chatMessages.filter(item => item.type === 'product').map(item => item.productKey);
   const isAdminView = userData?.role === 'admin';
 
@@ -245,12 +229,9 @@ export default function StreamPage() {
   }, []);
 
   const connectWebSocket = useCallback(() => {
-    // In a real app, this would be your WebSocket connection logic
     console.log("Attempting to connect WebSocket...");
     setIsConnecting(true);
-
-    const ws = new WebSocket("wss://echo.websocket.org/"); // Using a public test server
-
+    const ws = new WebSocket("wss://echo.websocket.org/");
     ws.onopen = () => {
       console.log("WebSocket connected!");
       setIsConnecting(false);
@@ -260,50 +241,29 @@ export default function StreamPage() {
             reconnectTimeoutRef.current = null;
        }
     };
-
-    ws.onmessage = (event) => {
-        // Echo server just sends back what you send it
-        console.log("Received:", event.data);
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      // The 'close' event will usually fire right after 'error'
-    };
-
+    ws.onmessage = (event) => console.log("Received:", event.data);
+    ws.onerror = (error) => console.error("WebSocket error:", error);
     ws.onclose = () => {
       console.log("WebSocket disconnected.");
       setIsConnecting(false);
       setChatMessages(prev => [...prev, { id: Date.now(), type: 'chat', user: 'System', message: 'Chat disconnected. Reconnecting...' }]);
-
-      // Simple exponential backoff reconnection strategy
        if (!reconnectTimeoutRef.current) {
-            reconnectTimeoutRef.current = setTimeout(() => {
-                connectWebSocket();
-            }, 3000); // Attempt to reconnect after 3 seconds
+            reconnectTimeoutRef.current = setTimeout(() => connectWebSocket(), 3000);
        }
     };
-    
     return ws;
   }, []);
 
   useEffect(() => {
     if (!isClient) return;
-
     const ws = connectWebSocket();
-
     const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === STREAM_TERMINATED_KEY && event.newValue === streamId) {
-            setIsStreamTerminated(true);
-        }
+        if (event.key === STREAM_TERMINATED_KEY && event.newValue === streamId) setIsStreamTerminated(true);
     };
     window.addEventListener('storage', handleStorageChange);
-    
     return () => {
-        ws.close(); // Clean up WebSocket connection on component unmount
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-        }
+        ws.close();
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         window.removeEventListener('storage', handleStorageChange);
     };
   }, [isClient, streamId, connectWebSocket]);
@@ -311,41 +271,23 @@ export default function StreamPage() {
   useEffect(() => {
     if (scrollAreaRef.current) {
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
+        if (viewport) viewport.scrollTop = viewport.scrollHeight;
     }
   }, [chatMessages]);
 
   useEffect(() => {
     if (!isClient) return;
-    
-    let sellerData: any = null;
-    const sellerFromList = liveSellers.find(s => s.id === streamId || s.name === streamId);
-
-    if (sellerFromList) {
-        sellerData = sellerFromList;
-    } else {
+    let sellerData: any = liveSellers.find(s => s.id === streamId || s.name === streamId) || null;
+    if (!sellerData) {
         const liveStreamDataRaw = localStorage.getItem('liveStream');
         if (liveStreamDataRaw) {
             const liveStreamData = JSON.parse(liveStreamDataRaw);
             const sellerIdFromStorage = liveStreamData.seller?.uid || streamId;
-
             if (sellerIdFromStorage === streamId) {
-                sellerData = {
-                    ...liveStreamData,
-                    id: streamId,
-                    viewers: liveSellers[1].viewers,
-                    productId: liveStreamData.product?.id,
-                    avatarUrl: liveStreamData.seller.photoURL,
-                    name: liveStreamData.seller.name,
-                    category: liveStreamData.product.category,
-                    description: liveStreamData.description
-                };
+                sellerData = { ...liveStreamData, id: streamId, viewers: liveSellers[1].viewers, productId: liveStreamData.product?.id, avatarUrl: liveStreamData.seller.photoURL, name: liveStreamData.seller.name, category: liveStreamData.product.category, description: liveStreamData.description };
             }
         }
     }
-
     if (sellerData) {
         setSeller(sellerData);
         if (user) {
@@ -356,139 +298,109 @@ export default function StreamPage() {
     }
   }, [streamId, user, isClient]);
 
+   useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateProgress = () => setCurrentTime(video.currentTime);
+    const setVideoDuration = () => setDuration(video.duration);
+
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("loadedmetadata", setVideoDuration);
+
+    return () => {
+        video.removeEventListener("timeupdate", updateProgress);
+        video.removeEventListener("loadedmetadata", setVideoDuration);
+    };
+  }, []);
 
   const handleAddToCart = (productKey: string) => {
     const product = productDetails[productKey as keyof typeof productDetails];
     if (product) {
         addToCart({ ...product, imageUrl: product.images[0], quantity: 1 });
-        toast({
-            title: "Added to Cart!",
-            description: `${product.name} has been added to your shopping cart.`,
-        });
+        toast({ title: "Added to Cart!", description: `${product.name} has been added to your shopping cart.` });
     }
   };
 
-  const handleBuyNow = (productKey: string) => {
-      router.push(`/cart?buyNow=true&productId=${productKey}`);
-  };
+  const handleBuyNow = (productKey: string) => router.push(`/cart?buyNow=true&productId=${productKey}`);
 
   const handleSendMessage = (e: React.FormEvent) => {
       e.preventDefault();
       if (!newChatMessage.trim()) return;
-
-      const newMessage = {
-          id: Date.now(),
-          type: 'chat',
-          user: user?.displayName || 'Guest',
-          message: newChatMessage.trim(),
-      };
-      // @ts-ignore
+      const newMessage = { id: Date.now(), type: 'chat', user: user?.displayName || 'Guest', message: newChatMessage.trim() };
       setChatMessages(prev => [...prev, newMessage]);
       setNewChatMessage("");
   };
 
-   const addEmoji = (emoji: string) => {
-        setNewChatMessage(prev => prev + emoji);
-    };
+  const addEmoji = (emoji: string) => setNewChatMessage(prev => prev + emoji);
 
-    const handleFollowToggle = () => {
-        if (!user) {
-            toast({
-                variant: 'destructive',
-                title: 'Login Required',
-                description: 'You must be logged in to follow a seller.',
-            });
-            return;
-        }
-        if (seller) {
-            toggleFollow(user.uid, seller.id);
-            setIsFollowing(prev => !prev);
-        }
-    };
+  const handleFollowToggle = () => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to follow a seller.' });
+        return;
+    }
+    if (seller) {
+        toggleFollow(user.uid, seller.id);
+        setIsFollowing(prev => !prev);
+    }
+  };
     
-    const handleTerminateStream = () => {
-        // Use localStorage to trigger a 'storage' event across tabs
-        localStorage.setItem(STREAM_TERMINATED_KEY, streamId);
-        // Immediately remove it so it doesn't persist, the event is what matters
-        localStorage.removeItem(STREAM_TERMINATED_KEY);
-        
-        setIsStreamTerminated(true);
-        toast({
-            variant: "destructive",
-            title: "Stream Terminated",
-            description: `The live stream by ${seller.name} has been stopped.`,
-        });
-    };
+  const handleTerminateStream = () => {
+    localStorage.setItem(STREAM_TERMINATED_KEY, streamId);
+    localStorage.removeItem(STREAM_TERMINATED_KEY);
+    setIsStreamTerminated(true);
+    toast({ variant: "destructive", title: "Stream Terminated", description: `The live stream by ${seller.name} has been stopped.` });
+  };
     
-    const handleReportComment = (comment: any) => {
-        const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-        const updatedFlaggedComments = [...storedFlaggedComments, { ...comment, streamId }];
-        localStorage.setItem(FLAGGED_COMMENTS_KEY, JSON.stringify(updatedFlaggedComments));
-        toast({
-            title: "Comment Reported",
-            description: "Thank you for your feedback. Our moderators will review it.",
-        });
-    };
+  const handleReportComment = (comment: any) => {
+    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+    const updatedFlaggedComments = [...storedFlaggedComments, { ...comment, streamId }];
+    localStorage.setItem(FLAGGED_COMMENTS_KEY, JSON.stringify(updatedFlaggedComments));
+    toast({ title: "Comment Reported", description: "Thank you for your feedback. Our moderators will review it." });
+  };
     
-    const handleReportStream = () => {
-        toast({
-            title: "Stream Reported",
-            description: "Thank you for helping keep StreamCart safe. Our team will review this stream.",
-        });
-    };
+  const handleReportStream = () => toast({ title: "Stream Reported", description: "Thank you for helping keep StreamCart safe. Our team will review this stream." });
     
-    const handleShareStream = () => {
-        navigator.clipboard.writeText(window.location.href);
-        toast({
-            title: "Link Copied!",
-            description: "Stream link copied to clipboard.",
-        });
-    };
+  const handleShareStream = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({ title: "Link Copied!", description: "Stream link copied to clipboard." });
+  };
 
-    const handleSeek = (direction: 'forward' | 'backward') => {
-        if (videoRef.current) {
-            const seekTime = direction === 'forward' ? 10 : -10;
-            videoRef.current.currentTime += seekTime;
-            setSeekIndicator(direction);
-            setTimeout(() => setSeekIndicator(null), 500);
-        }
-    };
+  const handleSeek = (direction: 'forward' | 'backward') => {
+    if (videoRef.current) {
+        const seekTime = direction === 'forward' ? 10 : -10;
+        videoRef.current.currentTime += seekTime;
+        setSeekIndicator(direction);
+        setTimeout(() => setSeekIndicator(null), 500);
+    }
+  };
 
-    const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!e.currentTarget) return;
-        const videoRect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - videoRect.left;
-        if (clickX < videoRect.width / 2) {
-            handleSeek('backward');
-        } else {
-            handleSeek('forward');
-        }
-    };
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!e.currentTarget) return;
+    const videoRect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - videoRect.left;
+    if (clickX < videoRect.width / 2) handleSeek('backward'); else handleSeek('forward');
+  };
 
-    const handleSingleClick = () => {
-        if(videoRef.current) {
-            if (videoRef.current.paused) {
-                videoRef.current.play();
-            } else {
-                videoRef.current.pause();
-            }
-            setIsPaused(videoRef.current.paused);
-        }
-    };
+  const handleSingleClick = () => {
+    if (videoRef.current) {
+        if (videoRef.current.paused) videoRef.current.play(); else videoRef.current.pause();
+        setIsPaused(videoRef.current.paused);
+    }
+  };
 
-    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (doubleClickTimeoutRef.current) {
-            clearTimeout(doubleClickTimeoutRef.current);
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (doubleClickTimeoutRef.current) {
+        clearTimeout(doubleClickTimeoutRef.current);
+        doubleClickTimeoutRef.current = null;
+        handleDoubleClick(e);
+    } else {
+        doubleClickTimeoutRef.current = setTimeout(() => {
+            handleSingleClick();
             doubleClickTimeoutRef.current = null;
-            handleDoubleClick(e);
-        } else {
-            const eventCopy = { ...e };
-            doubleClickTimeoutRef.current = setTimeout(() => {
-                handleSingleClick();
-                doubleClickTimeoutRef.current = null;
-            }, 300);
-        }
-    };
+        }, 300);
+    }
+  };
 
   if (!isClient || !seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -502,17 +414,12 @@ export default function StreamPage() {
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2"><ShieldCheck className="h-6 w-6 text-destructive"/> Stream Terminated by Admin</AlertDialogTitle>
-                <AlertDialogDescription>
-                    This live stream has been ended by an administrator due to a violation of community guidelines.
-                </AlertDialogDescription>
+                <AlertDialogDescription>This live stream has been ended by an administrator due to a violation of community guidelines.</AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogAction onClick={() => router.push('/live-selling')}>Back to Live Selling</AlertDialogAction>
-            </AlertDialogFooter>
+            <AlertDialogFooter><AlertDialogAction onClick={() => router.push('/live-selling')}>Back to Live Selling</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
-        {/* Main content for large screens */}
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
@@ -526,8 +433,38 @@ export default function StreamPage() {
                     muted 
                     loop
                     playsInline
+                    onClick={handleSingleClick}
+                    onPause={() => setIsPaused(true)}
+                    onPlay={() => setIsPaused(false)}
                 />
-                <StreamTimer />
+                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4">
+                    <div></div>
+                    <div className="flex items-center justify-center gap-8">
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                    </div>
+                    <div className="space-y-2">
+                         <div className="flex items-center gap-2 text-xs font-mono">
+                            <span>{formatTime(currentTime)}</span>
+                            <Progress value={(currentTime / duration) * 100} className="h-1.5 flex-1"/>
+                            <span>{formatTime(duration)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Button variant="secondary" size="sm" className="text-xs h-7" onClick={() => { if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}</Button>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="w-5 h-5" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuLabel>Quality</DropdownMenuLabel>
+                                    {['1080p', '720p', '480p', 'Auto'].map(q => <DropdownMenuItem key={q} onSelect={() => setQuality(q)}>{q}{quality === q && " ✓"}</DropdownMenuItem>)}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
+                </div>
             </div>
 
              <div className="p-4 space-y-4">
@@ -601,13 +538,11 @@ export default function StreamPage() {
             </div>
         </div>
 
-        {/* Combined layout for small screens */}
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handleClick}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
-                
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -980,5 +915,6 @@ export default function StreamPage() {
 
 
     
+
 
 
