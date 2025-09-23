@@ -391,7 +391,7 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
+            <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
                 <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
