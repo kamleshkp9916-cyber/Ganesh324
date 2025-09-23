@@ -103,9 +103,15 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     
-    const [streamData, setStreamData] = useState<any | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // Using mock data directly
+    const streamData = {
+        id: streamId,
+        title: "Live Shopping Event",
+        status: "live",
+        startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
+        viewerCount: 12400,
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    };
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
@@ -119,47 +125,39 @@ export default function StreamPage() {
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
-    // Fetch stream data from Firestore
-    useEffect(() => {
-        if (!streamId) return;
-
-        const db = getFirestoreDb();
-        const streamRef = doc(db, "streams", streamId);
-
-        const unsubscribe = onSnapshot(streamRef, 
-            (snap) => {
-                if (snap.exists()) {
-                    setStreamData({ id: snap.id, ...snap.data() });
-                    setIsLoading(false);
-                } else {
-                    setError("This stream does not exist or has ended.");
-                    setIsLoading(false);
-                }
-            },
-            (err) => {
-                console.error("Firestore error:", err);
-                setError("Could not connect to the stream. Please check your connection and try again.");
-                setIsLoading(false);
+    const handlePlayPause = () => {
+        if (videoRef.current) {
+            if (videoRef.current.paused) {
+                videoRef.current.play();
+                setIsPaused(false);
+            } else {
+                videoRef.current.pause();
+                setIsPaused(true);
             }
-        );
+        }
+    };
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            const updateProgress = () => setCurrentTime(video.currentTime);
+            const setVideoDuration = () => setDuration(video.duration);
+            const onPlay = () => setIsPaused(false);
+            const onPause = () => setIsPaused(true);
 
-        return () => unsubscribe();
-    }, [streamId]);
-    
-    if (isLoading) {
-        return <div className="h-dvh w-full bg-black flex items-center justify-center"><LoadingSpinner /></div>;
-    }
-    
-    if (error) {
-         return (
-            <div className="h-dvh w-full bg-black flex flex-col items-center justify-center text-center p-4">
-                <WifiOff className="w-16 h-16 text-destructive mb-4" />
-                <h2 className="text-2xl font-bold text-white mb-2">Stream Offline</h2>
-                <p className="text-muted-foreground mb-6 max-w-sm">{error}</p>
-                <Button onClick={() => router.back()}><ArrowLeft className="mr-2"/> Go Back</Button>
-            </div>
-        );
-    }
+            video.addEventListener("timeupdate", updateProgress);
+            video.addEventListener("loadedmetadata", setVideoDuration);
+            video.addEventListener("play", onPlay);
+            video.addEventListener("pause", onPause);
+
+            return () => {
+                video.removeEventListener("timeupdate", updateProgress);
+                video.removeEventListener("loadedmetadata", setVideoDuration);
+                video.removeEventListener("play", onPlay);
+                video.removeEventListener("pause", onPause);
+            };
+        }
+    }, []);
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
 
@@ -171,6 +169,7 @@ export default function StreamPage() {
                     src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
                     className="w-full h-full object-contain"
                     loop
+                    onClick={handlePlayPause}
                 />
                  <div 
                     className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/70 flex flex-col p-4"
@@ -195,7 +194,7 @@ export default function StreamPage() {
                         <Button variant="ghost" size="icon" className="h-16 w-16">
                             <Rewind className="w-8 h-8 fill-white" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-20 w-20">
+                        <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
                             {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
                         </Button>
                          <Button variant="ghost" size="icon" className="h-16 w-16">
@@ -230,7 +229,7 @@ export default function StreamPage() {
                                 <span className="text-xs font-mono">{formatTime(currentTime)} / {streamData.status === 'live' ? formatTime(elapsedTime) : formatTime(duration)}</span>
                             </div>
                             <div className="flex items-center gap-1 sm:gap-2">
-                                {document.pictureInPictureEnabled && (
+                                {typeof document !== 'undefined' && document.pictureInPictureEnabled && (
                                     <Button variant="ghost" size="icon" className="h-8 w-8"><PictureInPicture/></Button>
                                 )}
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 /></Button>
