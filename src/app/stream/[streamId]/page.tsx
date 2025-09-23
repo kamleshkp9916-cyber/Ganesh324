@@ -275,8 +275,8 @@ export default function StreamPage() {
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
 
     return (
-        <div ref={playerRef} className="h-dvh w-full bg-black text-white flex items-center justify-center" onClick={handlePlayPause}>
-            <div className="w-full h-full relative aspect-video">
+        <div ref={playerRef} className="h-dvh w-full bg-black text-white flex items-center justify-center">
+            <div className="w-full h-full relative" onClick={handlePlayPause}>
                 <video
                     ref={videoRef}
                     src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
