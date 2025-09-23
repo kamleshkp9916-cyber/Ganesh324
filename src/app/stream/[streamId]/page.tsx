@@ -89,8 +89,8 @@ const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
-    { id: 4, type: 'system', text: 'Sarah joined the stream.'},
-    { id: 5, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
+    { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
+    { id: 4, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
 function formatTime(seconds: number) {
@@ -249,8 +249,8 @@ export default function StreamPage() {
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 lg:overflow-hidden">
-            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
-                <div className="w-full h-[60%] lg:h-full relative group" ref={playerRef}>
+            <ScrollArea className="lg:col-span-2 xl:col-span-3 w-full h-full">
+                <div className="w-full aspect-video relative group" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -299,7 +299,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="p-4 border-t border-border bg-background text-foreground h-[40%] overflow-y-auto hidden lg:block">
+                 <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto">
                     <Collapsible>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -344,7 +344,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ScrollArea>
             <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
                 <div className="p-4 border-b flex items-center justify-between z-10">
                     <h3 className="font-bold text-lg">Live Chat</h3>
