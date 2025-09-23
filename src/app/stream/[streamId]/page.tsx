@@ -305,17 +305,19 @@ export default function StreamPage() {
 
     const updateProgress = () => setCurrentTime(video.currentTime);
     const setVideoDuration = () => setDuration(video.duration);
+    const handlePlay = () => setIsPaused(false);
+    const handlePause = () => setIsPaused(true);
 
     video.addEventListener("timeupdate", updateProgress);
     video.addEventListener("loadedmetadata", setVideoDuration);
-    video.addEventListener("play", () => setIsPaused(false));
-    video.addEventListener("pause", () => setIsPaused(true));
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
 
     return () => {
         video.removeEventListener("timeupdate", updateProgress);
         video.removeEventListener("loadedmetadata", setVideoDuration);
-        video.removeEventListener("play", () => setIsPaused(false));
-        video.removeEventListener("pause", () => setIsPaused(true));
+        video.removeEventListener("play", handlePlay);
+        video.removeEventListener("pause", handlePause);
     };
   }, []);
 
@@ -409,7 +411,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
-             <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
+             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -424,8 +426,8 @@ export default function StreamPage() {
                     controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}>
                     <div>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); setControlsVisible(false); }}>
-                            <PanelRightClose className="text-white" />
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.push('/live-selling') }}>
+                            <ArrowLeft className="text-white" />
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
@@ -444,6 +446,9 @@ export default function StreamPage() {
                                 <Button variant="secondary" size="sm" className="text-xs h-7" onClick={(e) => { e.stopPropagation(); if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}>{isMuted ? <VolumeX className="w-5 h-5 text-white"/> : <Volume2 className="w-5 h-5 text-white"/>}</Button>
                             </div>
+                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setControlsVisible(false); }}>
+                                <PanelRightClose className="h-5 w-5 text-white" />
+                            </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -903,3 +908,5 @@ export default function StreamPage() {
     </>
   );
 }
+
+    
