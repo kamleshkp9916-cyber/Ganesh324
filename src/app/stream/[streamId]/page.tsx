@@ -282,8 +282,8 @@ export default function StreamPage() {
                                         <p className="font-semibold text-sm truncate">{s.name}</p>
                                         <p className="text-xs text-muted-foreground">{s.category}</p>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs">
-                                        <Users className="h-3 w-3" />
+                                    <div className="flex items-center text-xs">
+                                        <Users className="h-3 w-3 mr-1" />
                                         {s.viewers}
                                     </div>
                                 </Link>
@@ -392,7 +392,7 @@ export default function StreamPage() {
                 </div>
             </div>
             <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
-                <div className="p-4 border-b flex items-center justify-between z-10">
+                <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
                         {seller?.hasAuction && (
