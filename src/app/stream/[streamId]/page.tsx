@@ -108,8 +108,8 @@ export default function StreamPage() {
     const params = useParams();
     const streamId = params.streamId as string;
     const { user } = useAuth();
-    
-    // Mock Data for UI building - will be replaced with Firestore data
+
+    // Mock Data for UI building
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
@@ -128,12 +128,10 @@ export default function StreamPage() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(0.5);
-    const [controlsVisible, setControlsVisible] = useState(true);
-    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
-
+    
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
         if (!video) return;
@@ -144,6 +142,13 @@ export default function StreamPage() {
             video.pause();
         }
     }, []);
+
+    const handleSeek = (direction: 'forward' | 'backward') => {
+        const video = videoRef.current;
+        if (!video) return;
+        const newTime = direction === 'forward' ? video.currentTime + 10 : video.currentTime - 10;
+        video.currentTime = Math.max(0, Math.min(duration, newTime));
+    };
     
     useEffect(() => {
         const video = videoRef.current;
@@ -161,7 +166,6 @@ export default function StreamPage() {
             // Start muted and autoplay if possible
             video.muted = true;
             video.play().catch(() => {
-                // Autoplay was prevented, user will have to click to start.
                 setIsPaused(true);
             });
 
@@ -172,7 +176,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, []);
+    }, [duration]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -198,7 +202,6 @@ export default function StreamPage() {
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
                         className="w-full h-full object-contain"
                         loop
-                        onClick={handlePlayPause}
                     />
                      <div 
                         className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -220,13 +223,13 @@ export default function StreamPage() {
 
                         {/* Center Controls */}
                          <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                            <Button variant="ghost" size="icon" className="h-16 w-16">
+                            <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('backward')}>
                                 <Rewind className="w-8 h-8 fill-white" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
                                 {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
                             </Button>
-                             <Button variant="ghost" size="icon" className="h-16 w-16">
+                             <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('forward')}>
                                 <FastForward className="w-8 h-8 fill-white" />
                             </Button>
                         </div>
