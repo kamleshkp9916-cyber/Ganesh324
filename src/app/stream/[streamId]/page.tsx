@@ -145,118 +145,7 @@ export default function StreamPage() {
 
         return () => unsubscribe();
     }, [streamId]);
-
-    // Handle controls visibility
-    const handleShowControls = useCallback(() => {
-        setControlsVisible(true);
-        if (controlsTimeoutRef.current) {
-            clearTimeout(controlsTimeoutRef.current);
-        }
-        controlsTimeoutRef.current = setTimeout(() => {
-            if (!isPaused) {
-               setControlsVisible(false);
-            }
-        }, 3000);
-    }, [isPaused]);
-
-    useEffect(() => {
-        const player = playerRef.current;
-        if (player) {
-            player.addEventListener('mousemove', handleShowControls);
-            player.addEventListener('mouseleave', () => {
-                 if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-                 if (!isPaused) setControlsVisible(false);
-            });
-        }
-        return () => {
-            if (player) {
-                player.removeEventListener('mousemove', handleShowControls);
-                player.removeEventListener('mouseleave', () => setControlsVisible(false));
-            }
-             if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-        };
-    }, [handleShowControls, isPaused]);
     
-    // Video player event handlers
-    const handlePlayPause = useCallback(() => {
-        if (videoRef.current) {
-            if (videoRef.current.paused) {
-                videoRef.current.play();
-            } else {
-                videoRef.current.pause();
-            }
-        }
-    }, []);
-
-    const handleSeek = (direction: 'forward' | 'backward') => {
-        if (videoRef.current) {
-            videoRef.current.currentTime += direction === 'forward' ? 10 : -10;
-        }
-    };
-    
-    const handleVolumeChange = (newVolume: number[]) => {
-        const volumeValue = newVolume[0] / 100;
-        if (videoRef.current) {
-            videoRef.current.volume = volumeValue;
-            setVolume(volumeValue);
-            if (volumeValue > 0 && isMuted) {
-                setIsMuted(false);
-            }
-        }
-    };
-    
-    const handleMuteToggle = () => {
-        if (videoRef.current) {
-            videoRef.current.muted = !videoRef.current.muted;
-            setIsMuted(videoRef.current.muted);
-        }
-    };
-    
-    const handleTimeUpdate = () => {
-        if (videoRef.current) {
-            setCurrentTime(videoRef.current.currentTime);
-        }
-    };
-
-    const handleLoadedMetadata = () => {
-        if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-            // Attempt to autoplay muted
-            videoRef.current.play().catch(e => console.log("Autoplay blocked"));
-        }
-    };
-
-    const handleProgressChange = (value: number[]) => {
-        if (videoRef.current) {
-            videoRef.current.currentTime = value[0];
-        }
-    }
-    
-    // Fullscreen and PiP handlers
-    const handleToggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            playerRef.current?.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            document.exitFullscreen();
-            setIsFullscreen(false);
-        }
-    };
-
-    const handleTogglePiP = () => {
-        if (document.pictureInPictureElement) {
-            document.exitPictureInPicture();
-        } else {
-            videoRef.current?.requestPictureInPicture();
-        }
-    };
-    
-    useEffect(() => {
-        const onFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
-        document.addEventListener('fullscreenchange', onFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
-    }, []);
-
     if (isLoading) {
         return <div className="h-dvh w-full bg-black flex items-center justify-center"><LoadingSpinner /></div>;
     }
@@ -276,24 +165,15 @@ export default function StreamPage() {
 
     return (
         <div ref={playerRef} className="h-dvh w-full bg-black text-white flex items-center justify-center">
-            <div className="w-full h-full relative" onClick={handlePlayPause}>
+            <div className="w-full h-full relative">
                 <video
                     ref={videoRef}
                     src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
                     className="w-full h-full object-contain"
-                    onPlay={() => setIsPaused(false)}
-                    onPause={() => setIsPaused(true)}
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={handleLoadedMetadata}
-                    muted={isMuted}
                     loop
                 />
                  <div 
-                    className={cn(
-                        "absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/70 transition-opacity duration-300 flex flex-col p-4",
-                        controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-                    )}
-                    onClick={(e) => e.stopPropagation()}
+                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/70 flex flex-col p-4"
                 >
                     {/* Top Bar */}
                      <div className="flex items-center justify-between">
@@ -306,19 +186,19 @@ export default function StreamPage() {
                         </div>
                         <Badge variant="secondary" className="gap-2 bg-black/30">
                             <Users />
-                            {streamData.viewerCount ? (streamData.viewerCount / 1000).toFixed(1) + 'K watching' : '...'}
+                            {streamData.viewerCount ? (streamData.viewerCount / 1000).toFixed(1) + 'K watching' : '12.4K watching'}
                         </Badge>
                     </div>
 
                     {/* Center Controls */}
                      <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('backward')}>
+                        <Button variant="ghost" size="icon" className="h-16 w-16">
                             <Rewind className="w-8 h-8 fill-white" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
+                        <Button variant="ghost" size="icon" className="h-20 w-20">
                             {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
                         </Button>
-                         <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('forward')}>
+                         <Button variant="ghost" size="icon" className="h-16 w-16">
                             <FastForward className="w-8 h-8 fill-white" />
                         </Button>
                     </div>
@@ -328,7 +208,6 @@ export default function StreamPage() {
                          <Slider 
                             value={[currentTime]}
                             max={duration || 1}
-                            onValueChange={handleProgressChange}
                             className="w-full h-2 [&>span:first-child]:h-2 [&>span>span]:h-2 [&>span>span]:bg-primary"
                          />
                          <div className="flex items-center justify-between">
@@ -340,37 +219,23 @@ export default function StreamPage() {
                                     </Badge>
                                 )}
                                 <div className="flex items-center gap-2">
-                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleMuteToggle}>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
                                     </Button>
                                     <Slider 
                                         className="w-20 hidden sm:flex"
                                         value={[volume * 100]}
-                                        onValueChange={handleVolumeChange}
                                     />
                                 </div>
                                 <span className="text-xs font-mono">{formatTime(currentTime)} / {streamData.status === 'live' ? formatTime(elapsedTime) : formatTime(duration)}</span>
                             </div>
                             <div className="flex items-center gap-1 sm:gap-2">
                                 {document.pictureInPictureEnabled && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleTogglePiP}><PictureInPicture/></Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><PictureInPicture/></Button>
                                 )}
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 /></Button>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                         <Button variant="ghost" size="icon" className="h-8 w-8"><Settings /></Button>
-                                    </DialogTrigger>
-                                     <DialogContent className="sm:max-w-xs">
-                                        <DialogHeader>
-                                            <DialogTitle>Playback Settings</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="py-4">
-                                            <h4 className="mb-2 font-semibold">Quality</h4>
-                                            <p className="text-sm text-muted-foreground">Quality options coming soon.</p>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleToggleFullscreen}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8"><Settings /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
                                     {isFullscreen ? <Minimize /> : <Maximize />}
                                 </Button>
                             </div>
