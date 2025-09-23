@@ -80,9 +80,9 @@ import { Slider } from "@/components/ui/slider";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 
 const liveSellers = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!' },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics', description: 'Unboxing the brand new SoundWave Pro 2 headphones. We will be testing the noise cancellation and battery life. Ask me anything!' },
-    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.' },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'woman posing stylish outfit' },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics', description: 'Unboxing the brand new SoundWave Pro 2 headphones. We will be testing the noise cancellation and battery life. Ask me anything!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'unboxing new phone' },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'modern living room decor' },
 ];
 
 const mockChatMessages = [
@@ -328,6 +328,20 @@ export default function StreamPage() {
                             </p>
                         </CollapsibleContent>
                     </Collapsible>
+                      <div className="mt-6">
+                        <h4 className="font-semibold mb-4">Related Streams</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {liveSellers.filter(s => s.id !== streamId).map(s => (
+                                <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden">
+                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                     <Image src={s.thumbnailUrl} alt={s.name} width={200} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                                         <p className="font-semibold text-white text-sm truncate">{s.name}</p>
+                                     </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
