@@ -37,6 +37,7 @@ import {
   Rewind,
   FastForward,
   WifiOff,
+  ChevronDown,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -141,7 +142,7 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="secondary" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
                             <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                         </Button>
                         <Button size="sm" variant="default" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
@@ -979,4 +980,5 @@ export default function StreamPage() {
 
 
     
+
 
