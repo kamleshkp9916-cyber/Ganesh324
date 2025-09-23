@@ -254,7 +254,7 @@ export default function StreamPage() {
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         loop
                     />
                      <div 
@@ -426,7 +426,7 @@ export default function StreamPage() {
                                     {msg.text}
                                 </div>
                             ) : (
-                            <div key={msg.id} className="flex items-start gap-2 text-sm group">
+                            <div key={msg.id} className="flex items-start gap-2 group">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={msg.avatar} />
                                     <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
