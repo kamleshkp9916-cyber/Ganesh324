@@ -209,6 +209,7 @@ export default function StreamPage() {
   const [isClient, setIsClient] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [controlsVisible, setControlsVisible] = useState(true);
   
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -436,8 +437,15 @@ export default function StreamPage() {
                     onPause={() => setIsPaused(true)}
                     onPlay={() => setIsPaused(false)}
                 />
-                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4">
-                    <div></div>
+                 <div className={cn(
+                    "absolute inset-0 bg-black/20 transition-opacity duration-300 flex flex-col justify-between p-4",
+                    controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}>
+                    <div>
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(false)}>
+                            <PanelRightClose />
+                        </Button>
+                    </div>
                     <div className="flex items-center justify-center gap-8">
                         <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
                         <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}</Button>
@@ -464,6 +472,11 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
+                 {!controlsVisible && (
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(true)}>
+                        <PanelRightOpen />
+                    </Button>
+                )}
             </div>
 
              <div className="p-4 space-y-4">
