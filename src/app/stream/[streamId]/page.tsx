@@ -212,6 +212,13 @@ export default function StreamPage() {
         });
     };
     
+    const handleReportMessage = (messageId: number) => {
+        toast({
+            title: "Message Reported",
+            description: "The message has been reported and will be reviewed by our moderation team.",
+        });
+    };
+    
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
@@ -350,7 +357,7 @@ export default function StreamPage() {
                         </div>
                         <ScrollArea className="flex-grow">
                              <div className="p-4 space-y-4">
-                                {sellerProducts.length > 0 ? sellerProducts.map(product => (
+                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
                                     <div key={product.key} className="flex items-center gap-4">
                                         <Link href={`/product/${product.key}`} className="block flex-shrink-0">
                                             <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
@@ -373,9 +380,7 @@ export default function StreamPage() {
                                         )}
                                         </div>
                                     </div>
-                                )) : (
-                                    <p className="text-muted-foreground text-center py-8">No products are featured in this stream.</p>
-                                )}
+                                ))}
                             </div>
                         </ScrollArea>
                     </div>
@@ -384,15 +389,43 @@ export default function StreamPage() {
                 <ScrollArea className="flex-grow p-4" ref={chatContainerRef}>
                     <div className="space-y-4">
                         {chatMessages.map(msg => (
-                            <div key={msg.id} className="flex items-start gap-2 text-sm">
+                            <div key={msg.id} className="flex items-start gap-2 text-sm group">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={msg.avatar} />
                                     <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div>
+                                <div className="flex-grow">
                                     <span className="font-semibold">{msg.user}</span>
                                     <p className="text-muted-foreground">{msg.text}</p>
                                 </div>
+                                <AlertDialog>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                                    <Flag className="mr-2 h-4 w-4" /> Report Message
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report this message?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This message will be sent to our moderation team for review. Abusing this feature may result in account penalties.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleReportMessage(msg.id)}>Confirm Report</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         ))}
                     </div>
@@ -413,3 +446,5 @@ export default function StreamPage() {
         </div>
     );
 }
+
+    
