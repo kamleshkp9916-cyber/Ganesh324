@@ -45,7 +45,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
@@ -83,6 +83,13 @@ const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1200, productId: 'prod_1', hasAuction: true, category: 'Fashion', description: 'Showcasing our latest vintage-inspired summer collection. Exclusive deals for live viewers!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'woman posing stylish outfit' },
     { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', viewers: 2500, productId: 'prod_2', hasAuction: false, category: 'Electronics', description: 'Unboxing the brand new SoundWave Pro 2 headphones. We will be testing the noise cancellation and battery life. Ask me anything!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'unboxing new phone' },
     { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'modern living room decor' },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', viewers: 3100, productId: 'prod_4', hasAuction: true, category: 'Beauty', description: 'Makeup tutorial featuring our new eyeshadow palette. Get ready with me!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'makeup tutorial' },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', viewers: 975, productId: 'prod_5', hasAuction: false, category: 'Kitchenware', description: '5-minute healthy recipes using our new high-speed blender. Live cooking session!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'cooking demonstration' },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1500, productId: 'prod_6', hasAuction: false, category: 'Fitness', description: 'Join our live morning yoga session. All levels welcome. Featuring our new eco-friendly yoga mats.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'yoga session' },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', viewers: 450, productId: 'prod_7', hasAuction: true, category: 'Handmade', description: 'Live pottery-making session. Watch me create a unique vase, which will be up for auction at the end of the stream!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'pottery making' },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', viewers: 1800, productId: 'prod_8', hasAuction: false, category: 'Pet Supplies', description: 'Training tips for your new puppy! Featuring our durable and fun chew toys.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'playing with puppy' },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', viewers: 620, productId: 'prod_9', hasAuction: false, category: 'Books', description: 'Live reading and discussion of this month\'s book club pick. Spoilers ahead!', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'reading book cozy' },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', viewers: 4200, productId: 'prod_10', hasAuction: true, category: 'Gaming', description: 'Epic gameplay session! I\'m trying to beat my high score. Limited edition signed posters up for auction.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'esports competition' },
 ];
 
 const mockChatMessages: any[] = [
@@ -90,10 +97,10 @@ const mockChatMessages: any[] = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
-    { id: 4, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
+    { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
-const streamCategories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Fitness", "Handmade", "Books"];
+const streamCategories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Fitness", "Handmade", "Books", "Gaming", "Pet Supplies", "Kitchenware"];
 
 function formatTime(seconds: number) {
     if (isNaN(seconds) || seconds < 0) {
@@ -250,8 +257,8 @@ export default function StreamPage() {
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
-        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 lg:overflow-hidden">
-            <aside className="hidden lg:flex lg:col-span-1 xl:col-span-1 h-full flex-col border-r border-border bg-background text-foreground">
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[300px_1fr_340px] lg:overflow-hidden">
+            <aside className="hidden lg:flex lg:col-span-1 h-full flex-col border-r border-border bg-background text-foreground">
                 <ScrollArea className="h-full">
                     <div className="p-4">
                         <h3 className="font-semibold mb-4">Browse by Category</h3>
@@ -280,11 +287,12 @@ export default function StreamPage() {
                                 </Link>
                             ))}
                         </div>
+                         <Button variant="link" className="text-muted-foreground w-full mt-2">More...</Button>
                     </div>
                 </ScrollArea>
             </aside>
-            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
-                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+            <div className="lg:col-span-1 w-full h-full flex flex-col overflow-y-auto">
+                <div className="w-full h-[60vh] bg-black relative group flex-shrink-0" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -379,7 +387,7 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
-            <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
+            <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
                 <div className="p-4 border-b flex items-center justify-between z-10">
                     <h3 className="font-bold text-lg">Live Chat</h3>
                     <div className="flex items-center gap-2">
