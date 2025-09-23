@@ -376,30 +376,10 @@ export default function StreamPage() {
     }
   };
 
-  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!e.currentTarget) return;
-    const videoRect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - videoRect.left;
-    if (clickX < videoRect.width / 2) handleSeek('backward'); else handleSeek('forward');
-  };
-
-  const handleSingleClick = () => {
+  const handlePlayPause = () => {
     if (videoRef.current) {
         if (videoRef.current.paused) videoRef.current.play(); else videoRef.current.pause();
         setIsPaused(videoRef.current.paused);
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (doubleClickTimeoutRef.current) {
-        clearTimeout(doubleClickTimeoutRef.current);
-        doubleClickTimeoutRef.current = null;
-        handleDoubleClick(e);
-    } else {
-        doubleClickTimeoutRef.current = setTimeout(() => {
-            handleSingleClick();
-            doubleClickTimeoutRef.current = null;
-        }, 300);
     }
   };
 
@@ -428,7 +408,7 @@ export default function StreamPage() {
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
                     className="w-full h-full object-contain" 
                     autoPlay 
-                    muted 
+                    muted={isMuted}
                     loop
                     playsInline
                     onPause={() => setIsPaused(true)}
@@ -444,9 +424,9 @@ export default function StreamPage() {
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={handlePlayPause}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
                     </div>
                     <div className="space-y-2">
                          <div className="flex items-center gap-2 text-xs font-mono text-white">
@@ -548,7 +528,7 @@ export default function StreamPage() {
         </div>
 
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handleClick}>
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10">
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
@@ -560,6 +540,7 @@ export default function StreamPage() {
                     muted 
                     loop
                     playsInline
+                    onClick={handlePlayPause}
                 />
             </div>
             
