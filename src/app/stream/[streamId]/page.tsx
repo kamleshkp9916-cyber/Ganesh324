@@ -376,12 +376,17 @@ export default function StreamPage() {
     }
   };
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (videoRef.current) {
-        if (videoRef.current.paused) videoRef.current.play(); else videoRef.current.pause();
-        setIsPaused(videoRef.current.paused);
+        if (videoRef.current.paused) {
+            videoRef.current.play();
+            setIsPaused(false);
+        } else {
+            videoRef.current.pause();
+            setIsPaused(true);
+        }
     }
-  };
+  }, []);
 
   if (!isClient || !seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -528,9 +533,9 @@ export default function StreamPage() {
         </div>
 
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10">
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handlePlayPause}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                    <ArrowLeft />
+                    <ArrowLeft className="text-white" />
                 </Button>
                 <video 
                     ref={videoRef} 
@@ -540,7 +545,6 @@ export default function StreamPage() {
                     muted 
                     loop
                     playsInline
-                    onClick={handlePlayPause}
                 />
             </div>
             
@@ -549,7 +553,7 @@ export default function StreamPage() {
                     <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
                         <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                            <X />
+                            <X className="text-white" />
                         </Button>
                     </div>
                     <ScrollArea className="flex-grow p-4">
@@ -659,15 +663,15 @@ export default function StreamPage() {
                     
                      <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
-                            <List />
+                            <List className="text-white" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
-                            <Share2 />
+                            <Share2 className="text-white" />
                         </Button>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                  <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
-                                    <MoreVertical />
+                                    <MoreVertical className="text-white" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
