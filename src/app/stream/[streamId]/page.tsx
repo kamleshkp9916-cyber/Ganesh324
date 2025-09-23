@@ -218,20 +218,37 @@ export default function StreamPage() {
                         {/* Top Bar */}
                          <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
                                  <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
                             </div>
+                            <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
                         </div>
 
                         {/* Center Controls */}
                          <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
                         </div>
 
                          {/* Bottom Bar */}
                          <div className="space-y-3">
+                            <Progress value={(currentTime / duration) * 100} className="h-2" />
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 sm:gap-4">
+                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                        {isMuted ? <VolumeX /> : <Volume2 />}
+                                    </Button>
+                                    <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
                                 </div>
                                 <div className="flex items-center gap-1 sm:gap-2">
+                                    <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                    <Button variant="ghost" size="icon"><Share2 /></Button>
+                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                    <Button variant="ghost" size="icon"><Maximize /></Button>
                                 </div>
                              </div>
                         </div>
