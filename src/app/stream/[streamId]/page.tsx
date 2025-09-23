@@ -61,7 +61,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -304,12 +304,14 @@ export default function StreamPage() {
 
     if (video.paused) {
       video.play();
+      setIsPaused(false);
     } else {
       video.pause();
+      setIsPaused(true);
     }
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
@@ -411,7 +413,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
-             <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
+            <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -427,11 +429,7 @@ export default function StreamPage() {
                         controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}
                 >
-                    <div >
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => router.push('/live-selling') }>
-                            
-                        </Button>
-                    </div>
+                    <div />
                     <div className="flex items-center justify-center gap-8">
                         <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => {e.stopPropagation(); handleSeek('backward')}}></Button>
                         <Button variant="ghost" size="icon" className="h-16 w-16" onClick={(e) => {e.stopPropagation(); handlePlayPause()}}></Button>
@@ -448,13 +446,11 @@ export default function StreamPage() {
                                 <Button variant="secondary" size="sm" className="text-xs h-7" onClick={(e) => {e.stopPropagation(); if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setIsMuted(prev => !prev)}}></Button>
                             </div>
-                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setControlsVisible(false)}}>
-                                
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => {e.stopPropagation(); setControlsVisible(false)}}>
                             </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                        
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
@@ -467,7 +463,6 @@ export default function StreamPage() {
                 </div>
                  {!controlsVisible && (
                     <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => setControlsVisible(true)}>
-                        
                     </Button>
                 )}
             </div>
@@ -489,7 +484,7 @@ export default function StreamPage() {
                                 <div className="flex items-center gap-2 text-xs mt-1">
                                     <Badge variant="destructive" className="h-5">LIVE</Badge>
                                     <div className="flex items-center gap-1 text-white">
-                                        <Users className="h-3 w-3" />
+                                        <Users className="w-3 h-3"/>
                                         <span>{seller.viewers} viewers</span>
                                     </div>
                                 </div>
@@ -545,9 +540,7 @@ export default function StreamPage() {
 
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
              <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handlePlayPause}>
-                <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
-                    
-                </Button>
+                
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -563,9 +556,7 @@ export default function StreamPage() {
                  <div className={cn("absolute inset-x-0 bottom-0 z-30 flex flex-col transition-transform duration-300 ease-in-out bg-black/80 backdrop-blur-sm", isProductListOpen ? 'translate-y-0' : 'translate-y-full')} style={{ top: isProductListOpen ? 'auto' : '100%', height: isProductListOpen ? `calc(100% - ${(100 * 9 / 16)}vw)` : '0' }}>
                     <div className="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                        <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
-                            <X className="text-white" />
-                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)}><X className="h-5 w-5" /></Button>
                     </div>
                     <ScrollArea className="flex-grow p-4">
                         {streamProducts.map((product: any) => (
@@ -617,7 +608,7 @@ export default function StreamPage() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     {!isAdminView && user && (
-                                        <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
+                                        <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3"/>{isFollowing ? "Following" : "Follow"}</Button>
                                     )}
                                 </div>
                             </div>
@@ -648,7 +639,7 @@ export default function StreamPage() {
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
-                                                    <Flag className="h-3 w-3 text-white/50" />
+                                                    <Flag className="w-3 h-3" />
                                                 </Button>
                                             </AlertDialogTrigger>
                                             <AlertDialogContent>
@@ -673,17 +664,11 @@ export default function StreamPage() {
                     </ScrollArea>
                     
                      <div className="absolute right-2 bottom-20 z-20 flex flex-col gap-2">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={() => setIsProductListOpen(prev => !prev)}>
-                            
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full" onClick={handleShareStream}>
-                            
-                        </Button>
+                        <Button variant="secondary" size="icon" className="rounded-full h-10 w-10" onClick={() => setIsProductListOpen(true)}><List className="h-5 w-5"/></Button>
+                        <Button variant="secondary" size="icon" className="rounded-full h-10 w-10"><Heart className="h-5 w-5"/></Button>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                 <Button variant="ghost" size="icon" className="h-10 w-10 text-white bg-black/30 backdrop-blur-sm rounded-full">
-                                    
-                                </Button>
+                                 <Button variant="secondary" size="icon" className="rounded-full h-10 w-10"><MoreVertical className="h-5 w-5"/></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {isAdminView ? (
@@ -705,9 +690,11 @@ export default function StreamPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
-                                        <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
-                                        <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleShareStream}><Share2 className="mr-2 h-4 w-4" /> Share Stream</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => router.push('/contact')}><MessageCircle className="mr-2 h-4 w-4" /> Contact Support</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push('/help')}><LifeBuoy className="mr-2 h-4 w-4" /> Help Center</DropdownMenuItem>
                                     </>
                                 )}
                             </DropdownMenuContent>
@@ -717,7 +704,7 @@ export default function StreamPage() {
                     <div className="p-3 border-t border-white/10 bg-black flex flex-col gap-3 flex-shrink-0 z-10">
                         {isConnecting && (
                             <div className="flex items-center gap-2 text-xs text-yellow-400 px-2">
-                                <WifiOff className="h-4 w-4" />
+                                <WifiOff className="h-3 w-3" />
                                 Chat connection lost. Reconnecting...
                             </div>
                         )}
@@ -732,7 +719,7 @@ export default function StreamPage() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white/50 hover:text-white">
-                                            <Smile className="h-5 w-5" />
+                                            <Smile className="h-5 w-5"/>
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-80 h-64">
@@ -748,7 +735,7 @@ export default function StreamPage() {
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                            <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4" /></Button>
+                            <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80"><Send className="h-4 w-4"/></Button>
                         </form>
                     </div>
                 </div>
@@ -762,12 +749,12 @@ export default function StreamPage() {
                     <h3 className="font-bold text-lg text-white">Live Chat</h3>
                      <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsProductListOpen(prev => !prev)}>
-                            
+                            <List className="h-5 w-5"/>
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-white">
-                                    
+                                    <MoreVertical className="h-5 w-5"/>
                                 </Button>
                             </DropdownMenuTrigger>
                              <DropdownMenuContent align="end">
@@ -790,9 +777,11 @@ export default function StreamPage() {
                                 </>
                                 ) : (
                                 <>
-                                    <DropdownMenuItem onSelect={handleReportStream}><Flag className="mr-2 h-4 w-4" />Report Stream</DropdownMenuItem>
-                                    <DropdownMenuItem><MessageCircle className="mr-2 h-4 w-4" />Feedback</DropdownMenuItem>
-                                    <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" />Help</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleShareStream}><Share2 className="mr-2 h-4 w-4" /> Share Stream</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => router.push('/contact')}><MessageCircle className="mr-2 h-4 w-4" /> Contact Support</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => router.push('/help')}><LifeBuoy className="mr-2 h-4 w-4" /> Help Center</DropdownMenuItem>
                                 </>
                                 )}
                             </DropdownMenuContent>
@@ -813,7 +802,7 @@ export default function StreamPage() {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/chatitem:opacity-100 transition-opacity">
-                                                <Flag className="h-3 w-3 text-white/50" />
+                                                <Flag className="w-3 h-3" />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
@@ -847,9 +836,7 @@ export default function StreamPage() {
                     <div className={cn("absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex-col", isProductListOpen ? "flex" : "hidden")}>
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
                             <h3 className="font-bold text-lg text-white">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8 text-white">
-                                <X />
-                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)}><X className="h-5 w-5" /></Button>
                         </div>
                         <ScrollArea className="flex-grow p-4">
                             {streamProducts.map((product: any) => (
@@ -868,7 +855,7 @@ export default function StreamPage() {
                 <div className="p-3 border-t border-white/10">
                      {isConnecting && (
                         <div className="flex items-center gap-2 text-xs text-yellow-400 px-2 pb-2">
-                            <WifiOff className="h-4 w-4" />
+                            <WifiOff className="h-3 w-3" />
                             Chat connection lost. Reconnecting...
                         </div>
                     )}
@@ -883,7 +870,7 @@ export default function StreamPage() {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-white/50 hover:text-white">
-                                        <Smile className="h-5 w-5" />
+                                        <Smile className="h-5 w-5"/>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-80 h-64">
@@ -900,7 +887,7 @@ export default function StreamPage() {
                             </Popover>
                         </div>
                         <Button type="submit" size="icon" disabled={!newChatMessage.trim()} className="bg-white text-black hover:bg-white/80">
-                            <Send className="h-4 w-4" />
+                            <Send className="h-4 w-4"/>
                         </Button>
                     </form>
                 </div>
@@ -910,5 +897,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
