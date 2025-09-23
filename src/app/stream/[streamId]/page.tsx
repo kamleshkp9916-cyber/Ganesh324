@@ -69,6 +69,7 @@ import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 const liveSellers = [
@@ -140,10 +141,10 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="secondary" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
                             <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                         </Button>
-                        <Button size="sm" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="default" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
                             Buy Now
                         </Button>
                     </div>
@@ -162,7 +163,7 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
                 <p className="text-xs text-muted-foreground">{product.price}</p>
             </div>
             <div className="flex flex-col gap-1">
-                 <Button size="sm" variant="secondary" onClick={() => onAddToCart(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
+                 <Button size="sm" variant="outline" onClick={() => onAddToCart(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
                     <ShoppingCart className="mr-1.5 h-3 w-3" /> Cart
                 </Button>
                 <Button size="sm" onClick={() => onBuyNow(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
@@ -529,67 +530,73 @@ export default function StreamPage() {
             </div>
 
              <div className="p-4 space-y-4">
-                 <div>
-                    <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
-                    <p className="text-sm text-primary font-semibold">{seller.category}</p>
-                </div>
-                <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
-                
-                <Separator className="bg-white/10" />
-                
-                <div className="flex justify-between items-center gap-4">
-                    <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                        <Link href={sellerProfileUrl}>
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </Link>
-                        <div className="flex-1 overflow-hidden">
-                            <Link href={sellerProfileUrl} className="hover:underline">
-                                <h2 className="font-bold text-lg truncate">{seller.name}</h2>
+                <Collapsible>
+                    <div className="flex justify-between items-center gap-4">
+                        <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                            <Link href={sellerProfileUrl}>
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
                             </Link>
-                            <div className="flex items-center gap-2 text-xs mt-1">
-                                <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                <div className="flex items-center gap-1">
-                                    <Users className="h-3 w-3" />
-                                    <span>{seller.viewers} viewers</span>
+                            <div className="flex-1 overflow-hidden">
+                                <Link href={sellerProfileUrl} className="hover:underline">
+                                    <h2 className="font-bold text-lg truncate">{seller.name}</h2>
+                                </Link>
+                                <div className="flex items-center gap-2 text-xs mt-1">
+                                    <Badge variant="destructive" className="h-5">LIVE</Badge>
+                                    <div className="flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        <span>{seller.viewers} viewers</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                         <div className="flex items-center gap-2 flex-shrink-0">
+                            {seller.hasAuction && (
+                                <Dialog>
+                                <DialogTrigger asChild>
+                                    <Badge variant="purple" className="cursor-pointer">
+                                        <Gavel className="mr-1 h-3 w-3" />
+                                        Auction
+                                    </Badge>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                    <DialogTitle>Live Auction</DialogTitle>
+                                    <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 text-center">
+                                    <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
+                                    <p className="text-sm text-muted-foreground">Current Bid:</p>
+                                    <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                    <Button size="lg" className="w-full">Place Your Bid</Button>
+                                    <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
+                                    </div>
+                                </DialogContent>
+                                </Dialog>
+                            )}
+                            {!isAdminView && user && (
+                                <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
+                                <UserPlus className="mr-1.5 h-3 w-3" />
+                                {isFollowing ? "Following" : "Follow"}
+                                </Button>
+                            )}
+                             <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                    Show More <ChevronDown className="ml-1 h-4 w-4" />
+                                </Button>
+                            </CollapsibleTrigger>
+                        </div>
                     </div>
-                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {seller.hasAuction && (
-                            <Dialog>
-                            <DialogTrigger asChild>
-                                <Badge variant="purple" className="cursor-pointer">
-                                    <Gavel className="mr-1 h-3 w-3" />
-                                    Auction
-                                </Badge>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                <DialogTitle>Live Auction</DialogTitle>
-                                <DialogDescription>Bid on exclusive items from {seller.name}.</DialogDescription>
-                                </DialogHeader>
-                                <div className="py-4 text-center">
-                                <h4 className="font-bold text-lg mb-2">Vintage Camera</h4>
-                                <p className="text-sm text-muted-foreground">Current Bid:</p>
-                                <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                <Button size="lg" className="w-full">Place Your Bid</Button>
-                                <p className="text-xs text-muted-foreground mt-2">Bidding ends in 2:30</p>
-                                </div>
-                            </DialogContent>
-                            </Dialog>
-                        )}
-                        {!isAdminView && user && (
-                            <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs">
-                            <UserPlus className="mr-1.5 h-3 w-3" />
-                            {isFollowing ? "Following" : "Follow"}
-                            </Button>
-                        )}
-                    </div>
-                </div>
+                     <CollapsibleContent className="mt-4 space-y-2">
+                        <div>
+                            <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                            <p className="text-sm text-primary font-semibold">{seller.category}</p>
+                        </div>
+                        <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                    </CollapsibleContent>
+                </Collapsible>
             </div>
         </div>
 
@@ -634,45 +641,59 @@ export default function StreamPage() {
                 </div>
 
                 <div className="absolute inset-0 flex flex-col">
-                    <div className="p-4 bg-black/50 backdrop-blur-sm border-b border-white/10 flex-shrink-0">
-                        <div className="flex justify-between items-start gap-4">
-                            <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                <Link href={sellerProfileUrl}>
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                </Link>
-                                <div className="flex-1 overflow-hidden">
-                                    <Link href={sellerProfileUrl} className="hover:underline">
-                                        <h2 className="font-semibold text-base truncate">{seller.name}</h2>
+                    <Card className="p-4 bg-black/50 backdrop-blur-sm border-b border-white/10 flex-shrink-0 rounded-none">
+                        <Collapsible>
+                            <div className="flex justify-between items-start gap-4">
+                                <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                                    <Link href={sellerProfileUrl}>
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
                                     </Link>
-                                    <div className="flex items-center gap-2 text-xs mt-1">
-                                        <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                        {seller.hasAuction && (
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
-                                                    <div className="py-4 text-center">
-                                                        <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
-                                                        <Button size="lg" className="w-full">Place Bid</Button>
-                                                    </div>
-                                                </DialogContent>
-                                            </Dialog>
-                                        )}
+                                    <div className="flex-1 overflow-hidden">
+                                        <Link href={sellerProfileUrl} className="hover:underline">
+                                            <h2 className="font-semibold text-base truncate">{seller.name}</h2>
+                                        </Link>
+                                        <div className="flex items-center gap-2 text-xs mt-1">
+                                            <Badge variant="destructive" className="h-5">LIVE</Badge>
+                                            {seller.hasAuction && (
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Badge variant="purple" className="cursor-pointer"><Gavel className="mr-1 h-3 w-3" />Auction</Badge>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader><DialogTitle>Live Auction</DialogTitle></DialogHeader>
+                                                        <div className="py-4 text-center">
+                                                            <p className="text-4xl font-bold text-primary mb-4">₹13,500</p>
+                                                            <Button size="lg" className="w-full">Place Bid</Button>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    {!isAdminView && user && (
+                                        <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                                {!isAdminView && user && (
-                                    <Button variant={isFollowing ? 'outline' : 'secondary'} size="sm" onClick={handleFollowToggle} className="h-7 text-xs"><UserPlus className="mr-1.5 h-3 w-3" />{isFollowing ? "Following" : "Follow"}</Button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                             <CollapsibleTrigger asChild>
+                                <Button variant="link" size="sm" className="h-auto p-0 text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                                    Show Details <ChevronDown className="h-4 w-4" />
+                                </Button>
+                            </CollapsibleTrigger>
+                             <CollapsibleContent className="mt-2 space-y-1">
+                                <div>
+                                    <h1 className="font-bold text-lg">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                                    <p className="text-sm text-primary font-semibold">{seller.category}</p>
+                                </div>
+                                <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    </Card>
                     <ScrollArea className="flex-1 p-4 space-y-4">
                         {chatMessages.map(item => (
                             item.type === 'chat' ? (
@@ -958,3 +979,4 @@ export default function StreamPage() {
 
 
     
+
