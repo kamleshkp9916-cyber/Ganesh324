@@ -250,7 +250,7 @@ export default function StreamPage() {
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
             <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
-                <div className="w-full flex-1 relative group" ref={playerRef}>
+                <div className="w-full h-[60%] relative group" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -299,7 +299,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="p-4 border-t border-border bg-background text-foreground">
+                 <div className="p-4 border-t border-border bg-background text-foreground h-[40%] overflow-y-auto">
                     <Collapsible>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
