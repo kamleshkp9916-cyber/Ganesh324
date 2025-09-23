@@ -217,7 +217,7 @@ export default function StreamPage() {
                     >
                         {/* Top Bar */}
                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
                                  <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
                             </div>
@@ -269,10 +269,13 @@ export default function StreamPage() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => toast({ title: 'Feedback form coming soon!' })}>
+                                    <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                </DropdownMenuItem>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <Flag className="mr-2 h-4 w-4" /> Feedback/Report
+                                            <Flag className="mr-2 h-4 w-4" /> Report
                                         </DropdownMenuItem>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
