@@ -142,7 +142,7 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="secondary" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
                             <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                         </Button>
                         <Button size="sm" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
@@ -164,7 +164,7 @@ function ProductListItem({ product, isBuyable, onAddToCart, onBuyNow, isAdminVie
                 <p className="text-xs text-muted-foreground">{product.price}</p>
             </div>
             <div className="flex flex-col gap-1">
-                 <Button size="sm" variant="outline" onClick={() => onAddToCart(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
+                 <Button size="sm" variant="secondary" onClick={() => onAddToCart(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
                     <ShoppingCart className="mr-1.5 h-3 w-3" /> Cart
                 </Button>
                 <Button size="sm" onClick={() => onBuyNow(product.key)} disabled={!isBuyable || isAdminView} className="h-7 text-xs">
@@ -431,7 +431,6 @@ export default function StreamPage() {
                     muted 
                     loop
                     playsInline
-                    onClick={handleSingleClick}
                     onPause={() => setIsPaused(true)}
                     onPlay={() => setIsPaused(false)}
                 />
@@ -922,3 +921,4 @@ export default function StreamPage() {
     </>
   );
 }
+
