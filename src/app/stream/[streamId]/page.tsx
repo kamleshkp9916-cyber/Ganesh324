@@ -299,6 +299,16 @@ export default function StreamPage() {
     }
   }, [streamId, user, isClient]);
 
+  const handlePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, []);
+
    useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -381,16 +391,6 @@ export default function StreamPage() {
         setTimeout(() => setSeekIndicator(null), 500);
     }
   };
-
-  const handlePlayPause = useCallback(() => {
-    if (videoRef.current) {
-        if (videoRef.current.paused) {
-            videoRef.current.play();
-        } else {
-            videoRef.current.pause();
-        }
-    }
-  }, []);
 
   if (!isClient || !seller) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -908,5 +908,3 @@ export default function StreamPage() {
     </>
   );
 }
-
-    
