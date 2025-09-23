@@ -439,14 +439,14 @@ export default function StreamPage() {
                     controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}>
                     <div>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(false)}>
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => setControlsVisible(false)}>
                             <PanelRightClose className="text-white" />
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 text-white fill-white"/> : <Pause className="w-10 h-10 text-white fill-white"/>}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
                     </div>
                     <div className="space-y-2">
                          <div className="flex items-center gap-2 text-xs font-mono text-white">
@@ -470,7 +470,7 @@ export default function StreamPage() {
                     </div>
                 </div>
                  {!controlsVisible && (
-                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(true)}>
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={() => setControlsVisible(true)}>
                         <PanelRightOpen className="text-white" />
                     </Button>
                 )}
@@ -549,7 +549,7 @@ export default function StreamPage() {
 
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
             <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handleClick}>
-                <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={(e) => { e.stopPropagation(); router.back(); }}>
+                <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft />
                 </Button>
                 <video 
@@ -914,4 +914,3 @@ export default function StreamPage() {
     </>
   );
 }
-
