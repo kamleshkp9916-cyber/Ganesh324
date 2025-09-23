@@ -435,21 +435,21 @@ export default function StreamPage() {
                     onPlay={() => setIsPaused(false)}
                 />
                  <div className={cn(
-                    "absolute inset-0 bg-black/20 transition-opacity duration-300 flex flex-col justify-between p-4 text-white",
+                    "absolute inset-0 bg-black/20 transition-opacity duration-300 flex flex-col justify-between p-4",
                     controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}>
                     <div>
                          <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(false)}>
-                            <PanelRightClose stroke="currentColor" />
+                            <PanelRightClose className="text-white" />
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" stroke="currentColor" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10" fill="currentColor" stroke="currentColor"/> : <Pause className="w-10 h-10" fill="currentColor" stroke="currentColor"/>}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" stroke="currentColor" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 text-white fill-white"/> : <Pause className="w-10 h-10 text-white fill-white"/>}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
                     </div>
                     <div className="space-y-2">
-                         <div className="flex items-center gap-2 text-xs font-mono">
+                         <div className="flex items-center gap-2 text-xs font-mono text-white">
                             <span>{formatTime(currentTime)}</span>
                             <Progress value={(currentTime / duration) * 100} className="h-1.5 flex-1"/>
                             <span>{formatTime(duration)}</span>
@@ -457,10 +457,10 @@ export default function StreamPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Button variant="secondary" size="sm" className="text-xs h-7" onClick={() => { if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5" stroke="currentColor"/> : <Volume2 className="w-5 h-5" stroke="currentColor"/>}</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5 text-white"/> : <Volume2 className="w-5 h-5 text-white"/>}</Button>
                             </div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-white"><Settings className="w-5 h-5" stroke="currentColor" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="w-5 h-5 text-white" /></Button></DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuLabel>Quality</DropdownMenuLabel>
                                     {['1080p', '720p', '480p', 'Auto'].map(q => <DropdownMenuItem key={q} onSelect={() => setQuality(q)}>{q}{quality === q && " ✓"}</DropdownMenuItem>)}
@@ -471,7 +471,7 @@ export default function StreamPage() {
                 </div>
                  {!controlsVisible && (
                     <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(true)}>
-                        <PanelRightOpen stroke="currentColor" />
+                        <PanelRightOpen className="text-white" />
                     </Button>
                 )}
             </div>
@@ -488,11 +488,11 @@ export default function StreamPage() {
                             </Link>
                             <div className="flex-1 overflow-hidden">
                                 <Link href={sellerProfileUrl} className="hover:underline">
-                                    <h2 className="font-bold text-lg truncate">{seller.name}</h2>
+                                    <h2 className="font-bold text-lg truncate text-white">{seller.name}</h2>
                                 </Link>
                                 <div className="flex items-center gap-2 text-xs mt-1">
                                     <Badge variant="destructive" className="h-5">LIVE</Badge>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 text-white">
                                         <Users className="h-3 w-3" />
                                         <span>{seller.viewers} viewers</span>
                                     </div>
@@ -530,7 +530,7 @@ export default function StreamPage() {
                                 </Button>
                             )}
                              <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                                <Button variant="ghost" size="sm" className="h-7 text-xs text-white">
                                     Show More <ChevronDown className="ml-1 h-4 w-4" />
                                 </Button>
                             </CollapsibleTrigger>
@@ -538,7 +538,7 @@ export default function StreamPage() {
                     </div>
                      <CollapsibleContent className="mt-4 space-y-2">
                         <div>
-                            <h1 className="font-bold text-xl">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                            <h1 className="font-bold text-xl text-white">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                             <p className="text-sm text-primary font-semibold">{seller.category}</p>
                         </div>
                         <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
@@ -598,7 +598,7 @@ export default function StreamPage() {
                                     </Link>
                                     <div className="flex-1 overflow-hidden">
                                         <Link href={sellerProfileUrl} className="hover:underline">
-                                            <h2 className="font-semibold text-base truncate">{seller.name}</h2>
+                                            <h2 className="font-semibold text-base truncate text-white">{seller.name}</h2>
                                         </Link>
                                         <div className="flex items-center gap-2 text-xs mt-1">
                                             <Badge variant="destructive" className="h-5">LIVE</Badge>
@@ -632,7 +632,7 @@ export default function StreamPage() {
                             </CollapsibleTrigger>
                              <CollapsibleContent className="mt-2 space-y-1">
                                 <div>
-                                    <h1 className="font-bold text-lg">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
+                                    <h1 className="font-bold text-lg text-white">{seller.title || productDetails[seller.productId as keyof typeof productDetails]?.name}</h1>
                                     <p className="text-sm text-primary font-semibold">{seller.category}</p>
                                 </div>
                                 <p className="text-sm text-white/80 whitespace-pre-wrap">{seller.description}</p>
@@ -645,7 +645,7 @@ export default function StreamPage() {
                                 <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
                                     <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
                                     <div className="flex-grow">
-                                        <p className="font-semibold">{item.user}</p>
+                                        <p className="font-semibold text-white">{item.user}</p>
                                         <p className="text-white/80">{item.message}</p>
                                     </div>
                                     {!isAdminView && user?.displayName !== item.user && (
@@ -763,14 +763,14 @@ export default function StreamPage() {
         {isChatVisible && (
             <aside className="w-full lg:w-96 flex-col bg-black/90 lg:border-l lg:border-white/10 hidden lg:flex">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                    <h3 className="font-bold text-lg">Live Chat</h3>
+                    <h3 className="font-bold text-lg text-white">Live Chat</h3>
                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListOpen(prev => !prev)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsProductListOpen(prev => !prev)}>
                             <List />
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white">
                                     <MoreVertical />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -787,12 +787,7 @@ export default function StreamPage() {
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This action will immediately terminate the stream for {seller.name} and all viewers.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
+                                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action will immediately terminate the stream for {seller.name} and all viewers.</AlertDialogDescription></AlertDialogHeader>
                                             <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleTerminateStream}>Confirm</AlertDialogAction></AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -813,11 +808,9 @@ export default function StreamPage() {
                         {chatMessages.map(item => (
                             item.type === 'chat' ? (
                             <div key={item.id} className="flex items-start gap-2 text-sm group/chatitem">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarFallback>{item.user!.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                <Avatar className="h-8 w-8"><AvatarFallback>{item.user!.charAt(0)}</AvatarFallback></Avatar>
                                 <div className="flex-grow">
-                                    <p className="font-semibold">{item.user}</p>
+                                    <p className="font-semibold text-white">{item.user}</p>
                                     <p className="text-white/80">{item.message}</p>
                                 </div>
                                 {!isAdminView && user?.displayName !== item.user && (
@@ -857,8 +850,8 @@ export default function StreamPage() {
                     
                     <div className={cn("absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex-col", isProductListOpen ? "flex" : "hidden")}>
                         <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="font-bold text-lg">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
-                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8">
+                            <h3 className="font-bold text-lg text-white">{seller.hasAuction ? "Auction Items" : "Products in Stream"}</h3>
+                            <Button variant="ghost" size="icon" onClick={() => setIsProductListOpen(false)} className="h-8 w-8 text-white">
                                 <X />
                             </Button>
                         </div>
