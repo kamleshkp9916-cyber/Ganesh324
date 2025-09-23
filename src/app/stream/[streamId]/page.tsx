@@ -245,25 +245,34 @@ export default function StreamPage() {
                         <Button variant="ghost" size="icon">
                             <ShoppingBag className="h-5 w-5" />
                         </Button>
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                    <Flag className="h-5 w-5" />
+                                    <MoreVertical className="h-5 w-5" />
                                 </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Flag className="mr-2 h-4 w-4" /> Feedback/Report
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
                 <ScrollArea className="flex-grow p-4">
