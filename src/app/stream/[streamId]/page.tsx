@@ -298,7 +298,7 @@ export default function StreamPage() {
     }
   }, [streamId, user, isClient]);
 
-   const handlePlayPause = useCallback(() => {
+  const handlePlayPause = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
 
@@ -307,6 +307,7 @@ export default function StreamPage() {
     } else {
       video.pause();
     }
+    setIsPaused(video.paused);
   }, []);
 
    useEffect(() => {
@@ -315,19 +316,19 @@ export default function StreamPage() {
 
     const updateProgress = () => setCurrentTime(video.currentTime);
     const setVideoDuration = () => setDuration(video.duration);
-    const handlePlay = () => setIsPaused(false);
-    const handlePause = () => setIsPaused(true);
+    const onPlay = () => setIsPaused(false);
+    const onPause = () => setIsPaused(true);
 
     video.addEventListener("timeupdate", updateProgress);
     video.addEventListener("loadedmetadata", setVideoDuration);
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("pause", handlePause);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
 
     return () => {
         video.removeEventListener("timeupdate", updateProgress);
         video.removeEventListener("loadedmetadata", setVideoDuration);
-        video.removeEventListener("play", handlePlay);
-        video.removeEventListener("pause", handlePause);
+        video.removeEventListener("play", onPlay);
+        video.removeEventListener("pause", onPause);
     };
   }, []);
 
@@ -411,7 +412,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
-             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+             <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -433,9 +434,9 @@ export default function StreamPage() {
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => {e.stopPropagation(); handleSeek('backward')}}><Rewind className="w-8 h-8 text-white" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={(e) => {e.stopPropagation(); handlePlayPause()}}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => {e.stopPropagation(); handleSeek('forward')}}><FastForward className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => {e.stopPropagation(); handleSeek('backward')}}></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={(e) => {e.stopPropagation(); handlePlayPause()}}></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => {e.stopPropagation(); handleSeek('forward')}}></Button>
                     </div>
                     <div className="space-y-2">
                          <div className="flex items-center gap-2 text-xs font-mono text-white">
@@ -910,4 +911,3 @@ export default function StreamPage() {
     </>
   );
 }
-
