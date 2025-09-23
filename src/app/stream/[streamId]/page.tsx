@@ -299,13 +299,14 @@ export default function StreamPage() {
     }
   }, [streamId, user, isClient]);
 
-  const handlePlayPause = useCallback(() => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
+   const handlePlayPause = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
     }
   }, []);
 
@@ -411,7 +412,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
-             <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+             <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -542,7 +543,7 @@ export default function StreamPage() {
         </div>
 
         <div className="lg:hidden flex flex-col h-dvh w-full bg-black">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handlePlayPause}>
+             <div className="w-full aspect-video bg-black relative group flex-shrink-0 z-10" onClick={handlePlayPause}>
                 <Button variant="ghost" size="icon" className="absolute top-4 left-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); router.back(); }}>
                     <ArrowLeft className="text-white" />
                 </Button>
