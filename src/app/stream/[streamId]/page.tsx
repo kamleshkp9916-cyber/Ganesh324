@@ -85,11 +85,12 @@ const liveSellers = [
     { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', viewers: 850, productId: 'prod_3', hasAuction: false, category: 'Home Goods', description: 'Transform your living space with our new minimalist home decor items. Perfect for a modern aesthetic.', thumbnailUrl: 'https://placehold.co/300x450.png', hint: 'modern living room decor' },
 ];
 
-const mockChatMessages = [
+const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
     { id: 4, type: 'system', text: 'Sarah joined the stream.'},
+    { id: 5, type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
 function formatTime(seconds: number) {
@@ -438,52 +439,75 @@ export default function StreamPage() {
 
                 <ScrollArea className="flex-grow p-4" ref={chatContainerRef}>
                     <div className="space-y-4">
-                        {chatMessages.map(msg => (
-                            msg.type === 'system' ? (
-                                <div key={msg.id} className="text-center text-xs text-muted-foreground italic py-1">
-                                    {msg.text}
+                        {chatMessages.map(msg => {
+                             if (msg.type === 'system') {
+                                return (
+                                    <div key={msg.id} className="text-center text-xs text-muted-foreground italic py-1">
+                                        {msg.text}
+                                    </div>
+                                );
+                            }
+                            if (msg.type === 'product') {
+                                const product = productDetails[msg.productKey as keyof typeof productDetails];
+                                if (!product) return null;
+                                return (
+                                     <Card key={msg.id} className="bg-muted overflow-hidden">
+                                        <div className="flex items-center gap-4 p-3">
+                                            <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
+                                            <div className="flex-grow">
+                                                <p className="text-xs text-muted-foreground">Featured Product</p>
+                                                <h4 className="font-semibold text-sm">{product.name}</h4>
+                                                <p className="font-bold">{product.price}</p>
+                                            </div>
+                                        </div>
+                                        <CardFooter className="p-2 bg-background flex gap-2">
+                                            <Button size="sm" className="flex-1" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                        </CardFooter>
+                                    </Card>
+                                )
+                            }
+                            return (
+                                <div key={msg.id} className="flex items-start gap-2 group">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={msg.avatar} />
+                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow">
+                                        <span className="font-semibold">{msg.user}</span>
+                                        <p className="text-muted-foreground">{msg.text}</p>
+                                    </div>
+                                    <AlertDialog>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                                        <Flag className="mr-2 h-4 w-4" /> Report Message
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report this message?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This message will be sent to our moderation team for review. Abusing this feature may result in account penalties.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleReportMessage(msg.id)}>Confirm Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
-                            ) : (
-                            <div key={msg.id} className="flex items-start gap-2 group">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={msg.avatar} />
-                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-grow">
-                                    <span className="font-semibold">{msg.user}</span>
-                                    <p className="text-muted-foreground">{msg.text}</p>
-                                </div>
-                                <AlertDialog>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                                    <Flag className="mr-2 h-4 w-4" /> Report Message
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report this message?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This message will be sent to our moderation team for review. Abusing this feature may result in account penalties.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleReportMessage(msg.id)}>Confirm Report</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
                             )
-                        ))}
+                        })}
                     </div>
                 </ScrollArea>
                 <div className="p-4 border-t">
