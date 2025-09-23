@@ -64,7 +64,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toggleFollow, getUserData } from "@/lib/follow-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -407,7 +407,7 @@ export default function StreamPage() {
     </AlertDialog>
     <div className="h-dvh w-full bg-black text-white flex flex-col lg:flex-row">
         <div className="hidden lg:flex flex-1 flex-col bg-black overflow-y-auto">
-            <div className="w-full aspect-video bg-black relative group flex-shrink-0">
+             <div className="w-full aspect-video bg-black relative group flex-shrink-0" onClick={handlePlayPause}>
                 <video 
                     ref={videoRef} 
                     src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
@@ -429,9 +429,9 @@ export default function StreamPage() {
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={handlePlayPause}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => { e.stopPropagation(); handleSeek('backward'); }}><Rewind className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}>{isPaused ? <Play className="w-10 h-10 fill-white text-white"/> : <Pause className="w-10 h-10 fill-white text-white"/>}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={(e) => { e.stopPropagation(); handleSeek('forward'); }}><FastForward className="w-8 h-8 text-white" /></Button>
                     </div>
                     <div className="space-y-2">
                          <div className="flex items-center gap-2 text-xs font-mono text-white">
@@ -441,11 +441,15 @@ export default function StreamPage() {
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Button variant="secondary" size="sm" className="text-xs h-7" onClick={() => { if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5 text-white"/> : <Volume2 className="w-5 h-5 text-white"/>}</Button>
+                                <Button variant="secondary" size="sm" className="text-xs h-7" onClick={(e) => { e.stopPropagation(); if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}>{isMuted ? <VolumeX className="w-5 h-5 text-white"/> : <Volume2 className="w-5 h-5 text-white"/>}</Button>
                             </div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="w-5 h-5 text-white" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                        <Settings className="w-5 h-5 text-white" />
+                                    </Button>
+                                </DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuLabel>Quality</DropdownMenuLabel>
                                     {['1080p', '720p', '480p', 'Auto'].map(q => <DropdownMenuItem key={q} onSelect={() => setQuality(q)}>{q}{quality === q && " ✓"}</DropdownMenuItem>)}
