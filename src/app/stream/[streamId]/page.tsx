@@ -40,6 +40,7 @@ import {
   Maximize,
   Minimize,
   PictureInPicture,
+  ShoppingBag,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +109,7 @@ export default function StreamPage() {
     const params = useParams();
     const streamId = params.streamId as string;
     const { user } = useAuth();
+    const { toast } = useToast();
 
     // Mock Data for UI building
     const mockStreamData = {
@@ -190,6 +192,13 @@ export default function StreamPage() {
         setChatMessages(prev => [...prev, newMsg]);
         setNewMessage("");
     };
+
+    const handleReportStream = () => {
+        toast({
+            title: "Stream Reported",
+            description: "Thank you for your feedback. Our team will review this stream shortly.",
+        });
+    };
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
 
@@ -209,66 +218,20 @@ export default function StreamPage() {
                         {/* Top Bar */}
                          <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                               <Button variant="ghost" size="sm" className="bg-black/30 hover:bg-black/50" onClick={() => router.back()}>
-                                    <ArrowLeft className="mr-2"/>
-                                    Back
-                                </Button>
                                  <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
                             </div>
-                            <Badge variant="secondary" className="gap-2 bg-black/30">
-                                <Users />
-                                {streamData.viewerCount ? (streamData.viewerCount / 1000).toFixed(1) + 'K watching' : '12.4K watching'}
-                            </Badge>
                         </div>
 
                         {/* Center Controls */}
                          <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                            <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('backward')}>
-                                <Rewind className="w-8 h-8 fill-white" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-20 w-20" onClick={handlePlayPause}>
-                                {isPaused ? <Play className="w-12 h-12 fill-white" /> : <Pause className="w-12 h-12 fill-white" />}
-                            </Button>
-                             <Button variant="ghost" size="icon" className="h-16 w-16" onClick={() => handleSeek('forward')}>
-                                <FastForward className="w-8 h-8 fill-white" />
-                            </Button>
                         </div>
 
                          {/* Bottom Bar */}
                          <div className="space-y-3">
-                             <Slider 
-                                value={[currentTime]}
-                                max={duration || 1}
-                                className="w-full h-2 [&>span:first-child]:h-2 [&>span>span]:h-2 [&>span>span]:bg-primary"
-                             />
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 sm:gap-4">
-                                    {streamData.status === 'live' && (
-                                         <Badge variant="destructive" className="items-center gap-1.5">
-                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                            LIVE
-                                        </Badge>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
-                                        </Button>
-                                        <Slider 
-                                            className="w-20 hidden sm:flex"
-                                            value={[volume * 100]}
-                                        />
-                                    </div>
-                                    <span className="text-xs font-mono">{formatTime(currentTime)} / {streamData.status === 'live' ? formatTime(elapsedTime) : formatTime(duration)}</span>
                                 </div>
                                 <div className="flex items-center gap-1 sm:gap-2">
-                                    {typeof document !== 'undefined' && document.pictureInPictureEnabled && (
-                                        <Button variant="ghost" size="icon" className="h-8 w-8"><PictureInPicture/></Button>
-                                    )}
-                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Share2 /></Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8"><Settings /></Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        {isFullscreen ? <Minimize /> : <Maximize />}
-                                    </Button>
                                 </div>
                              </div>
                         </div>
@@ -276,8 +239,32 @@ export default function StreamPage() {
                 </div>
             </div>
             <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border">
-                 <div className="p-4 border-b">
+                <div className="p-4 border-b flex items-center justify-between">
                     <h3 className="font-bold text-lg">Live Chat</h3>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon">
+                            <ShoppingBag className="h-5 w-5" />
+                        </Button>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Flag className="h-5 w-5" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 </div>
                 <ScrollArea className="flex-grow p-4">
                     <div className="space-y-4">
