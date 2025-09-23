@@ -249,8 +249,8 @@ export default function StreamPage() {
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
-            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex items-center justify-center">
-                <div ref={playerRef} className="w-full h-full relative group">
+            <div className="lg:col-span-2 xl:col-span-3 w-full h-full flex flex-col">
+                <div className="w-full flex-1 relative group" ref={playerRef}>
                     <video
                         ref={videoRef}
                         src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
@@ -298,6 +298,37 @@ export default function StreamPage() {
                              </div>
                         </div>
                     </div>
+                </div>
+                 <div className="p-4 border-t border-border bg-background text-foreground">
+                    <Collapsible>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                        <Avatar>
+                                            <AvatarImage src={seller.avatarUrl} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <h3 className="font-semibold">{seller.name}</h3>
+                                        <Button variant="secondary" size="sm" className="h-7">
+                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                    Show Description
+                                    <ChevronDown className="h-4 w-4 ml-2" />
+                                </Button>
+                            </CollapsibleTrigger>
+                        </div>
+                        <CollapsibleContent>
+                            <p className="text-sm text-muted-foreground pt-3">
+                                {seller?.description || "No description available for this stream."}
+                            </p>
+                        </CollapsibleContent>
+                    </Collapsible>
                 </div>
             </div>
             <div className="lg:col-span-1 xl:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative overflow-hidden">
