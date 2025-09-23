@@ -142,10 +142,10 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="secondary" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(productKey); }} disabled={isAdminView}>
                             <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                         </Button>
-                        <Button size="sm" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
+                        <Button size="sm" variant="default" className="flex-1" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuyNow(productKey); }} disabled={isAdminView}>
                             Buy Now
                         </Button>
                     </div>
@@ -440,13 +440,13 @@ export default function StreamPage() {
                 )}>
                     <div>
                          <Button variant="ghost" size="icon" className="h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(false)}>
-                            <PanelRightClose className="text-white" />
+                            <PanelRightClose stroke="currentColor" />
                         </Button>
                     </div>
                     <div className="flex items-center justify-center gap-8">
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8 text-white" /></Button>
-                        <Button variant="ghost" size="icon" className="h-16 w-16" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10 fill-white text-white" /> : <Pause className="w-10 h-10 fill-white text-white" />}</Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8 text-white" /></Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" stroke="currentColor" /></Button>
+                        <Button variant="ghost" size="icon" className="h-16 w-16 text-white" onClick={handleSingleClick}>{isPaused ? <Play className="w-10 h-10" fill="currentColor" stroke="currentColor"/> : <Pause className="w-10 h-10" fill="currentColor" stroke="currentColor"/>}</Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 text-white" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" stroke="currentColor" /></Button>
                     </div>
                     <div className="space-y-2">
                          <div className="flex items-center gap-2 text-xs font-mono">
@@ -457,10 +457,10 @@ export default function StreamPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Button variant="secondary" size="sm" className="text-xs h-7" onClick={() => { if (videoRef.current) videoRef.current.currentTime = videoRef.current.duration; }}>LIVE</Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}</Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-white" onClick={() => setIsMuted(prev => !prev)}>{isMuted ? <VolumeX className="w-5 h-5" stroke="currentColor"/> : <Volume2 className="w-5 h-5" stroke="currentColor"/>}</Button>
                             </div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-white"><Settings className="w-5 h-5 text-white" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-white"><Settings className="w-5 h-5" stroke="currentColor" /></Button></DropdownMenuTrigger>
                                 <DropdownMenuContent>
                                     <DropdownMenuLabel>Quality</DropdownMenuLabel>
                                     {['1080p', '720p', '480p', 'Auto'].map(q => <DropdownMenuItem key={q} onSelect={() => setQuality(q)}>{q}{quality === q && " ✓"}</DropdownMenuItem>)}
@@ -471,7 +471,7 @@ export default function StreamPage() {
                 </div>
                  {!controlsVisible && (
                     <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 h-8 w-8 text-white bg-black/30 hover:bg-black/50 hover:text-white" onClick={() => setControlsVisible(true)}>
-                        <PanelRightOpen className="text-white" />
+                        <PanelRightOpen stroke="currentColor" />
                     </Button>
                 )}
             </div>
