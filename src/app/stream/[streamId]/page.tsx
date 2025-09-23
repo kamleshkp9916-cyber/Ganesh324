@@ -139,10 +139,10 @@ function ProductChatMessage({ productKey, stock, onAddToCart, onBuyNow, isAdminV
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button size="sm" className="flex-1" onClick={() => onAddToCart(productKey)} disabled={isAdminView}>
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onAddToCart(productKey)} disabled={isAdminView}>
                         <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
                     </Button>
-                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => onBuyNow(productKey)} disabled={isAdminView}>
+                    <Button size="sm" className="flex-1" onClick={() => onBuyNow(productKey)} disabled={isAdminView}>
                         Buy Now
                     </Button>
                 </div>
@@ -955,3 +955,4 @@ export default function StreamPage() {
     </>
   );
 }
+
