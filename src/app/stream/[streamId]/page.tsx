@@ -141,6 +141,24 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
+const mockSellerPosts = [
+    { id: 1, content: 'Check out this amazing vintage camera! Perfect for film photography lovers. #vintage #camera', timestamp: '2h ago', mediaUrl: 'https://placehold.co/600x400.png', likes: 152, replies: 12 },
+    { id: 2, content: 'Going live in 5 minutes to unbox the new SoundWave Pro 2 headphones. You don\'t want to miss this!', timestamp: '1d ago', mediaUrl: null, likes: 88, replies: 5 },
+];
+
+const emojis = [
+    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
+    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
+    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
+    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
+    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
+    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
+    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
+];
+
+
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -871,6 +889,15 @@ export default function StreamPage() {
                                             <Smile className="h-5 w-5" />
                                         </Button>
                                     </PopoverTrigger>
+                                     <PopoverContent className="w-80 h-64 p-2">
+                                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                            {emojis.map((emoji, index) => (
+                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                                    {emoji}
+                                                </Button>
+                                            ))}
+                                       </div>
+                                    </PopoverContent>
                                 </Popover>
                             </div>
                             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
