@@ -476,17 +476,17 @@ export default function StreamPage() {
                                 {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                             </div>
                         </div>
-                        <div className="mt-6">
+                        <div className="mt-8">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                 {relatedStreams.map((s: any) => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted">
                                              <Image
                                                 src={s.thumbnailUrl}
                                                 alt={`Live stream from ${s.name}`}
                                                 fill
-                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                                                sizes="(max-width: 640px) 50vw, 33vw"
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint={s.hint}
                                             />
@@ -499,10 +499,6 @@ export default function StreamPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3 mt-2">
-                                            <Avatar className="w-9 h-9">
-                                                <AvatarImage src={s.avatarUrl} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
@@ -642,7 +638,7 @@ export default function StreamPage() {
                                 )}
                             </div>
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                                 <div className="relative flex-grow">
+                                <div className="relative flex-grow">
                                     <Textarea 
                                         placeholder="Send a message..." 
                                         value={newMessage}
@@ -678,3 +674,4 @@ export default function StreamPage() {
         </div>
     );
 }
+
