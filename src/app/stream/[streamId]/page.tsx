@@ -385,8 +385,8 @@ export default function StreamPage() {
                     </div>
                     <div className="mt-6">
                         <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
-                            {mockSellerPosts.map(post => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                           {mockSellerPosts.map(post => (
                                  <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                     <div className="p-4">
                                         <div className="flex items-start justify-between">
@@ -407,8 +407,11 @@ export default function StreamPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                                                    <DropdownMenuItem><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                        <Share2 className="mr-2 h-4 w-4" />
+                                                        <span>Share</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem><Flag className="mr-2 h-4 w-4" /><span>Report</span></DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -445,7 +448,7 @@ export default function StreamPage() {
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="w-3 w-3" />{s.viewers}</Badge></div>
                                     </div>
-                                    <div className="flex items-start gap-2 mt-2">
+                                    <div className="flex items-start gap-3 mt-2">
                                         <Avatar className="w-7 h-7">
                                             <AvatarImage src={s.avatarUrl} />
                                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
