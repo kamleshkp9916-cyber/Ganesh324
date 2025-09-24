@@ -129,6 +129,7 @@ export default function StreamPage() {
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
+        description: "Join us for exclusive deals and a first look at our new collection!",
         status: "live",
         startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
         viewerCount: 12400,
@@ -152,6 +153,11 @@ export default function StreamPage() {
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
+
+     const sellerProducts = useMemo(() => {
+        if (!seller) return [];
+        return Object.values(productDetails).filter(p => p.brand === seller.name && p.stock > 0);
+    }, [seller]);
     
      const relatedStreams = useMemo(() => {
         if (!product) return [];
@@ -278,8 +284,6 @@ export default function StreamPage() {
         });
     };
 
-    const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
-
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
              <div className="w-full h-full flex flex-col overflow-hidden">
@@ -336,7 +340,7 @@ export default function StreamPage() {
                     <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
                         <div className="mb-4">
                              <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{seller?.description || "Welcome to the live stream!"}</p>
+                            <p className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</p>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -355,12 +359,30 @@ export default function StreamPage() {
                             </div>
                         </div>
                         <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {sellerProducts.map(p => (
+                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                        <Card className="overflow-hidden">
+                                            <div className="aspect-square bg-muted relative">
+                                                <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                            </div>
+                                            <div className="p-2">
+                                                <p className="text-xs font-semibold truncate">{p.name}</p>
+                                                <p className="text-sm font-bold">{p.price}</p>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                ))}
+                                 {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                            </div>
+                        </div>
+                        <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
                                         </div>
                                         <div className="flex items-start gap-2 mt-2">
