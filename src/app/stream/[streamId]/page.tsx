@@ -562,7 +562,7 @@ export default function StreamPage() {
                             </div>
                             <ChevronDown className="h-4 w-4" />
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="absolute w-full bg-background z-20 shadow-lg border-b">
                              <div className="p-3 bg-muted/50 space-y-4">
                                 <div>
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -629,8 +629,8 @@ export default function StreamPage() {
                                         >
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                                     <CarouselItem key={index} className="pl-2 basis-1/3">
-                                                        <div className="w-full">
+                                                     <CarouselItem key={index} className="pl-2 basis-auto">
+                                                        <div className="w-28">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -640,19 +640,19 @@ export default function StreamPage() {
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
                                                                     </div>
                                                                 </div>
-                                                                <div className="p-2">
-                                                                    <p className="text-xs font-semibold truncate">{product.name}</p>
-                                                                    <p className="text-sm font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                                                <div className="p-1.5">
+                                                                    <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
+                                                                    <p className="text-xs font-bold">{product.price}</p>
                                                                 </div>
                                                              </Link>
-                                                             <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-1">
+                                                             <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
                                                                 {product.stock > 0 ? (
                                                                     <>
-                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy</Button>
-                                                                        <Button size="xs" variant="outline" className="w-full text-[10px] h-7" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                                        <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                                                        <Button size="xs" variant="outline" className="w-full text-[10px] h-6" onClick={() => handleAddToCart(product)}>Add</Button>
                                                                     </>
                                                                 ) : (
-                                                                    <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                                    <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
                                                                 )}
                                                              </CardFooter>
                                                           </Card>
@@ -717,3 +717,4 @@ export default function StreamPage() {
     
 
     
+}
