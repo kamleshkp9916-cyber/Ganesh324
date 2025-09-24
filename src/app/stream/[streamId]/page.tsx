@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -557,7 +556,7 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">Live Chat</h3>
-                             <Button asChild variant="ghost" size="icon" className="flex items-center gap-2 h-8 w-auto px-2">
+                             <Button asChild variant="link" className="flex items-center gap-2 h-8 w-auto px-2">
                                 <Link href="/wallet">
                                     <Wallet className="h-5 w-5" />
                                     <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
@@ -599,9 +598,15 @@ export default function StreamPage() {
                                                     </div>
                                                 </div>
                                             </CardContent>
-                                            <CardFooter className="p-0 grid grid-cols-2 gap-px">
-                                                <Button size="xs" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                                <Button size="xs" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                            <CardFooter className="p-1 grid grid-cols-2 gap-1">
+                                                {product.stock > 0 ? (
+                                                    <>
+                                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                    </>
+                                                ) : (
+                                                    <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                )}
                                             </CardFooter>
                                         </Card>
                                      </div>
@@ -746,14 +751,14 @@ export default function StreamPage() {
                                      </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        {seller?.hasAuction && (
+                                        <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
+                                            <ShoppingBag className="h-5 w-5" />
+                                        </Button>
+                                         {seller?.hasAuction && (
                                             <Button variant="ghost" size="icon" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
                                                 <Gavel className="h-5 w-5" />
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
-                                            <ShoppingBag className="h-5 w-5" />
-                                        </Button>
                                     </div>
                                 )}
                             </div>
@@ -817,3 +822,6 @@ export default function StreamPage() {
 
 
 
+
+
+    
