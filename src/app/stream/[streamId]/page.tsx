@@ -415,8 +415,8 @@ export default function StreamPage() {
                     </Button>
                 </div>
             </header>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden flex-grow">
-                 <ScrollArea className="w-full h-full flex flex-col no-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow overflow-hidden">
+                <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -600,7 +600,7 @@ export default function StreamPage() {
                         </div>
 
                     </div>
-                </ScrollArea>
+                </div>
                 <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -913,4 +913,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
