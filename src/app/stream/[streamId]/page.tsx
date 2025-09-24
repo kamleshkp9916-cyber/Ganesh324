@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Heart,
   MessageSquare,
+  MoreHorizontal,
   MoreVertical,
   Send,
   Share2,
@@ -418,7 +419,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4">
                                 {mockSellerPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                         <div className="p-3">
