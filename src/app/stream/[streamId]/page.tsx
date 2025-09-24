@@ -478,7 +478,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 {relatedStreams.map((s: any) => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -583,7 +583,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-48">
+                                                        <div className="w-40">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
