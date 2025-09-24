@@ -356,7 +356,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {relatedStreams.map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -380,7 +380,7 @@ export default function StreamPage() {
                                                 <div className="flex items-center gap-2">
                                                     <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
                                                     {s.hasAuction && (
-                                                        <Badge variant="warning" className="text-xs font-bold">
+                                                        <Badge variant="destructive" className="text-xs font-bold">
                                                             Auction
                                                         </Badge>
                                                     )}
@@ -533,9 +533,9 @@ export default function StreamPage() {
                     </ScrollArea>
                      <div className="p-4 border-t flex-shrink-0 bg-background">
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                            <div className="relative flex-grow">
-                                <Textarea
-                                    placeholder="Send a message..."
+                             <div className="relative flex-grow">
+                                 <Textarea 
+                                    placeholder="Send a message..." 
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     className="resize-none pr-10 rounded-lg bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
@@ -546,7 +546,7 @@ export default function StreamPage() {
                                             handleNewMessageSubmit(e);
                                         }
                                     }}
-                                />
+                                 />
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
