@@ -600,8 +600,8 @@ export default function StreamPage() {
                             <h3 className="font-bold text-lg">Live Chat</h3>
                              <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="link" className="flex items-center gap-2 h-8 w-auto px-2 py-2">
-                                        <Wallet className="h-5 w-5" />
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Wallet className="h-5 w-5 text-muted-foreground" />
                                         <span className="sr-only">Open Wallet</span>
                                     </Button>
                                 </PopoverTrigger>
@@ -756,154 +756,152 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    <div className="flex-grow flex flex-col overflow-hidden">
-                        <ScrollArea className="flex-grow" ref={chatContainerRef}>
-                            <div className="p-4 space-y-2">
-                                {chatMessages.map((msg, index) => (
-                                    <div key={msg.id || index} className="text-sm group relative">
-                                        {msg.type === 'system' ? (
-                                            <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
-                                        ) : msg.user ? (
-                                            <>
-                                                <div className="flex items-start gap-2">
-                                                    <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={msg.avatar} />
-                                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1">
-                                                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                                                            {msg.user.split(' ')[0]}
-                                                             {msg.isSeller && (
-                                                                <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                                                                    <ShieldCheck className="h-3 w-3 mr-1" />
-                                                                    Admin
-                                                                </Badge>
-                                                             )}
-                                                        </span>
-                                                        <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
-                                                    </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <MoreVertical className="w-4 h-4" />
-                                                            </button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            {user?.uid !== msg.userId && (
-                                                                <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
-                                                                    Reply
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                            <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
-                                                                <Flag className="mr-2 h-4 w-4" /> Report
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                     <ScrollArea className="flex-1" ref={chatContainerRef}>
+                        <div className="p-4 space-y-2">
+                            {chatMessages.map((msg, index) => (
+                                <div key={msg.id || index} className="text-sm group relative">
+                                    {msg.type === 'system' ? (
+                                        <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                                    ) : msg.user ? (
+                                        <>
+                                            <div className="flex items-start gap-2">
+                                                <Avatar className="w-8 h-8">
+                                                    <AvatarImage src={msg.avatar} />
+                                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                                        {msg.user.split(' ')[0]}
+                                                         {msg.isSeller && (
+                                                            <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                                                Admin
+                                                            </Badge>
+                                                         )}
+                                                    </span>
+                                                    <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
                                                 </div>
-                                            </>
-                                        ) : null}
-                                    </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                        <div className="p-3 border-t bg-background">
-                            <div className="mb-2">
-                                <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
-                                        <ShoppingBag className="h-5 w-5" />
-                                    </Button>
-                                    {seller?.hasAuction && (
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                                            <Gavel className="h-5 w-5" />
-                                        </Button>
-                                    )}
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        {user?.uid !== msg.userId && (
+                                                            <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
+                                                                Reply
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
+                                                            <Flag className="mr-2 h-4 w-4" /> Report
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </>
+                                    ) : null}
                                 </div>
-                                {isProductListVisible && (
-                                     <div className="relative mt-2">
-                                        <Carousel
-                                            opts={{
-                                                align: "start",
-                                                dragFree: true,
-                                            }}
-                                            className="w-full"
-                                        >
-                                            <CarouselContent className="-ml-2">
-                                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                                     <CarouselItem key={index} className="pl-2 basis-auto">
-                                                        <div className="w-28">
-                                                          <Card className="h-full flex flex-col overflow-hidden">
-                                                             <Link href={`/product/${product.key}`} className="block">
-                                                                <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                    <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
-                                                                    <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
-                                                                        <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
-                                                                        <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="p-1.5">
-                                                                    <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                                                    <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                                                                </div>
-                                                             </Link>
-                                                             <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                                                {product.stock > 0 ? (
-                                                                    <>
-                                                                        <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                                                        <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
-                                                                    </>
-                                                                ) : (
-                                                                    <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                                                )}
-                                                             </CardFooter>
-                                                          </Card>
-                                                        </div>
-                                                     </CarouselItem>
-                                                 ))}
-                                            </CarouselContent>
-                                        </Carousel>
-                                     </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                    <div className="p-3 border-t bg-background">
+                        <div className="mb-2">
+                            <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                    <ShoppingBag className="h-5 w-5" />
+                                </Button>
+                                {seller?.hasAuction && (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                        <Gavel className="h-5 w-5" />
+                                    </Button>
                                 )}
                             </div>
-                            <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                                <div className="relative flex-grow">
-                                    <Textarea 
-                                        ref={textareaRef}
-                                        placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."}
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
-                                        rows={1}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleNewMessageSubmit(e);
-                                            }
+                            {isProductListVisible && (
+                                 <div className="relative mt-2">
+                                    <Carousel
+                                        opts={{
+                                            align: "start",
+                                            dragFree: true,
                                         }}
-                                     />
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                                <Smile className="h-5 w-5" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                         <PopoverContent className="w-80 h-64 p-2">
-                                            <ScrollArea className="h-full">
-                                                <div className="grid grid-cols-8 gap-1">
-                                                    {emojis.map((emoji, index) => (
-                                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                            {emoji}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                                    <Send className="h-4 w-4" />
-                                </Button>
-                            </form>
+                                        className="w-full"
+                                    >
+                                        <CarouselContent className="-ml-2">
+                                            {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
+                                                 <CarouselItem key={index} className="pl-2 basis-auto">
+                                                    <div className="w-28">
+                                                      <Card className="h-full flex flex-col overflow-hidden">
+                                                         <Link href={`/product/${product.key}`} className="block">
+                                                            <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
+                                                                    <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
+                                                                    <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
+                                                                </div>
+                                                            </div>
+                                                            <div className="p-1.5">
+                                                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
+                                                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                                            </div>
+                                                         </Link>
+                                                         <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                                            {product.stock > 0 ? (
+                                                                <>
+                                                                    <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                                    <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                            )}
+                                                         </CardFooter>
+                                                      </Card>
+                                                    </div>
+                                                 </CarouselItem>
+                                             ))}
+                                        </CarouselContent>
+                                    </Carousel>
+                                 </div>
+                            )}
                         </div>
+                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                            <div className="relative flex-grow">
+                                <Textarea 
+                                    ref={textareaRef}
+                                    placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."}
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleNewMessageSubmit(e);
+                                        }
+                                    }}
+                                 />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                            <Smile className="h-5 w-5" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                     <PopoverContent className="w-80 h-64 p-2">
+                                        <ScrollArea className="h-full">
+                                            <div className="grid grid-cols-8 gap-1">
+                                                {emojis.map((emoji, index) => (
+                                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                                        {emoji}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -912,3 +910,4 @@ export default function StreamPage() {
 }
 
     
+
