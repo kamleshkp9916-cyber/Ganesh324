@@ -48,6 +48,8 @@ import {
   Plus,
   Download,
   Loader2,
+  RefreshCw,
+  Coins,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -387,9 +389,9 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button asChild variant="ghost" className="relative">
+                    <Button asChild variant="ghost" size="icon" className="relative">
                         <Link href="/cart">
-                             My Cart
+                            <ShoppingCart />
                         </Link>
                     </Button>
                 </div>
@@ -584,18 +586,70 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">Live Chat</h3>
-                             <Popover>
+                            <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="link" className="flex items-center gap-2 h-8 w-auto px-2 py-2">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Wallet className="h-5 w-5" />
-                                        <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="end" className="w-auto p-0">
-                                    <div className="p-4 text-center">
-                                        <p className="text-xs text-muted-foreground">Wallet Balance</p>
-                                        <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
-                                        <Button asChild variant="link" className="mt-2 text-xs">
+                                <PopoverContent align="end" className="w-80">
+                                    <div className="p-4 space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-xs text-muted-foreground">Available Balance</p>
+                                                <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="text-muted-foreground">
+                                                <RefreshCw className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                         <div className="p-2 bg-muted/50 rounded-md text-xs space-y-1">
+                                            <div className="flex justify-between"><span>Blocked Margin:</span> <span>₹2,640.00</span></div>
+                                            <div className="flex justify-between"><span>StreamCart Coins:</span> <span>1,250</span></div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Add Funds via UPI</DialogTitle>
+                                                        <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="flex flex-col items-center gap-4 py-4">
+                                                        <div className="bg-white p-4 rounded-lg">
+                                                            <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
+                                                        <p className="font-semibold">streamcart@mock</p>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Withdraw Funds</DialogTitle>
+                                                        <DialogDescription>
+                                                            Select an account and enter the amount you wish to withdraw.
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <WithdrawForm 
+                                                        cashAvailable={walletBalance}
+                                                        bankAccounts={bankAccounts} 
+                                                        onWithdraw={handleWithdraw}
+                                                        onAddAccount={(newAccount) => {
+                                                            setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
+                                                            toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
+                                                        }} 
+                                                    />
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
+                                         <Button asChild variant="link" size="sm" className="w-full">
                                             <Link href="/wallet">More Details</Link>
                                         </Button>
                                     </div>
@@ -641,7 +695,9 @@ export default function StreamPage() {
                                                 {product.stock > 0 ? (
                                                     <>
                                                         <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
+                                                            Buy Now
+                                                        </Button>
                                                     </>
                                                 ) : (
                                                     <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
@@ -738,8 +794,7 @@ export default function StreamPage() {
                         </ScrollArea>
                         <div className="p-3 border-t bg-background">
                             <div className="mb-2">
-                                <div className="flex items-center gap-2">
-                                    
+                                <div className="flex items-center gap-1">
                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
                                         <ShoppingBag className="h-5 w-5" />
                                     </Button>
@@ -841,3 +896,5 @@ export default function StreamPage() {
         </div>
     );
 }
+
+    
