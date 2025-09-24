@@ -66,7 +66,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -526,30 +526,32 @@ export default function StreamPage() {
                     </ScrollArea>
                     <div className="p-4 border-t flex-shrink-0 bg-background">
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="flex-shrink-0">
-                                        <Smile className="h-5 w-5" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <p>Emoji picker coming soon!</p>
-                                </PopoverContent>
-                            </Popover>
-                            <Textarea
-                                placeholder="Send a message..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                className="resize-none flex-grow"
-                                rows={1}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleNewMessageSubmit(e);
-                                    }
-                                }}
-                            />
-                            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                             <div className="relative flex-grow">
+                                <Textarea
+                                    placeholder="Send a message..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className="resize-none pr-10 rounded-full bg-muted border-transparent focus:border-primary focus:bg-background"
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleNewMessageSubmit(e);
+                                        }
+                                    }}
+                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                            <Smile className="h-5 w-5" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <p>Emoji picker coming soon!</p>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0">
                                 <Send className="h-4 w-4" />
                             </Button>
                         </form>
@@ -559,5 +561,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
-    
