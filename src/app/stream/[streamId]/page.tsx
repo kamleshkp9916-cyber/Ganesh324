@@ -478,10 +478,18 @@ export default function StreamPage() {
                         </div>
                          <div className="mt-8">
                              <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {relatedStreams.map((s: any) => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted group-hover:scale-105 transition-transform duration-300 ease-in-out">
+                                            <Image
+                                                src={s.thumbnailUrl}
+                                                alt={`Live stream from ${s.name}`}
+                                                fill
+                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                className="object-cover w-full h-full"
+                                                data-ai-hint={s.hint}
+                                            />
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -489,30 +497,17 @@ export default function StreamPage() {
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
-                                            <Image
-                                                src={s.thumbnailUrl}
-                                                alt={`Live stream from ${s.name}`}
-                                                fill
-                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                                className="object-cover w-full h-full"
-                                            />
-                                        </div>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
-                                                <AvatarImage src={s.avatarUrl} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                            Auction
-                                                        </Badge>
-                                                    )}
+                                             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                <div className="flex items-start gap-2">
+                                                    <div className="relative z-20">
+                                                        <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate group-hover:underline">{s.name}</h3>
+                                                        <p className="text-xs text-primary-foreground/80">{s.category}</p>
+                                                        <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -560,7 +555,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                     </div>
 
-                    <Collapsible className="border-b">
+                    <Collapsible>
                         <CollapsibleTrigger className="p-3 flex items-center justify-between w-full text-sm font-semibold hover:bg-muted/50">
                             <div className="flex items-center gap-2">
                                 <Pin className="h-4 w-4 text-primary" />
@@ -606,7 +601,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-[120px]">
+                                                        <div className="w-[100px]">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -691,5 +686,8 @@ export default function StreamPage() {
             </div>
         </div>
     );
+
+    
+}
 
     
