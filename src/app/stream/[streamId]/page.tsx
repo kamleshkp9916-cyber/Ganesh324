@@ -154,6 +154,10 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
+const mockSellerPosts = [
+  { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
+  { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
+];
 
 export default function StreamPage() {
     const router = useRouter();
@@ -221,6 +225,13 @@ export default function StreamPage() {
         }
         return streams.slice(0,6);
     }, [product]);
+    
+    const formatTime = (timeInSeconds: number) => {
+        const date = new Date(0);
+        date.setSeconds(timeInSeconds);
+        const timeString = date.toISOString().substr(11, 8);
+        return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
+    };
 
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
@@ -239,23 +250,7 @@ export default function StreamPage() {
         const newTime = direction === 'forward' ? video.currentTime + 10 : video.currentTime - 10;
         video.currentTime = Math.max(0, Math.min(duration, newTime));
     };
-
-    const formatTime = (timeInSeconds: number) => {
-        const hours = Math.floor(timeInSeconds / 3600);
-        const minutes = Math.floor((timeInSeconds % 3600) / 60);
-        const seconds = Math.floor(timeInSeconds % 60);
-
-        const formattedSeconds = seconds.toString().padStart(2, '0');
-        const formattedMinutes = minutes.toString().padStart(2, '0');
-
-        if (hours > 0) {
-            const formattedHours = hours.toString().padStart(2, '0');
-            return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-        }
-
-        return `${formattedMinutes}:${formattedSeconds}`;
-    };
-
+    
     useEffect(() => {
         const video = videoRef.current;
         if (video) {
@@ -392,11 +387,6 @@ export default function StreamPage() {
        });
         setIsWithdrawOpen(false);
      };
-
-    const mockSellerPosts = [
-      { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
-      { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
-    ];
 
     return (
         <div className="h-dvh w-full flex flex-col bg-black text-white">
@@ -923,3 +913,4 @@ export default function StreamPage() {
         </div>
     );
 }
+
