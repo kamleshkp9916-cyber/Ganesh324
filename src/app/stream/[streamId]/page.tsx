@@ -131,6 +131,15 @@ const mockChatMessages: any[] = [
     { id: 19, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 20, user: 'Chloe', text: 'Just tuned in, what did I miss?', avatar: 'https://placehold.co/40x40.png', userColor: '#34495e', userId: 'user9' },
     { id: 21, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 22, user: 'Oliver', text: 'Is this real leather?', avatar: 'https://placehold.co/40x40.png?text=O', userColor: '#27ae60', userId: 'user10' },
+    { id: 23, user: 'Mia', text: 'Just followed! Love your stuff.', avatar: 'https://placehold.co/40x40.png?text=M', userColor: '#c0392b', userId: 'user11' },
+    { id: 24, user: 'Liam', text: 'How much is shipping?', avatar: 'https://placehold.co/40x40.png?text=L', userColor: '#f39c12', userId: 'user12' },
+    { id: 25, type: 'system', text: 'Emma purchased a Smart Watch.' },
+    { id: 26, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 27, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userColor: '#7f8c8d', userId: 'user13' },
+    { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userColor: '#2c3e50', userId: 'user14', isBid: true },
+    { id: 29, type: 'system', text: 'The auction for the Vintage Camera has ended.' },
+    { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
 const emojis = [
@@ -383,6 +392,11 @@ export default function StreamPage() {
        });
         setIsWithdrawOpen(false);
      };
+
+    const mockSellerPosts = [
+      { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
+      { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
+    ];
 
     return (
         <div className="h-dvh w-full flex flex-col bg-black text-white">
@@ -757,7 +771,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                     <ScrollArea className="flex-1" ref={chatContainerRef}>
+                     <ScrollArea className="flex-grow" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -806,7 +820,7 @@ export default function StreamPage() {
                             ))}
                         </div>
                     </ScrollArea>
-                    <div className="p-3 border-t bg-background mt-auto">
+                    <div className="p-3 border-t bg-background mt-auto flex-shrink-0">
                         <div className="mb-2">
                             <div className="flex items-center gap-1">
                                 <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
