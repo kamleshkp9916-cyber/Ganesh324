@@ -359,12 +359,6 @@ export default function StreamPage() {
                 </div>
                  <div className="flex items-center gap-2">
                     <Button asChild variant="ghost">
-                        <Link href="/wallet" className="flex items-center gap-2">
-                            <Wallet className="h-5 w-5" />
-                            <span className="hidden sm:inline">₹{walletBalance.toLocaleString('en-IN')}</span>
-                        </Link>
-                    </Button>
-                    <Button asChild variant="ghost">
                         <Link href="/cart">
                             <ShoppingCart className="h-5 w-5" />
                             <span className="hidden sm:inline">My Cart</span>
@@ -751,6 +745,16 @@ export default function StreamPage() {
                                          <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
                                             <ShoppingBag className="h-5 w-5" />
                                         </Button>
+                                        <Button asChild variant="ghost" size="icon">
+                                            <Link href="/wallet">
+                                                <Wallet className="h-5 w-5" />
+                                            </Link>
+                                        </Button>
+                                         <Button asChild variant="ghost" size="icon" className="relative">
+                                            <Link href="/cart">
+                                                <ShoppingCart className="h-5 w-5" />
+                                            </Link>
+                                        </Button>
                                     </div>
                                 )}
                             </div>
@@ -807,6 +811,7 @@ export default function StreamPage() {
     
 
     
+
 
 
 
