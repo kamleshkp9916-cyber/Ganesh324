@@ -337,18 +337,31 @@ export default function StreamPage() {
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {liveSellers.filter(s => s.id !== streamId).map(s => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden aspect-[16/9]">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <Image
-                                            src={s.thumbnailUrl}
-                                            alt={s.name}
-                                            fill
-                                            sizes="(max-width: 768px) 50vw, 33vw"
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                            data-ai-hint={s.hint}
-                                        />
-                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                                            <p className="font-semibold text-white text-sm truncate">{s.name}</p>
+                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <Image
+                                                src={s.thumbnailUrl}
+                                                alt={s.name}
+                                                fill
+                                                sizes="(max-width: 768px) 50vw, 33vw"
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                data-ai-hint={s.hint}
+                                            />
+                                        </div>
+                                         <div className="flex items-start gap-3 mt-2">
+                                            <Avatar className="w-9 h-9">
+                                                <AvatarImage src={s.avatarUrl} />
+                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
+                                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                 <div className="flex items-center gap-2 mt-1">
+                                                    <Badge variant="outline">#{s.category.toLowerCase()}</Badge>
+                                                    <Badge variant="outline">#{s.name.toLowerCase()}</Badge>
+                                                 </div>
+                                            </div>
                                         </div>
                                     </Link>
                                 ))}
@@ -526,3 +539,4 @@ export default function StreamPage() {
         </div>
     );
 }
+
