@@ -101,9 +101,9 @@ const liveSellers = [
 ];
 
 const mockChatMessages: any[] = [
-    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
+    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
-    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true },
+    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, isAdmin: true },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
@@ -520,92 +520,102 @@ export default function StreamPage() {
                 <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-5 w-5" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end">
-                                <FeedbackDialog>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                    </DropdownMenuItem>
-                                </FeedbackDialog>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                            <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-
-                    <Collapsible>
-                        <CollapsibleTrigger className="p-3 flex items-center justify-between w-full text-sm font-semibold hover:bg-muted/50">
-                            <div className="flex items-center gap-2">
-                                <Pin className="h-4 w-4 text-primary" />
-                                <span>Pinned Items</span>
-                            </div>
-                            <ChevronDown className="h-4 w-4" />
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="absolute w-full bg-background z-20 shadow-lg border-b">
-                             <div className="p-3 bg-muted/50 space-y-4">
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                        <Pin className="h-3 w-3" />
-                                        <span>Pinned by {seller?.name}</span>
+                        <div className="flex items-center gap-1">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Pin className="h-5 w-5 text-muted-foreground" />
+                                    </Button>
+                                </PopoverTrigger>
+                                 <PopoverContent className="w-80 p-0">
+                                     <div className="p-3">
+                                        <h4 className="font-semibold text-sm mb-2">Pinned Items</h4>
                                     </div>
-                                    <div className="p-2 rounded-md bg-background border">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="h-6 w-6">
-                                                <AvatarImage src={seller?.avatarUrl} />
-                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-semibold text-xs">{seller?.name}:</span>
-                                        </div>
-                                        <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
-                                    </div>
-                                </div>
-                                 <Card className="overflow-hidden">
-                                     <CardContent className="p-0">
-                                        <div className="flex items-center gap-3 p-2">
-                                            <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-semibold truncate">{product.name}</p>
-                                                <p className="font-bold text-base">{product.price}</p>
+                                    <div className="p-3 bg-muted/50 space-y-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                                <Pin className="h-3 w-3" />
+                                                <span>Pinned by {seller?.name}</span>
+                                            </div>
+                                            <div className="p-2 rounded-md bg-background border">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-6 w-6">
+                                                        <AvatarImage src={seller?.avatarUrl} />
+                                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="font-semibold text-xs">{seller?.name}:</span>
+                                                </div>
+                                                <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
                                             </div>
                                         </div>
-                                     </CardContent>
-                                     <CardFooter className="p-0 grid grid-cols-2 gap-px">
-                                        <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                        <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                     </CardFooter>
-                                 </Card>
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
+                                         <Card className="overflow-hidden">
+                                             <CardContent className="p-0">
+                                                <div className="flex items-center gap-3 p-2">
+                                                    <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-semibold truncate">{product.name}</p>
+                                                        <p className="font-bold text-base">{product.price}</p>
+                                                    </div>
+                                                </div>
+                                             </CardContent>
+                                             <CardFooter className="p-0 grid grid-cols-2 gap-px">
+                                                <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                             </CardFooter>
+                                         </Card>
+                                    </div>
+                                 </PopoverContent>
+                            </Popover>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                 <DropdownMenuContent align="end">
+                                    <FeedbackDialog>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                        </DropdownMenuItem>
+                                    </FeedbackDialog>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Flag className="mr-2 h-4 w-4" /> Report Stream
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
 
                     <div className="flex-grow flex flex-col overflow-hidden">
                         <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
                                 {chatMessages.map(msg => (
                                     <div key={msg.id} className="text-sm">
-                                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")} style={{ color: msg.isSeller ? '' : msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")}>
+                                            {msg.user}:
+                                            {msg.isAdmin && (
+                                                <Badge variant="destructive" className="ml-1.5 text-xs">
+                                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                                    Admin
+                                                </Badge>
+                                            )}
+                                        </span>
                                         <span className="text-muted-foreground">{renderContentWithHashtags(msg.text)}</span>
                                     </div>
                                 ))}
