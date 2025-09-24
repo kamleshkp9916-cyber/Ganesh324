@@ -105,6 +105,11 @@ const mockChatMessages: any[] = [
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
+const mockSellerPosts = [
+    { id: 1, content: 'Thanks for joining the stream everyone! Don\'t forget to check out the new vintage camera we just unboxed. Link in bio! #vintage #camera #film', mediaUrl: 'https://placehold.co/400x300.png', mediaType: 'image', likes: 123, replies: 12, timestamp: '2h ago' },
+    { id: 2, content: 'Quick reminder: Flash sale ends in 1 hour! Get 20% off on all accessories. Use code LIVE20.', mediaUrl: null, mediaType: null, likes: 45, replies: 3, timestamp: '1h ago' },
+];
+
 function formatTime(seconds: number) {
     if (isNaN(seconds) || seconds < 0) {
         return "00:00";
@@ -379,11 +384,12 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="w-3 h-3" />{s.viewers}</Badge></div>
                                         </div>
                                         <div className="flex items-start gap-2 mt-2">
                                             <Avatar className="w-7 h-7">
@@ -400,14 +406,54 @@ export default function StreamPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                 <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
+                                                 </div>
                                             </div>
                                         </div>
-                                         <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                            <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
-                                            <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
-                                         </div>
                                     </Link>
                                 ))}
+                            </div>
+                        </div>
+                         <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                            <div className="space-y-4">
+                                {mockSellerPosts.map(post => (
+                                    <Card key={post.id} className="overflow-hidden">
+                                        <div className="p-4">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                    <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold">{seller?.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm line-clamp-3">{post.content}</p>
+                                        </div>
+                                        {post.mediaUrl && (
+                                            <div className="w-full aspect-video bg-muted relative">
+                                                <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+                                            </div>
+                                        )}
+                                        <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-4">
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <Heart className="w-4 h-4" />
+                                                    <span>{post.likes}</span>
+                                                </button>
+                                                <button className="flex items-center gap-1.5 hover:text-primary">
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    <span>{post.replies}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                                 {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                             </div>
                         </div>
                     </div>
