@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -149,6 +150,29 @@ export default function StreamPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     
+    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+    const product = productDetails[seller?.productId as keyof typeof productDetails];
+    
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        let streams = liveSellers.filter(
+            s => s.category === product.category && s.productId !== product.key
+        );
+        if (streams.length > 5) {
+            return streams.slice(0, 6);
+        }
+        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
+        
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,6);
+    }, [product]);
+
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
         if (!video) return;
@@ -189,7 +213,6 @@ export default function StreamPage() {
             video.addEventListener("play", onPlay);
             video.addEventListener("pause", onPause);
 
-            // Start muted and autoplay if possible
             video.muted = true;
             video.play().catch(() => {
                 setIsPaused(true);
@@ -234,8 +257,6 @@ export default function StreamPage() {
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
     
-    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
-    
     const handleAddToCart = (product: any) => {
       if (product) {
         addToCart({ ...product, quantity: 1 });
@@ -258,30 +279,6 @@ export default function StreamPage() {
     };
 
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
-
-    const product = productDetails[seller?.productId as keyof typeof productDetails];
-    
-    const relatedStreams = useMemo(() => {
-        if (!product) return [];
-        let streams = liveSellers.filter(
-            s => s.category === product.category && s.productId !== product.key
-        );
-        if (streams.length > 5) {
-            return streams.slice(0, 6);
-        }
-        // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
-        
-        // Add from fallback until we have 6 total, avoiding duplicates
-        let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
-            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
-                streams.push(fallbackStreams[i]);
-            }
-            i++;
-        }
-        return streams.slice(0,6);
-    }, [product]);
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
@@ -364,7 +361,7 @@ export default function StreamPage() {
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1"><Users className="w-3 h-3" />{s.viewers}</Badge></div>
                                             <Image
                                                 src={s.thumbnailUrl}
                                                 alt={s.name}
@@ -380,7 +377,14 @@ export default function StreamPage() {
                                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
+                                                    {s.hasAuction && (
+                                                        <Badge variant="warning" className="text-xs font-bold">
+                                                            Auction
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
                                                  <div className="flex items-center gap-1 mt-1 flex-wrap">
                                                     <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.category.toLowerCase()}</Badge>
@@ -534,7 +538,7 @@ export default function StreamPage() {
                                     placeholder="Send a message..."
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="resize-none pr-10 rounded-lg bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-10 pt-2.5 text-sm"
+                                    className="resize-none pr-10 rounded-lg bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
