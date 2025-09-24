@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -103,10 +104,8 @@ const liveSellers = [
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
-    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, isAdmin: true },
+    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
-    { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
-    { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
 
 const mockSellerPosts = [
@@ -149,6 +148,7 @@ export default function StreamPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -210,15 +210,6 @@ export default function StreamPage() {
     };
 
     useEffect(() => {
-        if (chatContainerRef.current) {
-            const viewport = chatContainerRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-            if (viewport) {
-                viewport.scrollTop = viewport.scrollHeight;
-            }
-        }
-    }, [chatMessages]);
-    
-    useEffect(() => {
         const video = videoRef.current;
         if (video) {
             const updateProgress = () => setCurrentTime(video.currentTime);
@@ -245,14 +236,34 @@ export default function StreamPage() {
         }
     }, [duration]);
 
+    const handleReply = (user: string) => {
+        setReplyingTo(user);
+        setNewMessage(`@${user} `);
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    };
+    
+    useEffect(() => {
+        if (!replyingTo) {
+            setNewMessage('');
+        }
+    }, [replyingTo]);
+
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
         
+        let messageText = newMessage;
+        if(replyingTo && !newMessage.startsWith(`@${replyingTo} `)) {
+            // The user deleted the @mention, so it's not a reply anymore
+            setReplyingTo(null);
+        }
+
         const newMsg: any = {
             id: Date.now(),
             user: user?.displayName?.split(' ')[0] || 'You',
-            text: newMessage,
+            text: messageText,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
         };
@@ -525,13 +536,13 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
-                             <Collapsible className="w-full">
-                                <CollapsibleTrigger asChild>
+                            <Popover>
+                                <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Pin className="h-5 w-5 text-muted-foreground" />
                                     </Button>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent className="absolute top-full right-0 mt-2 w-full p-2 z-20">
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80" align="end">
                                     <div className="p-3 bg-muted/50 space-y-4 rounded-lg border backdrop-blur-sm">
                                         <div>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -565,8 +576,8 @@ export default function StreamPage() {
                                             </CardFooter>
                                         </Card>
                                     </div>
-                                </CollapsibleContent>
-                            </Collapsible>
+                                </PopoverContent>
+                            </Popover>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -603,7 +614,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                     <div className="flex-grow flex flex-col overflow-hidden">
-                        <ScrollArea className="flex-grow" ref={chatContainerRef}>
+                        <ScrollArea className="flex-grow">
                             <div className="p-4 space-y-2">
                                 {chatMessages.map((msg, index) => (
                                     <div key={msg.id || index} className="text-sm group relative">
@@ -619,12 +630,6 @@ export default function StreamPage() {
                                                     <div className="flex-1">
                                                         <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
                                                             {msg.user.split(' ')[0]}
-                                                            {msg.isAdmin && (
-                                                                <Badge variant="destructive" className="ml-1.5 text-xs">
-                                                                    <ShieldCheck className="w-3 h-3 mr-1" />
-                                                                    Admin
-                                                                </Badge>
-                                                            )}
                                                         </span>
                                                         <span className="text-muted-foreground break-words">{renderContentWithHashtags(msg.text)}</span>
                                                     </div>
@@ -635,7 +640,7 @@ export default function StreamPage() {
                                                             </button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onSelect={() => setReplyingTo(msg.user)}>
+                                                            <DropdownMenuItem onSelect={() => handleReply(msg.user)}>
                                                                 Reply
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
@@ -720,9 +725,15 @@ export default function StreamPage() {
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                 <div className="relative flex-grow">
                                     <Textarea 
-                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
+                                        ref={textareaRef}
+                                        placeholder={"Send a message..."}
                                         value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onChange={(e) => {
+                                            if (!replyingTo || !e.target.value.startsWith(`@${replyingTo} `)) {
+                                                setReplyingTo(null);
+                                            }
+                                            setNewMessage(e.target.value)
+                                        }}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                         rows={1}
                                         onKeyDown={(e) => {
