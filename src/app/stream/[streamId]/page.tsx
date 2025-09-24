@@ -134,7 +134,7 @@ export default function StreamPage() {
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
-        description: "Join us for exclusive deals and a first look at our new collection!",
+        description: "Join us for exclusive deals and a first look at our new collection! #fashion #live",
         status: "live",
         startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
         viewerCount: 12400,
@@ -290,6 +290,16 @@ export default function StreamPage() {
             description: "We'll notify you when this product is back in stock."
         });
     };
+    
+    const renderDescription = (text: string) => {
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('#')) {
+                return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>
+            }
+            return part;
+        });
+    };
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
@@ -346,7 +356,7 @@ export default function StreamPage() {
                 <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
                     <div className="mb-4">
                          <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                        <p className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</p>
+                        <p className="text-sm text-muted-foreground">{renderDescription(streamData.description) || "Welcome to the live stream!"}</p>
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -385,7 +395,7 @@ export default function StreamPage() {
                     </div>
                     <div className="mt-6">
                         <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
                            {mockSellerPosts.map(post => (
                                  <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                     <div className="p-4">
@@ -396,14 +406,14 @@ export default function StreamPage() {
                                                     <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-semibold">{seller?.name}</p>
+                                                    <p className="font-semibold text-primary">{seller?.name}</p>
                                                     <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                 </div>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                        <MoreVertical className="w-4 h-4" />
+                                                        <MoreHorizontal className="w-4 h-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
@@ -439,7 +449,7 @@ export default function StreamPage() {
                              {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                         </div>
                     </div>
-                    <div className="mt-6">
+                     <div className="mt-6">
                         <h4 className="font-semibold mb-4">Related Streams</h4>
                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {relatedStreams.map(s => (

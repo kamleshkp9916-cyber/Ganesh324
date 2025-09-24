@@ -846,31 +846,35 @@ export default function LiveSellingPage() {
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
                                 {topLiveStreams.map((seller: any) => (
-                                <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{seller.viewers}</Badge></div>
-                                    <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                        <Image 
-                                            src={seller.thumbnailUrl} 
-                                            alt={`Live stream from ${seller.name}`} 
-                                            width={300} 
-                                            height={450} 
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={seller.hint}
-                                        />
-                                    </Link>
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                        <div className="flex items-start gap-2">
-                                            <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={seller.avatarUrl} alt={seller.name} /><AvatarFallback>{seller.name.charAt(0)}</AvatarFallback></Avatar>
-                                            </Link>
-                                            <div className="flex-1">
-                                                <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3></Link>
+                                     <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {seller.viewers}
+                                                </Badge>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-7 h-7">
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
+                                                    {seller.hasAuction && (
+                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                            Auction
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
                             </div>
                         </section>
                         
@@ -938,7 +942,7 @@ export default function LiveSellingPage() {
                                                         <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
                                                         <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                                                     </Avatar>
-                                                    <div className="flex-grow">
+                                                    <div>
                                                         <p className="font-semibold text-primary">{post.sellerName}</p>
                                                         <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                     </div>
@@ -1010,58 +1014,34 @@ export default function LiveSellingPage() {
                             ) : filteredLiveSellers.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {filteredLiveSellers.map((seller: any) => (
-                                        <div key={seller.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                            <div className="absolute top-2 left-2 z-10">
-                                                <Badge variant="destructive">
-                                                    LIVE
-                                                </Badge>
-                                            </div>
-                                            {seller.isMyStream && (
-                                                <div className="absolute top-10 left-2 z-10">
-                                                    <Badge variant="secondary" className="bg-purple text-purple-foreground">
-                                                        Your Stream
+                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
+                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                        <Users className="h-3 w-3"/>
+                                                        {seller.viewers}
                                                     </Badge>
                                                 </div>
-                                            )}
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm">
-                                                    <Users className="w-3 h-3 mr-1.5" />
-                                                    {seller.viewers}
-                                                </Badge>
                                             </div>
-
-                                            <Link href={`/stream/${seller.id}`} className="cursor-pointer">
-                                                <Image 
-                                                    src={seller.thumbnailUrl} 
-                                                    alt={`Live stream from ${seller.name}`} 
-                                                    width={300} 
-                                                    height={450} 
-                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    data-ai-hint={seller.hint}
-                                                />
-                                            </Link>
-                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                                <div className="flex items-start gap-2">
-                                                    <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                        <Avatar className="h-8 w-8 border-2 border-primary">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                    </Link>
-                                                    <div className="flex-1">
-                                                        <Link href={`/seller/profile?userId=${seller.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
-                                                            <h3 className="font-semibold text-sm text-primary-foreground truncate">{seller.name}</h3>
-                                                        </Link>
+                                            <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-7 h-7">
+                                                    <AvatarImage src={seller.avatarUrl} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
                                                         {seller.hasAuction && (
-                                                            <Badge variant="purple" className="mt-1">
-                                                                <Gavel className="mr-1 h-3 w-3" />
+                                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
                                                                 Auction
                                                             </Badge>
                                                         )}
                                                     </div>
+                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             ) : (
