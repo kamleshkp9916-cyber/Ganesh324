@@ -43,6 +43,7 @@ import {
   PictureInPicture,
   ShoppingBag,
   Paperclip,
+  MoreHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -472,7 +473,7 @@ export default function StreamPage() {
                                             <div className="flex items-center gap-1.5">
                                                 <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                                 {s.hasAuction && (
-                                                    <Badge variant="destructive" className="text-xs font-bold px-1.5 py-0">
+                                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
                                                         Auction
                                                     </Badge>
                                                 )}
