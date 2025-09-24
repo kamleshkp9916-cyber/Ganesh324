@@ -335,11 +335,18 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {liveSellers.filter(s => s.id !== streamId).map(s => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden">
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group relative rounded-lg overflow-hidden aspect-[16/9]">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <Image src={s.thumbnailUrl} alt={s.name} width={200} height={300} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                        <Image
+                                            src={s.thumbnailUrl}
+                                            alt={s.name}
+                                            fill
+                                            sizes="(max-width: 768px) 50vw, 33vw"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                            data-ai-hint={s.hint}
+                                        />
                                         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
                                             <p className="font-semibold text-white text-sm truncate">{s.name}</p>
                                         </div>
@@ -415,11 +422,11 @@ export default function StreamPage() {
                              <div className="p-4 space-y-4">
                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
                                     <div key={product.key} className="flex items-center gap-4">
-                                        <Link href={`/product/'${product.key}'`} className="block flex-shrink-0">
+                                        <Link href={`/product/${product.key}`} className="block flex-shrink-0">
                                             <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
                                         </Link>
                                         <div className="flex-grow">
-                                            <Link href={`/product/'${product.key}'`} className="hover:underline">
+                                            <Link href={`/product/${product.key}`} className="hover:underline">
                                                 <h3 className="font-semibold text-sm">{product.name}</h3>
                                             </Link>
                                             <p className="font-bold text-base text-foreground">{product.price}</p>
@@ -483,8 +490,8 @@ export default function StreamPage() {
                         </div>
                     </ScrollArea>
                      <div className="p-4 border-t flex-shrink-0 bg-background">
-                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                             <div className="relative flex-grow">
+                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                            <div className="relative flex-grow">
                                 <Textarea
                                     placeholder="Send a message..."
                                     value={newMessage}
