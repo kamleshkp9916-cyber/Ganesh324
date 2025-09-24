@@ -359,11 +359,12 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
                                             <Image
                                                 src={s.thumbnailUrl}
                                                 alt={s.name}
@@ -381,9 +382,9 @@ export default function StreamPage() {
                                             <div className="flex-1">
                                                 <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                 <div className="flex items-center gap-1 mt-1 flex-wrap">
                                                     <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.category.toLowerCase()}</Badge>
-                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.name.toLowerCase()}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
                                                  </div>
                                             </div>
                                         </div>
