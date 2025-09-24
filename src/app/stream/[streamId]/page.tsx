@@ -153,7 +153,7 @@ export default function StreamPage() {
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
     
-    const relatedStreams = useMemo(() => {
+     const relatedStreams = useMemo(() => {
         if (!product) return [];
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
@@ -361,6 +361,7 @@ export default function StreamPage() {
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
                                         </div>
                                         <div className="flex items-start gap-2 mt-2">
                                             <Avatar className="w-7 h-7">
@@ -368,7 +369,7 @@ export default function StreamPage() {
                                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                 <div className="flex items-center gap-1.5">
+                                                <div className="flex items-center gap-1.5">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                                     {s.hasAuction && (
                                                         <Badge variant="destructive" className="text-xs font-bold">
@@ -377,10 +378,6 @@ export default function StreamPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                 <div className="flex items-center text-xs text-muted-foreground gap-1 mt-0.5">
-                                                    <Users className="h-3 w-3" />
-                                                    {s.viewers}
-                                                </div>
                                             </div>
                                         </div>
                                          <div className="flex items-center gap-1 mt-1 flex-wrap">
@@ -489,41 +486,12 @@ export default function StreamPage() {
                  <div className="flex-grow flex flex-col overflow-hidden">
                     <ScrollArea className="flex-grow" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
-                            {chatMessages.map(msg => {
-                                if (msg.type === 'system') {
-                                    return (
-                                        <div key={msg.id} className="text-center text-xs text-muted-foreground italic py-1">
-                                            {msg.text}
-                                        </div>
-                                    );
-                                }
-                                if (msg.type === 'product') {
-                                    const product = productDetails[msg.productKey as keyof typeof productDetails];
-                                    if (!product) return null;
-                                    return (
-                                        <Card key={msg.id} className="bg-muted overflow-hidden">
-                                            <div className="flex items-center gap-4 p-3">
-                                                <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
-                                                <div className="flex-grow">
-                                                    <p className="text-xs text-muted-foreground">Featured Product</p>
-                                                    <h4 className="font-semibold text-sm">{product.name}</h4>
-                                                    <p className="font-bold">{product.price}</p>
-                                                </div>
-                                            </div>
-                                            <CardFooter className="p-2 bg-background flex gap-2">
-                                                <Button size="sm" className="flex-1" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                            </CardFooter>
-                                        </Card>
-                                    )
-                                }
-                                return (
-                                    <div key={msg.id} className="text-sm">
-                                        <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
-                                        <span className="text-muted-foreground">{msg.text}</span>
-                                    </div>
-                                )
-                            })}
+                            {chatMessages.map(msg => (
+                                <div key={msg.id} className="text-sm">
+                                    <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                    <span className="text-muted-foreground">{msg.text}</span>
+                                </div>
+                            ))}
                         </div>
                     </ScrollArea>
                      <div className="p-3 border-t bg-background">
