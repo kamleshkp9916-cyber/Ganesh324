@@ -373,7 +373,7 @@ export default function StreamPage() {
                                  <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
                                         <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                        <Button variant="ghost" size="icon" onClick={()={() => setIsMuted(prev => !prev)}>
+                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
                                             {isMuted ? <VolumeX /> : <Volume2 />}
                                         </Button>
                                         <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
