@@ -45,6 +45,9 @@ import {
   Search,
   Pin,
   Wallet,
+  Plus,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +72,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -87,6 +90,8 @@ import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Logo } from "@/components/logo";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Label } from "../ui/label";
+import { WithdrawForm } from "../settings-forms";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -146,9 +151,12 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     const { toast } = useToast();
-    const [walletBalance, setWalletBalance] = useState(42580.22); // Mock balance
+    const [walletBalance, setWalletBalance] = useState(42580.22);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState([
+        { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
+    ]);
 
-    // Mock Data for UI building
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
@@ -159,7 +167,7 @@ export default function StreamPage() {
         streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     };
 
-    const streamData = mockStreamData; // Use mock data directly
+    const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -192,10 +200,8 @@ export default function StreamPage() {
         if (streams.length > 5) {
             return streams.slice(0, 6);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -338,6 +344,28 @@ export default function StreamPage() {
     const addEmoji = (emoji: string) => {
         setNewMessage(prev => prev + emoji);
     };
+
+    const removeMedia = (index: number) => {
+        // Dummy function
+    }
+
+    const handleWithdraw = (amount: number, bankAccountId: string) => {
+        const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
+        if (amount > walletBalance) {
+           toast({
+               variant: 'destructive',
+               title: 'Insufficient Balance',
+               description: 'You do not have enough funds to complete this withdrawal.'
+           });
+           return;
+        }
+        setWalletBalance(prev => prev - amount);
+        toast({
+           title: "Withdrawal Initiated!",
+           description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
+       });
+        setIsWithdrawOpen(false);
+     };
 
     return (
         <div className="h-dvh w-full flex flex-col bg-black text-white">
@@ -556,12 +584,68 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">Live Chat</h3>
-                             <Button asChild variant="link" className="flex items-center gap-2 h-8 w-auto px-2">
-                                <Link href="/wallet">
-                                    <Wallet className="h-5 w-5" />
-                                    <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
-                                </Link>
-                            </Button>
+                             <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button asChild variant="link" className="flex items-center gap-2 h-8 w-auto px-2">
+                                        <Link href="/wallet">
+                                            <Wallet className="h-5 w-5" />
+                                            <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
+                                        </Link>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-sm">
+                                    <DialogHeader>
+                                        <DialogTitle>My Wallet</DialogTitle>
+                                        <DialogDescription>Quick access to your funds.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 space-y-4">
+                                        <div className="text-center">
+                                            <p className="text-sm text-muted-foreground">Available Balance</p>
+                                            <p className="text-4xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                        </div>
+                                         <div className="grid grid-cols-2 gap-4">
+                                             <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Deposit</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Add Funds via UPI</DialogTitle>
+                                                        <DialogDescription>Scan the QR code to add funds.</DialogDescription>
+                                                    </DialogHeader>
+                                                    <div className="flex flex-col items-center gap-4 py-4">
+                                                        <div className="bg-white p-4 rounded-lg">
+                                                            <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                                        </div>
+                                                        <p className="font-semibold">streamcart@mock</p>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Withdraw</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Withdraw Funds</DialogTitle>
+                                                    </DialogHeader>
+                                                    <WithdrawForm 
+                                                        cashAvailable={walletBalance} 
+                                                        bankAccounts={bankAccounts} 
+                                                        onWithdraw={handleWithdraw}
+                                                        onAddAccount={(acc) => setBankAccounts(prev => [...prev, {...acc, id: Date.now()}])}
+                                                    />
+                                                </DialogContent>
+                                            </Dialog>
+                                         </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button asChild className="w-full">
+                                            <Link href="/wallet">Full Wallet History</Link>
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                         <div className="flex items-center gap-1">
                             <Popover>
@@ -721,7 +805,7 @@ export default function StreamPage() {
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                    <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
                                                                     <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
@@ -729,7 +813,7 @@ export default function StreamPage() {
                                                                 </div>
                                                                 <div className="p-1.5">
                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                                                    <p className="text-xs font-bold">{product.price}</p>
+                                                                    <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                                                                 </div>
                                                              </Link>
                                                              <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
@@ -807,21 +891,4 @@ export default function StreamPage() {
             </div>
         </div>
     );
-
-    
-
-    
 }
-    
-
-    
-
-
-
-
-
-
-
-
-
-    
