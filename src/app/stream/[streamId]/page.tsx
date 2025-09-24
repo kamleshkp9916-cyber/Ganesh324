@@ -66,7 +66,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from './ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -148,7 +148,6 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
@@ -260,75 +259,7 @@ export default function StreamPage() {
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
     return (
-        <div className={cn(
-            "h-dvh w-full bg-black text-white grid grid-cols-1 overflow-hidden transition-all duration-300",
-            isSidebarCollapsed ? "lg:grid-cols-[auto_1fr_340px]" : "lg:grid-cols-[300px_1fr_340px]"
-        )}>
-            <aside className={cn("hidden lg:flex h-full flex-col border-r border-border bg-background text-foreground", isSidebarCollapsed ? "w-16 items-center" : "w-full")}>
-                 <div className={cn("p-4 flex items-center justify-between flex-shrink-0", isSidebarCollapsed && "justify-center")}>
-                    {!isSidebarCollapsed && <h3 className="font-semibold">Discover</h3>}
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarCollapsed(prev => !prev)}>
-                        {isSidebarCollapsed ? <PanelRightOpen /> : <PanelRightClose />}
-                    </Button>
-                </div>
-                 <ScrollArea className="h-full">
-                     <div className={cn("p-4", isSidebarCollapsed && "p-2")}>
-                         <div className={cn(!isSidebarCollapsed && "mb-4")}>
-                             {!isSidebarCollapsed && <h3 className="font-semibold mb-2">Browse by Category</h3>}
-                             <Accordion type="multiple" className="w-full">
-                                {categories.map(category => (
-                                    <AccordionItem value={category.name} key={category.name}>
-                                        <AccordionTrigger className={cn("text-sm font-semibold hover:no-underline py-2", isSidebarCollapsed && "justify-center")}>
-                                            <div className="flex items-center gap-2">
-                                                <Tv className="h-5 w-5" />
-                                                {!isSidebarCollapsed && category.name}
-                                            </div>
-                                        </AccordionTrigger>
-                                        <AccordionContent>
-                                            <div className="flex flex-col space-y-2 pl-4">
-                                                {category.subcategories.map(sub => (
-                                                    <Link key={sub.name} href="#" className="text-xs text-muted-foreground hover:text-foreground">
-                                                        {sub.name}
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </div>
-                        <Separator className={cn("my-4", isSidebarCollapsed && "my-2")} />
-                        <div className={cn(!isSidebarCollapsed && "mb-4")}>
-                             {!isSidebarCollapsed && <h3 className="font-semibold mb-2">Live Sellers</h3>}
-                            <div className="space-y-1">
-                                {liveSellers.slice(0, 10).map(s => (
-                                    <Link key={s.id} href={`/stream/${s.id}`} className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-muted", isSidebarCollapsed && "justify-center")}>
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src={s.avatarUrl} />
-                                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        {!isSidebarCollapsed && (
-                                            <>
-                                                <div className="flex-grow overflow-hidden">
-                                                    <p className="font-semibold text-sm truncate">{s.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                </div>
-                                                <div className="flex items-center text-xs">
-                                                    <Users className="h-3 w-3 mr-1" />
-                                                    {s.viewers}
-                                                </div>
-                                            </>
-                                        )}
-                                    </Link>
-                                ))}
-                            </div>
-                            {!isSidebarCollapsed && (
-                                 <Button variant="link" className="text-muted-foreground w-full mt-2 justify-end p-2 h-auto">More...</Button>
-                            )}
-                        </div>
-                    </div>
-                </ScrollArea>
-            </aside>
+        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
              <div className="w-full h-full flex flex-col overflow-hidden">
                  <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
                     <div className="w-full h-[60vh] bg-black relative group flex-shrink-0" ref={playerRef}>
@@ -638,3 +569,5 @@ export default function StreamPage() {
         </div>
     );
 }
+
+    
