@@ -476,7 +476,7 @@ export default function StreamPage() {
                                 {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                             </div>
                         </div>
-                        <div className="mt-8">
+                         <div className="mt-8">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {relatedStreams.map((s: any) => (
@@ -485,11 +485,11 @@ export default function StreamPage() {
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                    <Users className="h-3 w-3"/>
+                                                    <Users className="h-3 w-3" />
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
-                                             <Image
+                                            <Image
                                                 src={s.thumbnailUrl}
                                                 alt={`Live stream from ${s.name}`}
                                                 fill

@@ -871,6 +871,7 @@ export default function LiveSellingPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -1039,6 +1040,7 @@ export default function LiveSellingPage() {
                                                         )}
                                                     </div>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
                                                 </div>
                                             </div>
                                         </Link>
