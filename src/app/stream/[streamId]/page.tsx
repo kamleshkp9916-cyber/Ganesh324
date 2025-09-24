@@ -248,16 +248,11 @@ export default function StreamPage() {
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
-
-        let finalMessage = newMessage;
-        if (replyingTo) {
-            finalMessage = `@${replyingTo} ${newMessage}`;
-        }
         
         const newMsg: any = {
             id: Date.now(),
             user: user?.displayName?.split(' ')[0] || 'You',
-            text: finalMessage,
+            text: newMessage,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
         };
@@ -530,14 +525,14 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
-                            <Popover>
-                                <PopoverTrigger asChild>
+                             <Collapsible className="w-full">
+                                <CollapsibleTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Pin className="h-5 w-5 text-muted-foreground" />
                                     </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80 p-0">
-                                    <div className="p-3 bg-muted/50 space-y-4">
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="absolute top-full right-0 mt-2 w-full p-2 z-20">
+                                    <div className="p-3 bg-muted/50 space-y-4 rounded-lg border backdrop-blur-sm">
                                         <div>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                                                 <Pin className="w-3 h-3" />
@@ -570,8 +565,8 @@ export default function StreamPage() {
                                             </CardFooter>
                                         </Card>
                                     </div>
-                                </PopoverContent>
-                            </Popover>
+                                </CollapsibleContent>
+                            </Collapsible>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
