@@ -320,13 +320,13 @@ export default function StreamPage() {
     
     const renderContentWithHashtags = (text: string) => {
         if (!text) return text;
-        const parts = text.split(/(#\w+|@\w+)/g);
+        const parts = text.split(/(@\w+|#\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
-                return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>
+                return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>;
             }
             if (part.startsWith('@')) {
-                 return <span key={index} className="text-blue-500 font-semibold">{part}</span>
+                 return <span key={index} className="text-blue-500 font-semibold">{part}</span>;
             }
             return part;
         });
@@ -384,11 +384,11 @@ export default function StreamPage() {
 
                             {/* Center Controls */}
                              <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={()={() => handleSeek('backward')}}><Rewind className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
                                 <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
                                     {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
                                 </Button>
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={()={() => handleSeek('forward')}}><FastForward className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
                             </div>
 
                              {/* Bottom Bar */}
@@ -801,3 +801,5 @@ export default function StreamPage() {
     
 
     
+
+
