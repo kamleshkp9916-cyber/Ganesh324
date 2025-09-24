@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -114,6 +115,17 @@ const mockChatMessages: any[] = [
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6', userId: 'user3' },
     { id: 4, type: 'system', text: 'Chris joined the stream.' },
     { id: 5, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 6, type: 'system', text: 'Maria purchased a Vintage Camera.' },
+    { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userColor: '#2ecc71', userId: 'user4' },
+    { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 9, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userColor: '#e67e22', userId: 'user5' },
+    { id: 10, type: 'system', text: 'An auction for the Vintage Camera has started! Opening bid: ₹8,000' },
+    { id: 11, user: 'Mike', text: 'BID ₹8,500', avatar: 'https://placehold.co/40x40.png', userColor: '#1abc9c', userId: 'user6', isBid: true },
+    { id: 12, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userColor: '#d35400', userId: 'user7', isBid: true },
+    { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userColor: '#8e44ad', userId: 'user8' },
+    { id: 15, type: 'system', text: 'Vintage Camera SOLD to Laura for ₹9,000!' },
+    { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
 ];
 
 const mockSellerPosts = [
@@ -586,10 +598,11 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">Live Chat</h3>
-                            <Popover>
+                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Button variant="link" className="flex items-center gap-2 h-8 w-auto px-2 py-2">
                                         <Wallet className="h-5 w-5" />
+                                        <span className="sr-only">Open Wallet</span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent align="end" className="w-80">
@@ -696,6 +709,7 @@ export default function StreamPage() {
                                                     <>
                                                         <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
                                                         <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
+                                                            <Zap className="w-3 h-3 mr-1" />
                                                             Buy Now
                                                         </Button>
                                                     </>
@@ -766,7 +780,7 @@ export default function StreamPage() {
                                                                 </Badge>
                                                              )}
                                                         </span>
-                                                        <span className="text-muted-foreground break-words">{renderContentWithHashtags(msg.text)}</span>
+                                                        <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
                                                     </div>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
