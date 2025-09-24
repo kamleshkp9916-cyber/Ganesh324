@@ -384,8 +384,61 @@ export default function StreamPage() {
                         </div>
                     </div>
                     <div className="mt-6">
+                        <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+                            {mockSellerPosts.map(post => (
+                                 <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                    <div className="p-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                    <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold">{seller?.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
+                                                        <MoreVertical className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                                                    <DropdownMenuItem><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                        <p className="text-sm line-clamp-2">{post.content}</p>
+                                    </div>
+                                    {post.mediaUrl && (
+                                        <div className="w-full aspect-video bg-muted relative mt-auto">
+                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+                                        </div>
+                                    )}
+                                    <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-4">
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <Heart className="w-4 h-4" />
+                                                <span>{post.likes}</span>
+                                            </button>
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <MessageSquare className="w-4 h-4" />
+                                                <span>{post.replies}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                             {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                        </div>
+                    </div>
+                    <div className="mt-6">
                         <h4 className="font-semibold mb-4">Related Streams</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {relatedStreams.map(s => (
                                  <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -415,46 +468,6 @@ export default function StreamPage() {
                                     </div>
                                 </Link>
                             ))}
-                        </div>
-                    </div>
-                     <div className="mt-6">
-                        <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="space-y-4">
-                            {mockSellerPosts.map(post => (
-                                <Card key={post.id} className="overflow-hidden">
-                                    <div className="p-4">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold">{seller?.name}</p>
-                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm line-clamp-3">{post.content}</p>
-                                    </div>
-                                    {post.mediaUrl && (
-                                        <div className="w-full aspect-video bg-muted relative">
-                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
-                                        </div>
-                                    )}
-                                    <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-4">
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <Heart className="w-4 h-4" />
-                                                <span>{post.likes}</span>
-                                            </button>
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <MessageSquare className="w-4 h-4" />
-                                                <span>{post.replies}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                             {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                         </div>
                     </div>
                 </div>
