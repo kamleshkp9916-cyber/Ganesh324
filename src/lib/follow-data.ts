@@ -18,6 +18,7 @@ export interface UserData {
     location: string;
     phone: string;
     addresses: any[];
+    color: string;
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
     rejectionReason?: string;
     resubmissionReason?: string;
@@ -48,7 +49,8 @@ const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserDat
     bio: "",
     location: "",
     phone: "",
-    addresses: []
+    addresses: [],
+    color: '#ffffff',
 });
 
 export const getUserData = async (uid: string): Promise<UserData | null> => {

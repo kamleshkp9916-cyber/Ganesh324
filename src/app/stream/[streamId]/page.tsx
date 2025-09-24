@@ -97,9 +97,9 @@ const liveSellers = [
 ];
 
 const mockChatMessages: any[] = [
-    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
-    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
-    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
+    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
+    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
+    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
@@ -211,7 +211,8 @@ export default function StreamPage() {
             id: Date.now(),
             user: user?.displayName || 'You',
             text: newMessage,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png'
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
+            userColor: user?.color || '#ffffff'
         };
         setChatMessages(prev => [...prev, newMsg]);
         setNewMessage("");
@@ -452,7 +453,7 @@ export default function StreamPage() {
 
                  <div className="flex-grow flex flex-col overflow-hidden">
                     <ScrollArea className="flex-grow" ref={chatContainerRef}>
-                        <div className="p-4 space-y-4">
+                        <div className="p-4 space-y-2">
                             {chatMessages.map(msg => {
                                 if (msg.type === 'system') {
                                     return (
@@ -482,56 +483,22 @@ export default function StreamPage() {
                                     )
                                 }
                                 return (
-                                    <div key={msg.id} className="flex items-start gap-2 group">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src={msg.avatar} />
-                                            <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-grow">
-                                            <span className="font-semibold">{msg.user}</span>
-                                            <p className="text-muted-foreground">{msg.text}</p>
-                                        </div>
-                                        <AlertDialog>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <AlertDialogTrigger asChild>
-                                                        <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                                            <Flag className="mr-2 h-4 w-4" /> Report Message
-                                                        </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Report this message?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This message will be sent to our moderation team for review. Abusing this feature may result in account penalties.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleReportMessage(msg.id)}>Confirm Report</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                    <div key={msg.id} className="text-sm">
+                                        <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        <span className="text-muted-foreground">{msg.text}</span>
                                     </div>
                                 )
                             })}
                         </div>
                     </ScrollArea>
-                    <div className="p-4 border-t flex-shrink-0 bg-background">
+                     <div className="p-4 border-t flex-shrink-0 bg-background">
                          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                              <div className="relative flex-grow">
                                 <Textarea
                                     placeholder="Send a message..."
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="resize-none pr-10 rounded-full bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-10 pt-2.5"
+                                    className="resize-none pr-10 rounded-lg bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-10 pt-2.5 text-sm"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -551,7 +518,7 @@ export default function StreamPage() {
                                     </PopoverContent>
                                 </Popover>
                             </div>
-                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0">
+                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
                                 <Send className="h-4 w-4" />
                             </Button>
                         </form>

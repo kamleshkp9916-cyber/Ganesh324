@@ -30,6 +30,7 @@ const profileFormSchema = z.object({
   location: z.string().optional(),
   phone: z.string().regex(/^\d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   photoURL: z.string().optional(),
+  color: z.string().optional(),
 });
 
 interface EditProfileFormProps {
@@ -40,6 +41,7 @@ interface EditProfileFormProps {
     location: string;
     phone: string;
     photoURL?: string;
+    color?: string;
     addresses: any;
   };
   onSave: (data: any) => Promise<void>;
@@ -66,6 +68,7 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
       location: currentUser.location,
       phone: (currentUser.phone || "").replace('+91 ', ''),
       photoURL: currentUser.photoURL,
+      color: currentUser.color || '#ffffff',
     },
   });
   
@@ -192,6 +195,22 @@ export function EditProfileForm({ currentUser, onSave, onCancel }: EditProfileFo
                                 </FormControl>
                             </div>
                             <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={profileForm.control}
+                    name="color"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Username Color</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <Input type="text" placeholder="#FFFFFF" {...field} />
+                                    <input type="color" value={field.value} onChange={(e) => field.onChange(e.target.value)} className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-8 cursor-pointer rounded-sm border" />
+                                </div>
+                            </FormControl>
+                             <FormMessage />
                         </FormItem>
                     )}
                 />
