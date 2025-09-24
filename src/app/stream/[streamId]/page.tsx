@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Heart,
   MessageSquare,
-  MoreHorizontal,
   MoreVertical,
   Send,
   Share2,
@@ -44,6 +43,7 @@ import {
   PictureInPicture,
   ShoppingBag,
   Paperclip,
+  Search,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,7 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Logo } from "@/components/logo";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -303,331 +304,353 @@ export default function StreamPage() {
     };
 
     return (
-        <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
-             <ScrollArea className="w-full h-full flex flex-col no-scrollbar">
-                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
-                    <video
-                        ref={videoRef}
-                        src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                        className="w-full h-full object-cover"
-                        loop
-                    />
-                     <div 
-                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    >
-                        {/* Top Bar */}
-                         <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
-                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
-                            </div>
-                            <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
-                        </div>
-
-                        {/* Center Controls */}
-                         <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                            </Button>
-                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                        </div>
-
-                         {/* Bottom Bar */}
-                         <div className="space-y-3">
-                            <Progress value={(currentTime / duration) * 100} className="h-2" />
-                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 sm:gap-4">
-                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                        {isMuted ? <VolumeX /> : <Volume2 />}
-                                    </Button>
-                                    <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
-                                </div>
-                                <div className="flex items-center gap-1 sm:gap-2">
-                                    <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                                    <Button variant="ghost" size="icon"><Share2 /></Button>
-                                    <Button variant="ghost" size="icon"><Settings /></Button>
-                                    <Button variant="ghost" size="icon"><Maximize /></Button>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
+        <div className="h-dvh w-full flex flex-col bg-black text-white">
+            <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft />
+                    </Button>
+                     <Link href="/live-selling" className="flex items-center gap-2">
+                        <Logo className="h-7 w-7" />
+                        <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                    </Link>
                 </div>
-                <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
-                    <div className="mb-4">
-                         <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                        <p className="text-sm text-muted-foreground">{renderDescription(streamData.description) || "Welcome to the live stream!"}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            {seller && (
-                                <>
-                                    <Avatar>
-                                        <AvatarImage src={seller.avatarUrl} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <h3 className="font-semibold">{seller.name}</h3>
-                                    <Button variant="secondary" size="sm" className="h-7">
-                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                    </Button>
-                                </>
-                            )}
+                <div className="relative w-full max-w-md mx-4">
+                    <Input 
+                        placeholder="Search..."
+                        className="rounded-full bg-muted pr-10"
+                    />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                </div>
+                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                        <ShoppingCart className="h-5 w-5" />
+                    </Button>
+                </div>
+            </header>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden flex-grow">
+                 <ScrollArea className="w-full h-full flex flex-col no-scrollbar">
+                    <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                        <video
+                            ref={videoRef}
+                            src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                            className="w-full h-full object-cover"
+                            loop
+                        />
+                         <div 
+                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        >
+                            {/* Top Bar */}
+                             <div className="flex items-center justify-between">
+                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
+                                <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
+                            </div>
+
+                            {/* Center Controls */}
+                             <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                    {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                                </Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                            </div>
+
+                             {/* Bottom Bar */}
+                             <div className="space-y-3">
+                                <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                 <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 sm:gap-4">
+                                        <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                            {isMuted ? <VolumeX /> : <Volume2 />}
+                                        </Button>
+                                        <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 sm:gap-2">
+                                        <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                        <Button variant="ghost" size="icon"><Share2 /></Button>
+                                        <Button variant="ghost" size="icon"><Settings /></Button>
+                                        <Button variant="ghost" size="icon"><Maximize /></Button>
+                                    </div>
+                                 </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="mt-6">
-                        <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {sellerProducts.map(p => (
-                                <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                    <Card className="overflow-hidden">
-                                        <div className="aspect-square bg-muted relative">
-                                            <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                    <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
+                        <div className="mb-4">
+                             <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                            <p className="text-sm text-muted-foreground">{renderDescription(streamData.description) || "Welcome to the live stream!"}</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                        <Avatar>
+                                            <AvatarImage src={seller.avatarUrl} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <h3 className="font-semibold">{seller.name}</h3>
+                                        <Button variant="secondary" size="sm" className="h-7">
+                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {sellerProducts.map(p => (
+                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                        <Card className="overflow-hidden">
+                                            <div className="aspect-square bg-muted relative">
+                                                <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                            </div>
+                                            <div className="p-2">
+                                                <p className="text-xs font-semibold truncate">{p.name}</p>
+                                                <p className="text-sm font-bold">{p.price}</p>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                ))}
+                                 {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                            </div>
+                        </div>
+                        <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
+                                {mockSellerPosts.map(post => (
+                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                        <div className="p-3">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-primary text-xs">{seller?.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                    </div>
+                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-1">
+                                                            <MoreHorizontal className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                            <Share2 className="mr-2 h-4 w-4" />
+                                                            <span>Share</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={handleReportStream}>
+                                                            <Flag className="mr-2 h-4 w-4" />
+                                                            <span>Report</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                            <p className="text-xs line-clamp-3">{post.content}</p>
                                         </div>
-                                        <div className="p-2">
-                                            <p className="text-xs font-semibold truncate">{p.name}</p>
-                                            <p className="text-sm font-bold">{p.price}</p>
+                                        {post.mediaUrl && (
+                                            <div className="w-full aspect-video bg-muted relative mt-auto">
+                                                <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                                            </div>
+                                        )}
+                                        <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-3">
+                                                <button className="flex items-center gap-1 hover:text-primary">
+                                                    <Heart className="w-3 h-3" />
+                                                    <span>{post.likes || 0}</span>
+                                                </button>
+                                                <button className="flex items-center gap-1 hover:text-primary">
+                                                    <MessageSquare className="w-3 h-3" />
+                                                    <span>{post.replies || 0}</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </Card>
-                                </Link>
-                            ))}
-                             {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                                ))}
+                                {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                            </div>
                         </div>
-                    </div>
-                    <div className="mt-6">
-                        <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4">
-                            {mockSellerPosts.map(post => (
-                                 <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                    <div className="p-3">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                                                    <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold text-primary text-xs">{seller?.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                         <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Related Streams</h4>
+                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {relatedStreams.map(s => (
+                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {s.viewers}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-7 h-7">
+                                                <AvatarImage src={s.avatarUrl} />
+                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                    {s.hasAuction && (
+                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                            Auction
+                                                        </Badge>
+                                                    )}
                                                 </div>
+                                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                 <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
+                                                 </div>
                                             </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-1">
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                        <Share2 className="mr-2 h-4 w-4" />
-                                                        <span>Share</span>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={handleReportStream}>
-                                                        <Flag className="mr-2 h-4 w-4" />
-                                                        <span>Report</span>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
                                         </div>
-                                        <p className="text-xs line-clamp-3">{post.content}</p>
-                                    </div>
-                                    {post.mediaUrl && (
-                                        <div className="w-full aspect-video bg-muted relative mt-auto">
-                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
-                                        </div>
-                                    )}
-                                    <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-3">
-                                            <button className="flex items-center gap-1 hover:text-primary">
-                                                <Heart className="w-3 h-3" />
-                                                <span>{post.likes || 0}</span>
-                                            </button>
-                                            <button className="flex items-center gap-1 hover:text-primary">
-                                                <MessageSquare className="w-3 h-3" />
-                                                <span>{post.replies || 0}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                            {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                                    </Link>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                     <div className="mt-6">
-                        <h4 className="font-semibold mb-4">Related Streams</h4>
-                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {relatedStreams.map(s => (
-                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                <Users className="h-3 w-3"/>
-                                                {s.viewers}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-2 mt-2">
-                                        <Avatar className="w-7 h-7">
-                                            <AvatarImage src={s.avatarUrl} />
-                                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-1.5">
-                                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                {s.hasAuction && (
-                                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                        Auction
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">{s.category}</p>
-                                             <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                                <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
-                                                <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
-                                             </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </ScrollArea>
-            <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
-                <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
-                    <h3 className="font-bold text-lg">Live Chat</h3>
-                    <div className="flex items-center gap-2">
-                        {seller?.hasAuction && (
-                            <Button variant="ghost" size="icon">
-                                <Gavel className="h-5 w-5 text-purple-500" />
-                            </Button>
-                        )}
-                       <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
-                            <ShoppingBag className="h-5 w-5" />
-                        </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                </ScrollArea>
+                <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
+                    <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
+                        <h3 className="font-bold text-lg">Live Chat</h3>
+                        <div className="flex items-center gap-2">
+                            {seller?.hasAuction && (
                                 <Button variant="ghost" size="icon">
-                                    <MoreVertical className="h-5 w-5" />
+                                    <Gavel className="h-5 w-5 text-purple-500" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end">
-                                <FeedbackDialog>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                    </DropdownMenuItem>
-                                </FeedbackDialog>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                            <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </div>
-
-                <div
-                    className={cn(
-                        "absolute inset-x-0 top-16 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out",
-                        isProductListVisible ? 'translate-y-0' : 'translate-y-full'
-                    )}
-                >
-                    <div className="h-full flex flex-col">
-                         <div className="p-4 border-b flex items-center justify-between">
-                            <h3 className="font-semibold">Products in this Stream</h3>
-                             <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
-                                <X className="h-5 w-5" />
+                            )}
+                           <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                <ShoppingBag className="h-5 w-5" />
                             </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                 <DropdownMenuContent align="end">
+                                    <FeedbackDialog>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                        </DropdownMenuItem>
+                                    </FeedbackDialog>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Flag className="mr-2 h-4 w-4" /> Report Stream
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                        <ScrollArea className="flex-grow">
-                             <div className="p-4 space-y-4">
-                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
-                                    <div key={product.key} className="flex items-center gap-4">
-                                        <Link href={`/product/${product.key}`} className="block flex-shrink-0">
-                                            <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
-                                        </Link>
-                                        <div className="flex-grow">
-                                            <Link href={`/product/${product.key}`} className="hover:underline">
-                                                <h3 className="font-semibold text-sm">{product.name}</h3>
+                    </div>
+
+                    <div
+                        className={cn(
+                            "absolute inset-x-0 top-16 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out",
+                            isProductListVisible ? 'translate-y-0' : 'translate-y-full'
+                        )}
+                    >
+                        <div className="h-full flex flex-col">
+                             <div className="p-4 border-b flex items-center justify-between">
+                                <h3 className="font-semibold">Products in this Stream</h3>
+                                 <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
+                            <ScrollArea className="flex-grow">
+                                 <div className="p-4 space-y-4">
+                                    {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
+                                        <div key={product.key} className="flex items-center gap-4">
+                                            <Link href={`/product/${product.key}`} className="block flex-shrink-0">
+                                                <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
                                             </Link>
-                                            <p className="font-bold text-base text-foreground">{product.price}</p>
-                                            <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
+                                            <div className="flex-grow">
+                                                <Link href={`/product/${product.key}`} className="hover:underline">
+                                                    <h3 className="font-semibold text-sm">{product.name}</h3>
+                                                </Link>
+                                                <p className="font-bold text-base text-foreground">{product.price}</p>
+                                                <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                            {product.stock > 0 ? (
+                                                <>
+                                                    <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                    <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                </>
+                                            ) : (
+                                                <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
+                                            )}
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col gap-2">
-                                        {product.stock > 0 ? (
-                                            <>
-                                                <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                            </>
-                                        ) : (
-                                            <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
-                                        )}
-                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </div>
+
+                     <div className="flex-grow flex flex-col overflow-hidden">
+                        <ScrollArea className="flex-grow" ref={chatContainerRef}>
+                            <div className="p-4 space-y-2">
+                                {chatMessages.map(msg => (
+                                    <div key={msg.id} className="text-sm">
+                                        <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        <span className="text-muted-foreground">{msg.text}</span>
                                     </div>
                                 ))}
                             </div>
                         </ScrollArea>
-                    </div>
-                </div>
-
-                 <div className="flex-grow flex flex-col overflow-hidden">
-                    <ScrollArea className="flex-grow" ref={chatContainerRef}>
-                        <div className="p-4 space-y-2">
-                            {chatMessages.map(msg => (
-                                <div key={msg.id} className="text-sm">
-                                    <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
-                                    <span className="text-muted-foreground">{msg.text}</span>
+                         <div className="p-3 border-t bg-background">
+                            <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                                 <div className="relative flex-grow">
+                                    <Textarea 
+                                        placeholder="Send a message..." 
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
+                                        rows={1}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleNewMessageSubmit(e);
+                                            }
+                                        }}
+                                     />
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                                <Smile className="h-5 w-5" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent>
+                                            <p>Emoji picker coming soon!</p>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
-                            ))}
+                                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </form>
                         </div>
-                    </ScrollArea>
-                     <div className="p-3 border-t bg-background">
-                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                             <div className="relative flex-grow">
-                                <Textarea 
-                                    placeholder="Send a message..." 
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
-                                    rows={1}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleNewMessageSubmit(e);
-                                        }
-                                    }}
-                                 />
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                            <Smile className="h-5 w-5" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <p>Emoji picker coming soon!</p>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                                <Send className="h-4 w-4" />
-                            </Button>
-                        </form>
                     </div>
                 </div>
             </div>
