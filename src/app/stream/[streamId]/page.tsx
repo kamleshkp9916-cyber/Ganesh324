@@ -415,7 +415,7 @@ export default function StreamPage() {
                 </div>
             </header>
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow overflow-hidden">
-                <ScrollArea className="w-full h-full overflow-y-auto">
+                <div className="w-full h-full overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -599,12 +599,12 @@ export default function StreamPage() {
                         </div>
 
                     </div>
-                </ScrollArea>
+                </div>
                 <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
-                            <Popover>
+                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Wallet className="h-5 w-5 text-muted-foreground" />
@@ -759,7 +759,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                     <ScrollArea className="flex-grow" ref={chatContainerRef}>
+                    <ScrollArea className="flex-grow" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -911,3 +911,5 @@ export default function StreamPage() {
         </div>
     );
 }
+
+    
