@@ -49,7 +49,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter } from "@/components/ui/card";
+import { Card, CardFooter, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
@@ -86,6 +86,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Logo } from "@/components/logo";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -419,7 +420,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {mockSellerPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                         <div className="p-3">
@@ -491,7 +492,7 @@ export default function StreamPage() {
                                             </div>
                                         </Link>
                                         <div className="flex items-start gap-2 mt-2">
-                                             <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
+                                            <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
                                                 <Avatar className="w-7 h-7">
                                                     <AvatarImage src={s.avatarUrl} />
                                                     <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
@@ -580,11 +581,18 @@ export default function StreamPage() {
                                                  <X className="h-4 w-4" />
                                              </Button>
                                          </div>
-                                         <ScrollArea className="w-full">
-                                            <div className="flex gap-3 pb-3">
-                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
-                                                     <div key={product.key} className="w-48 flex-shrink-0">
-                                                          <Card className="h-full flex flex-col">
+                                        <Carousel
+                                            opts={{
+                                                align: "start",
+                                                dragFree: true,
+                                            }}
+                                            className="w-full"
+                                        >
+                                            <CarouselContent className="-ml-2">
+                                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
+                                                     <CarouselItem key={index} className="basis-auto pl-2">
+                                                        <div className="w-36">
+                                                          <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
                                                                     <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
@@ -596,16 +604,19 @@ export default function StreamPage() {
                                                              </Link>
                                                              <CardFooter className="p-2 mt-auto">
                                                                 {product.stock > 0 ? (
-                                                                     <Button size="xs" className="w-full" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                                     <Button size="xs" className="w-full text-xs h-7" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
                                                                 ) : (
-                                                                    <Button size="xs" className="w-full" variant="outline" disabled>Out of Stock</Button>
+                                                                    <Button size="xs" className="w-full text-xs h-7" variant="outline" disabled>Out of Stock</Button>
                                                                 )}
                                                              </CardFooter>
                                                           </Card>
-                                                     </div>
+                                                        </div>
+                                                     </CarouselItem>
                                                  ))}
-                                            </div>
-                                         </ScrollArea>
+                                            </CarouselContent>
+                                            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-6 w-6" />
+                                            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6" />
+                                        </Carousel>
                                      </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
