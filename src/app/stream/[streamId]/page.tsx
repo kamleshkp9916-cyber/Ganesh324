@@ -478,9 +478,9 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-8">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {relatedStreams.map((s: any) => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
@@ -489,6 +489,13 @@ export default function StreamPage() {
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
+                                             <Image
+                                                src={s.thumbnailUrl}
+                                                alt={`Live stream from ${s.name}`}
+                                                fill
+                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                className="object-cover w-full h-full"
+                                            />
                                         </div>
                                         <div className="flex items-start gap-2 mt-2">
                                             <Avatar className="w-7 h-7">
@@ -505,6 +512,7 @@ export default function StreamPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -583,7 +591,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-36">
+                                                        <div className="w-32">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
