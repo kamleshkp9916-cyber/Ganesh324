@@ -453,7 +453,7 @@ export default function StreamPage() {
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
-                                            <p className="text-xs line-clamp-2">{post.content}</p>
+                                            <p className="text-sm line-clamp-2">{post.content}</p>
                                         </div>
                                         {post.mediaUrl && (
                                             <div className="w-full aspect-video bg-muted relative mt-auto">
@@ -481,39 +481,27 @@ export default function StreamPage() {
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
-                                    <div key={s.id} className="group">
-                                        <Link href={`/stream/${s.id}`} className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted block">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                    <Users className="h-3 w-3"/>
-                                                    {s.viewers}
-                                                </Badge>
-                                            </div>
+                                    <div key={s.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
+                                        <Link href={`/stream/${s.id}`} className="cursor-pointer">
+                                            <Image
+                                                src={s.thumbnailUrl}
+                                                alt={`Live stream from ${s.name}`}
+                                                width={300}
+                                                height={450}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={s.hint}
+                                            />
                                         </Link>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
-                                                <Avatar className="w-7 h-7">
-                                                    <AvatarImage src={s.avatarUrl} />
-                                                    <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                            </Link>
-                                            <div className="flex-1">
-                                                 <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <p className="font-semibold text-xs truncate">{s.name}</p>
-                                                        {s.hasAuction && (
-                                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                                Auction
-                                                            </Badge>
-                                                        )}
-                                                    </div>
+                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                            <div className="flex items-start gap-2">
+                                                <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                    <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
                                                 </Link>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                 <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
-                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
-                                                 </div>
+                                                <div className="flex-1">
+                                                     <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3></Link>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -547,7 +535,7 @@ export default function StreamPage() {
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Report Stream?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
+                                                If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
                                             </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
@@ -591,7 +579,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-36">
+                                                        <div className="w-48">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -600,13 +588,20 @@ export default function StreamPage() {
                                                                 <div className="p-2">
                                                                     <p className="text-xs font-semibold truncate">{product.name}</p>
                                                                     <p className="text-sm font-bold">{product.price}</p>
+                                                                    <div className="text-xs text-muted-foreground mt-1">
+                                                                        <p>Stock: {product.stock}</p>
+                                                                        <p>Sold: {Math.floor(Math.random() * product.stock)}</p>
+                                                                    </div>
                                                                 </div>
                                                              </Link>
-                                                             <CardFooter className="p-2 mt-auto">
+                                                             <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-2">
                                                                 {product.stock > 0 ? (
-                                                                     <Button size="xs" className="w-full text-xs h-7" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                                    <>
+                                                                        <Button size="xs" className="w-full text-xs h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                                        <Button size="xs" variant="outline" className="w-full text-xs h-7" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                                    </>
                                                                 ) : (
-                                                                    <Button size="xs" className="w-full text-xs h-7" variant="outline" disabled>Out of Stock</Button>
+                                                                    <Button size="xs" className="w-full text-xs h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
                                                                 )}
                                                              </CardFooter>
                                                           </Card>
