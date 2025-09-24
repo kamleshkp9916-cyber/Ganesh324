@@ -284,7 +284,7 @@ export default function StreamPage() {
     };
     const handleBuyNow = (product: any) => {
       if (product) {
-        router.push(`/cart?buyNow=true&productId='${product.key}'`);
+        router.push(`/cart?buyNow=true&productId=${product.key}`);
       }
     };
     const handleNotifyMe = () => {
@@ -478,10 +478,18 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {relatedStreams.map((s: any) => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted">
+                                             <Image
+                                                src={s.thumbnailUrl}
+                                                alt={`Live stream from ${s.name}`}
+                                                fill
+                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={s.hint}
+                                            />
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -490,14 +498,14 @@ export default function StreamPage() {
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
+                                        <div className="flex items-start gap-3 mt-2">
+                                            <Avatar className="w-9 h-9">
                                                 <AvatarImage src={s.avatarUrl} />
                                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                    <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
                                                     {s.hasAuction && (
                                                         <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
                                                             Auction
@@ -505,6 +513,7 @@ export default function StreamPage() {
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                <p className="text-xs text-blue-400 hover:underline">#{s.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -583,7 +592,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-40">
+                                                        <div className="w-32">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
