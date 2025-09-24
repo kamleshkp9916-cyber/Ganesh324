@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -104,7 +103,7 @@ const liveSellers = [
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
-    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
+    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
@@ -482,7 +481,7 @@ export default function StreamPage() {
                              <h4 className="font-semibold mb-4">Related Streams</h4>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {relatedStreams.map((s: any) => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
@@ -564,8 +563,38 @@ export default function StreamPage() {
                             <ChevronDown className="h-4 w-4" />
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                            <div className="p-3 bg-muted/50 space-y-2">
-                                <div className="text-xs p-2 rounded-md bg-background text-center text-muted-foreground">No items are pinned yet.</div>
+                             <div className="p-3 bg-muted/50 space-y-4">
+                                <div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                        <Pin className="h-3 w-3" />
+                                        <span>Pinned by {seller?.name}</span>
+                                    </div>
+                                    <div className="p-2 rounded-md bg-background border">
+                                        <div className="flex items-center gap-2">
+                                            <Avatar className="h-6 w-6">
+                                                <AvatarImage src={seller?.avatarUrl} />
+                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-semibold text-xs">{seller?.name}:</span>
+                                        </div>
+                                        <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
+                                    </div>
+                                </div>
+                                 <Card className="overflow-hidden">
+                                     <CardContent className="p-0">
+                                        <div className="flex items-center gap-3 p-2">
+                                            <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-semibold truncate">{product.name}</p>
+                                                <p className="font-bold text-base">{product.price}</p>
+                                            </div>
+                                        </div>
+                                     </CardContent>
+                                     <CardFooter className="p-0 grid grid-cols-2 gap-px">
+                                        <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                        <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                     </CardFooter>
+                                 </Card>
                             </div>
                         </CollapsibleContent>
                     </Collapsible>
@@ -600,12 +629,12 @@ export default function StreamPage() {
                                         >
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                                     <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-[100px]">
+                                                     <CarouselItem key={index} className="pl-2 basis-1/3">
+                                                        <div className="w-full">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                    <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                                                                     <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
@@ -616,10 +645,10 @@ export default function StreamPage() {
                                                                     <p className="text-sm font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                                                                 </div>
                                                              </Link>
-                                                             <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-2">
+                                                             <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-1">
                                                                 {product.stock > 0 ? (
                                                                     <>
-                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy</Button>
                                                                         <Button size="xs" variant="outline" className="w-full text-[10px] h-7" onClick={() => handleAddToCart(product)}>Add</Button>
                                                                     </>
                                                                 ) : (
@@ -631,8 +660,6 @@ export default function StreamPage() {
                                                      </CarouselItem>
                                                  ))}
                                             </CarouselContent>
-                                            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 h-6 w-6" />
-                                            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6" />
                                         </Carousel>
                                      </div>
                                 ) : (
@@ -688,6 +715,5 @@ export default function StreamPage() {
     );
 
     
-}
 
     
