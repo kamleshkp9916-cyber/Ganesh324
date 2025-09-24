@@ -169,7 +169,7 @@ export default function StreamPage() {
         return Object.values(productDetails).filter(p => p.brand === seller.name && p.stock > 0);
     }, [seller]);
     
-    const relatedStreams = useMemo(() => {
+     const relatedStreams = useMemo(() => {
         if (!product) return [];
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
@@ -312,10 +312,13 @@ export default function StreamPage() {
     
     const renderContentWithHashtags = (text: string) => {
         if (!text) return text;
-        const parts = text.split(/(#\w+)/g);
+        const parts = text.split(/(#\w+|@\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>
+            }
+            if (part.startsWith('@')) {
+                 return <span key={index} className="text-primary font-semibold">{part}</span>
             }
             return part;
         });
@@ -536,31 +539,31 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
-                            <Popover>
-                                <PopoverTrigger asChild>
+                            <Collapsible>
+                                <CollapsibleTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Pin className="h-5 w-5 text-muted-foreground" />
                                     </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80" align="end">
-                                    <div className="p-3 bg-muted/50 space-y-4 rounded-lg border backdrop-blur-sm">
-                                        <div>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="absolute top-[calc(100%_+_0.5rem)] right-4 w-80 z-20">
+                                     <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
+                                         <div>
+                                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                                                 <Pin className="w-3 h-3" />
                                                 <span>Pinned by {seller?.name}</span>
                                             </div>
-                                            <div className="p-2 rounded-md bg-background border">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-6 w-6">
-                                                        <AvatarImage src={seller?.avatarUrl} />
-                                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="font-semibold text-xs">{seller?.name}:</span>
-                                                </div>
-                                                <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
-                                            </div>
-                                        </div>
-                                        <Card className="overflow-hidden">
+                                             <div className="p-2 rounded-md bg-background border">
+                                                 <div className="flex items-center gap-2">
+                                                     <Avatar className="h-6 w-6">
+                                                         <AvatarImage src={seller?.avatarUrl} />
+                                                         <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                     </Avatar>
+                                                     <span className="font-semibold text-xs">{seller?.name}:</span>
+                                                 </div>
+                                                 <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
+                                             </div>
+                                         </div>
+                                         <Card className="overflow-hidden">
                                             <CardContent className="p-0">
                                                 <div className="flex items-center gap-3 p-2">
                                                     <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
@@ -575,9 +578,9 @@ export default function StreamPage() {
                                                 <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
                                             </CardFooter>
                                         </Card>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
+                                     </div>
+                                </CollapsibleContent>
+                            </Collapsible>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -630,6 +633,12 @@ export default function StreamPage() {
                                                     <div className="flex-1">
                                                         <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
                                                             {msg.user.split(' ')[0]}
+                                                             {msg.isSeller && (
+                                                                <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                                                    <ShieldCheck className="h-3 w-3 mr-1" />
+                                                                    Admin
+                                                                </Badge>
+                                                             )}
                                                         </span>
                                                         <span className="text-muted-foreground break-words">{renderContentWithHashtags(msg.text)}</span>
                                                     </div>
@@ -726,10 +735,10 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder={"Send a message..."}
+                                        placeholder="Send a message..."
                                         value={newMessage}
                                         onChange={(e) => {
-                                            if (!replyingTo || !e.target.value.startsWith(`@${replyingTo} `)) {
+                                            if (replyingTo && !e.target.value.startsWith(`@${replyingTo} `)) {
                                                 setReplyingTo(null);
                                             }
                                             setNewMessage(e.target.value)
