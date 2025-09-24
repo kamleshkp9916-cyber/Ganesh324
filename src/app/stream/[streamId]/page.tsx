@@ -358,7 +358,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -380,7 +380,7 @@ export default function StreamPage() {
                                             <div className="flex-1">
                                                 <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                 <div className="flex items-center gap-2 mt-1">
+                                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                     <Badge variant="outline">#{s.category.toLowerCase()}</Badge>
                                                     <Badge variant="outline">#{s.name.toLowerCase()}</Badge>
                                                  </div>
