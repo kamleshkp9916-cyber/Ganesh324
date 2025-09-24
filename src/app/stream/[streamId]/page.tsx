@@ -498,7 +498,9 @@ export default function StreamPage() {
                                                     <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
                                                 </Link>
                                                 <div className="flex-1">
-                                                    <h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3>
+                                                    <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
+                                                      <h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>
