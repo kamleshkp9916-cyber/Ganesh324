@@ -525,13 +525,13 @@ export default function StreamPage() {
                         </div>
                     </ScrollArea>
                     <div className="p-4 border-t flex-shrink-0 bg-background">
-                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                              <div className="relative flex-grow">
                                 <Textarea
                                     placeholder="Send a message..."
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="resize-none pr-10 rounded-full bg-muted border-transparent focus:border-primary focus:bg-background"
+                                    className="resize-none pr-10 rounded-full bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-10 pt-2.5"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
