@@ -520,49 +520,39 @@ export default function StreamPage() {
                 <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
-                        <div className="flex items-center gap-2">
-                            {seller?.hasAuction && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                    <Gavel className="h-5 w-5 text-purple-500" />
+                                    <MoreVertical className="h-5 w-5" />
                                 </Button>
-                            )}
-                           <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
-                                <ShoppingBag className="h-5 w-5" />
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreVertical className="h-5 w-5" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                 <DropdownMenuContent align="end">
-                                    <FeedbackDialog>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                            </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                                <FeedbackDialog>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                    </DropdownMenuItem>
+                                </FeedbackDialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            <Flag className="mr-2 h-4 w-4" /> Report Stream
                                         </DropdownMenuItem>
-                                    </FeedbackDialog>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                If this stream violates our community guidelines, please report it. Our moderation team will review it promptly.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     <div
@@ -621,6 +611,18 @@ export default function StreamPage() {
                             </div>
                         </ScrollArea>
                          <div className="p-3 border-t bg-background">
+                            <div className="flex items-center gap-2 mb-2">
+                                {seller?.hasAuction && (
+                                    <Button variant="outline" size="sm" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                        <Gavel className="h-4 w-4 mr-2" />
+                                        Auction
+                                    </Button>
+                                )}
+                                 <Button variant="outline" size="sm" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                    <ShoppingBag className="h-4 w-4 mr-2" />
+                                    Products
+                                </Button>
+                            </div>
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                  <div className="relative flex-grow">
                                     <Textarea 
