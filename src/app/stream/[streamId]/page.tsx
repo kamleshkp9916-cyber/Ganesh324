@@ -335,8 +335,8 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {liveSellers.filter(s => s.id !== streamId).map(s => (
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {liveSellers.filter(s => s.id !== streamId).slice(0,5).map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
@@ -539,4 +539,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
