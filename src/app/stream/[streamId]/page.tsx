@@ -102,10 +102,11 @@ const liveSellers = [
 ];
 
 const mockChatMessages: any[] = [
-    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
-    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
-    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true },
-    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
+    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db', userId: 'user1' },
+    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c', userId: 'user2' },
+    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6', userId: 'user3' },
+    { id: 4, type: 'system', text: 'Chris joined the stream.' },
+    { id: 5, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
 ];
 
 const mockSellerPosts = [
@@ -245,24 +246,21 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        if (!replyingTo) {
-            setNewMessage('');
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-    }, [replyingTo]);
+    }, [chatMessages]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
         
         let messageText = newMessage;
-        if(replyingTo && !newMessage.startsWith(`@${replyingTo} `)) {
-            // The user deleted the @mention, so it's not a reply anymore
-            setReplyingTo(null);
-        }
-
+        
         const newMsg: any = {
             id: Date.now(),
             user: user?.displayName?.split(' ')[0] || 'You',
+            userId: user?.uid,
             text: messageText,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
@@ -318,7 +316,7 @@ export default function StreamPage() {
                 return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>
             }
             if (part.startsWith('@')) {
-                 return <span key={index} className="text-primary font-semibold">{part}</span>
+                 return <span key={index} className="text-blue-500 font-semibold">{part}</span>
             }
             return part;
         });
@@ -617,7 +615,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                     <div className="flex-grow flex flex-col overflow-hidden">
-                        <ScrollArea className="flex-grow">
+                        <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
                                 {chatMessages.map((msg, index) => (
                                     <div key={msg.id || index} className="text-sm group relative">
@@ -649,9 +647,11 @@ export default function StreamPage() {
                                                             </button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onSelect={() => handleReply(msg.user)}>
-                                                                Reply
-                                                            </DropdownMenuItem>
+                                                            {user?.uid !== msg.userId && (
+                                                                <DropdownMenuItem onSelect={() => handleReply(msg.user)}>
+                                                                    Reply
+                                                                </DropdownMenuItem>
+                                                            )}
                                                             <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
                                                                 <Flag className="mr-2 h-4 w-4" /> Report
                                                             </DropdownMenuItem>
@@ -735,13 +735,14 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder="Send a message..."
+                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
                                         value={newMessage}
                                         onChange={(e) => {
-                                            if (replyingTo && !e.target.value.startsWith(`@${replyingTo} `)) {
+                                            const value = e.target.value;
+                                            if (replyingTo && !value.startsWith(`@${replyingTo} `)) {
                                                 setReplyingTo(null);
                                             }
-                                            setNewMessage(e.target.value)
+                                            setNewMessage(value);
                                         }}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                         rows={1}
