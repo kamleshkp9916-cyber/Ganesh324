@@ -259,6 +259,29 @@ export default function StreamPage() {
 
     const sellerProducts = Object.values(productDetails).filter(p => p.brand === seller?.name);
 
+    const product = productDetails[seller?.productId as keyof typeof productDetails];
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        let streams = liveSellers.filter(
+            s => s.category === product.category && s.productId !== product.key
+        );
+        if (streams.length > 5) {
+            return streams.slice(0, 6);
+        }
+        // Fallback to show some streams if none match the category, excluding the current one
+        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
+        
+        // Add from fallback until we have 6 total, avoiding duplicates
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,6);
+    }, [product]);
+
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
              <div className="w-full h-full flex flex-col overflow-hidden">
@@ -335,7 +358,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {relatedStreams.map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
