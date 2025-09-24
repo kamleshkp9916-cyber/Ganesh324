@@ -126,25 +126,12 @@ const mockChatMessages: any[] = [
     { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userColor: '#8e44ad', userId: 'user8' },
     { id: 15, type: 'system', text: 'Vintage Camera SOLD to Laura for ₹9,000!' },
     { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 17, type: 'system', text: 'Robert purchased Wireless Headphones.' },
+    { id: 18, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db', userId: 'user1' },
+    { id: 19, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 20, user: 'Chloe', text: 'Just tuned in, what did I miss?', avatar: 'https://placehold.co/40x40.png', userColor: '#34495e', userId: 'user9' },
+    { id: 21, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
 ];
-
-const mockSellerPosts = [
-    { id: 1, content: 'Thanks for joining the stream everyone! Don\'t forget to check out the new vintage camera we just unboxed. Link in bio! #vintage #camera #film', mediaUrl: 'https://placehold.co/400x300.png', mediaType: 'image', likes: 123, replies: 12, timestamp: '2h ago' },
-    { id: 2, content: 'Quick reminder: Flash sale ends in 1 hour! Get 20% off on all accessories. Use code LIVE20.', mediaUrl: null, mediaType: null, likes: 45, replies: 3, timestamp: '1h ago' },
-];
-
-function formatTime(seconds: number) {
-    if (isNaN(seconds) || seconds < 0) {
-        return "00:00";
-    }
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0) {
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
 
 const emojis = [
     '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
@@ -594,11 +581,11 @@ export default function StreamPage() {
 
                     </div>
                 </ScrollArea>
-                <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
+                <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-lg">Live Chat</h3>
-                             <Popover>
+                        <h3 className="font-bold text-lg">Live Chat</h3>
+                        <div className="flex items-center gap-1">
+                            <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Wallet className="h-5 w-5 text-muted-foreground" />
@@ -668,8 +655,6 @@ export default function StreamPage() {
                                     </div>
                                 </PopoverContent>
                             </Popover>
-                        </div>
-                        <div className="flex items-center gap-1">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -805,10 +790,10 @@ export default function StreamPage() {
                             ))}
                         </div>
                     </ScrollArea>
-                    <div className="p-3 border-t bg-background">
+                    <div className="p-3 border-t bg-background mt-auto">
                         <div className="mb-2">
                             <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
                                     <ShoppingBag className="h-5 w-5" />
                                 </Button>
                                 {seller?.hasAuction && (
@@ -908,6 +893,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
-    
-
