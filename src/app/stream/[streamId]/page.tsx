@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Heart,
   MessageSquare,
-  MoreHorizontal,
   MoreVertical,
   Send,
   Share2,
@@ -45,6 +44,7 @@ import {
   ShoppingBag,
   Paperclip,
   Search,
+  MoreHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -419,7 +419,7 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {mockSellerPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                         <div className="p-3">
@@ -452,7 +452,7 @@ export default function StreamPage() {
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
-                                            <p className="text-xs line-clamp-3">{post.content}</p>
+                                            <p className="text-xs line-clamp-2">{post.content}</p>
                                         </div>
                                         {post.mediaUrl && (
                                             <div className="w-full aspect-video bg-muted relative mt-auto">
@@ -480,8 +480,8 @@ export default function StreamPage() {
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                    <div key={s.id} className="group">
+                                        <Link href={`/stream/${s.id}`} className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted block">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -489,21 +489,25 @@ export default function StreamPage() {
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
-                                                <AvatarImage src={s.avatarUrl} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
+                                            <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
+                                                <Avatar className="w-7 h-7">
+                                                    <AvatarImage src={s.avatarUrl} />
+                                                    <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                            </Link>
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                            Auction
-                                                        </Badge>
-                                                    )}
-                                                </div>
+                                                <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="font-semibold text-xs truncate">{s.name}</p>
+                                                        {s.hasAuction && (
+                                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                                Auction
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </Link>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
                                                  <div className="flex items-center gap-1 mt-1 flex-wrap">
                                                     <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
@@ -511,7 +515,7 @@ export default function StreamPage() {
                                                  </div>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -555,51 +559,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                     </div>
 
-                    <div
-                        className={cn(
-                            "absolute inset-x-0 top-16 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out",
-                            isProductListVisible ? 'translate-y-0' : 'translate-y-full'
-                        )}
-                    >
-                        <div className="h-full flex flex-col">
-                             <div className="p-4 border-b flex items-center justify-between">
-                                <h3 className="font-semibold">Products in this Stream</h3>
-                                 <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
-                            <ScrollArea className="flex-grow">
-                                 <div className="p-4 space-y-4">
-                                    {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
-                                        <div key={product.key} className="flex items-center gap-4">
-                                            <Link href={`/product/${product.key}`} className="block flex-shrink-0">
-                                                <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
-                                            </Link>
-                                            <div className="flex-grow">
-                                                <Link href={`/product/${product.key}`} className="hover:underline">
-                                                    <h3 className="font-semibold text-sm">{product.name}</h3>
-                                                </Link>
-                                                <p className="font-bold text-base text-foreground">{product.price}</p>
-                                                <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
-                                            </div>
-                                            <div className="flex flex-col gap-2">
-                                            {product.stock > 0 ? (
-                                                <>
-                                                    <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                    <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                                </>
-                                            ) : (
-                                                <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
-                                            )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        </div>
-                    </div>
-
-                     <div className="flex-grow flex flex-col overflow-hidden">
+                    <div className="flex-grow flex flex-col overflow-hidden">
                         <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
                                 {chatMessages.map(msg => (
@@ -655,6 +615,49 @@ export default function StreamPage() {
                             </form>
                         </div>
                     </div>
+
+                    {isProductListVisible && (
+                         <div
+                            className="absolute inset-x-0 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out"
+                        >
+                            <div className="h-full flex flex-col">
+                                <div className="p-4 border-b flex items-center justify-between">
+                                    <h3 className="font-semibold">Products in this Stream</h3>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                </div>
+                                <ScrollArea className="flex-grow">
+                                    <div className="p-4 space-y-4">
+                                        {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
+                                            <div key={product.key} className="flex items-center gap-4">
+                                                <Link href={`/product/${product.key}`} className="block flex-shrink-0">
+                                                    <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
+                                                </Link>
+                                                <div className="flex-grow">
+                                                    <Link href={`/product/${product.key}`} className="hover:underline">
+                                                        <h3 className="font-semibold text-sm">{product.name}</h3>
+                                                    </Link>
+                                                    <p className="font-bold text-base text-foreground">{product.price}</p>
+                                                    <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                {product.stock > 0 ? (
+                                                    <>
+                                                        <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                        <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                    </>
+                                                ) : (
+                                                    <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
+                                                )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
