@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -415,7 +414,7 @@ export default function StreamPage() {
                     </Button>
                 </div>
             </header>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow overflow-hidden">
                 <ScrollArea className="w-full h-full overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
@@ -601,7 +600,7 @@ export default function StreamPage() {
 
                     </div>
                 </ScrollArea>
-                <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border relative">
+                <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -809,7 +808,7 @@ export default function StreamPage() {
                             ))}
                         </div>
                     </ScrollArea>
-                    <div className="p-3 border-t bg-background mt-auto flex-shrink-0">
+                    <div className="p-3 border-t bg-background flex-shrink-0">
                         <div className="mb-2">
                             <div className="flex items-center gap-1">
                                 <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
