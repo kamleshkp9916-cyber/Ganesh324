@@ -478,33 +478,36 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                {relatedStreams.map(s => (
-                                    <div key={s.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                        <Link href={`/stream/${s.id}`} className="absolute inset-0 z-10" aria-label={`View stream by ${s.name}`} />
-                                        <Image
-                                            src={s.thumbnailUrl}
-                                            alt={`Live stream from ${s.name}`}
-                                            width={300}
-                                            height={450}
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={s.hint}
-                                        />
-                                        <div className="absolute top-2 left-2 z-20"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-20"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
-                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20">
-                                            <div className="flex items-start gap-2">
-                                                <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                    <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                                                </Link>
-                                                <div className="flex-1">
-                                                    <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
-                                                      <h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3>
-                                                    </Link>
-                                                </div>
+                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                {relatedStreams.map((s: any) => (
+                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {s.viewers}
+                                                </Badge>
                                             </div>
                                         </div>
-                                    </div>
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-7 h-7">
+                                                <AvatarImage src={s.avatarUrl} />
+                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                    {s.hasAuction && (
+                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                            Auction
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                            </div>
+                                        </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>
