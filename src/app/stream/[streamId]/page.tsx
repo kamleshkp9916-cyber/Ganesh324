@@ -249,8 +249,9 @@ export default function StreamPage() {
         }
     }, [duration]);
 
-    const handleReply = (user: string) => {
-        setNewMessage(`@${user} `);
+    const handleReply = (msgUser: string, userId: string) => {
+        if(user?.uid === userId) return;
+        setNewMessage(`@${msgUser} `);
         if (textareaRef.current) {
             textareaRef.current.focus();
         }
@@ -355,8 +356,11 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                        <ShoppingCart className="h-5 w-5" />
+                    <Button asChild variant="ghost">
+                        <Link href="/cart">
+                            <ShoppingCart className="h-5 w-5" />
+                            <span className="hidden sm:inline">My Cart</span>
+                        </Link>
                     </Button>
                 </div>
             </header>
@@ -380,11 +384,11 @@ export default function StreamPage() {
 
                             {/* Center Controls */}
                              <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={()={() => handleSeek('backward')}}><Rewind className="w-8 h-8" /></Button>
                                 <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
                                     {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
                                 </Button>
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={()={() => handleSeek('forward')}}><FastForward className="w-8 h-8" /></Button>
                             </div>
 
                              {/* Bottom Bar */}
@@ -661,7 +665,7 @@ export default function StreamPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             {user?.uid !== msg.userId && (
-                                                                <DropdownMenuItem onSelect={() => handleReply(msg.user)}>
+                                                                <DropdownMenuItem onSelect={() => handleReply(msg.user, msg.userId)}>
                                                                     Reply
                                                                 </DropdownMenuItem>
                                                             )}
@@ -748,7 +752,7 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
+                                        placeholder={replyingTo ? `@${replyingTo} ` : "Send a message..."}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
@@ -794,4 +798,6 @@ export default function StreamPage() {
 
     
 }
+    
+
     
