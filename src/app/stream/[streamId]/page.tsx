@@ -44,6 +44,7 @@ import {
   Paperclip,
   Search,
   Pin,
+  Wallet,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +73,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData } from "@/lib/follow-data";
+import { toggleFollow, getUserData } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -145,6 +146,7 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     const { toast } = useToast();
+    const [walletBalance, setWalletBalance] = useState(42580.22); // Mock balance
 
     // Mock Data for UI building
     const mockStreamData = {
@@ -356,6 +358,12 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                  <div className="flex items-center gap-2">
+                    <Button asChild variant="ghost">
+                        <Link href="/wallet" className="flex items-center gap-2">
+                            <Wallet className="h-5 w-5" />
+                            <span className="hidden sm:inline">₹{walletBalance.toLocaleString('en-IN')}</span>
+                        </Link>
+                    </Button>
                     <Button asChild variant="ghost">
                         <Link href="/cart">
                             <ShoppingCart className="h-5 w-5" />
@@ -799,6 +807,7 @@ export default function StreamPage() {
     
 
     
+
 
 
 
