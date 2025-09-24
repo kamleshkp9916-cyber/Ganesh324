@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -44,6 +43,7 @@ import {
   ShoppingBag,
   Paperclip,
   Search,
+  Pin,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -477,15 +477,15 @@ export default function StreamPage() {
                             </div>
                         </div>
                          <div className="mt-8">
-                            <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                             <h4 className="font-semibold mb-4">Related Streams</h4>
+                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
                                 {relatedStreams.map((s: any) => (
                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                    <Users className="h-3 w-3" />
+                                                    <Users className="h-3 w-3"/>
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
@@ -560,6 +560,21 @@ export default function StreamPage() {
                         </DropdownMenu>
                     </div>
 
+                    <Collapsible className="border-b">
+                        <CollapsibleTrigger className="p-3 flex items-center justify-between w-full text-sm font-semibold hover:bg-muted/50">
+                            <div className="flex items-center gap-2">
+                                <Pin className="h-4 w-4 text-primary" />
+                                <span>Pinned Items</span>
+                            </div>
+                            <ChevronDown className="h-4 w-4" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <div className="p-3 bg-muted/50 space-y-2">
+                                <div className="text-xs p-2 rounded-md bg-background text-center text-muted-foreground">No items are pinned yet.</div>
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
+
                     <div className="flex-grow flex flex-col overflow-hidden">
                         <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
@@ -591,7 +606,7 @@ export default function StreamPage() {
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
                                                      <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-32">
+                                                        <div className="w-[120px]">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -609,11 +624,11 @@ export default function StreamPage() {
                                                              <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-2">
                                                                 {product.stock > 0 ? (
                                                                     <>
-                                                                        <Button size="xs" className="w-full text-xs h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                                        <Button size="xs" variant="outline" className="w-full text-xs h-7" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                                        <Button size="xs" variant="outline" className="w-full text-[10px] h-7" onClick={() => handleAddToCart(product)}>Add</Button>
                                                                     </>
                                                                 ) : (
-                                                                    <Button size="xs" className="w-full text-xs h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                                    <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
                                                                 )}
                                                              </CardFooter>
                                                           </Card>
@@ -676,4 +691,5 @@ export default function StreamPage() {
             </div>
         </div>
     );
-}
+
+    
