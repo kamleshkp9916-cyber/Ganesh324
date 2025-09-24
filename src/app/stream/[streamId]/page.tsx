@@ -415,8 +415,8 @@ export default function StreamPage() {
                     </Button>
                 </div>
             </header>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow overflow-hidden">
-                <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow min-h-0">
+                <ScrollArea className="w-full h-full overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -463,7 +463,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
+                    <div className="p-4 border-t border-border bg-background text-foreground">
                         <div className="mb-4">
                              <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
                             <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
@@ -600,7 +600,7 @@ export default function StreamPage() {
                         </div>
 
                     </div>
-                </div>
+                </ScrollArea>
                 <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -609,7 +609,6 @@ export default function StreamPage() {
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Wallet className="h-5 w-5 text-muted-foreground" />
-                                        <span className="sr-only">Open Wallet</span>
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent align="end" className="w-80">
