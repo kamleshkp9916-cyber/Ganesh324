@@ -164,7 +164,7 @@ export default function StreamPage() {
         return Object.values(productDetails).filter(p => p.brand === seller.name && p.stock > 0);
     }, [seller]);
     
-     const relatedStreams = useMemo(() => {
+    const relatedStreams = useMemo(() => {
         if (!product) return [];
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
@@ -172,8 +172,10 @@ export default function StreamPage() {
         if (streams.length > 5) {
             return streams.slice(0, 6);
         }
+        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
         
+        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -291,170 +293,168 @@ export default function StreamPage() {
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
-             <div className="w-full h-full flex flex-col overflow-hidden">
-                 <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
-                    <div className="w-full h-[60vh] bg-black relative group flex-shrink-0" ref={playerRef}>
-                        <video
-                            ref={videoRef}
-                            src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                            className="w-full h-full object-cover"
-                            loop
-                        />
-                         <div 
-                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        >
-                            {/* Top Bar */}
+             <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                    <video
+                        ref={videoRef}
+                        src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                        className="w-full h-full object-cover"
+                        loop
+                    />
+                     <div 
+                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                        {/* Top Bar */}
+                         <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
+                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
+                            </div>
+                            <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
+                        </div>
+
+                        {/* Center Controls */}
+                         <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                        </div>
+
+                         {/* Bottom Bar */}
+                         <div className="space-y-3">
+                            <Progress value={(currentTime / duration) * 100} className="h-2" />
                              <div className="flex items-center justify-between">
-                                 <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" onClick={() => router.back()}><ArrowLeft /></Button>
-                                     <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
+                                <div className="flex items-center gap-2 sm:gap-4">
+                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                        {isMuted ? <VolumeX /> : <Volume2 />}
+                                    </Button>
+                                    <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
                                 </div>
-                                <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
-                            </div>
-
-                            {/* Center Controls */}
-                             <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                                <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                    {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                                </Button>
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                            </div>
-
-                             {/* Bottom Bar */}
-                             <div className="space-y-3">
-                                <Progress value={(currentTime / duration) * 100} className="h-2" />
-                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 sm:gap-4">
-                                        <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                            {isMuted ? <VolumeX /> : <Volume2 />}
-                                        </Button>
-                                        <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1 sm:gap-2">
-                                        <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                                        <Button variant="ghost" size="icon"><Share2 /></Button>
-                                        <Button variant="ghost" size="icon"><Settings /></Button>
-                                        <Button variant="ghost" size="icon"><Maximize /></Button>
-                                    </div>
-                                 </div>
-                            </div>
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                    <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                    <Button variant="ghost" size="icon"><Share2 /></Button>
+                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                    <Button variant="ghost" size="icon"><Maximize /></Button>
+                                </div>
+                             </div>
                         </div>
                     </div>
-                    <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
-                        <div className="mb-4">
-                             <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</p>
+                </div>
+                <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
+                    <div className="mb-4">
+                         <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                        <p className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            {seller && (
+                                <>
+                                    <Avatar>
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="font-semibold">{seller.name}</h3>
+                                    <Button variant="secondary" size="sm" className="h-7">
+                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                    </Button>
+                                </>
+                            )}
                         </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {seller && (
-                                    <>
-                                        <Avatar>
-                                            <AvatarImage src={seller.avatarUrl} />
-                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <h3 className="font-semibold">{seller.name}</h3>
-                                        <Button variant="secondary" size="sm" className="h-7">
-                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {sellerProducts.map(p => (
-                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                        <Card className="overflow-hidden">
-                                            <div className="aspect-square bg-muted relative">
-                                                <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
-                                            </div>
-                                            <div className="p-2">
-                                                <p className="text-xs font-semibold truncate">{p.name}</p>
-                                                <p className="text-sm font-bold">{p.price}</p>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
-                                 {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
-                            </div>
-                        </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {relatedStreams.map(s => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="w-3 h-3" />{s.viewers}</Badge></div>
+                    </div>
+                    <div className="mt-6">
+                        <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {sellerProducts.map(p => (
+                                <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                    <Card className="overflow-hidden">
+                                        <div className="aspect-square bg-muted relative">
+                                            <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                                         </div>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
-                                                <AvatarImage src={s.avatarUrl} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                        <Badge variant="destructive" className="text-xs font-bold">
-                                                            Auction
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                 <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
-                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
-                                                 </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                         <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                            <div className="space-y-4">
-                                {mockSellerPosts.map(post => (
-                                    <Card key={post.id} className="overflow-hidden">
-                                        <div className="p-4">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                                                    <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold">{seller?.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm line-clamp-3">{post.content}</p>
-                                        </div>
-                                        {post.mediaUrl && (
-                                            <div className="w-full aspect-video bg-muted relative">
-                                                <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
-                                            </div>
-                                        )}
-                                        <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-4">
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
-                                                    <Heart className="w-4 h-4" />
-                                                    <span>{post.likes}</span>
-                                                </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
-                                                    <MessageSquare className="w-4 h-4" />
-                                                    <span>{post.replies}</span>
-                                                </button>
-                                            </div>
+                                        <div className="p-2">
+                                            <p className="text-xs font-semibold truncate">{p.name}</p>
+                                            <p className="text-sm font-bold">{p.price}</p>
                                         </div>
                                     </Card>
-                                ))}
-                                 {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
-                            </div>
+                                </Link>
+                            ))}
+                             {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                        </div>
+                    </div>
+                    <div className="mt-6">
+                        <h4 className="font-semibold mb-4">Related Streams</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {relatedStreams.map(s => (
+                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="w-3 w-3" />{s.viewers}</Badge></div>
+                                    </div>
+                                    <div className="flex items-start gap-2 mt-2">
+                                        <Avatar className="w-7 h-7">
+                                            <AvatarImage src={s.avatarUrl} />
+                                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                {s.hasAuction && (
+                                                    <Badge variant="destructive" className="text-xs font-bold px-1.5 py-0">
+                                                        Auction
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">{s.category}</p>
+                                             <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
+                                                <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
+                                             </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                     <div className="mt-6">
+                        <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                        <div className="space-y-4">
+                            {mockSellerPosts.map(post => (
+                                <Card key={post.id} className="overflow-hidden">
+                                    <div className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{seller?.name}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm line-clamp-3">{post.content}</p>
+                                    </div>
+                                    {post.mediaUrl && (
+                                        <div className="w-full aspect-video bg-muted relative">
+                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+                                        </div>
+                                    )}
+                                    <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-4">
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <Heart className="w-4 h-4" />
+                                                <span>{post.likes}</span>
+                                            </button>
+                                            <button className="flex items-center gap-1.5 hover:text-primary">
+                                                <MessageSquare className="w-4 h-4" />
+                                                <span>{post.replies}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                             {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                         </div>
                     </div>
                 </div>
