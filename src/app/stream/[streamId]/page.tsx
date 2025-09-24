@@ -159,6 +159,7 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
+    const [replyingTo, setReplyingTo] = useState<string | null>(null);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -247,15 +248,22 @@ export default function StreamPage() {
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
-        const newMsg = {
+
+        const newMsg: any = {
             id: Date.now(),
-            user: user?.displayName || 'You',
+            user: user?.displayName?.split(' ')[0] || 'You',
             text: newMessage,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
         };
+
+        if (replyingTo) {
+            newMsg.replyingTo = replyingTo;
+        }
+
         setChatMessages(prev => [...prev, newMsg]);
         setNewMessage("");
+        setReplyingTo(null);
     };
 
     const handleReportStream = () => {
@@ -605,23 +613,63 @@ export default function StreamPage() {
                     <div className="flex-grow flex flex-col overflow-hidden">
                         <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
-                                {chatMessages.map(msg => (
-                                    <div key={msg.id} className="text-sm">
-                                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")}>
-                                            {msg.user}:
-                                            {msg.isAdmin && (
-                                                <Badge variant="destructive" className="ml-1.5 text-xs">
-                                                    <ShieldCheck className="w-3 h-3 mr-1" />
-                                                    Admin
-                                                </Badge>
-                                            )}
-                                        </span>
-                                        <span className="text-muted-foreground">{renderContentWithHashtags(msg.text)}</span>
+                                {chatMessages.map((msg, index) => (
+                                    <div key={msg.id || index} className="text-sm group relative">
+                                        {msg.type === 'system' ? (
+                                            <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                                        ) : (
+                                            <>
+                                                {replyingTo === msg.user && (
+                                                    <div className="absolute left-0 right-0 -top-5 text-center text-xs text-primary font-bold animate-pulse">
+                                                        Replying to {msg.user}...
+                                                    </div>
+                                                )}
+                                                <div className="flex items-start gap-2">
+                                                    <Avatar className="w-8 h-8">
+                                                        <AvatarImage src={msg.avatar} />
+                                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                                            {msg.user}
+                                                            {msg.isAdmin && (
+                                                                <Badge variant="destructive" className="ml-1.5 text-xs">
+                                                                    <ShieldCheck className="w-3 h-3 mr-1" />
+                                                                    Admin
+                                                                </Badge>
+                                                            )}
+                                                        </span>
+                                                        <span className="text-muted-foreground break-words">{renderContentWithHashtags(msg.text)}</span>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <MoreVertical className="w-4 h-4" />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onSelect={() => setReplyingTo(msg.user)}>
+                                                                Reply
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
+                                                                <Flag className="mr-2 h-4 w-4" /> Report
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </ScrollArea>
                         <div className="p-3 border-t bg-background">
+                            {replyingTo && (
+                                <div className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
+                                    <span>Replying to <span className="font-semibold text-foreground">@{replyingTo}</span></span>
+                                    <button onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-muted"><X className="w-3 h-3"/></button>
+                                </div>
+                            )}
                             <div className="mb-2">
                                 {isProductListVisible ? (
                                      <div className="relative">
