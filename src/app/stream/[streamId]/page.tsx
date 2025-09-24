@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -660,12 +661,6 @@ export default function StreamPage() {
                             </div>
                         </ScrollArea>
                         <div className="p-3 border-t bg-background">
-                            {replyingTo && (
-                                <div className="text-xs text-muted-foreground mb-1 flex items-center justify-between">
-                                    <span>Replying to <span className="font-semibold text-foreground">@{replyingTo}</span></span>
-                                    <button onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-muted"><X className="w-3 h-3"/></button>
-                                </div>
-                            )}
                             <div className="mb-2">
                                 {isProductListVisible ? (
                                      <div className="relative">
@@ -734,11 +729,17 @@ export default function StreamPage() {
                             </div>
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                 <div className="relative flex-grow">
+                                     {replyingTo && (
+                                        <div className="absolute bottom-full left-0 right-0 p-2 bg-muted rounded-t-lg text-xs text-muted-foreground flex items-center justify-between">
+                                            <span>Replying to <span className="font-semibold text-foreground">@{replyingTo}</span></span>
+                                            <button type="button" onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-background"><X className="w-3 h-3"/></button>
+                                        </div>
+                                    )}
                                     <Textarea 
                                         placeholder="Send a message..." 
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
+                                        className={cn("resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm", replyingTo && "rounded-t-none" )}
                                         rows={1}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
