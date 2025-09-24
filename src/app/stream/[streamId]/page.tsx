@@ -524,7 +524,7 @@ export default function StreamPage() {
                             })}
                         </div>
                     </ScrollArea>
-                    <div className="p-4 border-t flex-shrink-0">
+                    <div className="p-4 border-t flex-shrink-0 bg-background">
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                             <Popover>
                                 <PopoverTrigger asChild>
@@ -534,16 +534,6 @@ export default function StreamPage() {
                                 </PopoverTrigger>
                                 <PopoverContent>
                                     <p>Emoji picker coming soon!</p>
-                                </PopoverContent>
-                            </Popover>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="flex-shrink-0">
-                                        <Paperclip className="h-5 w-5" />
-                                    </Button>
-                                </PopoverTrigger>
-                                 <PopoverContent>
-                                    <p>File attachments coming soon!</p>
                                 </PopoverContent>
                             </Popover>
                             <Textarea
