@@ -491,14 +491,14 @@ export default function StreamPage() {
                                             </div>
                                         </Link>
                                         <div className="flex items-start gap-2 mt-2">
-                                            <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
+                                             <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()}>
                                                 <Avatar className="w-7 h-7">
                                                     <AvatarImage src={s.avatarUrl} />
                                                     <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                             </Link>
                                             <div className="flex-1">
-                                                <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+                                                 <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
                                                     <div className="flex items-center gap-1.5">
                                                         <p className="font-semibold text-xs truncate">{s.name}</p>
                                                         {s.hasAuction && (
@@ -571,17 +571,56 @@ export default function StreamPage() {
                             </div>
                         </ScrollArea>
                          <div className="p-3 border-t bg-background">
-                            <div className="flex items-center gap-2 mb-2">
-                                {seller?.hasAuction && (
-                                    <Button variant="outline" size="sm" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                                        <Gavel className="h-4 w-4 mr-2" />
-                                        Auction
-                                    </Button>
+                            <div className="mb-2">
+                                {isProductListVisible ? (
+                                     <div className="relative">
+                                         <div className="flex items-center justify-between mb-2">
+                                             <h4 className="font-semibold text-sm">Products in this Stream</h4>
+                                             <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)} className="h-7 w-7">
+                                                 <X className="h-4 w-4" />
+                                             </Button>
+                                         </div>
+                                         <ScrollArea className="w-full">
+                                            <div className="flex gap-3 pb-3">
+                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
+                                                     <div key={product.key} className="w-48 flex-shrink-0">
+                                                          <Card className="h-full flex flex-col">
+                                                             <Link href={`/product/${product.key}`} className="block">
+                                                                <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                </div>
+                                                                <div className="p-2">
+                                                                    <p className="text-xs font-semibold truncate">{product.name}</p>
+                                                                    <p className="text-sm font-bold">{product.price}</p>
+                                                                </div>
+                                                             </Link>
+                                                             <CardFooter className="p-2 mt-auto">
+                                                                {product.stock > 0 ? (
+                                                                     <Button size="xs" className="w-full" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                                ) : (
+                                                                    <Button size="xs" className="w-full" variant="outline" disabled>Out of Stock</Button>
+                                                                )}
+                                                             </CardFooter>
+                                                          </Card>
+                                                     </div>
+                                                 ))}
+                                            </div>
+                                         </ScrollArea>
+                                     </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        {seller?.hasAuction && (
+                                            <Button variant="outline" size="sm" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                                <Gavel className="h-4 w-4 mr-2" />
+                                                Auction
+                                            </Button>
+                                        )}
+                                         <Button variant="outline" size="sm" onClick={() => setIsProductListVisible(true)}>
+                                            <ShoppingBag className="h-4 w-4 mr-2" />
+                                            Products
+                                        </Button>
+                                    </div>
                                 )}
-                                 <Button variant="outline" size="sm" onClick={() => setIsProductListVisible(prev => !prev)}>
-                                    <ShoppingBag className="h-4 w-4 mr-2" />
-                                    Products
-                                </Button>
                             </div>
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                  <div className="relative flex-grow">
@@ -615,49 +654,6 @@ export default function StreamPage() {
                             </form>
                         </div>
                     </div>
-
-                    {isProductListVisible && (
-                         <div
-                            className="absolute inset-x-0 bottom-0 z-20 bg-background/80 backdrop-blur-sm transition-transform duration-300 ease-in-out"
-                        >
-                            <div className="h-full flex flex-col">
-                                <div className="p-4 border-b flex items-center justify-between">
-                                    <h3 className="font-semibold">Products in this Stream</h3>
-                                    <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(false)}>
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                </div>
-                                <ScrollArea className="flex-grow">
-                                    <div className="p-4 space-y-4">
-                                        {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map(product => (
-                                            <div key={product.key} className="flex items-center gap-4">
-                                                <Link href={`/product/${product.key}`} className="block flex-shrink-0">
-                                                    <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={product.hint} />
-                                                </Link>
-                                                <div className="flex-grow">
-                                                    <Link href={`/product/${product.key}`} className="hover:underline">
-                                                        <h3 className="font-semibold text-sm">{product.name}</h3>
-                                                    </Link>
-                                                    <p className="font-bold text-base text-foreground">{product.price}</p>
-                                                    <Badge variant={product.stock > 0 ? 'success' : 'destructive'}>{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge>
-                                                </div>
-                                                <div className="flex flex-col gap-2">
-                                                {product.stock > 0 ? (
-                                                    <>
-                                                        <Button size="sm" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                                        <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                                    </>
-                                                ) : (
-                                                    <Button size="sm" onClick={handleNotifyMe}>Notify Me</Button>
-                                                )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
