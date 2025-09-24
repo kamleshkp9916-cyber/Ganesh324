@@ -231,6 +231,22 @@ export default function StreamPage() {
         video.currentTime = Math.max(0, Math.min(duration, newTime));
     };
 
+    const formatTime = (timeInSeconds: number) => {
+        const hours = Math.floor(timeInSeconds / 3600);
+        const minutes = Math.floor((timeInSeconds % 3600) / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+
+        const formattedSeconds = seconds.toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+
+        if (hours > 0) {
+            const formattedHours = hours.toString().padStart(2, '0');
+            return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        }
+
+        return `${formattedMinutes}:${formattedSeconds}`;
+    };
+
     useEffect(() => {
         const video = videoRef.current;
         if (video) {
@@ -685,7 +701,7 @@ export default function StreamPage() {
                                                     <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
                                                     <div className="flex-1">
                                                         <p className="text-sm font-semibold truncate">{product.name}</p>
-                                                        <p className="font-bold text-base">{product.price}</p>
+                                                        <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                                                     </div>
                                                 </div>
                                             </CardContent>
