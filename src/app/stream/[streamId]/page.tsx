@@ -436,7 +436,7 @@ export default function StreamPage() {
                                                 </div>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-1">
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
                                                             <MoreVertical className="w-4 h-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
@@ -478,18 +478,20 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-8">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 scale-[1.15] origin-top-left">
                                 {relatedStreams.map((s: any) => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted">
-                                             <Image
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group block text-white">
+                                        <div className="group relative rounded-lg overflow-hidden aspect-[2/3] shadow-lg">
+                                            <Image
                                                 src={s.thumbnailUrl}
                                                 alt={`Live stream from ${s.name}`}
                                                 fill
-                                                sizes="(max-width: 640px) 50vw, 33vw"
+                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint={s.hint}
                                             />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -497,19 +499,19 @@ export default function StreamPage() {
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
-                                        </div>
-                                        <div className="flex items-start gap-3 mt-2">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                            Auction
-                                                        </Badge>
-                                                    )}
+
+                                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                                                <div className="flex items-start gap-3">
+                                                     <Avatar className="h-8 w-8 border-2 border-primary flex-shrink-0">
+                                                        <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-sm truncate">{s.name}</p>
+                                                        <p className="text-xs text-white/80">{s.category}</p>
+                                                         <a href="#" className="text-xs text-blue-400 hover:underline sm:hidden lg:inline">#{s.category.toLowerCase()}</a>
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                <p className="text-xs text-blue-400 hover:underline">#{s.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -587,8 +589,8 @@ export default function StreamPage() {
                                         >
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                                     <CarouselItem key={index} className="basis-auto pl-2">
-                                                        <div className="w-32">
+                                                     <CarouselItem key={index} className="pl-2" style={{ flex: '0 0 auto', width: '9rem' }}>
+                                                        <div className="w-full">
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -674,4 +676,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
