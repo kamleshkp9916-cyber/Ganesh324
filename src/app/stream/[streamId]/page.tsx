@@ -360,10 +360,9 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button asChild variant="ghost">
-                        <Link href="/cart" className="flex items-center gap-2">
-                            <ShoppingCart className="h-5 w-5" />
-                            <span className="hidden sm:inline">My Cart</span>
+                    <Button asChild variant="ghost" className="relative">
+                        <Link href="/cart">
+                             <ShoppingCart className="h-5 w-5" />
                         </Link>
                     </Button>
                 </div>
@@ -556,7 +555,15 @@ export default function StreamPage() {
                 </ScrollArea>
                 <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
-                        <h3 className="font-bold text-lg">Live Chat</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg">Live Chat</h3>
+                             <Button asChild variant="ghost" size="icon" className="flex items-center gap-2 h-8 w-auto px-2">
+                                <Link href="/wallet">
+                                    <Wallet className="h-5 w-5" />
+                                    <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
+                                </Link>
+                            </Button>
+                        </div>
                         <div className="flex items-center gap-1">
                             <Popover>
                                 <PopoverTrigger asChild>
@@ -747,12 +754,6 @@ export default function StreamPage() {
                                         <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
                                             <ShoppingBag className="h-5 w-5" />
                                         </Button>
-                                        <Button asChild variant="ghost" size="icon">
-                                            <Link href="/wallet" className="flex items-center gap-2">
-                                                <Wallet className="h-5 w-5" />
-                                                <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
-                                            </Link>
-                                        </Button>
                                     </div>
                                 )}
                             </div>
@@ -809,6 +810,7 @@ export default function StreamPage() {
     
 
     
+
 
 
 
