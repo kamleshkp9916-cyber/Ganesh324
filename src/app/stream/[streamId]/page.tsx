@@ -158,6 +158,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
+
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -183,7 +184,7 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
@@ -287,8 +288,8 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        if (chatMessagesContainerRef.current) {
+            chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
         }
     }, [chatMessages]);
 
@@ -388,479 +389,481 @@ export default function StreamPage() {
      };
 
     return (
-    <div className="h-dvh w-full flex flex-col bg-black text-white">
-      <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft />
-          </Button>
-          <Link href="/live-selling" className="flex items-center gap-2">
-            <Logo className="h-7 w-7" />
-            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
-          </Link>
-        </div>
-        <div className="relative w-full max-w-md mx-4">
-          <Input placeholder="Search..." className="rounded-full bg-muted pr-10" />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="icon" className="relative">
-            <Link href="/cart">
-              <ShoppingCart />
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-shrink-0 w-full aspect-video bg-black relative group" ref={playerRef}>
-            <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="flex items-center justify-between">
-                <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
-                <Badge variant="secondary" className="gap-1.5">
-                  <Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching
-                </Badge>
-              </div>
-              <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                  {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                </Button>
-                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-              </div>
-              <div className="space-y-3">
-                <Progress value={(currentTime / duration) * 100} className="h-2" />
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                      {isMuted ? <VolumeX /> : <Volume2 />}
+        <div className="h-dvh w-full flex flex-col bg-black text-white">
+            <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft />
                     </Button>
-                    <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
-                  </div>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                    <Button variant="ghost" size="icon"><Share2 /></Button>
-                    <Button variant="ghost" size="icon"><Settings /></Button>
-                    <Button variant="ghost" size="icon"><Maximize /></Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <ScrollArea className="flex-1 bg-background text-foreground">
-            <div className="p-4">
-              <div className="mb-4">
-                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {seller && (
-                    <>
-                      <Avatar>
-                        <AvatarImage src={seller.avatarUrl} />
-                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-semibold">{seller.name}</h3>
-                      <Button variant="secondary" size="sm" className="h-7">
-                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="mt-6">
-                <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {sellerProducts.map(p => (
-                    <Link key={p.key} href={`/product/${p.key}`} className="group">
-                      <Card className="overflow-hidden">
-                        <div className="aspect-square bg-muted relative">
-                          <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
-                        </div>
-                        <div className="p-2">
-                          <p className="text-xs font-semibold truncate">{p.name}</p>
-                          <p className="font-bold text-base">{p.price}</p>
-                        </div>
-                      </Card>
+                    <Link href="/live-selling" className="flex items-center gap-2">
+                        <Logo className="h-7 w-7" />
+                        <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                     </Link>
-                  ))}
-                  {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
                 </div>
-              </div>
-              <div className="mt-6">
-                <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {mockSellerPosts.map(post => (
-                    <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                      <div className="p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                              <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold text-primary text-xs">{seller?.name}</p>
-                              <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                            </div>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                <span>Share</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onSelect={handleReportStream}>
-                                <Flag className="mr-2 h-4 w-4" />
-                                <span>Report</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <p className="text-sm line-clamp-2">{post.content}</p>
-                      </div>
-                      {post.mediaUrl && (
-                        <div className="w-full aspect-video bg-muted relative mt-auto">
-                          <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
-                        </div>
-                      )}
-                      <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
-                        <div className="flex items-center gap-3">
-                          <button className="flex items-center gap-1 hover:text-primary">
-                            <Heart className="w-3 h-3" />
-                            <span>{post.likes || 0}</span>
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-primary">
-                            <MessageSquare className="w-3 h-3" />
-                            <span>{post.replies || 0}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                  {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                <div className="relative w-full max-w-md mx-4">
+                    <Input placeholder="Search..." className="rounded-full bg-muted pr-10" />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
-              </div>
-              <div className="mt-8">
-                <h4 className="font-semibold mb-4">Related Streams</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {relatedStreams.map((s: any) => (
-                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                      <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10">
-                          <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                            <Users className="h-3 w-3" />
-                            {s.viewers}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 mt-2">
-                        <Avatar className="w-7 h-7">
-                          <AvatarImage src={s.avatarUrl} />
-                          <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                            {s.hasAuction && (
-                              <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                Auction
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">{s.category}</p>
-                          <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="ghost" size="icon" className="relative">
+                        <Link href="/cart">
+                            <ShoppingCart />
+                        </Link>
+                    </Button>
                 </div>
-              </div>
-            </div>
-          </ScrollArea>
-        </div>
+            </header>
 
-        <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
-          <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
-            <h3 className="font-bold text-lg">Live Chat</h3>
-            <div className="flex items-center gap-1">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Wallet className="h-5 w-5 text-muted-foreground" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-80 p-0">
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">My Wallet</h4>
-                        <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                            <Link href="/wallet">More Details</Link>
-                        </Button>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/50 border">
-                        <p className="text-xs text-muted-foreground">Available Balance</p>
-                        <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
-                    </div>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                        <div className="flex justify-between"><span>Blocked Margin:</span> <span className="font-medium text-foreground">₹2,640.00</span></div>
-                        <div className="flex justify-between"><span>StreamCart Coins:</span> <span className="font-medium text-foreground">1,250</span></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add Funds via UPI</DialogTitle>
-                                    <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
-                                </DialogHeader>
-                                <div className="flex flex-col items-center gap-4 py-4">
-                                    <div className="bg-white p-4 rounded-lg">
-                                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                    <p className="font-semibold">streamcart@mock</p>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                        <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Withdraw Funds</DialogTitle>
-                                    <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
-                                </DialogHeader>
-                                <WithdrawForm cashAvailable={walletBalance} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Pin className="h-5 w-5 text-muted-foreground" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="end">
-                  <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
-                    <div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <Pin className="w-3 h-3" />
-                        <span>Pinned by {seller?.name}</span>
-                      </div>
-                      <div className="p-2 rounded-md bg-background border">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={seller?.avatarUrl} />
-                            <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-semibold text-xs">{seller?.name}:</span>
-                        </div>
-                        <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
-                      </div>
-                    </div>
-                    <Card className="overflow-hidden">
-                      <CardContent className="p-0">
-                        <div className="flex items-center gap-3 p-2">
-                          <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold truncate">{product.name}</p>
-                            <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="p-1 grid grid-cols-2 gap-1">
-                        {product.stock > 0 ? (
-                          <>
-                            <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                            <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
-                              <Zap className="w-3 h-3 mr-1" />
-                              Buy Now
-                            </Button>
-                          </>
-                        ) : (
-                          <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                    </DropdownMenuItem>
-                  </FeedbackDialog>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                        <Flag className="mr-2 h-4 w-4" /> Report Stream
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <div className="flex-1 p-4 space-y-2 overflow-y-auto" ref={chatContainerRef}>
-            {chatMessages.map((msg, index) => (
-              <div key={msg.id || index} className="text-sm group relative">
-                {msg.type === 'system' ? (
-                  <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
-                ) : msg.user ? (
-                  <>
-                    <div className="flex items-start gap-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={msg.avatar} />
-                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                          {msg.user.split(' ')[0]}
-                          {msg.isSeller && (
-                            <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                              <ShieldCheck className="h-3 w-3 mr-1" />
-                              Admin
+            <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-col flex-1 overflow-y-auto">
+                    <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                        <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex items-center justify-between">
+                            <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
+                            <Badge variant="secondary" className="gap-1.5">
+                            <Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching
                             </Badge>
-                          )}
-                        </span>
-                        <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
-                      </div>
-                      <DropdownMenu>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                            {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                        </div>
+                        <div className="space-y-3">
+                            <Progress value={(currentTime / duration) * 100} className="h-2" />
+                            <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 sm:gap-4">
+                                <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                {isMuted ? <VolumeX /> : <Volume2 />}
+                                </Button>
+                                <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                            </div>
+                            <div className="flex items-center gap-1 sm:gap-2">
+                                <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                <Button variant="ghost" size="icon"><Share2 /></Button>
+                                <Button variant="ghost" size="icon"><Settings /></Button>
+                                <Button variant="ghost" size="icon"><Maximize /></Button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    <ScrollArea className="flex-1 bg-background text-foreground">
+                        <div className="p-4">
+                            <div className="mb-4">
+                                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                                <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                    <Avatar>
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="font-semibold">{seller.name}</h3>
+                                    <Button variant="secondary" size="sm" className="h-7">
+                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                    </Button>
+                                    </>
+                                )}
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {sellerProducts.map(p => (
+                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                    <Card className="overflow-hidden">
+                                        <div className="aspect-square bg-muted relative">
+                                        <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
+                                        </div>
+                                        <div className="p-2">
+                                        <p className="text-xs font-semibold truncate">{p.name}</p>
+                                        <p className="font-bold text-base">{p.price}</p>
+                                        </div>
+                                    </Card>
+                                    </Link>
+                                ))}
+                                {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {mockSellerPosts.map(post => (
+                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                        <div className="p-3">
+                                            <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8">
+                                                <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                <p className="font-semibold text-primary text-xs">{seller?.name}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                </div>
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                    <Share2 className="mr-2 h-4 w-4" />
+                                                    <span>Share</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={handleReportStream}>
+                                                    <Flag className="mr-2 h-4 w-4" />
+                                                    <span>Report</span>
+                                                </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                            </div>
+                                            <p className="text-sm line-clamp-2">{post.content}</p>
+                                        </div>
+                                        {post.mediaUrl && (
+                                            <div className="w-full aspect-video bg-muted relative mt-auto">
+                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                                            </div>
+                                        )}
+                                        <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
+                                            <div className="flex items-center gap-3">
+                                            <button className="flex items-center gap-1 hover:text-primary">
+                                                <Heart className="w-3 h-3" />
+                                                <span>{post.likes || 0}</span>
+                                            </button>
+                                            <button className="flex items-center gap-1 hover:text-primary">
+                                                <MessageSquare className="w-3 h-3" />
+                                                <span>{post.replies || 0}</span>
+                                            </button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                  ))}
+                                  {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                                </div>
+                            </div>
+                            <div className="mt-8">
+                                <h4 className="font-semibold mb-4">Related Streams</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {relatedStreams.map((s: any) => (
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10">
+                                        <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                            <Users className="h-3 w-3" />
+                                            {s.viewers}
+                                        </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-2 mt-2">
+                                        <Avatar className="w-7 h-7">
+                                        <AvatarImage src={s.avatarUrl} />
+                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                            {s.hasAuction && (
+                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                Auction
+                                            </Badge>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{s.category}</p>
+                                        <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
+                                        </div>
+                                    </div>
+                                    </Link>
+                                ))}
+                                </div>
+                            </div>
+                        </div>
+                    </ScrollArea>
+                </div>
+
+                <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
+                <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
+                    <h3 className="font-bold text-lg">Live Chat</h3>
+                    <div className="flex items-center gap-1">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Wallet className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80 p-0">
+                            <div className="p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="font-semibold">My Wallet</h4>
+                                    <Button variant="link" size="sm" asChild className="p-0 h-auto">
+                                        <Link href="/wallet">More Details</Link>
+                                    </Button>
+                                </div>
+                                <div className="p-3 rounded-lg bg-muted/50 border">
+                                    <p className="text-xs text-muted-foreground">Available Balance</p>
+                                    <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                </div>
+                                <div className="text-xs text-muted-foreground space-y-1 mt-3">
+                                    <div className="flex justify-between"><span>Blocked Margin:</span> <span className="font-medium text-foreground">₹2,640.00</span></div>
+                                    <div className="flex justify-between"><span>StreamCart Coins:</span> <span className="font-medium text-foreground">1,250</span></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pt-4">
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Add Funds via UPI</DialogTitle>
+                                                <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
+                                            </DialogHeader>
+                                            <div className="flex flex-col items-center gap-4 py-4">
+                                                <div className="bg-white p-4 rounded-lg">
+                                                    <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
+                                                <p className="font-semibold">streamcart@mock</p>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                    <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Withdraw Funds</DialogTitle>
+                                                <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
+                                            </DialogHeader>
+                                            <WithdrawForm cashAvailable={walletBalance} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Pin className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0" align="end">
+                        <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
+                            <div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                <Pin className="w-3 h-3" />
+                                <span>Pinned by {seller?.name}</span>
+                            </div>
+                            <div className="p-2 rounded-md bg-background border">
+                                <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={seller?.avatarUrl} />
+                                    <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-semibold text-xs">{seller?.name}:</span>
+                                </div>
+                                <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
+                            </div>
+                            </div>
+                            <Card className="overflow-hidden">
+                            <CardContent className="p-0">
+                                <div className="flex items-center gap-3 p-2">
+                                <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold truncate">{product.name}</p>
+                                    <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="p-1 grid grid-cols-2 gap-1">
+                                {product.stock > 0 ? (
+                                <>
+                                    <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                    <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
+                                    <Zap className="w-3 h-3 mr-1" />
+                                    Buy Now
+                                    </Button>
+                                </>
+                                ) : (
+                                <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                )}
+                            </CardFooter>
+                            </Card>
+                        </div>
+                        </PopoverContent>
+                    </Popover>
+                    <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {user?.uid !== msg.userId && (
-                            <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
-                              Reply
+                        <FeedbackDialog>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
-                            <Flag className="mr-2 h-4 w-4" /> Report
-                          </DropdownMenuItem>
+                        </FeedbackDialog>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                <Flag className="mr-2 h-4 w-4" /> Report Stream
+                            </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                            </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                         </DropdownMenuContent>
-                      </DropdownMenu>
+                    </DropdownMenu>
                     </div>
-                  </>
-                ) : null}
-              </div>
-            ))}
-          </div>
-          <div className="p-3 border-t bg-background flex-shrink-0">
-            {isProductListVisible && (
-              <div className="relative mb-2">
-                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                  <CarouselContent className="-ml-2">
-                    {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                      <CarouselItem key={index} className="pl-2 basis-auto">
-                        <div className="w-28">
-                          <Card className="h-full flex flex-col overflow-hidden">
-                            <Link href={`/product/${product.key}`} className="block">
-                              <div className="aspect-square bg-muted rounded-t-lg relative">
-                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
-                                <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
-                                  <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
-                                  <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
+                </div>
+                <ScrollArea className="flex-1">
+                    <div className="p-4 space-y-2" ref={chatMessagesContainerRef}>
+                        {chatMessages.map((msg, index) => (
+                        <div key={msg.id || index} className="text-sm group relative">
+                            {msg.type === 'system' ? (
+                            <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                            ) : msg.user ? (
+                            <>
+                                <div className="flex items-start gap-2">
+                                <Avatar className="w-8 h-8">
+                                    <AvatarImage src={msg.avatar} />
+                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                    {msg.user.split(' ')[0]}
+                                    {msg.isSeller && (
+                                        <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                        <ShieldCheck className="h-3 w-3 mr-1" />
+                                        Admin
+                                        </Badge>
+                                    )}
+                                    </span>
+                                    <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
                                 </div>
-                              </div>
-                              <div className="p-1.5">
-                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                              </div>
-                            </Link>
-                            <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                              {product.stock > 0 ? (
-                                <>
-                                  <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                  <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
-                                </>
-                              ) : (
-                                <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                              )}
-                            </CardFooter>
-                          </Card>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    {user?.uid !== msg.userId && (
+                                        <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
+                                        Reply
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
+                                        <Flag className="mr-2 h-4 w-4" /> Report
+                                    </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                </div>
+                            </>
+                            ) : null}
                         </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              </div>
-            )}
-            <div className="flex items-center gap-1 mb-2">
-              <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
-                <ShoppingBag className="h-5 w-5" />
-              </Button>
-              {seller?.hasAuction && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                  <Gavel className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
-            <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-              <div className="relative flex-grow">
-                <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                      <Smile className="h-5 w-5" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 h-64 p-2">
-                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                      {emojis.map((emoji, index) => (
-                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                          {emoji}
-                        </Button>
-                      ))}
+                        ))}
                     </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </div>
+                </ScrollArea>
+                <div className="p-3 border-t bg-background flex-shrink-0">
+                    {isProductListVisible && (
+                    <div className="relative mb-2">
+                        <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                        <CarouselContent className="-ml-2">
+                            {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
+                            <CarouselItem key={index} className="pl-2 basis-auto">
+                                <div className="w-28">
+                                <Card className="h-full flex flex-col overflow-hidden">
+                                    <Link href={`/product/${product.key}`} className="block">
+                                    <div className="aspect-square bg-muted rounded-t-lg relative">
+                                        <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
+                                        <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
+                                        <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
+                                        <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
+                                        </div>
+                                    </div>
+                                    <div className="p-1.5">
+                                        <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
+                                        <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                    </div>
+                                    </Link>
+                                    <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                    {product.stock > 0 ? (
+                                        <>
+                                        <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                        <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                        </>
+                                    ) : (
+                                        <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                    )}
+                                    </CardFooter>
+                                </Card>
+                                </div>
+                            </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        </Carousel>
+                    </div>
+                    )}
+                    <div className="flex items-center gap-1 mb-2">
+                    <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
+                        <ShoppingBag className="h-5 w-5" />
+                    </Button>
+                    {seller?.hasAuction && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                        <Gavel className="h-5 w-5" />
+                        </Button>
+                    )}
+                    </div>
+                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                    <div className="relative flex-grow">
+                        <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
+                        <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                            <Smile className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 h-64 p-2">
+                            <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                            {emojis.map((emoji, index) => (
+                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                {emoji}
+                                </Button>
+                            ))}
+                            </div>
+                        </PopoverContent>
+                        </Popover>
+                    </div>
+                    <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                        <Send className="h-4 w-4" />
+                    </Button>
+                    </form>
+                </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
