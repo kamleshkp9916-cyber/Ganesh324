@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -142,23 +141,6 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
-const mockSellerPosts = [
-  { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
-  { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
-];
-
-const emojis = [
-    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
-    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
-    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
-    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
-    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
-    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
-    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
-    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
-    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
-];
-
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -289,10 +271,7 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (chatContainerRef.current) {
-            const viewport = chatContainerRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-            if (viewport) {
-                viewport.scrollTop = viewport.scrollHeight;
-            }
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [chatMessages]);
 
@@ -418,9 +397,8 @@ export default function StreamPage() {
                     </Button>
                 </div>
             </header>
-            <div className="flex-1 grid lg:grid-cols-[1fr_340px] overflow-hidden">
-                {/* Main Content */}
-                <ScrollArea className="w-full h-full">
+            <div className="flex flex-1 overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -467,144 +445,145 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="p-4 border-t border-border bg-background text-foreground">
-                        <div className="mb-4">
-                             <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {seller && (
-                                    <>
-                                        <Avatar>
-                                            <AvatarImage src={seller.avatarUrl} />
-                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <h3 className="font-semibold">{seller.name}</h3>
-                                        <Button variant="secondary" size="sm" className="h-7">
-                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                        </Button>
-                                    </>
-                                )}
+                    <div className="flex-1 overflow-y-auto bg-background text-foreground">
+                        <div className="p-4">
+                             <div className="mb-4">
+                                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                                <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
                             </div>
-                        </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {sellerProducts.map(p => (
-                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                        <Card className="overflow-hidden">
-                                            <div className="aspect-square bg-muted relative">
-                                                <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {seller && (
+                                        <>
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <h3 className="font-semibold">{seller.name}</h3>
+                                            <Button variant="secondary" size="sm" className="h-7">
+                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {sellerProducts.map(p => (
+                                        <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                            <Card className="overflow-hidden">
+                                                <div className="aspect-square bg-muted relative">
+                                                    <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
+                                                </div>
+                                                <div className="p-2">
+                                                    <p className="text-xs font-semibold truncate">{p.name}</p>
+                                                    <p className="font-bold text-base">{p.price}</p>
+                                                </div>
+                                            </Card>
+                                        </Link>
+                                    ))}
+                                     {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {mockSellerPosts.map(post => (
+                                         <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                            <div className="p-3">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
+                                                            <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold text-primary text-xs">{seller?.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                        </div>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
+                                                                <MoreVertical className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onSelect={() => handleShare(post.id)}>
+                                                                <Share2 className="mr-2 h-4 w-4" />
+                                                                <span>Share</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onSelect={handleReportStream}>
+                                                                <Flag className="mr-2 h-4 w-4" />
+                                                                <span>Report</span>
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                                <p className="text-sm line-clamp-2">{post.content}</p>
                                             </div>
-                                            <div className="p-2">
-                                                <p className="text-xs font-semibold truncate">{p.name}</p>
-                                                <p className="font-bold text-base">{p.price}</p>
+                                            {post.mediaUrl && (
+                                                <div className="w-full aspect-video bg-muted relative mt-auto">
+                                                    <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                                                </div>
+                                            )}
+                                            <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
+                                                <div className="flex items-center gap-3">
+                                                    <button className="flex items-center gap-1 hover:text-primary">
+                                                        <Heart className="w-3 h-3" />
+                                                        <span>{post.likes || 0}</span>
+                                                    </button>
+                                                    <button className="flex items-center gap-1 hover:text-primary">
+                                                        <MessageSquare className="w-3 h-3" />
+                                                        <span>{post.replies || 0}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </Card>
-                                    </Link>
-                                ))}
-                                 {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                                    ))}
+                                    {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                                </div>
                             </div>
-                        </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {mockSellerPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                        <div className="p-3">
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-primary text-xs">{seller?.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                             <div className="mt-8">
+                                 <h4 className="font-semibold mb-4">Related Streams</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {relatedStreams.map((s: any) => (
+                                        <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                        <Users className="h-3 w-3"/>
+                                                        {s.viewers}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-7 h-7">
+                                                    <AvatarImage src={s.avatarUrl} />
+                                                    <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                        {s.hasAuction && (
+                                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                                Auction
+                                                            </Badge>
+                                                        )}
                                                     </div>
+                                                    <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
                                                 </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
-                                                            <MoreVertical className="w-4 h-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                            <Share2 className="mr-2 h-4 w-4" />
-                                                            <span>Share</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={handleReportStream}>
-                                                            <Flag className="mr-2 h-4 w-4" />
-                                                            <span>Report</span>
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
                                             </div>
-                                            <p className="text-sm line-clamp-2">{post.content}</p>
-                                        </div>
-                                        {post.mediaUrl && (
-                                            <div className="w-full aspect-video bg-muted relative mt-auto">
-                                                <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
-                                            </div>
-                                        )}
-                                        <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
-                                            <div className="flex items-center gap-3">
-                                                <button className="flex items-center gap-1 hover:text-primary">
-                                                    <Heart className="w-3 h-3" />
-                                                    <span>{post.likes || 0}</span>
-                                                </button>
-                                                <button className="flex items-center gap-1 hover:text-primary">
-                                                    <MessageSquare className="w-3 h-3" />
-                                                    <span>{post.replies || 0}</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                ))}
-                                {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                         <div className="mt-8">
-                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {relatedStreams.map((s: any) => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                    <Users className="h-3 w-3"/>
-                                                    {s.viewers}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
-                                                <AvatarImage src={s.avatarUrl} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                            Auction
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-
                     </div>
-                </ScrollArea>
+                </div>
                 {/* Chat Panel */}
                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
@@ -765,7 +744,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-1" ref={chatContainerRef}>
+                    <div className="flex-1 overflow-y-auto" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -813,7 +792,7 @@ export default function StreamPage() {
                                 </div>
                             ))}
                         </div>
-                    </ScrollArea>
+                    </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                                  <div className="relative mb-2">
@@ -892,17 +871,6 @@ export default function StreamPage() {
                                             <Smile className="h-5 w-5" />
                                         </Button>
                                     </PopoverTrigger>
-                                     <PopoverContent className="w-80 h-64 p-2">
-                                        <ScrollArea className="h-full">
-                                            <div className="grid grid-cols-8 gap-1">
-                                                {emojis.map((emoji, index) => (
-                                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                        {emoji}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    </PopoverContent>
                                 </Popover>
                             </div>
                             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
@@ -916,3 +884,4 @@ export default function StreamPage() {
     );
 }
 
+    
