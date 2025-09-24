@@ -736,14 +736,12 @@ export default function StreamPage() {
                                 ) : (
                                     <div className="flex items-center gap-2">
                                         {seller?.hasAuction && (
-                                            <Button variant="outline" size="sm" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                                                <Gavel className="h-4 w-4 mr-2" />
-                                                Auction
+                                            <Button variant="ghost" size="icon" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                                <Gavel className="h-5 w-5" />
                                             </Button>
                                         )}
-                                         <Button variant="outline" size="sm" onClick={() => setIsProductListVisible(true)}>
-                                            <ShoppingBag className="h-4 w-4 mr-2" />
-                                            Products
+                                         <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
+                                            <ShoppingBag className="h-5 w-5" />
                                         </Button>
                                     </div>
                                 )}
@@ -801,5 +799,6 @@ export default function StreamPage() {
     
 
     
+
 
 
