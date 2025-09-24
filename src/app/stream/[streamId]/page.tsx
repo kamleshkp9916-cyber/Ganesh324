@@ -6,7 +6,7 @@ import {
   ArrowLeft,
   Heart,
   MessageSquare,
-  MoreVertical,
+  MoreHorizontal,
   Send,
   Share2,
   ShoppingCart,
@@ -43,7 +43,6 @@ import {
   PictureInPicture,
   ShoppingBag,
   Paperclip,
-  MoreHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -396,24 +395,24 @@ export default function StreamPage() {
                     </div>
                     <div className="mt-6">
                         <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
-                           {mockSellerPosts.map(post => (
-                                 <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                    <div className="p-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <Avatar className="h-10 w-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {mockSellerPosts.map(post => (
+                                <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                    <div className="p-3">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8">
                                                     <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
                                                     <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-semibold text-primary">{seller?.name}</p>
+                                                    <p className="font-semibold text-primary text-xs">{seller?.name}</p>
                                                     <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                 </div>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-1">
                                                         <MoreHorizontal className="w-4 h-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
@@ -422,32 +421,35 @@ export default function StreamPage() {
                                                         <Share2 className="mr-2 h-4 w-4" />
                                                         <span>Share</span>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem><Flag className="mr-2 h-4 w-4" /><span>Report</span></DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={handleReportStream}>
+                                                        <Flag className="mr-2 h-4 w-4" />
+                                                        <span>Report</span>
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
-                                        <p className="text-sm line-clamp-2">{post.content}</p>
+                                        <p className="text-xs line-clamp-3">{post.content}</p>
                                     </div>
                                     {post.mediaUrl && (
                                         <div className="w-full aspect-video bg-muted relative mt-auto">
-                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
+                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
                                         </div>
                                     )}
-                                    <div className="p-4 flex justify-between items-center text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-4">
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <Heart className="w-4 h-4" />
-                                                <span>{post.likes}</span>
+                                    <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-3">
+                                            <button className="flex items-center gap-1 hover:text-primary">
+                                                <Heart className="w-3 h-3" />
+                                                <span>{post.likes || 0}</span>
                                             </button>
-                                            <button className="flex items-center gap-1.5 hover:text-primary">
-                                                <MessageSquare className="w-4 h-4" />
-                                                <span>{post.replies}</span>
+                                            <button className="flex items-center gap-1 hover:text-primary">
+                                                <MessageSquare className="w-3 h-3" />
+                                                <span>{post.replies || 0}</span>
                                             </button>
                                         </div>
                                     </div>
                                 </Card>
                             ))}
-                             {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
+                            {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
                         </div>
                     </div>
                      <div className="mt-6">
