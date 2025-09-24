@@ -103,6 +103,7 @@ const liveSellers = [
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c' },
+    { id: 4, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6' },
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
@@ -604,7 +605,7 @@ export default function StreamPage() {
                             <div className="p-4 space-y-2">
                                 {chatMessages.map(msg => (
                                     <div key={msg.id} className="text-sm">
-                                        <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")} style={{ color: msg.isSeller ? '' : msg.userColor || 'inherit' }}>{msg.user}:</span>
                                         <span className="text-muted-foreground">{renderContentWithHashtags(msg.text)}</span>
                                     </div>
                                 ))}
