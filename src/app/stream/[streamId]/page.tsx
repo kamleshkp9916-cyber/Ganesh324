@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -551,14 +550,14 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
-                            <Collapsible>
-                                <CollapsibleTrigger asChild>
+                            <Popover>
+                                <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Pin className="h-5 w-5 text-muted-foreground" />
                                     </Button>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent className="absolute top-[calc(100%_+_0.5rem)] right-4 w-80 z-20">
-                                     <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-0" align="end">
+                                    <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
                                          <div>
                                              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                                                 <Pin className="w-3 h-3" />
@@ -591,8 +590,8 @@ export default function StreamPage() {
                                             </CardFooter>
                                         </Card>
                                      </div>
-                                </CollapsibleContent>
-                            </Collapsible>
+                                </PopoverContent>
+                            </Popover>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -749,7 +748,7 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder="Send a message..."
+                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
