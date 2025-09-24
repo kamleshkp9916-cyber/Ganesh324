@@ -446,9 +446,14 @@ export default function StreamPage() {
                                  <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="w-3 w-3" />{s.viewers}</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                <Users className="h-3 w-3"/>
+                                                {s.viewers}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                    <div className="flex items-start gap-3 mt-2">
+                                    <div className="flex items-start gap-2 mt-2">
                                         <Avatar className="w-7 h-7">
                                             <AvatarImage src={s.avatarUrl} />
                                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
