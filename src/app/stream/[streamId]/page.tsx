@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -174,7 +175,7 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
-    const [replyingTo, setReplyingTo] = useState<string | null>(null);
+    const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -184,7 +185,7 @@ export default function StreamPage() {
         return Object.values(productDetails).filter(p => p.brand === seller.name && p.stock > 0);
     }, [seller]);
     
-     const relatedStreams = useMemo(() => {
+    const relatedStreams = useMemo(() => {
         if (!product) return [];
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
@@ -251,9 +252,10 @@ export default function StreamPage() {
         }
     }, [duration]);
 
-    const handleReply = (msgUser: string, userId: string) => {
-        if(user?.uid === userId) return;
-        setNewMessage(`@${msgUser} `);
+    const handleReply = (msgUser: { name: string; id: string }) => {
+        if(user?.uid === msgUser.id) return;
+        setReplyingTo(msgUser);
+        setNewMessage(`@${msgUser.name} `);
         if (textareaRef.current) {
             textareaRef.current.focus();
         }
@@ -359,7 +361,7 @@ export default function StreamPage() {
                 </div>
                  <div className="flex items-center gap-2">
                     <Button asChild variant="ghost">
-                        <Link href="/cart">
+                        <Link href="/cart" className="flex items-center gap-2">
                             <ShoppingCart className="h-5 w-5" />
                             <span className="hidden sm:inline">My Cart</span>
                         </Link>
@@ -591,8 +593,8 @@ export default function StreamPage() {
                                                 </div>
                                             </CardContent>
                                             <CardFooter className="p-0 grid grid-cols-2 gap-px">
-                                                <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                                <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                                <Button size="xs" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                <Button size="xs" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
                                             </CardFooter>
                                         </Card>
                                      </div>
@@ -667,7 +669,7 @@ export default function StreamPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             {user?.uid !== msg.userId && (
-                                                                <DropdownMenuItem onSelect={() => handleReply(msg.user, msg.userId)}>
+                                                                <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
                                                                     Reply
                                                                 </DropdownMenuItem>
                                                             )}
@@ -742,17 +744,13 @@ export default function StreamPage() {
                                                 <Gavel className="h-5 w-5" />
                                             </Button>
                                         )}
-                                         <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
+                                        <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(true)}>
                                             <ShoppingBag className="h-5 w-5" />
                                         </Button>
                                         <Button asChild variant="ghost" size="icon">
-                                            <Link href="/wallet">
+                                            <Link href="/wallet" className="flex items-center gap-2">
                                                 <Wallet className="h-5 w-5" />
-                                            </Link>
-                                        </Button>
-                                         <Button asChild variant="ghost" size="icon" className="relative">
-                                            <Link href="/cart">
-                                                <ShoppingCart className="h-5 w-5" />
+                                                <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
                                             </Link>
                                         </Button>
                                     </div>
@@ -762,7 +760,7 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder={replyingTo ? `@${replyingTo} ` : "Send a message..."}
+                                        placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
@@ -811,6 +809,7 @@ export default function StreamPage() {
     
 
     
+
 
 
 
