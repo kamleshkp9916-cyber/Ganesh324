@@ -141,6 +141,11 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
+const mockSellerPosts = [
+  { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
+  { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
+];
+
 const emojis = [
     '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
     '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
@@ -153,10 +158,6 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-const mockSellerPosts = [
-  { id: 1, content: 'Check out this amazing vintage camera! Perfect for collectors and photography lovers. #vintage #camera', timestamp: '2h ago', likes: 152, replies: 12, mediaUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800' },
-  { id: 2, content: 'Just got a new batch of these beautiful leather straps. They pair perfectly with our cameras.', timestamp: '1d ago', likes: 88, replies: 5, mediaUrl: 'https://images.unsplash.com/photo-1542060748-10c28b62716f?w=800' }
-];
 
 export default function StreamPage() {
     const router = useRouter();
@@ -414,8 +415,9 @@ export default function StreamPage() {
                     </Button>
                 </div>
             </header>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] flex-grow overflow-hidden">
-                <div className="w-full h-full overflow-y-auto">
+             <div className="flex flex-1 overflow-hidden">
+                {/* Main Content */}
+                <div className="flex-1 overflow-y-auto no-scrollbar">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -600,7 +602,8 @@ export default function StreamPage() {
 
                     </div>
                 </div>
-                <div className="lg:col-span-1 bg-background text-foreground h-full flex flex-col border-l border-border">
+                {/* Chat Panel */}
+                <div className="hidden lg:flex lg:w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -759,7 +762,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-grow" ref={chatContainerRef}>
+                    <ScrollArea className="flex-grow">
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -808,20 +811,9 @@ export default function StreamPage() {
                             ))}
                         </div>
                     </ScrollArea>
-                    <div className="p-3 border-t bg-background flex-shrink-0">
-                        <div className="mb-2">
-                            <div className="flex items-center gap-1">
-                                <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
-                                    <ShoppingBag className="h-5 w-5" />
-                                </Button>
-                                {seller?.hasAuction && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                                        <Gavel className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </div>
-                            {isProductListVisible && (
-                                 <div className="relative mt-2">
+                     <div className="p-3 border-t bg-background flex-shrink-0">
+                        {isProductListVisible && (
+                                 <div className="relative mb-2">
                                     <Carousel
                                         opts={{
                                             align: "start",
@@ -865,7 +857,16 @@ export default function StreamPage() {
                                     </Carousel>
                                  </div>
                             )}
-                        </div>
+                        <div className="flex items-center gap-1 mb-2">
+                                <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                    <ShoppingBag className="h-5 w-5" />
+                                </Button>
+                                {seller?.hasAuction && (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                        <Gavel className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                             <div className="relative flex-grow">
                                 <Textarea 
@@ -911,5 +912,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
-    
