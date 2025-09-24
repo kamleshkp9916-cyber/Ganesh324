@@ -80,6 +80,8 @@ import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { categories } from "@/lib/categories";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -101,8 +103,6 @@ const mockChatMessages: any[] = [
     { id: 'system-1', type: 'system', text: 'Sarah joined the stream.'},
     { id: 'prod-123', type: 'product', productKey: 'prod_2', timestamp: '10:05 AM' },
 ];
-
-const streamCategories = ["Fashion", "Electronics", "Home Goods", "Beauty", "Fitness", "Handmade", "Books", "Gaming", "Pet Supplies", "Kitchenware"];
 
 function formatTime(seconds: number) {
     if (isNaN(seconds) || seconds < 0) {
@@ -274,15 +274,28 @@ export default function StreamPage() {
                  <ScrollArea className="h-full">
                      <div className={cn("p-4", isSidebarCollapsed && "p-2")}>
                          <div className={cn(!isSidebarCollapsed && "mb-4")}>
-                             {!isSidebarCollapsed && <h3 className="font-semibold mb-2">Categories</h3>}
-                            <div className="space-y-1">
-                                {streamCategories.map(category => (
-                                    <Button key={category} variant="ghost" className={cn("w-full", isSidebarCollapsed ? "justify-center" : "justify-start")}>
-                                        <Tv className={cn(!isSidebarCollapsed && "mr-2")}/>
-                                        {!isSidebarCollapsed && category}
-                                    </Button>
+                             {!isSidebarCollapsed && <h3 className="font-semibold mb-2">Browse by Category</h3>}
+                             <Accordion type="multiple" className="w-full">
+                                {categories.map(category => (
+                                    <AccordionItem value={category.name} key={category.name}>
+                                        <AccordionTrigger className={cn("text-sm font-semibold hover:no-underline py-2", isSidebarCollapsed && "justify-center")}>
+                                            <div className="flex items-center gap-2">
+                                                <Tv className="h-5 w-5" />
+                                                {!isSidebarCollapsed && category.name}
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="flex flex-col space-y-2 pl-4">
+                                                {category.subcategories.map(sub => (
+                                                    <Link key={sub.name} href="#" className="text-xs text-muted-foreground hover:text-foreground">
+                                                        {sub.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
                                 ))}
-                            </div>
+                            </Accordion>
                         </div>
                         <Separator className={cn("my-4", isSidebarCollapsed && "my-2")} />
                         <div className={cn(!isSidebarCollapsed && "mb-4")}>
@@ -298,6 +311,7 @@ export default function StreamPage() {
                                             <>
                                                 <div className="flex-grow overflow-hidden">
                                                     <p className="font-semibold text-sm truncate">{s.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{s.category}</p>
                                                 </div>
                                                 <div className="flex items-center text-xs">
                                                     <Users className="h-3 w-3 mr-1" />
