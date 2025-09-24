@@ -159,7 +159,6 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -185,7 +184,7 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
-    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
@@ -289,9 +288,11 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
+        if (chatContainerRef.current) {
+            const viewport = chatContainerRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
         }
     }, [chatMessages]);
 
@@ -419,7 +420,7 @@ export default function StreamPage() {
             </header>
             <div className="flex-1 grid lg:grid-cols-[1fr_340px] overflow-hidden">
                 {/* Main Content */}
-                <div className="flex flex-col overflow-y-auto">
+                <ScrollArea className="w-full h-full">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video
                             ref={videoRef}
@@ -494,7 +495,7 @@ export default function StreamPage() {
                                     <Link key={p.key} href={`/product/${p.key}`} className="group">
                                         <Card className="overflow-hidden">
                                             <div className="aspect-square bg-muted relative">
-                                                <Image src={p.images[0]} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                                                <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
                                             </div>
                                             <div className="p-2">
                                                 <p className="text-xs font-semibold truncate">{p.name}</p>
@@ -603,7 +604,7 @@ export default function StreamPage() {
                         </div>
 
                     </div>
-                </div>
+                </ScrollArea>
                 {/* Chat Panel */}
                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
@@ -764,7 +765,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-grow" ref={scrollAreaRef}>
+                    <ScrollArea className="flex-1" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -813,7 +814,7 @@ export default function StreamPage() {
                             ))}
                         </div>
                     </ScrollArea>
-                     <div className="p-3 border-t bg-background flex-shrink-0">
+                    <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                                  <div className="relative mb-2">
                                     <Carousel
@@ -914,3 +915,4 @@ export default function StreamPage() {
         </div>
     );
 }
+
