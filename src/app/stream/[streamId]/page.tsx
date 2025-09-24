@@ -389,7 +389,7 @@ export default function StreamPage() {
                  <div className="flex items-center gap-2">
                     <Button asChild variant="ghost" className="relative">
                         <Link href="/cart">
-                             <ShoppingCart className="h-5 w-5" />
+                             My Cart
                         </Link>
                     </Button>
                 </div>
@@ -584,6 +584,23 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                         <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">Live Chat</h3>
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="link" className="flex items-center gap-2 h-8 w-auto px-2 py-2">
+                                        <Wallet className="h-5 w-5" />
+                                        <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent align="end" className="w-auto p-0">
+                                    <div className="p-4 text-center">
+                                        <p className="text-xs text-muted-foreground">Wallet Balance</p>
+                                        <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                        <Button asChild variant="link" className="mt-2 text-xs">
+                                            <Link href="/wallet">More Details</Link>
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="flex items-center gap-1">
                             <Popover>
@@ -623,7 +640,7 @@ export default function StreamPage() {
                                             <CardFooter className="p-1 grid grid-cols-2 gap-1">
                                                 {product.stock > 0 ? (
                                                     <>
-                                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
                                                         <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy Now</Button>
                                                     </>
                                                 ) : (
@@ -722,73 +739,12 @@ export default function StreamPage() {
                         <div className="p-3 border-t bg-background">
                             <div className="mb-2">
                                 <div className="flex items-center gap-2">
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button asChild variant="link" className="flex items-center gap-2 h-8 w-auto px-2">
-                                                <Link href="/wallet">
-                                                    <Wallet className="h-5 w-5" />
-                                                    <span className="text-sm font-semibold">₹{walletBalance.toFixed(2)}</span>
-                                                </Link>
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-sm">
-                                            <DialogHeader>
-                                                <DialogTitle>My Wallet</DialogTitle>
-                                                <DialogDescription>Quick access to your funds.</DialogDescription>
-                                            </DialogHeader>
-                                            <div className="py-4 space-y-4">
-                                                <div className="text-center">
-                                                    <p className="text-sm text-muted-foreground">Available Balance</p>
-                                                    <p className="text-4xl font-bold">₹{walletBalance.toFixed(2)}</p>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Deposit</Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Add Funds via UPI</DialogTitle>
-                                                                <DialogDescription>Scan the QR code to add funds.</DialogDescription>
-                                                            </DialogHeader>
-                                                            <div className="flex flex-col items-center gap-4 py-4">
-                                                                <div className="bg-white p-4 rounded-lg">
-                                                                    <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                                                </div>
-                                                                <p className="font-semibold">streamcart@mock</p>
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                    <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Withdraw</Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Withdraw Funds</DialogTitle>
-                                                            </DialogHeader>
-                                                            <WithdrawForm 
-                                                                cashAvailable={walletBalance} 
-                                                                bankAccounts={bankAccounts} 
-                                                                onWithdraw={handleWithdraw}
-                                                                onAddAccount={(acc) => setBankAccounts(prev => [...prev, {...acc, id: Date.now()}])}
-                                                            />
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </div>
-                                            </div>
-                                            <DialogFooter>
-                                                <Button asChild className="w-full">
-                                                    <Link href="/wallet">Full Wallet History</Link>
-                                                </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
-                                    <Button variant="ghost" size="icon" onClick={() => setIsProductListVisible(prev => !prev)}>
+                                    
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
                                         <ShoppingBag className="h-5 w-5" />
                                     </Button>
                                     {seller?.hasAuction && (
-                                        <Button variant="ghost" size="icon" className="bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
                                             <Gavel className="h-5 w-5" />
                                         </Button>
                                     )}
