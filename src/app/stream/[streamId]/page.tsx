@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -250,17 +249,18 @@ export default function StreamPage() {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
+        let finalMessage = newMessage;
+        if (replyingTo) {
+            finalMessage = `@${replyingTo} ${newMessage}`;
+        }
+        
         const newMsg: any = {
             id: Date.now(),
             user: user?.displayName?.split(' ')[0] || 'You',
-            text: newMessage,
+            text: finalMessage,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
         };
-
-        if (replyingTo) {
-            newMsg.replyingTo = replyingTo;
-        }
 
         setChatMessages(prev => [...prev, newMsg]);
         setNewMessage("");
@@ -373,7 +373,7 @@ export default function StreamPage() {
                                  <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
                                         <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                        <Button variant="ghost" size="icon" onClick={()={() => setIsMuted(prev => !prev)}>
                                             {isMuted ? <VolumeX /> : <Volume2 />}
                                         </Button>
                                         <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
@@ -420,7 +420,7 @@ export default function StreamPage() {
                                             </div>
                                             <div className="p-2">
                                                 <p className="text-xs font-semibold truncate">{p.name}</p>
-                                                <p className="text-sm font-bold">{p.price}</p>
+                                                <p className="font-bold text-base">{p.price}</p>
                                             </div>
                                         </Card>
                                     </Link>
@@ -527,86 +527,86 @@ export default function StreamPage() {
                     </div>
                 </ScrollArea>
                 <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
-                    <Collapsible>
-                         <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
-                            <h3 className="font-bold text-lg">Live Chat</h3>
-                            <div className="flex items-center gap-1">
-                                 <CollapsibleTrigger asChild>
+                    <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
+                        <h3 className="font-bold text-lg">Live Chat</h3>
+                        <div className="flex items-center gap-1">
+                            <Popover>
+                                <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
                                         <Pin className="h-5 w-5 text-muted-foreground" />
                                     </Button>
-                                </CollapsibleTrigger>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-5 w-5" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                     <DropdownMenuContent align="end">
-                                        <FeedbackDialog>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                            </DropdownMenuItem>
-                                        </FeedbackDialog>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                    <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-                        <CollapsibleContent>
-                            <div className="p-3 bg-muted/50 space-y-4">
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                        <Pin className="h-3 w-3" />
-                                        <span>Pinned by {seller?.name}</span>
-                                    </div>
-                                    <div className="p-2 rounded-md bg-background border">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="h-6 w-6">
-                                                <AvatarImage src={seller?.avatarUrl} />
-                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-semibold text-xs">{seller?.name}:</span>
-                                        </div>
-                                        <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
-                                    </div>
-                                </div>
-                                <Card className="overflow-hidden">
-                                    <CardContent className="p-0">
-                                        <div className="flex items-center gap-3 p-2">
-                                            <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-semibold truncate">{product.name}</p>
-                                                <p className="font-bold text-base">{product.price}</p>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-0">
+                                    <div className="p-3 bg-muted/50 space-y-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                                <Pin className="w-3 h-3" />
+                                                <span>Pinned by {seller?.name}</span>
+                                            </div>
+                                            <div className="p-2 rounded-md bg-background border">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-6 w-6">
+                                                        <AvatarImage src={seller?.avatarUrl} />
+                                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="font-semibold text-xs">{seller?.name}:</span>
+                                                </div>
+                                                <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
                                             </div>
                                         </div>
-                                    </CardContent>
-                                    <CardFooter className="p-0 grid grid-cols-2 gap-px">
-                                        <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                        <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
+                                        <Card className="overflow-hidden">
+                                            <CardContent className="p-0">
+                                                <div className="flex items-center gap-3 p-2">
+                                                    <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-semibold truncate">{product.name}</p>
+                                                        <p className="font-bold text-base">{product.price}</p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                            <CardFooter className="p-0 grid grid-cols-2 gap-px">
+                                                <Button size="sm" className="rounded-none rounded-bl-lg" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                <Button size="sm" className="rounded-none rounded-br-lg" onClick={() => handleBuyNow(product)}>Buy Now</Button>
+                                            </CardFooter>
+                                        </Card>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <FeedbackDialog>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                        </DropdownMenuItem>
+                                    </FeedbackDialog>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Flag className="mr-2 h-4 w-4" /> Report Stream
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    If this stream violates our community guidelines, please report it. Our moderation team will review it shortly.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleReportStream}>Report</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
                     <div className="flex-grow flex flex-col overflow-hidden">
                         <ScrollArea className="flex-grow" ref={chatContainerRef}>
                             <div className="p-4 space-y-2">
@@ -616,11 +616,6 @@ export default function StreamPage() {
                                             <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                                         ) : msg.user ? (
                                             <>
-                                                {replyingTo === msg.user && (
-                                                    <div className="absolute left-0 right-0 -top-5 text-center text-xs text-primary font-bold animate-pulse">
-                                                        Replying to {msg.user}...
-                                                    </div>
-                                                )}
                                                 <div className="flex items-start gap-2">
                                                     <Avatar className="w-8 h-8">
                                                         <AvatarImage src={msg.avatar} />
@@ -729,17 +724,11 @@ export default function StreamPage() {
                             </div>
                             <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                 <div className="relative flex-grow">
-                                     {replyingTo && (
-                                        <div className="absolute bottom-full left-0 right-0 p-2 bg-muted rounded-t-lg text-xs text-muted-foreground flex items-center justify-between">
-                                            <span>Replying to <span className="font-semibold text-foreground">@{replyingTo}</span></span>
-                                            <button type="button" onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-background"><X className="w-3 h-3"/></button>
-                                        </div>
-                                    )}
                                     <Textarea 
-                                        placeholder="Send a message..." 
+                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        className={cn("resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm", replyingTo && "rounded-t-none" )}
+                                        className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                         rows={1}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
