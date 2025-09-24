@@ -313,35 +313,26 @@ export default function StreamPage() {
                         </div>
                     </div>
                     <div className="p-4 border-t border-border bg-background text-foreground overflow-y-auto flex-grow">
-                        <Collapsible>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    {seller && (
-                                        <>
-                                            <Avatar>
-                                                <AvatarImage src={seller.avatarUrl} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <h3 className="font-semibold">{seller.name}</h3>
-                                            <Button variant="secondary" size="sm" className="h-7">
-                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                                <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                        Show Description
-                                        <ChevronDown className="h-4 w-4 ml-2" />
-                                    </Button>
-                                </CollapsibleTrigger>
+                        <div className="mb-4">
+                            <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                            <p className="text-sm text-muted-foreground">{seller?.description || "Welcome to the live stream!"}</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                        <Avatar>
+                                            <AvatarImage src={seller.avatarUrl} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <h3 className="font-semibold">{seller.name}</h3>
+                                        <Button variant="secondary" size="sm" className="h-7">
+                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                        </Button>
+                                    </>
+                                )}
                             </div>
-                            <CollapsibleContent>
-                                <p className="text-sm text-muted-foreground pt-3">
-                                    {seller?.description || "No description available for this stream."}
-                                </p>
-                            </CollapsibleContent>
-                        </Collapsible>
+                        </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
