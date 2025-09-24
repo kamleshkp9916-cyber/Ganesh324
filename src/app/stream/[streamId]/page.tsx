@@ -480,30 +480,30 @@ export default function StreamPage() {
                             <h4 className="font-semibold mb-4">Related Streams</h4>
                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
-                                     <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="group relative rounded-lg overflow-hidden shadow-lg">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
-                                                <Image
-                                                    src={s.thumbnailUrl}
-                                                    alt={`Live stream from ${s.name}`}
-                                                    width={300}
-                                                    height={450}
-                                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    data-ai-hint={s.hint}
-                                                />
-                                            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                                <div className="flex items-start gap-2">
-                                                    <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline">
-                                                        <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                                                    </Link>
-                                                    <div className="flex-1">
-                                                        <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3></Link>
-                                                    </div>
+                                    <div key={s.id} className="group relative rounded-lg overflow-hidden shadow-lg">
+                                        <Link href={`/stream/${s.id}`} className="cursor-pointer">
+                                            <Image
+                                                src={s.thumbnailUrl}
+                                                alt={`Live stream from ${s.name}`}
+                                                width={300}
+                                                height={450}
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint={s.hint}
+                                            />
+                                        </Link>
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers}</Badge></div>
+                                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                            <div className="flex items-start gap-2">
+                                                <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                                    <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                                                </Link>
+                                                <div className="flex-1">
+                                                    <Link href={`/seller/profile?userId=${s.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{s.name}</h3></Link>
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -582,7 +582,7 @@ export default function StreamPage() {
                                                           <Card className="h-full flex flex-col overflow-hidden">
                                                              <Link href={`/product/${product.key}`} className="block">
                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                    <Image src={product.images[0].preview} alt={product.name} fill className="object-cover" />
                                                                     <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
                                                                         <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
@@ -590,7 +590,7 @@ export default function StreamPage() {
                                                                 </div>
                                                                 <div className="p-2">
                                                                     <p className="text-xs font-semibold truncate">{product.name}</p>
-                                                                    <p className="text-sm font-bold">{product.price}</p>
+                                                                    <p className="text-sm font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                                                                 </div>
                                                              </Link>
                                                              <CardFooter className="p-2 mt-auto grid grid-cols-2 gap-2">
