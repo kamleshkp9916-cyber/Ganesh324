@@ -158,7 +158,6 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -417,54 +416,54 @@ export default function StreamPage() {
             </header>
             <div className="flex flex-1 overflow-hidden">
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
-                        <video
-                            ref={videoRef}
-                            src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                            className="w-full h-full object-cover"
-                            loop
-                        />
-                         <div 
-                            className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        >
-                            {/* Top Bar */}
-                             <div className="flex items-center justify-between">
-                                 <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
-                                <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
-                            </div>
-
-                            {/* Center Controls */}
-                             <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                                <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                    {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                                </Button>
-                                <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                            </div>
-
-                             {/* Bottom Bar */}
-                             <div className="space-y-3">
-                                <Progress value={(currentTime / duration) * 100} className="h-2" />
+                    <ScrollArea className="flex-1 w-full">
+                        <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                            <video
+                                ref={videoRef}
+                                src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                                className="w-full h-full object-cover"
+                                loop
+                            />
+                             <div 
+                                className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            >
+                                {/* Top Bar */}
                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 sm:gap-4">
-                                        <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
-                                        <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                            {isMuted ? <VolumeX /> : <Volume2 />}
-                                        </Button>
-                                        <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1 sm:gap-2">
-                                        <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                                        <Button variant="ghost" size="icon"><Share2 /></Button>
-                                        <Button variant="ghost" size="icon"><Settings /></Button>
-                                        <Button variant="ghost" size="icon"><Maximize /></Button>
-                                    </div>
-                                 </div>
+                                     <h1 className="font-bold text-lg hidden sm:block">{streamData.title || "Live Event"}</h1>
+                                    <Badge variant="secondary" className="gap-1.5"><Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching</Badge>
+                                </div>
+
+                                {/* Center Controls */}
+                                 <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8">
+                                    <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                    <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                        {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                                </div>
+
+                                 {/* Bottom Bar */}
+                                 <div className="space-y-3">
+                                    <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                     <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 sm:gap-4">
+                                            <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                            <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                                {isMuted ? <VolumeX /> : <Volume2 />}
+                                            </Button>
+                                            <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <Button variant="ghost" size="icon"><PictureInPicture /></Button>
+                                            <Button variant="ghost" size="icon"><Share2 /></Button>
+                                            <Button variant="ghost" size="icon"><Settings /></Button>
+                                            <Button variant="ghost" size="icon"><Maximize /></Button>
+                                        </div>
+                                     </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto bg-background text-foreground">
-                        <div className="p-4">
+                        <div className="p-4 bg-background text-foreground">
                              <div className="mb-4">
                                 <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
                                 <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
@@ -600,7 +599,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </ScrollArea>
                 </div>
                 {/* Chat Panel */}
                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
@@ -762,7 +761,7 @@ export default function StreamPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto" ref={chatContainerRef}>
+                    <ScrollArea className="flex-1" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                                 <div key={msg.id || index} className="text-sm group relative">
@@ -810,7 +809,7 @@ export default function StreamPage() {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                                  <div className="relative mb-2">
