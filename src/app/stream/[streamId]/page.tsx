@@ -356,28 +356,19 @@ export default function StreamPage() {
                         </div>
                         <div className="mt-6">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
-                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {relatedStreams.map(s => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1"><Users className="w-3 h-3" />{s.viewers}</Badge></div>
-                                            <Image
-                                                src={s.thumbnailUrl}
-                                                alt={s.name}
-                                                fill
-                                                sizes="(max-width: 768px) 50vw, 33vw"
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                                data-ai-hint={s.hint}
-                                            />
                                         </div>
-                                         <div className="flex items-start gap-3 mt-2">
-                                            <Avatar className="w-9 h-9">
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-8 h-8">
                                                 <AvatarImage src={s.avatarUrl} />
                                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1.5">
                                                     <p className="font-semibold text-sm group-hover:underline truncate">{s.name}</p>
                                                     {s.hasAuction && (
                                                         <Badge variant="destructive" className="text-xs font-bold">
@@ -387,9 +378,13 @@ export default function StreamPage() {
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{s.category}</p>
                                                  <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.category.toLowerCase()}</Badge>
-                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.category.toLowerCase()}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] px-1 py-0">#{s.name.toLowerCase().replace(/\s/g, '')}</Badge>
                                                  </div>
+                                            </div>
+                                            <div className="flex items-center text-xs text-muted-foreground gap-1">
+                                                <Users className="h-3 w-3" />
+                                                {s.viewers}
                                             </div>
                                         </div>
                                     </Link>
@@ -531,14 +526,14 @@ export default function StreamPage() {
                             })}
                         </div>
                     </ScrollArea>
-                     <div className="p-4 border-t flex-shrink-0 bg-background">
+                     <div className="p-3 border-t bg-background">
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                              <div className="relative flex-grow">
-                                 <Textarea 
+                                <Textarea 
                                     placeholder="Send a message..." 
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="resize-none pr-10 rounded-lg bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
+                                    className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                     rows={1}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
