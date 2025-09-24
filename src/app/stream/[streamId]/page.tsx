@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -294,7 +295,8 @@ export default function StreamPage() {
         });
     };
     
-    const renderDescription = (text: string) => {
+    const renderContentWithHashtags = (text: string) => {
+        if (!text) return text;
         const parts = text.split(/(#\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
@@ -380,7 +382,7 @@ export default function StreamPage() {
                     <div className="p-4 border-t border-border bg-background text-foreground flex-grow">
                         <div className="mb-4">
                              <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{renderDescription(streamData.description) || "Welcome to the live stream!"}</p>
+                            <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -481,15 +483,7 @@ export default function StreamPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {relatedStreams.map((s: any) => (
                                      <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted group-hover:scale-105 transition-transform duration-300 ease-in-out">
-                                            <Image
-                                                src={s.thumbnailUrl}
-                                                alt={`Live stream from ${s.name}`}
-                                                fill
-                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                                className="object-cover w-full h-full"
-                                                data-ai-hint={s.hint}
-                                            />
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                             <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -497,17 +491,23 @@ export default function StreamPage() {
                                                     {s.viewers}
                                                 </Badge>
                                             </div>
-                                             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                                <div className="flex items-start gap-2">
-                                                    <div className="relative z-20">
-                                                        <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={s.avatarUrl} alt={s.name} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-sm text-primary-foreground truncate group-hover:underline">{s.name}</h3>
-                                                        <p className="text-xs text-primary-foreground/80">{s.category}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                                                    </div>
+                                        </div>
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-7 h-7">
+                                                <AvatarImage src={s.avatarUrl} />
+                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                    {s.hasAuction && (
+                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                            Auction
+                                                        </Badge>
+                                                    )}
                                                 </div>
+                                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                                <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
                                             </div>
                                         </div>
                                     </Link>
@@ -576,7 +576,7 @@ export default function StreamPage() {
                                 {chatMessages.map(msg => (
                                     <div key={msg.id} className="text-sm">
                                         <span className="font-semibold pr-1" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
-                                        <span className="text-muted-foreground">{msg.text}</span>
+                                        <span className="text-muted-foreground">{renderContentWithHashtags(msg.text)}</span>
                                     </div>
                                 ))}
                             </div>
