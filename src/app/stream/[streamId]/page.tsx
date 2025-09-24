@@ -127,6 +127,19 @@ function formatTime(seconds: number) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
+const emojis = [
+    '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
+    '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
+    '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤',
+    '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '😡', '😠', '🤬',
+    '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🤠', '🤡', '🥳', '🥴', '🥺', '🤥', '🤫', '🤭', '🧐', '🤓', '😈',
+    '👿', '👹', '👺', '💀', '👻', '👽', '🤖', '💩', '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🙏', '🤝', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴',
+    '👀', '👁️', '👅', '👄', '❤️', '💔', '💕', '💖', '💗', '💓', '💞', '💝', '💟', '✨', '⭐', '🌟', '💫', '💥',
+    '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
+];
+
+
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -238,7 +251,6 @@ export default function StreamPage() {
     }, [duration]);
 
     const handleReply = (user: string) => {
-        setReplyingTo(user);
         setNewMessage(`@${user} `);
         if (textareaRef.current) {
             textareaRef.current.focus();
@@ -255,13 +267,11 @@ export default function StreamPage() {
         e.preventDefault();
         if (!newMessage.trim()) return;
         
-        let messageText = newMessage;
-        
         const newMsg: any = {
             id: Date.now(),
             user: user?.displayName?.split(' ')[0] || 'You',
             userId: user?.uid,
-            text: messageText,
+            text: newMessage,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
             userColor: user?.color || '#ffffff'
         };
@@ -320,6 +330,10 @@ export default function StreamPage() {
             }
             return part;
         });
+    };
+
+    const addEmoji = (emoji: string) => {
+        setNewMessage(prev => prev + emoji);
     };
 
     return (
@@ -735,15 +749,9 @@ export default function StreamPage() {
                                 <div className="relative flex-grow">
                                     <Textarea 
                                         ref={textareaRef}
-                                        placeholder={replyingTo ? `@${replyingTo}` : "Send a message..."}
+                                        placeholder="Send a message..."
                                         value={newMessage}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (replyingTo && !value.startsWith(`@${replyingTo} `)) {
-                                                setReplyingTo(null);
-                                            }
-                                            setNewMessage(value);
-                                        }}
+                                        onChange={(e) => setNewMessage(e.target.value)}
                                         className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm"
                                         rows={1}
                                         onKeyDown={(e) => {
@@ -759,8 +767,16 @@ export default function StreamPage() {
                                                 <Smile className="h-5 w-5" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent>
-                                            <p>Emoji picker coming soon!</p>
+                                         <PopoverContent className="w-80 h-64 p-2">
+                                            <ScrollArea className="h-full">
+                                                <div className="grid grid-cols-8 gap-1">
+                                                    {emojis.map((emoji, index) => (
+                                                        <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                                            {emoji}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
                                         </PopoverContent>
                                     </Popover>
                                 </div>
@@ -779,3 +795,4 @@ export default function StreamPage() {
 
     
 }
+    
