@@ -7,6 +7,7 @@ import {
   Heart,
   MessageSquare,
   MoreHorizontal,
+  MoreVertical,
   Send,
   Share2,
   ShoppingCart,
@@ -303,7 +304,7 @@ export default function StreamPage() {
 
     return (
         <div className="h-dvh w-full bg-black text-white grid grid-cols-1 lg:grid-cols-[1fr_340px] overflow-hidden">
-             <div className="w-full h-full flex flex-col overflow-y-auto no-scrollbar">
+             <ScrollArea className="w-full h-full flex flex-col no-scrollbar">
                 <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                     <video
                         ref={videoRef}
@@ -395,9 +396,9 @@ export default function StreamPage() {
                     </div>
                     <div className="mt-6">
                         <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4">
                             {mockSellerPosts.map(post => (
-                                <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
+                                 <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
                                     <div className="p-3">
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex items-center gap-2">
@@ -492,7 +493,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ScrollArea>
             <div className="lg:col-span-1 bg-background text-foreground flex flex-col h-full border-l border-border relative">
                 <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0">
                     <h3 className="font-bold text-lg">Live Chat</h3>
