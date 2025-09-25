@@ -184,7 +184,7 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
-    const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
@@ -287,10 +287,12 @@ export default function StreamPage() {
         }
     };
     
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
     useEffect(() => {
-        if (chatMessagesContainerRef.current) {
-            chatMessagesContainerRef.current.scrollTop = chatMessagesContainerRef.current.scrollHeight;
-        }
+        scrollToBottom();
     }, [chatMessages]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
@@ -323,7 +325,7 @@ export default function StreamPage() {
             title: "Message Reported",
             description: "The message has been reported and will be reviewed by our moderation team.",
         });
-    }
+    };
     
     const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
     
@@ -414,8 +416,8 @@ export default function StreamPage() {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col relative">
-                    <ScrollArea className="absolute inset-0">
+                <div className="flex-1 flex flex-col relative overflow-y-auto">
+                    <ScrollArea className="flex-1">
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -735,7 +737,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-1" ref={chatMessagesContainerRef}>
+                    <ScrollArea className="flex-1">
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                             <div key={msg.id || index} className="text-sm group relative">
@@ -782,6 +784,7 @@ export default function StreamPage() {
                                 ) : null}
                             </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
                     </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
@@ -864,3 +867,5 @@ export default function StreamPage() {
         </div>
     );
 }
+
+    
