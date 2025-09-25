@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -287,13 +288,13 @@ export default function StreamPage() {
         }
     };
     
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
-    }, [chatMessages]);
+    }, [chatMessages, scrollToBottom]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -407,17 +408,18 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button asChild variant="ghost" size="icon" className="relative">
+                    <Button asChild variant="ghost" className="relative">
                         <Link href="/cart">
-                            <ShoppingCart />
+                            <ShoppingCart className="mr-2"/>
+                            <span className="hidden sm:inline">My Cart</span>
                         </Link>
                     </Button>
                 </div>
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col relative overflow-y-auto">
-                    <ScrollArea className="flex-1">
+                <div className="flex-1 flex flex-col overflow-hidden">
+                     <ScrollArea className="flex-1">
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
