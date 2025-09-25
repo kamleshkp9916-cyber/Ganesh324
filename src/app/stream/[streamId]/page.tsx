@@ -142,11 +142,6 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
-const mockSellerPosts = [
-    { id: 1, content: 'Check out this amazing vintage camera! Perfect for film photography lovers. #vintage #camera', timestamp: '2h ago', mediaUrl: 'https://placehold.co/600x400.png', likes: 152, replies: 12 },
-    { id: 2, content: 'Going live in 5 minutes to unbox the new SoundWave Pro 2 headphones. You don\'t want to miss this!', timestamp: '1d ago', mediaUrl: null, likes: 88, replies: 5 },
-];
-
 const emojis = [
     '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
     '🙂', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '😴',
@@ -288,13 +283,9 @@ export default function StreamPage() {
         }
     };
     
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, []);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [chatMessages, scrollToBottom]);
+     useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [chatMessages]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -408,7 +399,7 @@ export default function StreamPage() {
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button asChild variant="ghost" className="relative">
+                    <Button asChild variant="ghost">
                         <Link href="/cart">
                             <ShoppingCart className="mr-2"/>
                             <span className="hidden sm:inline">My Cart</span>
@@ -418,8 +409,8 @@ export default function StreamPage() {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col overflow-hidden">
-                     <ScrollArea className="flex-1">
+                <div className="flex-1 flex flex-col overflow-y-auto">
+                    <ScrollArea className="flex-1">
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -496,65 +487,7 @@ export default function StreamPage() {
                                 {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
                                 </div>
                             </div>
-                            <div className="mt-6">
-                                <h4 className="font-semibold mb-4">Posts by {seller?.name}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {mockSellerPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                        <div className="p-3">
-                                            <div className="flex items-start justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-8 w-8">
-                                                <AvatarImage src={seller?.avatarUrl} alt={seller?.name} />
-                                                <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                <p className="font-semibold text-primary text-xs">{seller?.name}</p>
-                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                </div>
-                                            </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 -mt-2">
-                                                    <MoreVertical className="w-4 h-4" />
-                                                </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                    <Share2 className="mr-2 h-4 w-4" />
-                                                    <span>Share</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={handleReportStream}>
-                                                    <Flag className="mr-2 h-4 w-4" />
-                                                    <span>Report</span>
-                                                </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                            </div>
-                                            <p className="text-sm line-clamp-2">{post.content}</p>
-                                        </div>
-                                        {post.mediaUrl && (
-                                            <div className="w-full aspect-video bg-muted relative mt-auto">
-                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
-                                            </div>
-                                        )}
-                                        <div className="p-3 mt-auto flex justify-between items-center text-xs text-muted-foreground">
-                                            <div className="flex items-center gap-3">
-                                            <button className="flex items-center gap-1 hover:text-primary">
-                                                <Heart className="w-3 h-3" />
-                                                <span>{post.likes || 0}</span>
-                                            </button>
-                                            <button className="flex items-center gap-1 hover:text-primary">
-                                                <MessageSquare className="w-3 h-3" />
-                                                <span>{post.replies || 0}</span>
-                                            </button>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                  ))}
-                                  {mockSellerPosts.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">This seller hasn't posted anything yet.</p>}
-                                </div>
-                            </div>
+                            
                             <div className="mt-8">
                                 <h4 className="font-semibold mb-4">Related Streams</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -869,5 +802,3 @@ export default function StreamPage() {
         </div>
     );
 }
-
-    
