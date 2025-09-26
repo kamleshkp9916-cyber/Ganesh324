@@ -51,6 +51,10 @@ import {
   Loader2,
   RefreshCw,
   Coins,
+  Settings2,
+  SlidersHorizontal,
+  Subtitles,
+  History,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +99,10 @@ import { Logo } from "@/components/logo";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Label } from "@/components/ui/label";
 import { WithdrawForm } from "@/components/settings-forms";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+
 
 const emojis = [
     '😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊', '😋', '😎', '😍', '😘', '🥰', '😗', '😙', '😚',
@@ -153,6 +161,113 @@ const mockChatMessages: any[] = [
     { id: 29, type: 'system', text: 'The auction for the Vintage Camera has ended.' },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
+
+const PlayerSettingsDialog = () => {
+    return (
+        <DialogContent className="max-w-2xl bg-[#1f1f1f] text-white border-gray-700">
+            <DialogHeader className="p-4 border-b border-gray-700">
+                <DialogTitle className="flex items-center gap-2">
+                    <Settings2 className="h-5 w-5" /> Player Settings
+                </DialogTitle>
+            </DialogHeader>
+            <Tabs defaultValue="playback" className="grid grid-cols-4">
+                <TabsList className="flex flex-col h-auto col-span-1 p-2 bg-transparent items-start gap-1">
+                    <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                        <Play className="h-5 w-5" /> Playback
+                    </TabsTrigger>
+                    <TabsTrigger value="quality" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                        <SlidersHorizontal className="h-5 w-5" /> Quality
+                    </TabsTrigger>
+                    <TabsTrigger value="captions" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                        <Subtitles className="h-5 w-5" /> Captions
+                    </TabsTrigger>
+                    <TabsTrigger value="dvr" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                        <History className="h-5 w-5" /> DVR
+                    </TabsTrigger>
+                </TabsList>
+                <div className="col-span-3 p-4">
+                    <TabsContent value="playback" className="mt-0 space-y-6">
+                        <div className="p-4 rounded-lg bg-white/5 space-y-4">
+                             <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="font-semibold">Playback speed</Label>
+                                    <p className="text-xs text-gray-400">Adjust speed for time-shifted viewing</p>
+                                </div>
+                                <Select defaultValue="1.0x">
+                                    <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="0.5x">0.5x</SelectItem>
+                                        <SelectItem value="1.0x">1.0x</SelectItem>
+                                        <SelectItem value="1.5x">1.5x</SelectItem>
+                                        <SelectItem value="2.0x">2.0x</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="font-semibold">Skip intervals</Label>
+                                    <p className="text-xs text-gray-400">Controls skip forward/back duration</p>
+                                </div>
+                                <Select defaultValue="10 sec">
+                                    <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5 sec">5 sec</SelectItem>
+                                        <SelectItem value="10 sec">10 sec</SelectItem>
+                                        <SelectItem value="15 sec">15 sec</SelectItem>
+                                        <SelectItem value="30 sec">30 sec</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-lg bg-white/5 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="font-semibold">Low-latency mode</Label>
+                                    <p className="text-xs text-gray-400">Prioritize live edge over quality</p>
+                                </div>
+                                <Switch />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="font-semibold">Auto-play next live</Label>
+                                    <p className="text-xs text-gray-400">Join the next scheduled live automatically</p>
+                                </div>
+                                <Switch />
+                            </div>
+                        </div>
+                         <div className="p-4 rounded-lg bg-white/5">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <Label className="font-semibold">Audio output</Label>
+                                    <p className="text-xs text-gray-400">Choose output device</p>
+                                </div>
+                                <Select defaultValue="system">
+                                    <SelectTrigger className="w-36 bg-[#1f1f1f] border-gray-600">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="system">System default</SelectItem>
+                                        <SelectItem value="headphones">Headphones</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </div>
+            </Tabs>
+             <DialogFooter className="p-4 border-t border-gray-700">
+                <DialogClose asChild>
+                    <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
+                </DialogClose>
+                <Button className="bg-green-600 hover:bg-green-700 text-white">Save settings</Button>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
 
 export default function StreamPage() {
     const router = useRouter();
@@ -369,6 +484,7 @@ export default function StreamPage() {
      };
 
     return (
+        <Dialog>
         <div className="h-dvh w-full flex flex-col bg-black text-white">
             <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
                 <div className="flex items-center gap-2">
@@ -395,7 +511,7 @@ export default function StreamPage() {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1 overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -425,7 +541,9 @@ export default function StreamPage() {
                                     <div className="flex items-center gap-1 sm:gap-2">
                                         <Button variant="ghost" size="icon"><PictureInPicture /></Button>
                                         <Button variant="ghost" size="icon"><Share2 /></Button>
-                                        <Button variant="ghost" size="icon"><Settings /></Button>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" size="icon"><Settings /></Button>
+                                        </DialogTrigger>
                                         <Button variant="ghost" size="icon"><Maximize /></Button>
                                     </div>
                                 </div>
@@ -658,7 +776,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1 overflow-y-auto" ref={messagesEndRef}>
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                             <div key={msg.id || index} className="text-sm group relative">
@@ -705,9 +823,8 @@ export default function StreamPage() {
                                 ) : null}
                             </div>
                             ))}
-                            <div ref={messagesEndRef} />
                         </div>
-                    </ScrollArea>
+                    </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
@@ -788,5 +905,7 @@ export default function StreamPage() {
                 </div>
             </div>
         </div>
+        <PlayerSettingsDialog />
+        </Dialog>
     );
 }
