@@ -164,110 +164,112 @@ const mockChatMessages: any[] = [
 
 const PlayerSettingsDialog = () => {
     return (
-        <DialogContent className="max-w-2xl bg-[#1f1f1f] text-white border-gray-700">
+        <DialogContent className="max-w-2xl bg-[#1f1f1f] text-white border-gray-700 p-0">
             <DialogHeader className="p-4 border-b border-gray-700">
                 <DialogTitle className="flex items-center gap-2">
                     <Settings2 className="h-5 w-5" /> Player Settings
                 </DialogTitle>
             </DialogHeader>
-            <Tabs defaultValue="playback" className="grid grid-cols-4">
-                <TabsList className="flex flex-col h-auto col-span-1 p-2 bg-transparent items-start gap-1">
-                    <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                        <Play className="h-5 w-5" /> Playback
-                    </TabsTrigger>
-                    <TabsTrigger value="quality" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                        <SlidersHorizontal className="h-5 w-5" /> Quality
-                    </TabsTrigger>
-                    <TabsTrigger value="captions" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                        <Subtitles className="h-5 w-5" /> Captions
-                    </TabsTrigger>
-                    <TabsTrigger value="dvr" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                        <History className="h-5 w-5" /> DVR
-                    </TabsTrigger>
-                </TabsList>
-                <div className="col-span-3 p-4">
-                    <TabsContent value="playback" className="mt-0 space-y-6">
-                        <div className="p-4 rounded-lg bg-white/5 space-y-4">
-                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label className="font-semibold">Playback speed</Label>
-                                    <p className="text-xs text-gray-400">Adjust speed for time-shifted viewing</p>
+            <div className="grid grid-cols-4">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1">
+                        <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                            <Play className="h-5 w-5" /> Playback
+                        </TabsTrigger>
+                        <TabsTrigger value="quality" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                            <SlidersHorizontal className="h-5 w-5" /> Quality
+                        </TabsTrigger>
+                        <TabsTrigger value="captions" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                            <Subtitles className="h-5 w-5" /> Captions
+                        </TabsTrigger>
+                        <TabsTrigger value="dvr" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                            <History className="h-5 w-5" /> DVR
+                        </TabsTrigger>
+                    </TabsList>
+                    <div className="col-span-3 p-4">
+                        <TabsContent value="playback" className="mt-0 space-y-4">
+                            <div className="p-4 rounded-lg bg-white/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Playback speed</Label>
+                                        <p className="text-xs text-gray-400">Adjust speed for time-shifted viewing</p>
+                                    </div>
+                                    <Select defaultValue="1.0x">
+                                        <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="0.5x">0.5x</SelectItem>
+                                            <SelectItem value="1.0x">1.0x</SelectItem>
+                                            <SelectItem value="1.5x">1.5x</SelectItem>
+                                            <SelectItem value="2.0x">2.0x</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Select defaultValue="1.0x">
-                                    <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="0.5x">0.5x</SelectItem>
-                                        <SelectItem value="1.0x">1.0x</SelectItem>
-                                        <SelectItem value="1.5x">1.5x</SelectItem>
-                                        <SelectItem value="2.0x">2.0x</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label className="font-semibold">Skip intervals</Label>
-                                    <p className="text-xs text-gray-400">Controls skip forward/back duration</p>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Skip intervals</Label>
+                                        <p className="text-xs text-gray-400">Controls skip forward/back duration</p>
+                                    </div>
+                                    <Select defaultValue="10 sec">
+                                        <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5 sec">5 sec</SelectItem>
+                                            <SelectItem value="10 sec">10 sec</SelectItem>
+                                            <SelectItem value="15 sec">15 sec</SelectItem>
+                                            <SelectItem value="30 sec">30 sec</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Select defaultValue="10 sec">
-                                    <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="5 sec">5 sec</SelectItem>
-                                        <SelectItem value="10 sec">10 sec</SelectItem>
-                                        <SelectItem value="15 sec">15 sec</SelectItem>
-                                        <SelectItem value="30 sec">30 sec</SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
-                        </div>
-                        <div className="p-4 rounded-lg bg-white/5 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Label className="font-semibold">Low-latency mode</Label>
-                                    <p className="text-xs text-gray-400">Prioritize live edge over quality</p>
+                            <div className="p-4 rounded-lg bg-white/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Low-latency mode</Label>
+                                        <p className="text-xs text-gray-400">Prioritize live edge over quality</p>
+                                    </div>
+                                    <Switch />
                                 </div>
-                                <Switch />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Label className="font-semibold">Auto-play next live</Label>
-                                    <p className="text-xs text-gray-400">Join the next scheduled live automatically</p>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Auto-play next live</Label>
+                                        <p className="text-xs text-gray-400">Join the next scheduled live automatically</p>
+                                    </div>
+                                    <Switch />
                                 </div>
-                                <Switch />
                             </div>
-                        </div>
-                         <div className="p-4 rounded-lg bg-white/5">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <Label className="font-semibold">Audio output</Label>
-                                    <p className="text-xs text-gray-400">Choose output device</p>
+                            <div className="p-4 rounded-lg bg-white/5">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Audio output</Label>
+                                        <p className="text-xs text-gray-400">Choose output device</p>
+                                    </div>
+                                    <Select defaultValue="system">
+                                        <SelectTrigger className="w-36 bg-[#1f1f1f] border-gray-600">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="system">System default</SelectItem>
+                                            <SelectItem value="headphones">Headphones</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Select defaultValue="system">
-                                    <SelectTrigger className="w-36 bg-[#1f1f1f] border-gray-600">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="system">System default</SelectItem>
-                                        <SelectItem value="headphones">Headphones</SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
-                        </div>
-                    </TabsContent>
-                </div>
-            </Tabs>
-             <DialogFooter className="p-4 border-t border-gray-700">
+                        </TabsContent>
+                    </div>
+                </Tabs>
+            </div>
+            <DialogFooter className="p-4 border-t border-gray-700 bg-[#1f1f1f]">
                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
                 <Button className="bg-green-600 hover:bg-green-700 text-white">Save settings</Button>
             </DialogFooter>
         </DialogContent>
-    )
-}
+    );
+};
 
 export default function StreamPage() {
     const router = useRouter();
@@ -511,7 +513,7 @@ export default function StreamPage() {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <ScrollArea className="flex-1 overflow-y-auto">
+                <div className="flex-1 flex flex-col overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -550,7 +552,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="bg-background text-foreground p-4">
+                     <div className="bg-background text-foreground p-4">
                         <div className="mb-4">
                             <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
                             <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
@@ -628,7 +630,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                </ScrollArea>
+                </div>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -823,47 +825,48 @@ export default function StreamPage() {
                                 ) : null}
                             </div>
                             ))}
+                             <div ref={messagesEndRef} />
                         </div>
                     </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
                             <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                            <CarouselContent className="-ml-2">
-                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                <CarouselItem key={index} className="pl-2 basis-auto">
-                                    <div className="w-28">
-                                    <Card className="h-full flex flex-col overflow-hidden">
-                                        <Link href={`/product/${product.key}`} className="block">
-                                        <div className="aspect-square bg-muted rounded-t-lg relative">
-                                            <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
-                                            <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
-                                            <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
-                                            <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
+                                <CarouselContent className="-ml-2">
+                                    {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
+                                    <CarouselItem key={index} className="pl-2 basis-auto">
+                                        <div className="w-28">
+                                        <Card className="h-full flex flex-col overflow-hidden">
+                                            <Link href={`/product/${product.key}`} className="block">
+                                            <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
+                                                <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
+                                                <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
+                                                <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
+                                                </div>
                                             </div>
+                                            <div className="p-1.5">
+                                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
+                                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                            </div>
+                                            </Link>
+                                            <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                            {product.stock > 0 ? (
+                                                <>
+                                                <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                                </>
+                                            ) : (
+                                                <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                            )}
+                                            </CardFooter>
+                                        </Card>
                                         </div>
-                                        <div className="p-1.5">
-                                            <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                            <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                                        </div>
-                                        </Link>
-                                        <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                        {product.stock > 0 ? (
-                                            <>
-                                            <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                            <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
-                                            </>
-                                        ) : (
-                                            <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                        )}
-                                        </CardFooter>
-                                    </Card>
-                                    </div>
-                                </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
-                            <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
+                                    </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
+                                <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
                             </Carousel>
                         </div>
                         )}
