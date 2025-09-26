@@ -641,12 +641,22 @@ export default function StreamPage() {
         setActiveAuctionProduct(null);
     };
 
+    const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
+      'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FashionFinds' },
+      'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GadgetGuru' },
+      'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'HomeHaven' },
+      'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BeautyBox' },
+      'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'KitchenWiz' },
+      'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FitFlow' },
+      'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'ArtisanAlley' },
+      'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'PetPalace' },
+      'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BookNook' },
+      'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GamerGuild' },
+  };
+
     const auctionableProducts = useMemo(() => {
         if (!seller) return [];
-        // Use the brand property as a proxy for the seller's name
-        return Object.values(productDetails).filter(
-            (p: any) => p.isAuctionItem && p.brand === seller.name
-        );
+        return Object.values(productDetails).filter((p: any) => p.isAuctionItem && productToSellerMapping[p.key]?.name === seller.name);
     }, [seller]);
 
 
@@ -749,6 +759,11 @@ export default function StreamPage() {
                                 <Button variant="secondary" size="sm" className="h-7">
                                     <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                 </Button>
+                                 {seller.hasAuction && (
+                                    <Badge variant="purple" className="flex items-center gap-1.5">
+                                        <Gavel className="h-3 w-3" /> Featured Auction
+                                    </Badge>
+                                )}
                                 </>
                             )}
                             </div>
@@ -796,6 +811,59 @@ export default function StreamPage() {
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
+                        <Dialog>
+                            {seller?.uid === user?.uid && (
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
+                                        <Gavel className="h-5 w-5" />
+                                    </Button>
+                                </DialogTrigger>
+                            )}
+                            <DialogContent className="max-w-xl">
+                                <DialogHeader>
+                                    <DialogTitle>Start an Auction</DialogTitle>
+                                    <DialogDescription>
+                                        Select a product from your inventory to start an auction. The auction will be announced in the chat.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                {activeAuctionProduct ? (
+                                    <div className="py-4 space-y-4">
+                                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted">
+                                            <Image src={activeAuctionProduct.images[0]} alt={activeAuctionProduct.name} width={80} height={80} className="rounded-md" />
+                                            <div>
+                                                <h4 className="font-semibold">{activeAuctionProduct.name}</h4>
+                                                <p className="text-sm">Starting Bid: {activeAuctionProduct.price}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-sm text-muted-foreground">Current Bid</p>
+                                            <p className="text-4xl font-bold">₹{currentBid.toLocaleString()}</p>
+                                            <p className="text-sm text-muted-foreground">Highest Bidder: {highestBidder || 'None'}</p>
+                                        </div>
+                                         <Button onClick={handleEndAuction} variant="destructive" className="w-full">
+                                            End Auction
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <ScrollArea className="h-96">
+                                        <div className="space-y-2 p-1">
+                                            {auctionableProducts.length > 0 ? auctionableProducts.map(p => (
+                                                <div key={p.key} className="flex items-center justify-between p-2 border rounded-md">
+                                                    <div className="flex items-center gap-3">
+                                                        <Image src={p.images[0]} alt={p.name} width={40} height={40} className="rounded-md" />
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{p.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{p.price}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button size="sm" onClick={() => handleStartAuction(p)}>Start Auction</Button>
+                                                </div>
+                                            )) : <p className="text-center text-muted-foreground py-8">No auctionable products found.</p>}
+                                        </div>
+                                    </ScrollArea>
+                                )}
+                            </DialogContent>
+                        </Dialog>
                         <Popover>
                             <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -1078,6 +1146,7 @@ export default function StreamPage() {
 
 
     
+
 
 
 
