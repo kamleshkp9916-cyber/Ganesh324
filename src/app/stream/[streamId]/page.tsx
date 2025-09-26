@@ -177,8 +177,8 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 p-2">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -328,7 +328,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
-                <DialogClose asChild>
+                 <DialogClose asChild>
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white">Save settings</Button>
                 </DialogClose>
             </DialogFooter>
@@ -362,6 +362,7 @@ export default function StreamPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const progressContainerRef = useRef<HTMLDivElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -425,11 +426,25 @@ export default function StreamPage() {
         }
     }, []);
 
-    const handleSeek = (direction: 'forward' | 'backward') => {
+    const handleSeek = useCallback((direction: 'forward' | 'backward') => {
         const video = videoRef.current;
         if (!video) return;
         const newTime = direction === 'forward' ? video.currentTime + skipInterval : video.currentTime - skipInterval;
         video.currentTime = Math.max(0, Math.min(duration, newTime));
+    }, [duration, skipInterval]);
+    
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const video = videoRef.current;
+        const progressContainer = progressContainerRef.current;
+        if (!video || !progressContainer) return;
+
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        const percentage = clickX / width;
+        const newTime = duration * percentage;
+        
+        video.currentTime = newTime;
     };
     
     useEffect(() => {
@@ -438,8 +453,10 @@ export default function StreamPage() {
             const updateProgress = () => {
                 setCurrentTime(video.currentTime);
                 if (duration - video.currentTime < 5) {
-                    video.playbackRate = 1;
-                    setPlaybackRate(1);
+                    if(video.playbackRate !== 1) {
+                        video.playbackRate = 1;
+                        setPlaybackRate(1);
+                    }
                 }
             };
             const setVideoDuration = () => setDuration(video.duration);
@@ -632,7 +649,9 @@ export default function StreamPage() {
                                 <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
                             </div>
                             <div className="space-y-3">
-                                <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                                    <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
                                         <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
@@ -656,7 +675,7 @@ export default function StreamPage() {
                      <div className="p-4">
                         <div className="mb-4">
                             <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
+                            <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -713,7 +732,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border no-scrollbar">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -860,7 +879,8 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
+                     <ScrollArea className="flex-1" ref={chatContainerRef}>
+                        <div className="p-4 space-y-2">
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
@@ -907,7 +927,8 @@ export default function StreamPage() {
                         </div>
                         ))}
                          <div ref={messagesEndRef} />
-                    </div>
+                        </div>
+                    </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
@@ -997,3 +1018,4 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
