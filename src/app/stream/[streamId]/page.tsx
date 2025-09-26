@@ -704,23 +704,58 @@ export default function StreamPage() {
                             <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                            {seller && (
-                                <>
-                                <Avatar>
-                                    <AvatarImage src={seller.avatarUrl} />
-                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <h3 className="font-semibold">{seller.name}</h3>
-                                <Button variant="secondary" size="sm" className="h-7">
-                                    <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                </Button>
-                                 <Badge variant="secondary" className="flex items-center gap-1.5">
-                                    <Gavel className="h-3 w-3" /> Featured Auction
-                                </Badge>
-                                </>
-                            )}
-                            </div>
+                            <Collapsible className="w-full">
+                                <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                    <Avatar>
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="font-semibold">{seller.name}</h3>
+                                    <Button variant="secondary" size="sm" className="h-7">
+                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                    </Button>
+                                    {seller.hasAuction && (
+                                        <Badge variant="secondary" className="flex items-center gap-1.5">
+                                            <Gavel className="h-3 w-3" /> Featured Auction
+                                        </Badge>
+                                    )}
+                                     <CollapsibleTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <ShoppingBag className="h-5 w-5"/>
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    </>
+                                )}
+                                </div>
+                                <CollapsibleContent className="mt-4">
+                                     <Card className="overflow-hidden">
+                                        <CardContent className="p-0">
+                                            <div className="flex items-center gap-3 p-2">
+                                            <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md" />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-semibold truncate">{product.name}</p>
+                                                <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                            </div>
+                                            </div>
+                                        </CardContent>
+                                        <CardFooter className="p-1 grid grid-cols-2 gap-1">
+                                            {product.stock > 0 ? (
+                                            <>
+                                                <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
+                                                <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
+                                                <Zap className="w-3 h-3 mr-1" />
+                                                Buy Now
+                                                </Button>
+                                            </>
+                                            ) : (
+                                            <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                            )}
+                                        </CardFooter>
+                                    </Card>
+                                </CollapsibleContent>
+                            </Collapsible>
                         </div>
                         
                         <div className="mt-8">
@@ -1000,11 +1035,6 @@ export default function StreamPage() {
                             </Carousel>
                         </div>
                         )}
-                        <div className="flex items-center gap-1 mb-2">
-                        <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
-                            <ShoppingBag className="h-5 w-5" />
-                        </Button>
-                        </div>
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                         <div className="relative flex-grow">
                             <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
