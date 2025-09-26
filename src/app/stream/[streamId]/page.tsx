@@ -153,7 +153,7 @@ const mockChatMessages: any[] = [
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userColor: '#2ecc71', userId: 'user4' },
     { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 9, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userColor: '#e67e22', userId: 'user5' },
-    { id: 10, type: 'system', text: 'An auction for the Vintage Camera has started! Opening bid: ₹8,000' },
+    { id: 10, type: 'auction', productId: 'prod_1' },
     { id: 11, user: 'Mike', text: 'BID ₹8,500', avatar: 'https://placehold.co/40x40.png', userColor: '#1abc9c', userId: 'user6', isBid: true },
     { id: 12, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userColor: '#d35400', userId: 'user7', isBid: true },
     { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
@@ -174,7 +174,6 @@ const mockChatMessages: any[] = [
     { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userColor: '#2c3e50', userId: 'user14', isBid: true },
     { id: 29, type: 'system', text: 'The auction for the Vintage Camera has ended.' },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' },
-    { id: 31, type: 'auction', productId: 'prod_1' },
 ];
 
 const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
@@ -360,7 +359,10 @@ export default function StreamPage() {
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
-    const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+    const [pinnedMessages, setPinnedMessages] = useState<any[]>([
+        { id: 999, user: 'FashionFinds', isSeller: true, text: '🎉 Special Offer! Use code LIVE10 for 10% off your entire order, only during this stream!' },
+        { id: 998, user: 'FashionFinds', isSeller: true, text: 'Featured Product: Vintage Camera. Ask me anything about it!' },
+    ]);
 
     const mockStreamData = {
         id: streamId,
@@ -751,21 +753,21 @@ export default function StreamPage() {
                                     <Button variant="secondary" size="sm" className="h-7">
                                         <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                     </Button>
-                                     {seller.hasAuction && (
+                                    {seller.hasAuction && (
                                         <Badge variant="secondary" className="flex items-center gap-1.5">
                                             <Gavel className="h-3 w-3" /> Featured Auction
                                         </Badge>
                                     )}
                                      <CollapsibleTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                          <ShoppingBag className="h-5 w-5"/>
+                                        <Button variant="outline" size="sm" className="h-7">
+                                            <ShoppingBag className="mr-1.5 h-4 w-4" /> View Products
                                         </Button>
                                     </CollapsibleTrigger>
                                     </>
                                 )}
                                 </div>
                                 <CollapsibleContent className="mt-4">
-                                    <div className="relative">
+                                     <div className="relative">
                                         <Carousel opts={{ align: "start" }} className="w-full">
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2']]).map((product: any, index: number) => (
@@ -1069,3 +1071,4 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
