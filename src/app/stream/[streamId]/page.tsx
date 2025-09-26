@@ -267,21 +267,21 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                     <div className="space-y-2">
                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
                                             <div>
-                                                <p>Auto <Badge className="ml-2 bg-blue-600">LIVE</Badge></p>
+                                                <div>Auto <Badge className="ml-2 bg-blue-600">LIVE</Badge></div>
                                                 <div className="text-xs text-gray-400">Adaptive bitrate (recommended)</div>
                                             </div>
                                             <RadioGroupItem value="auto" />
                                         </Label>
                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <p>1080p • High</p>
+                                            <div>1080p • High</div>
                                             <RadioGroupItem value="1080p" />
                                         </Label>
                                          <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <p>720p • Medium</p>
+                                            <div>720p • Medium</div>
                                             <RadioGroupItem value="720p" />
                                         </Label>
                                          <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <p>480p • Data saver</p>
+                                            <div>480p • Data saver</div>
                                             <RadioGroupItem value="480p" />
                                         </Label>
                                     </div>
@@ -687,7 +687,7 @@ export default function StreamPage() {
                                         <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
                                             {isMuted ? <VolumeX /> : <Volume2 />}
                                         </Button>
-                                        <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
+                                        <p className="text-sm font-mono">{formatTime(currentTime)}</p>
                                     </div>
                                     <div className="flex items-center gap-1 sm:gap-2">
                                         <Button variant="ghost" size="icon"><PictureInPicture /></Button>
@@ -1052,3 +1052,4 @@ export default function StreamPage() {
 
 
     
+
