@@ -172,8 +172,8 @@ const PlayerSettingsDialog = () => {
                 </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 p-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -181,7 +181,7 @@ const PlayerSettingsDialog = () => {
                             <SlidersHorizontal className="h-5 w-5" /> Quality
                         </TabsTrigger>
                     </TabsList>
-                    <div className="col-span-3 pl-4">
+                    <div className="col-span-3 p-4 pl-0">
                         <TabsContent value="playback" className="mt-0 space-y-4">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -459,9 +459,13 @@ export default function StreamPage() {
         }
     };
     
+    const handleAutoScroll = useCallback(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, []);
+
     useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [chatMessages]);
+        handleAutoScroll();
+    }, [chatMessages, handleAutoScroll]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -575,7 +579,7 @@ export default function StreamPage() {
             </header>
 
              <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col overflow-y-auto">
+                <ScrollArea className="flex-1 overflow-y-auto no-scrollbar">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -635,25 +639,6 @@ export default function StreamPage() {
                             )}
                             </div>
                         </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {sellerProducts.map(p => (
-                                <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                <Card className="overflow-hidden">
-                                    <div className="aspect-square bg-muted relative">
-                                    <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
-                                    </div>
-                                    <div className="p-2">
-                                    <p className="text-xs font-semibold truncate">{p.name}</p>
-                                    <p className="font-bold text-base">{p.price}</p>
-                                    </div>
-                                </Card>
-                                </Link>
-                            ))}
-                            {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
-                            </div>
-                        </div>
                         
                         <div className="mt-8">
                             <h4 className="font-semibold mb-4">Related Streams</h4>
@@ -692,7 +677,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </ScrollArea>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -972,4 +957,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
