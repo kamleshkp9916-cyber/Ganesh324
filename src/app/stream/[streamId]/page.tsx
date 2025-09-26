@@ -187,7 +187,7 @@ const PlayerSettingsDialog = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Playback speed</Label>
-                                        <p className="text-xs text-gray-400">Adjust speed for time-shifted viewing</p>
+                                        <div className="text-xs text-gray-400">Adjust speed for time-shifted viewing</div>
                                     </div>
                                     <Select defaultValue="1.0x">
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
@@ -204,7 +204,7 @@ const PlayerSettingsDialog = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Skip intervals</Label>
-                                        <p className="text-xs text-gray-400">Controls skip forward/back duration</p>
+                                        <div className="text-xs text-gray-400">Controls skip forward/back duration</div>
                                     </div>
                                     <Select defaultValue="10 sec">
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
@@ -223,14 +223,14 @@ const PlayerSettingsDialog = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Low-latency mode</Label>
-                                        <p className="text-xs text-gray-400">Prioritize live edge over quality</p>
+                                        <div className="text-xs text-gray-400">Prioritize live edge over quality</div>
                                     </div>
                                     <Switch />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Auto-play next live</Label>
-                                        <p className="text-xs text-gray-400">Join the next scheduled live automatically</p>
+                                        <div className="text-xs text-gray-400">Join the next scheduled live automatically</div>
                                     </div>
                                     <Switch />
                                 </div>
@@ -239,7 +239,7 @@ const PlayerSettingsDialog = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Audio output</Label>
-                                        <p className="text-xs text-gray-400">Choose output device</p>
+                                        <div className="text-xs text-gray-400">Choose output device</div>
                                     </div>
                                     <Select defaultValue="system">
                                         <SelectTrigger className="w-36 bg-[#1f1f1f] border-gray-600">
@@ -256,13 +256,13 @@ const PlayerSettingsDialog = () => {
                         <TabsContent value="quality" className="mt-0 space-y-4">
                              <div className="p-4 rounded-lg bg-white/5">
                                 <Label className="font-semibold">Streaming quality</Label>
-                                <p className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</p>
+                                <div className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</div>
                                 <RadioGroup defaultValue="auto">
                                     <div className="space-y-2">
                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
                                             <div>
                                                 <p>Auto <Badge className="ml-2 bg-blue-600">LIVE</Badge></p>
-                                                <p className="text-xs text-gray-400">Adaptive bitrate (recommended)</p>
+                                                <div className="text-xs text-gray-400">Adaptive bitrate (recommended)</div>
                                             </div>
                                             <RadioGroupItem value="auto" />
                                         </Label>
@@ -285,14 +285,14 @@ const PlayerSettingsDialog = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Data saver mode</Label>
-                                        <p className="text-xs text-gray-400">Reduce bitrate to minimize usage</p>
+                                        <div className="text-xs text-gray-400">Reduce bitrate to minimize usage</div>
                                     </div>
                                     <Switch />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">HDR</Label>
-                                        <p className="text-xs text-gray-400">Enable if display supports HDR</p>
+                                        <div className="text-xs text-gray-400">Enable if display supports HDR</div>
                                     </div>
                                     <Switch />
                                 </div>
@@ -301,7 +301,7 @@ const PlayerSettingsDialog = () => {
                                  <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Max resolution on mobile data</Label>
-                                        <p className="text-xs text-gray-400">Applies when not on Wi-Fi</p>
+                                        <div className="text-xs text-gray-400">Applies when not on Wi-Fi</div>
                                     </div>
                                     <Select defaultValue="720p">
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
@@ -354,8 +354,6 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
-    const chatContainerRef = useRef<HTMLDivElement>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
@@ -371,6 +369,9 @@ export default function StreamPage() {
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
+    
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
      const sellerProducts = useMemo(() => {
         if (!seller) return [];
@@ -574,7 +575,7 @@ export default function StreamPage() {
             </header>
 
              <div className="flex flex-1 overflow-hidden">
-                <ScrollArea className="flex-1">
+                <div className="flex-1 flex flex-col overflow-y-auto">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -691,7 +692,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                </ScrollArea>
+                </div>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -839,7 +840,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <ScrollArea ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+                     <div className="flex-1 overflow-y-auto p-4 space-y-2" ref={chatContainerRef}>
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
@@ -886,7 +887,7 @@ export default function StreamPage() {
                         </div>
                         ))}
                          <div ref={messagesEndRef} />
-                    </ScrollArea>
+                    </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
@@ -971,3 +972,4 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
