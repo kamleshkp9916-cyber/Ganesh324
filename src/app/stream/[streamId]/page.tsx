@@ -325,7 +325,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                     </div>
                 </Tabs>
             </div>
-            <DialogFooter className="p-4 border-t border-gray-700">
+             <DialogFooter className="p-4 border-t border-gray-700">
                  <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={onClose}>Done</Button>
                 </DialogClose>
@@ -464,7 +464,7 @@ export default function StreamPage() {
                 if (video.buffered.length > 0) {
                     setBuffered(video.buffered.end(video.buffered.length - 1));
                 }
-                const isCurrentlyLive = (duration - video.currentTime) < 2;
+                const isCurrentlyLive = (video.duration - video.currentTime) < 2;
                 setIsLive(isCurrentlyLive);
                 
                 if (isCurrentlyLive && video.playbackRate !== 1) {
@@ -715,11 +715,9 @@ export default function StreamPage() {
                                 <Button variant="secondary" size="sm" className="h-7">
                                     <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                 </Button>
-                                 {seller.hasAuction && (
-                                    <Badge variant="secondary" className="flex items-center gap-1.5">
-                                        <Gavel className="h-3 w-3" /> Featured Auction
-                                    </Badge>
-                                )}
+                                 <Badge variant="secondary" className="flex items-center gap-1.5">
+                                    <Gavel className="h-3 w-3" /> Featured Auction
+                                </Badge>
                                 </>
                             )}
                             </div>
@@ -1045,14 +1043,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
-
-
-    
-
-
-
-
-
-
-
