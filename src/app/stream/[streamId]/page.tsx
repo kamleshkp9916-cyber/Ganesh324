@@ -635,11 +635,6 @@ export default function StreamPage() {
     const handleShare = () => {};
 
      const handleTogglePinMessage = (msgId: number) => {
-        setChatMessages(prevMessages =>
-            prevMessages.map(msg =>
-                msg.id === msgId ? { ...msg, isPinned: !msg.isPinned } : msg
-            )
-        );
         const msg = chatMessages.find(m => m.id === msgId);
         if (msg) {
             setPinnedMessages(prev =>
@@ -648,9 +643,9 @@ export default function StreamPage() {
                     : [...prev, msg]
             );
             toast({
-                title: msg.isPinned ? "Message Unpinned" : "Message Pinned",
+                title: prevPinned => prevPinned.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
                 description: "The message has been updated in the pinned items."
-            })
+            });
         }
     };
 
@@ -725,12 +720,12 @@ export default function StreamPage() {
                                         <p className="text-sm font-mono">{formatTime(currentTime)}</p>
                                     </div>
                                     <div className="flex items-center gap-1 sm:gap-2">
-                                        <Button variant="ghost" size="icon"><PictureInPicture /></Button>
-                                        <Button variant="ghost" size="icon"><Share2 /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => videoRef.current?.requestPictureInPicture()}><PictureInPicture /></Button>
+                                        <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
                                         <DialogTrigger asChild>
                                             <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
                                         </DialogTrigger>
-                                        <Button variant="ghost" size="icon"><Maximize /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => playerRef.current?.requestFullscreen()}><Maximize /></Button>
                                     </div>
                                 </div>
                             </div>
@@ -754,16 +749,16 @@ export default function StreamPage() {
                                     <Button variant="secondary" size="sm" className="h-7">
                                         <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                     </Button>
-                                    {seller.hasAuction && (
-                                        <Badge variant="secondary" className="flex items-center gap-1.5">
-                                            <Gavel className="h-3 w-3" /> Featured Auction
-                                        </Badge>
-                                    )}
                                      <CollapsibleTrigger asChild>
                                         <Button variant="outline" size="sm" className="h-7">
                                             <ShoppingBag className="mr-1.5 h-4 w-4" /> View Products
                                         </Button>
                                     </CollapsibleTrigger>
+                                     {seller.hasAuction && (
+                                         <Badge variant="secondary" className="flex items-center gap-1.5">
+                                            <Gavel className="h-3 w-3" /> Featured Auction
+                                        </Badge>
+                                    )}
                                     </>
                                 )}
                                 </div>
@@ -849,7 +844,7 @@ export default function StreamPage() {
                     </div>
                 </div>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border no-scrollbar">
-                    <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
+                    <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
                         <Popover>
@@ -1052,7 +1047,7 @@ export default function StreamPage() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
-                                        {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{msg.isPinned ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
+                                        {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -1104,3 +1099,5 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
+    
