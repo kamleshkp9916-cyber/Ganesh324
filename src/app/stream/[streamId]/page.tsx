@@ -171,9 +171,9 @@ const PlayerSettingsDialog = () => {
                     <Settings2 className="h-5 w-5" /> Player Settings
                 </DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
+            <div className="grid grid-cols-4 p-4">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 gap-4">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -181,7 +181,7 @@ const PlayerSettingsDialog = () => {
                             <SlidersHorizontal className="h-5 w-5" /> Quality
                         </TabsTrigger>
                     </TabsList>
-                    <div className="col-span-3 p-4">
+                    <div className="col-span-3">
                         <TabsContent value="playback" className="mt-0 space-y-4">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -579,7 +579,7 @@ export default function StreamPage() {
             </header>
 
              <div className="flex flex-1 overflow-hidden">
-                <ScrollArea className="flex-1 overflow-y-auto no-scrollbar">
+                <div className="flex-1 overflow-y-auto no-scrollbar">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -677,7 +677,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                </ScrollArea>
+                </div>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -825,7 +825,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
+                     <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
@@ -872,7 +872,7 @@ export default function StreamPage() {
                         </div>
                         ))}
                          <div ref={messagesEndRef} />
-                    </div>
+                    </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
