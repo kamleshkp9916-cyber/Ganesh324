@@ -1035,54 +1035,6 @@ export default function StreamPage() {
                         <Button variant={isProductListVisible ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setIsProductListVisible(prev => !prev)}>
                             <ShoppingBag className="h-5 w-5" />
                         </Button>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                {seller?.hasAuction && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300">
-                                        <Gavel className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </DialogTrigger>
-                             <DialogContent className="max-w-lg">
-                                <DialogHeader>
-                                    <DialogTitle>Auction Management</DialogTitle>
-                                    <DialogDescription>
-                                        {activeAuctionProduct ? 'Auction in progress.' : 'Select a product to start an auction.'}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                {activeAuctionProduct ? (
-                                    <div className="space-y-4 py-4">
-                                        <Card>
-                                            <CardContent className="p-4 flex items-center gap-4">
-                                                <Image src={activeAuctionProduct.images[0].preview || activeAuctionProduct.images[0]} alt={activeAuctionProduct.name} width={80} height={80} className="rounded-md" />
-                                                <div>
-                                                    <h4 className="font-bold">{activeAuctionProduct.name}</h4>
-                                                    <p className="text-sm text-muted-foreground">Current Bid: <span className="font-bold text-primary text-lg">₹{currentBid.toLocaleString()}</span></p>
-                                                    <p className="text-sm text-muted-foreground">Highest Bidder: <span className="font-semibold">{highestBidder || 'None'}</span></p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                        <Button variant="destructive" className="w-full" onClick={handleEndAuction}>End Auction</Button>
-                                    </div>
-                                ) : (
-                                    <ScrollArea className="max-h-96">
-                                        <div className="space-y-3 pr-4 py-2">
-                                            {auctionableProducts.map(p => (
-                                                <div key={p.key} className="flex items-center gap-4 p-2 rounded-lg border">
-                                                    <Image src={p.images[0]} alt={p.name} width={50} height={50} className="rounded-md" />
-                                                    <div className="flex-grow">
-                                                        <p className="font-semibold">{p.name}</p>
-                                                        <p className="text-sm text-muted-foreground">{p.price}</p>
-                                                    </div>
-                                                    <Button size="sm" onClick={() => handleStartAuction(p)}>Start Auction</Button>
-                                                </div>
-                                            ))}
-                                            {auctionableProducts.length === 0 && <p className="text-center text-muted-foreground py-8">This seller has no products marked for auction.</p>}
-                                        </div>
-                                    </ScrollArea>
-                                )}
-                            </DialogContent>
-                        </Dialog>
                         </div>
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                         <div className="relative flex-grow">
@@ -1126,6 +1078,7 @@ export default function StreamPage() {
 
 
     
+
 
 
 
